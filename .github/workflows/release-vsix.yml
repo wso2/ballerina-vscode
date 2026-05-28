@@ -1,0 +1,107 @@
+name: Release VSIX
+
+on:
+  workflow_dispatch:
+    inputs:
+      isPreRelease:
+        required: true
+        type: boolean
+        default: true
+      ballerinaLsTag:
+        description: 'Override Ballerina LS download tag (latest, prerelease, v1.5.0). Overrides isPreRelease for LS download.'
+        type: string
+        required: false
+        default: ''
+      version:
+        type: choice
+        description: 'Enter the version type'
+        required: true
+        default: 'N/A'
+        options:
+          - 'patch'
+          - 'minor'
+          - 'major'
+          - 'N/A'
+
+jobs:
+  Build:
+    name: Build branch - ${{ github.ref_name }}
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      runOnAWS: true
+      isPreRelease: ${{ inputs.isPreRelease }}
+      ballerinaLsTag: ${{ inputs.ballerinaLsTag }}
+      enableCache: false
+      ballerina: true
+      version: ${{ inputs.version }}
+      isReleaseBuild: true
+
+  Release:
+    name: Release VSIX
+    needs: Build
+    timeout-minutes: 45
+    runs-on: codebuild-ballerina-vscode-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Restore build
+        uses: actions/download-artifact@v4
+        with:
+          name: ExtBuild
+          path: ./
+
+      - name: Set up workspace
+        run: |
+          unzip build.zip
+          rm build.zip
+
+      - name: Setup Rush
+        uses: gigara/setup-rush@v1.2.0
+        with:
+          pnpm: 10.11.0
+          node: 22.x
+          cache-rush: false
+          cache-pnpm: false
+          set-env: false
+          rush-install: true
+
+      - name: Get version
+        id: vsix
+        run: |
+          file=$(ls ballerina-[0-9]*.[0-9]*.[0-9]*.vsix)
+          version=$(basename "$file" .vsix)
+          echo "$version"
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Create a release in wso2/ballerina-vscode repo
+        uses: ./.github/actions/release
+        with:
+          repo: wso2/ballerina-vscode
+          name: ballerina
+          token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          chatAPI: ${{ secrets.BI_TEAM_CHAT_API }}
+
+      - name: Create PR and notify
+        uses: ./.github/actions/pr
+        with:
+          version: ${{ steps.vsix.outputs.version }}
+          isPreRelease: ${{ github.event.inputs.isPreRelease }}
+          bot_username: ${{ secrets.CHOREO_BOT_USERNAME }}
+          bot_email: ${{ secrets.CHOREO_BOT_EMAIL }}
+          bot_token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          ref_name: ${{ github.ref_name }}
+          ballerina: true
+          chatAPI: ${{ secrets.TOOLING_TEAM_CHAT_API }}
+
+  Notify:
+    needs: [Release]
+    if: ${{ always() && contains(needs.*.result, 'failure') && github.repository == 'wso2/ballerina-vscode' }}
+    runs-on: codebuild-ballerina-vscode-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Failure Notification"
+        uses: ./.github/actions/failure-notification
+        with:
+          title: "Release Build Failed"
+          run_id: ${{ github.run_id }}
+          chat_api: ${{ secrets.TOOLING_TEAM_CHAT_API }}
+          repository: ${{ github.repository }}

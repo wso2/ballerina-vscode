@@ -1,0 +1,15 @@
+{
+    "operationSettings": [
+        {
+            "operationName": "build",
+            "outputFolderNames": [
+                "dist",
+                "build",
+                "build-app",
+                "lib",
+                "vsix",
+                "resources/jslibs"
+            ]
+        }
+    ]
+}

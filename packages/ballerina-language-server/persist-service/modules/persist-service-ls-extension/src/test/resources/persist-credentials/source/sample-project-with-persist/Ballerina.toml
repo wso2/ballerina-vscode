@@ -1,0 +1,17 @@
+[package]
+org = "test"
+name = "sample_project_with_persist"
+version = "0.1.0"
+
+[[tool.persist]]
+id = "sample_project_with_persist.testdb"
+targetModule = "sample_project_with_persist.testdb"
+filePath = "persist/testdb/model.bal"
+options.datastore = "mysql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[dependency]]
+org = "ballerina"
+name = "tool.persist"
+version = "1.9.0"

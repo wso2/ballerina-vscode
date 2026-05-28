@@ -1,0 +1,8 @@
+{
+  "description": "Convert string to boolean with empty string check",
+  "output": "output.boolField",
+  "outputType": "boolean",
+  "expression": "input.stringField",
+  "expressionType": "string",
+  "convertedExpression": "((input.stringField == \"\") ? false : true)"
+}

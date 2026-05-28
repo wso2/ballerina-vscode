@@ -1,0 +1,1 @@
+public configurable float bar = ?;

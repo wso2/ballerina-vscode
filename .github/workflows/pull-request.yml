@@ -1,0 +1,140 @@
+name: PR build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect changes
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    outputs:
+      ls: ${{ steps.filter.outputs.ls }}
+      ext: ${{ steps.filter.outputs.ext }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ls:
+              - 'packages/ballerina-language-server/**'
+              - '.github/workflows/pull-request.yml'
+            ext:
+              - 'packages/**'
+              - '!packages/ballerina-language-server/**'
+              - 'submodules/wso2-vscode-extensions/workspaces/common-libs/**'
+              - 'common/**'
+              - 'rush.json'
+              - 'rush-config.json'
+              - '.github/workflows/pull-request.yml'
+              - '.github/workflows/build.yml'
+              - '.github/actions/**'
+
+  ls-ubuntu-build:
+    name: LS build (Ubuntu)
+    needs: changes
+    if: needs.changes.outputs.ls == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: ${{ github.head_ref }}-ls-ubuntu
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: packages/ballerina-language-server
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21.0.3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set Up Ballerina
+        uses: ballerina-platform/setup-ballerina@v1.1.4
+        with:
+          version: 2201.13.3
+
+      - name: Cache Ballerina dependencies (Ubuntu)
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/.ballerina/repositories/
+          key: ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-${{ hashFiles('**/gradle.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-
+
+      - name: Build with Gradle
+        env:
+          packageUser: ${{ github.actor }}
+          packagePAT: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew build
+
+  ls-windows-build:
+    name: LS build (Windows)
+    needs: changes
+    if: needs.changes.outputs.ls == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    concurrency:
+      group: ${{ github.head_ref }}-ls-windows
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: packages/ballerina-language-server
+    steps:
+      - name: Enable long paths for Git
+        shell: bash
+        run: git config --system core.longpaths true
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21.0.3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set Up Ballerina
+        uses: ballerina-platform/setup-ballerina@v1.1.4
+        with:
+          version: 2201.13.3
+
+      - name: Cache Ballerina dependencies (Windows)
+        uses: actions/cache@v4
+        with:
+          path: C:\Users\runneradmin\.ballerina\repositories\
+          key: ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-${{ hashFiles('**/gradle.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-
+
+      - name: Build with Gradle
+        env:
+          packageUser: ${{ github.actor }}
+          packagePAT: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew.bat build
+
+  extension-build:
+    name: Extension build
+    needs: changes
+    if: needs.changes.outputs.ext == 'true'
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      runOnAWS: ${{ contains(github.event.pull_request.labels.*.name, 'Runner/AWS') }}
+      runBalE2ETests: ${{ contains(github.event.pull_request.labels.*.name, 'Checks/Run Ballerina UI Tests') || github.base_ref == 'stable/ballerina' }}

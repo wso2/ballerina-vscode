@@ -1,0 +1,300 @@
+{
+  "source": "variable13.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable13.bal",
+      "startLine": {
+        "line": 48,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 48,
+        "offset": 19
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 47,
+    "offset": 42
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "param",
+        "displayName": "param",
+        "typeName": "Person",
+        "kind": "record",
+        "category": "parameter",
+        "ref": "887620673"
+      },
+      {
+        "fields": [],
+        "name": "user",
+        "displayName": "user",
+        "typeName": "User",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "1373151159"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "u",
+      "displayName": "u",
+      "typeName": "User",
+      "kind": "record",
+      "ref": "1373151159"
+    },
+    "mappings": [],
+    "refs": {
+      "-1673315977": {
+        "fields": [
+          {
+            "name": "city",
+            "displayName": "city",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "state",
+            "displayName": "state",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "zipCode",
+            "displayName": "zipCode",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "-1686583489": {
+        "fields": [
+          {
+            "name": "accountNumber",
+            "displayName": "accountNumber",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "balance",
+            "displayName": "balance",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "lastTransaction",
+            "displayName": "lastTransaction",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1387857683": {
+        "fields": [
+          {
+            "name": "email",
+            "displayName": "email",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "primaryPhone",
+            "displayName": "primaryPhone",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1012789572": {
+        "fields": [
+          {
+            "name": "street",
+            "displayName": "street",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "city",
+            "displayName": "city",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "state",
+            "displayName": "state",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "postalCode",
+            "displayName": "postalCode",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1373151159": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "customer",
+            "displayName": "customer",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-656952594"
+          },
+          {
+            "fields": [],
+            "name": "account",
+            "displayName": "account",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-1686583489"
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "887620673": {
+        "fields": [
+          {
+            "name": "fullName",
+            "displayName": "fullName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "contactDetails",
+            "displayName": "contactDetails",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "1387857683"
+          },
+          {
+            "fields": [],
+            "name": "location",
+            "displayName": "location",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-1673315977"
+          },
+          {
+            "fields": [],
+            "name": "accountInfo",
+            "displayName": "accountInfo",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "1255890909"
+          },
+          {
+            "name": "transactionDate",
+            "displayName": "transactionDate",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "-656952594": {
+        "fields": [
+          {
+            "name": "firstName",
+            "displayName": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "lastName",
+            "displayName": "lastName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "email",
+            "displayName": "email",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "address",
+            "displayName": "address",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "1012789572"
+          },
+          {
+            "name": "phoneNumber",
+            "displayName": "phoneNumber",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      },
+      "1255890909": {
+        "fields": [
+          {
+            "name": "accountNumber",
+            "displayName": "accountNumber",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "balance",
+            "displayName": "balance",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

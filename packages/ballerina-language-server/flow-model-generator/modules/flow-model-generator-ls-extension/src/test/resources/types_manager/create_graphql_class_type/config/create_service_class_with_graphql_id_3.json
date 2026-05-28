@@ -1,0 +1,242 @@
+{
+  "filePath": "test_pack3/graphql_types.bal",
+  "description": "Create a new class type",
+  "type": {
+    "name": "UndergraduateStudent3",
+    "editable": true,
+    "metadata": {
+      "label": "UndergraduateStudent3",
+      "description": ""
+    },
+    "codedata": {
+      "node": "CLASS"
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "UndergraduateStudent3",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "qualifiers": {
+        "metadata": {
+          "label": "Type Qualifiers",
+          "description": "Qualifiers of the type"
+        },
+        "valueType": "MULTIPLE_SELECT",
+        "value": [
+          "service"
+        ],
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "valueType": "STRING",
+        "value": "",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Is this public"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isDistinct": {
+        "metadata": {
+          "label": "distinct",
+          "description": "Is this distinct"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isIsolated": {
+        "metadata": {
+          "label": "isolated",
+          "description": "Is this isolated"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isReadOnly": {
+        "metadata": {
+          "label": "readonly",
+          "description": "Is this readonly"
+        },
+        "valueType": "FLAG",
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "networkQualifier": {
+        "metadata": {
+          "label": "Network Qualifier",
+          "description": "Network qualifier"
+        },
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": [
+          "service",
+          "client"
+        ],
+        "value": "service",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "members": [],
+    "includes": [],
+    "functions": [
+      {
+        "accessor": "get",
+        "qualifiers": [
+          "RESOURCE"
+        ],
+        "parameters": [
+          {
+            "kind": "FIELD",
+            "refs": [],
+            "type": "string",
+            "name": "username",
+            "optional": false,
+            "readonly": false,
+            "isGraphqlId": true,
+            "imports": {
+              "graphql": "ballerina/graphql:2.9.0"
+            }
+          },
+          {
+            "kind": "FIELD",
+            "refs": [],
+            "type": "string",
+            "name": "lastName",
+            "optional": false,
+            "readonly": false,
+            "isGraphqlId": false
+          }
+        ],
+        "kind": "RESOURCE",
+        "name": "name",
+        "description": "",
+        "returnType": "string",
+        "isGraphqlId": true,
+        "imports": {
+          "graphql": "ballerina/graphql:2.9.0"
+        },
+        "refs": [],
+        "properties": {
+          "isPrivate": {
+            "metadata": {
+              "label": "private",
+              "description": "Is this private"
+            },
+            "valueType": "FLAG",
+            "value": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "isPublic": {
+            "metadata": {
+              "label": "public",
+              "description": "Is this public"
+            },
+            "valueType": "FLAG",
+            "value": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "isIsolated": {
+            "metadata": {
+              "label": "isolated",
+              "description": "Is this isolated"
+            },
+            "valueType": "FLAG",
+            "value": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        }
+      }
+    ],
+    "allowAdditionalFields": false
+  },
+  "output": {
+    "test_pack3/graphql_types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 1,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/graphql;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 38,
+            "character": 1
+          },
+          "end": {
+            "line": 38,
+            "character": 1
+          }
+        },
+        "newText": "\nservice class UndergraduateStudent3 {\n\tfunction init() {\n\t}\n\tresource function get name(@graphql:ID string username, string lastName) returns @graphql:ID string {\n\t\tdo {\n\t\t\tpanic error(\"Unimplemented function\");\n\t\t} on fail error err {\n\t\t\t//handle error\n\t\t\tpanic error(\"Unhandled error\");\n\t\t}\n\t}\n}"
+      }
+    ]
+  }
+}

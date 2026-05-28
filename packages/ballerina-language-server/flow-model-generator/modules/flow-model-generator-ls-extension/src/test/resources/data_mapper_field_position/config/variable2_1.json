@@ -1,0 +1,47 @@
+{
+  "source": "variable2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2.bal",
+      "startLine": {
+        "line": 24,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 24,
+        "offset": 86
+      }
+    },
+    "sourceCode": ""
+  },
+  "targetField": "department",
+  "fieldId": "department.students.0.username",
+  "property": {
+    "types": [
+      {
+        "fieldType": "EXPRESSION",
+        "ballerinaType": "string",
+        "selected": false
+      }
+    ],
+    "optional": false,
+    "editable": false,
+    "advanced": false,
+    "hidden": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "variable2.bal",
+        "startLine": {
+          "line": 24,
+          "offset": 75
+        },
+        "endLine": {
+          "line": 24,
+          "offset": 82
+        }
+      }
+    }
+  }
+}

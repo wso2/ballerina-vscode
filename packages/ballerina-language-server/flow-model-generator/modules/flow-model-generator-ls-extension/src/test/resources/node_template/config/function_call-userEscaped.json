@@ -1,0 +1,201 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "symbol": "processData",
+    "org": "nipunaf",
+    "module": "new_connection1",
+    "packageName": "new_connection1"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "processData",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/nipunaf_new_connection1_0.1.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "nipunaf",
+      "module": "new_connection1",
+      "packageName": "new_connection1",
+      "symbol": "processData",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "order": {
+        "metadata": {
+          "label": "Order"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "'order"
+        }
+      },
+      "$type": {
+        "metadata": {
+          "label": "Type"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int",
+            "selected": false
+          }
+        ],
+        "placeholder": "0",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "'type"
+        }
+      },
+      "user_name": {
+        "metadata": {
+          "label": "User Name"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "'user_name"
+        }
+      },
+      "price": {
+        "metadata": {
+          "label": "Price"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "float",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "float",
+            "selected": false
+          }
+        ],
+        "placeholder": "0.0",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "'price"
+        }
+      },
+      "is\\-valid": {
+        "metadata": {
+          "label": "Is-valid"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean",
+            "selected": false
+          }
+        ],
+        "placeholder": "false",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "'is\\-valid"
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "string",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "stringResult",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

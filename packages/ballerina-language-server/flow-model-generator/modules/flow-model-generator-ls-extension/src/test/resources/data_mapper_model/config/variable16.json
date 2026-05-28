@@ -1,0 +1,151 @@
+{
+  "source": "variable7_1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable7_1.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 107
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 18,
+    "offset": 105
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "userInfo",
+          "displayName": "<userInfoItem>",
+          "typeName": "UserInfo",
+          "kind": "record",
+          "ref": "1889977605"
+        },
+        "name": "userInfo",
+        "displayName": "userInfo",
+        "typeName": "UserInfo[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "-1418772512"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "credentials",
+        "displayName": "<credentialsItem>",
+        "typeName": "Credentials",
+        "kind": "record",
+        "ref": "242052496"
+      },
+      "name": "credentials",
+      "displayName": "credentials",
+      "typeName": "Credentials[]",
+      "kind": "array",
+      "ref": "1085256861"
+    },
+    "mappings": [
+      {
+        "output": "credentials",
+        "inputs": [],
+        "expression": "[{username: userInfo[0].username, password: userInfo[0].password}]",
+        "diagnostics": [],
+        "elements": [
+          {
+            "mappings": [
+              {
+                "output": "credentials.0.username",
+                "inputs": [
+                  "userInfo"
+                ],
+                "expression": "userInfo[0].username",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "0"
+                ]
+              },
+              {
+                "output": "credentials.0.password",
+                "inputs": [
+                  "userInfo"
+                ],
+                "expression": "userInfo[0].password",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "0"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "refs": {
+      "242052496": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

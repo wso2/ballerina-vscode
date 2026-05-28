@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ~ Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ ~
+ ~ WSO2 LLC. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied. See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+-->
+<svg width="14px" height="13px" viewBox="0 0 14 13" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>31139F9C-6F15-4993-A998-37EFCDFB2546</title>
+    <g id="Home" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="VSC-icons" transform="translate(-245.000000, -133.000000)" fill="#C5C5C5">
+            <g id="file-submodule" transform="translate(245.000000, 133.000000)">
+                <path d="M1,9 L2,9 L2,4.99 L1,4.99 L1,9 Z M2,3.99 L2,3.5 L2.5,3 L6.93,3 L7.36,3.25 L7.79,4 L12,4 L13.5,4 L14,4.5 L14,12.5 L13.5,13 L2.5,13 L2,12.5 L2,10 L0.5,10 L0,9.5 L0,0.5 L0.5,0 L4.92,0 L5.36,0.25 L5.79,1 L11.5,1 L12,1.5 L12,4 L11,3.97 L11,2 L5.5,2 L5.07,1.75 L4.64,1 L1,1 L1,3.99 L2,3.99 Z M7.07,4.75 L6.64,4 L3,4 L3,7 L6.15,7 L6.56,6.26 L7,6 L13,6 L13,5 L7.5,5 L7.07,4.75 Z M6.45,8 L3,8 L3,12 L13,12 L13,7 L7.3,7 L6.89,7.74 L6.45,8 Z" id="Shape"></path>
+            </g>
+        </g>
+    </g>
+</svg>

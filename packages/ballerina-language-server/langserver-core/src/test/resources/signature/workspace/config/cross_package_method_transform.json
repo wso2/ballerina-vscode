@@ -1,0 +1,69 @@
+{
+  "position": {
+    "line": 14,
+    "character": 38
+  },
+  "source": "workspace/test-workspace/pkgA/main.bal",
+  "expected": {
+    "result": {
+      "signatures": [
+        {
+          "label": "transform(string input, string prefix, string suffix)",
+          "documentation": {
+            "right": {
+              "kind": "markdown",
+              "value": "**Description**  \nTransform data with multiple parameters"
+            }
+          },
+          "parameters": [
+            {
+              "label": {
+                "right": {
+                  "first": 17,
+                  "second": 22
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`string`input**: Input string"
+                }
+              }
+            },
+            {
+              "label": {
+                "right": {
+                  "first": 31,
+                  "second": 37
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`string`prefix**: Prefix to add"
+                }
+              }
+            },
+            {
+              "label": {
+                "right": {
+                  "first": 46,
+                  "second": 52
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`string`suffix**: Suffix to add"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "activeSignature": 0,
+      "activeParameter": 0
+    },
+    "jsonrpc": "2.0"
+  }
+}

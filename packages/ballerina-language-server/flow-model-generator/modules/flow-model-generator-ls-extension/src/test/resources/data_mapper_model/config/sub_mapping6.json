@@ -1,0 +1,158 @@
+{
+  "source": "variable2_4.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2_1.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 162
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 18,
+    "offset": 65
+  },
+  "propertyKey": "expression",
+  "targetField": "student.username",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "fields": [],
+        "name": "s",
+        "displayName": "s",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "545732303"
+      },
+      {
+        "fields": [],
+        "name": "userInfo",
+        "displayName": "userInfo",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "1889977605"
+      },
+      {
+        "name": "x",
+        "displayName": "x",
+        "typeName": "int",
+        "kind": "int",
+        "category": "local-variable"
+      }
+    ],
+    "output": {
+      "member": {
+        "name": "username",
+        "displayName": "<usernameItem>",
+        "typeName": "string",
+        "kind": "string"
+      },
+      "name": "username",
+      "displayName": "username",
+      "typeName": "string[]",
+      "kind": "array"
+    },
+    "mappings": [
+      {
+        "output": "username",
+        "inputs": [
+          "n"
+        ],
+        "expression": "n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "username",
+      "inputs": [
+        "userInfo.username"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "n",
+          "type": "var",
+          "expression": "userInfo.username",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "n",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "545732303": {
+        "fields": [
+          {
+            "member": {
+              "name": "username",
+              "displayName": "<usernameItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

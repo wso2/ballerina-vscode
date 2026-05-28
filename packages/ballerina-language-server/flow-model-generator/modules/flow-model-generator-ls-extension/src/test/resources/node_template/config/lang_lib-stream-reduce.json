@@ -1,0 +1,156 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "org": "ballerina",
+    "module": "lang.stream",
+    "packageName": "lang.stream",
+    "symbol": "reduce",
+    "version": "0.0.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "reduce",
+      "description": "Combines the members of a stream using a combining function.\n\nThe combining function takes the combined value so far and a member of the stream,\nand returns a new combined value.\n\n```ballerina\nstream<int> scores = [45, 60, 75, 30, 90].toStream();\nscores.reduce(isolated function (int total, int score) returns int => total + score, 0) ⇒ 300\n```\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.stream_0.0.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "lang.stream",
+      "packageName": "lang.stream",
+      "symbol": "reduce",
+      "version": "0.0.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "stm": {
+        "metadata": {
+          "label": "Stm",
+          "description": "the stream"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "stream<(any|error), error?>",
+            "selected": false
+          }
+        ],
+        "placeholder": "new ()",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "stm"
+        }
+      },
+      "func": {
+        "metadata": {
+          "label": "Func",
+          "description": "combining function"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "function ((any|error) accum, (any|error) val) returns (any|error)",
+            "selected": false
+          }
+        ],
+        "placeholder": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "func"
+        }
+      },
+      "initial": {
+        "metadata": {
+          "label": "Initial",
+          "description": "initial value for the first argument of combining parameter `func`"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "(any|error)",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "initial"
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "(any|error)",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "streamType1",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

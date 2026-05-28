@@ -1,0 +1,8 @@
+{
+  "description": "Convert byte to string using toString()",
+  "output": "output.stringField",
+  "outputType": "string",
+  "expression": "input.byteField",
+  "expressionType": "byte",
+  "convertedExpression": "input.byteField.toString()"
+}

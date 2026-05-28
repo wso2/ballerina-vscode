@@ -1,0 +1,99 @@
+{
+  "source": "variable30.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable30.bal",
+      "startLine": {
+        "line": 7,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 10,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 7,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "v2",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "v1",
+        "displayName": "v1",
+        "typeName": "MyType",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "819315698"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "v2",
+      "displayName": "v2",
+      "typeName": "MyType",
+      "kind": "record",
+      "ref": "819315698"
+    },
+    "mappings": [
+      {
+        "output": "v2.i",
+        "inputs": [
+          "v1.k"
+        ],
+        "expression": "from var kItem in v1.k\n            collect 'join(\",\", kItem)",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": true,
+        "isFunctionCall": false
+      },
+      {
+        "output": "v2.k",
+        "inputs": [
+          "v1.k"
+        ],
+        "expression": "from var kItem in v1.k select kItem\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": true,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "819315698": {
+        "fields": [
+          {
+            "member": {
+              "name": "k",
+              "displayName": "<kItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "k",
+            "displayName": "k",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "name": "i",
+            "displayName": "i",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

@@ -1,0 +1,15 @@
+[package]
+org = "wso2"
+name = "api_gateway"
+title = "API Gateway"
+version = "0.1.0"
+
+[[dependency]]
+org = "ballerina"
+name = "http"
+version = "2.15.0"
+
+[[dependency]]
+org = "wso2"
+name = "common"
+version = "0.1.0"

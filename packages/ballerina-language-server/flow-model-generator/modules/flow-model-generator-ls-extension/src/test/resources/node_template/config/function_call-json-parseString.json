@@ -1,0 +1,178 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "org": "ballerina",
+    "module": "data.jsondata",
+    "packageName": "data.jsondata",
+    "symbol": "parseString",
+    "version": "1.1.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "parseString",
+      "description": "Converts JSON string to subtype of anydata.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.jsondata_1.1.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "data.jsondata",
+      "packageName": "data.jsondata",
+      "symbol": "parseString",
+      "version": "1.1.0",
+      "isNew": true,
+      "inferredReturnType": "t"
+    },
+    "returning": false,
+    "properties": {
+      "s": {
+        "metadata": {
+          "label": "S",
+          "description": "Source JSON string value or byte[] or byte-block-stream"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "s"
+        }
+      },
+      "options": {
+        "metadata": {
+          "label": "Options",
+          "description": "Options to be used for filtering in the projection"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "jsondata:Options",
+            "typeMembers": [
+              {
+                "type": "Options",
+                "packageInfo": "ballerina:data.jsondata:1.1.0",
+                "packageName": "data.jsondata",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "jsondata:Options",
+            "selected": false
+          }
+        ],
+        "placeholder": "{}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "options"
+        },
+        "defaultValue": "{}"
+      },
+      "t": {
+        "metadata": {
+          "label": "T",
+          "description": "Target type"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "anydata",
+            "selected": false
+          }
+        ],
+        "placeholder": "anydata",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "t"
+        },
+        "defaultValue": "anydata"
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "t",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "t",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

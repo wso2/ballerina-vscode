@@ -1,0 +1,39 @@
+{
+  "source": "variable2_1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 23,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 102
+      }
+    },
+    "sourceCode": "UserInfo[] userInfo = [];"
+  },
+  "propertyKey": "expression",
+  "targetField": "department",
+  "outputId": "department.students",
+  "output": {
+    "variable2_1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 23,
+            "character": 99
+          },
+          "end": {
+            "line": 23,
+            "character": 99
+          }
+        },
+        "newText": ", {username: \"\", password: \"\"}"
+      }
+    ]
+  }
+}

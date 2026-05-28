@@ -1,0 +1,136 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a ftp service",
+  "serviceInitModel": {
+    "id": "0",
+    "displayName": "FTP Integration",
+    "description": "Monitor files on an FTP/SFTP server and integrate file events into your application.",
+    "orgName": "ballerina",
+    "packageName": "ftp",
+    "moduleName": "ftp",
+    "version": "2.16.1",
+    "type": "ftp",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.15.1.png",
+    "properties": {
+      "listenerVarName": {
+        "metadata": {
+          "label": "Listener Name",
+          "description": "Provide a name for the listener being created"
+        },
+        "codedata": {
+          "type": "LISTENER_VAR_NAME"
+        },
+        "value": "ftpListener",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      },
+      "host": {
+        "metadata": {
+          "label": "Host",
+          "description": "Hostname or IP address of the FTP/SFTP server (e.g., ftp.example.com)"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "\"127.0.0.1\"",
+        "value": "string `127.0.0.1`",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "portNumber": {
+        "metadata": {
+          "label": "Port Number",
+          "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "21",
+        "value": "21",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "folderPath": {
+        "metadata": {
+          "label": "Folder Path",
+          "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "\"/\"",
+        "value": "string `/`",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "userName": {
+        "metadata": {
+          "label": "Username",
+          "description": ""
+        },
+        "codedata": {
+          "type": "IDENTIFIER"
+        },
+        "placeholder": "",
+        "value": "string `asasj \" dsad \n jans \r\n`",
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "password": {
+        "metadata": {
+          "label": "Password",
+          "description": ""
+        },
+        "codedata": {
+          "type": "IDENTIFIER"
+        },
+        "placeholder": "",
+        "value": "\"testpwd\"",
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      }
+    }
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/ftp;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:FTP, host=\"127.0.0.1\", auth= { credentials: { username: string `asasj \" dsad \n jans \n`, password: \"testpwd\" } }, port= 21);\n\n@ftp:ServiceConfig {\n    path: \"/\"\n}\nservice on ftpListener {\n}\n"
+      }
+    ]
+  }
+}

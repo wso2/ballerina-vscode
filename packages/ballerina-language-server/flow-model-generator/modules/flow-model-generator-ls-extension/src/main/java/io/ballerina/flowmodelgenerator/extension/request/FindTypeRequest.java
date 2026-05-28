@@ -1,0 +1,63 @@
+/*
+ *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
+package io.ballerina.flowmodelgenerator.extension.request;
+
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
+
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * A request to find a matching type for the given expression.
+ *
+ * @param filePath Project path
+ * @param typeMembers Type members
+ * @param expr Expression to find the type
+ *
+ * @since 1.0.0
+ */
+public record FindTypeRequest(String filePath, List<PropertyTypeMemberInfo> typeMembers, String expr) {
+
+    public record TypePackageInfo(String org, String packageName, String moduleName, String version) {
+
+        public static TypePackageInfo from(String packageInfo, String packageName) {
+            if (packageInfo.isEmpty()) {
+                return new TypePackageInfo(null, null, null, null);
+            }
+            String[] parts = packageInfo.split(":");
+            if (Objects.isNull(packageName)) {
+                String packageNamePart = parts[1];
+                // split by dot in the last part to get the package name
+                int lastDotIndex = packageNamePart.lastIndexOf('.');
+                if (lastDotIndex != -1) {
+                    packageName = packageNamePart.substring(0, lastDotIndex);
+                    parts[1] = packageNamePart.substring(lastDotIndex + 1);
+                } else {
+                    packageName = packageNamePart;
+                }
+            }
+            return new TypePackageInfo(parts[0], packageName, parts[1], parts[2]);
+        }
+
+        public static TypePackageInfo from(Codedata codedata) {
+            return new TypePackageInfo(codedata.org(), codedata.packageName(), codedata.module(), codedata.version());
+        }
+    }
+}

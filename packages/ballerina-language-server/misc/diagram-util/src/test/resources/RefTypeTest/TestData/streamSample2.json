@@ -1,0 +1,78 @@
+{
+  "description": "A complex example of a stream type with record value type",
+  "source": "RefTypeTest/BalProject7",
+  "typeSymbolName": "ComplexStream",
+  "refType": {
+    "valueType": {
+      "dependentTypeKeys": [],
+      "hashCode": "70824864",
+      "key": "819937366",
+      "name": "Person",
+      "typeName": "record",
+      "moduleInfo": {
+        "orgName": "ballerinax",
+        "moduleName": "test.streams",
+        "packageName": "test.streams",
+        "version": "0.1.0",
+        "modulePrefix": "streams"
+      }
+    },
+    "completionType": {
+      "dependentTypeKeys": [],
+      "name": "()",
+      "typeName": "()"
+    },
+    "dependentTypeKeys": [
+      "819937366"
+    ],
+    "hashCode": "-1551493868",
+    "key": "2122400815",
+    "name": "ComplexStream",
+    "typeName": "stream",
+    "dependentTypes": {
+      "819937366": {
+        "fields": [
+          {
+            "fieldName": "name",
+            "type": {
+              "dependentTypeKeys": [],
+              "name": "string",
+              "typeName": "string"
+            },
+            "optional": false,
+            "defaultValue": ""
+          },
+          {
+            "fieldName": "age",
+            "type": {
+              "dependentTypeKeys": [],
+              "name": "int",
+              "typeName": "int"
+            },
+            "optional": false,
+            "defaultValue": ""
+          }
+        ],
+        "dependentTypeKeys": [],
+        "hashCode": "70824864",
+        "key": "819937366",
+        "name": "Person",
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "test.streams",
+          "packageName": "test.streams",
+          "version": "0.1.0",
+          "modulePrefix": "streams"
+        }
+      }
+    },
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "test.streams",
+      "packageName": "test.streams",
+      "version": "0.1.0",
+      "modulePrefix": "streams"
+    }
+  }
+}

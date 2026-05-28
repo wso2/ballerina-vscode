@@ -1,0 +1,52 @@
+name: Update package version
+inputs:
+  path:
+    description: 'Path to package'
+    required: true
+  version:
+    description: 'Version to update'
+    required: true    
+  isPreRelease:
+    default: true
+    type: boolean      
+runs:
+  using: "composite"
+  steps:
+    - name: Remove timestamp
+      shell: bash
+      run: |
+        cd packages/${{ inputs.path }}
+        currentVersion=$(node -p "require('./package.json').version")
+        if [[ ${#currentVersion} -ge 8 ]]; then
+          currentVersionWOPreId=${currentVersion%-*}
+          currentVersionNo=${currentVersionWOPreId:0:-8}
+          if [[ $currentVersionNo != *?[0-9] ]]; then
+            currentVersionNo=${currentVersionNo}0
+          fi
+          npm version $currentVersionNo --preid beta --no-git-tag-version
+        fi  
+
+    - name: Update extension versions
+      if: ${{ inputs.version != 'N/A' }}
+      shell: bash
+      run: |
+        cd packages/${{ inputs.path }}
+        npm version ${{ inputs.version }} --preid beta --no-git-tag-version
+
+    - name: Get timestamp
+      shell: bash
+      id: timestamp
+      run: |
+        timestamp=$(date '+%y%m%d%H')
+        echo "timestamp=$timestamp" >> $GITHUB_OUTPUT
+
+    - name: Set prerelase version
+      shell: bash
+      if: ${{ inputs.isPreRelease == 'true' }}
+      run: |
+        cd packages/${{ inputs.path }}
+        currentVersion=$(node -p "require('./package.json').version")
+        newVersion=${currentVersion}${{ steps.timestamp.outputs.timestamp }}
+        echo $newVersion
+        npm version $newVersion --preid beta --no-git-tag-version
+        

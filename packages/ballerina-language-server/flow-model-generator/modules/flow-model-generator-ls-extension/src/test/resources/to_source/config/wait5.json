@@ -1,0 +1,146 @@
+{
+  "source": "function_call/wait.bal",
+  "description": "Sample diagram node",
+  "diagram": {
+    "id": "118224",
+    "metadata": {
+      "label": "Wait",
+      "description": "Wait for a set of futures to complete"
+    },
+    "codedata": {
+      "node": "WAIT",
+      "lineRange": {
+        "fileName": "wait.bal",
+        "startLine": {
+          "line": 87,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 87,
+          "offset": 52
+        }
+      },
+      "sourceCode": "map<string|error> mapResult = wait {WA, WB, WC};"
+    },
+    "returning": false,
+    "properties": {
+      "futures": {
+        "value": {
+          "WA": {
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "future<any|error>",
+                "selected": true
+              }
+            ],
+            "value": "WA",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "WB": {
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "future<any|error>",
+                "selected": true
+              }
+            ],
+            "value": "WB",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "WC": {
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "future<any|error>",
+                "selected": true
+              }
+            ],
+            "value": "WC",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable Name",
+          "description": "Name of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "mapResult",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "wait.bal",
+            "startLine": {
+              "line": 87,
+              "offset": 22
+            },
+            "endLine": {
+              "line": 87,
+              "offset": 31
+            }
+          }
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Type of the variable",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "map<string|error>",
+        "placeholder": "var",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "function_call/wait.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 87,
+            "character": 4
+          },
+          "end": {
+            "line": 87,
+            "character": 52
+          }
+        },
+        "newText": "map<string|error> mapResult = wait {WA: WA, WB: WB, WC: WC};"
+      }
+    ]
+  }
+}

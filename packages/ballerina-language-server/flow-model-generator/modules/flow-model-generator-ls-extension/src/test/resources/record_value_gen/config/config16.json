@@ -1,0 +1,48 @@
+{
+  "description": "Record with unselected array field should be omitted",
+  "filePath": "proj",
+  "type": {
+    "fields": [
+      {
+        "name": "name",
+        "typeName": "string",
+        "optional": false,
+        "defaultable": false,
+        "isRestType": false,
+        "value": "\"test\"",
+        "selected": true
+      },
+      {
+        "name": "items",
+        "typeName": "array",
+        "optional": true,
+        "defaultable": false,
+        "isRestType": false,
+        "selected": false,
+        "memberType": {
+          "typeName": "string",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false
+        },
+        "elements": [
+          {
+            "typeName": "string",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "value": "\"ignored\"",
+            "selected": true
+          }
+        ]
+      }
+    ],
+    "hasRestType": false,
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": true
+  },
+  "output": "{\n    name: \"test\"\n}"
+}

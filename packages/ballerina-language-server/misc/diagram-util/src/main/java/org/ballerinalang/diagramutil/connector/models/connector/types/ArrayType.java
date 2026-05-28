@@ -1,0 +1,54 @@
+/*
+ *  Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+package org.ballerinalang.diagramutil.connector.models.connector.types;
+
+import com.google.gson.annotations.Expose;
+import org.ballerinalang.diagramutil.connector.models.connector.Type;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Array type model.
+ */
+public class ArrayType extends Type {
+    @Expose
+    public Type memberType;
+
+    @Expose
+    public List<Type> elements;
+
+    public ArrayType(Type memberType) {
+        this.typeName = "array";
+        this.memberType = memberType;
+    }
+
+    @Override
+    public ArrayType copy() {
+        Type copiedMemberType = this.memberType != null ? this.memberType.copy() : null;
+        ArrayType copy = new ArrayType(copiedMemberType);
+        copyBaseFields(copy);
+        if (this.elements != null) {
+            copy.elements = new ArrayList<>();
+            for (Type element : this.elements) {
+                copy.elements.add(element.copy());
+            }
+        }
+        return copy;
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 18,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 18,
+        "offset": 35
+      }
+    },
+    "sourceCode": ""
+  },
+  "targetField": "userInfo",
+  "index": -1
+}

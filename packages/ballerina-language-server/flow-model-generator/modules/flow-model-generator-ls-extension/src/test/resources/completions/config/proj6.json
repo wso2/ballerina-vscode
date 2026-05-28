@@ -1,0 +1,220 @@
+{
+  "description": "",
+  "filePath": "proj/types.bal",
+  "context": {
+    "expression": "{}",
+    "startLine": {
+      "line": 6,
+      "offset": 0
+    },
+    "offset": 1,
+    "lineOffset": 0,
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "docusign.dsadmin",
+      "object": "Client",
+      "symbol": "init",
+      "id": 1569
+    },
+    "property": {
+      "metadata": {
+        "label": "auth",
+        "description": "Configurations related to client authentication"
+      },
+      "types": [
+        {
+          "fieldType": "RECORD_MAP_EXPRESSION",
+          "ballerinaType": "http:BearerTokenConfig|dsadmin:OAuth2RefreshTokenGrantConfig",
+          "typeMembers": [
+            {
+              "type": "BearerTokenConfig",
+              "packageInfo": "ballerina:http:2.10.11",
+              "packageName": "http",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            },
+            {
+              "type": "OAuth2RefreshTokenGrantConfig",
+              "packageInfo": "ballerinax:docusign.dsadmin:2.0.0",
+              "packageName": "docusign.dsadmin",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            }
+          ],
+          "selected": false
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "http:BearerTokenConfig|dsadmin:OAuth2RefreshTokenGrantConfig",
+          "selected": true
+        }
+      ],
+      "placeholder": "{token: \"\"}",
+      "optional": false,
+      "editable": true,
+      "advanced": false,
+      "imports": {
+        "http": "ballerina/http:2.14.0"
+      },
+      "codedata": {
+        "kind": "INCLUDED_FIELD",
+        "originalName": "auth"
+      }
+    }
+  },
+  "completionContext": {
+    "triggerKind": "Invoked"
+  },
+  "completions": [
+    {
+      "label": "readonly",
+      "kind": "Keyword",
+      "detail": "Keyword",
+      "sortText": "U",
+      "filterText": "readonly",
+      "insertText": "readonly ",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "Fill http:BearerTokenConfig Required Fields",
+      "kind": "Property",
+      "detail": "http:BearerTokenConfig",
+      "sortText": "R",
+      "filterText": "fill",
+      "insertText": "token: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "Fill dsadmin:OAuth2RefreshTokenGrantConfig Required Fields",
+      "kind": "Property",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig",
+      "sortText": "R",
+      "filterText": "fill",
+      "insertText": "clientId: ${1:\"\"},\nclientSecret: ${2:\"\"},\nrefreshToken: ${3:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "optionalParams",
+      "labelDetails": {
+        "detail": " dsadmin:OAuth2RefreshTokenGrantConfig.optionalParams"
+      },
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.optionalParams",
+      "sortText": "K",
+      "insertText": "optionalParams: ${1:{}}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "clockSkew",
+      "labelDetails": {
+        "detail": " dsadmin:OAuth2RefreshTokenGrantConfig.clockSkew"
+      },
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.clockSkew",
+      "sortText": "K",
+      "insertText": "clockSkew: ${1:0}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "clientSecret",
+      "labelDetails": {
+        "detail": " dsadmin:OAuth2RefreshTokenGrantConfig.clientSecret"
+      },
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.clientSecret",
+      "sortText": "K",
+      "insertText": "clientSecret: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "scopes",
+      "labelDetails": {
+        "detail": " dsadmin:OAuth2RefreshTokenGrantConfig.scopes"
+      },
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.scopes",
+      "sortText": "K",
+      "insertText": "scopes: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "refreshToken",
+      "labelDetails": {
+        "detail": " dsadmin:OAuth2RefreshTokenGrantConfig.refreshToken"
+      },
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.refreshToken",
+      "sortText": "K",
+      "insertText": "refreshToken: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "clientId",
+      "labelDetails": {
+        "detail": " dsadmin:OAuth2RefreshTokenGrantConfig.clientId"
+      },
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.clientId",
+      "sortText": "K",
+      "insertText": "clientId: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "credentialBearer",
+      "labelDetails": {
+        "detail": " dsadmin:OAuth2RefreshTokenGrantConfig.credentialBearer"
+      },
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.credentialBearer",
+      "sortText": "K",
+      "insertText": "credentialBearer: ${1:\"POST_BODY_BEARER\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "refreshUrl",
+      "labelDetails": {
+        "detail": " dsadmin:OAuth2RefreshTokenGrantConfig.refreshUrl"
+      },
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.refreshUrl",
+      "sortText": "K",
+      "insertText": "refreshUrl: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "token",
+      "labelDetails": {
+        "detail": " http:BearerTokenConfig.token"
+      },
+      "kind": "Field",
+      "detail": "http:BearerTokenConfig.token",
+      "sortText": "K",
+      "insertText": "token: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "defaultTokenExpTime",
+      "labelDetails": {
+        "detail": " dsadmin:OAuth2RefreshTokenGrantConfig.defaultTokenExpTime"
+      },
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.defaultTokenExpTime",
+      "sortText": "K",
+      "insertText": "defaultTokenExpTime: ${1:0}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "clientConfig",
+      "labelDetails": {
+        "detail": " dsadmin:OAuth2RefreshTokenGrantConfig.clientConfig",
+        "description": "Record"
+      },
+      "kind": "Field",
+      "detail": "dsadmin:OAuth2RefreshTokenGrantConfig.clientConfig",
+      "sortText": "K",
+      "insertText": "clientConfig: {}",
+      "insertTextFormat": "Snippet"
+    }
+  ]
+}

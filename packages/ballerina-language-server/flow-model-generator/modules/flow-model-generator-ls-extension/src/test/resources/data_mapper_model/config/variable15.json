@@ -1,0 +1,118 @@
+{
+  "source": "variable7.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable7.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 43
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 18,
+    "offset": 105
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "userInfo",
+          "displayName": "<userInfoItem>",
+          "typeName": "UserInfo",
+          "kind": "record",
+          "ref": "1889977605"
+        },
+        "name": "userInfo",
+        "displayName": "userInfo",
+        "typeName": "UserInfo[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "-1418772512"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "credentials",
+        "displayName": "<credentialsItem>",
+        "typeName": "Credentials",
+        "kind": "record",
+        "ref": "242052496"
+      },
+      "name": "credentials",
+      "displayName": "credentials",
+      "typeName": "Credentials[]",
+      "kind": "array",
+      "ref": "1085256861"
+    },
+    "mappings": [
+      {
+        "output": "credentials",
+        "inputs": [],
+        "expression": "[]",
+        "diagnostics": [],
+        "elements": []
+      }
+    ],
+    "refs": {
+      "242052496": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

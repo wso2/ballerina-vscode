@@ -1,0 +1,353 @@
+{
+  "modelVersion": "0.4.0",
+  "id": "single_service_sample",
+  "orgName": "aneesha",
+  "version": "0.1.0",
+  "hasCompilationErrors": false,
+  "diagnostics": [],
+  "services": {
+    "001": {
+      "id": "001",
+      "label": "greeting-service",
+      "type": "ballerina/http:2.8.1",
+      "resourceFunctions": [
+        {
+          "id": "001:.:get",
+          "path": ".",
+          "parameters": [
+            {
+              "type": [
+                "string"
+              ],
+              "name": "name",
+              "in": "query",
+              "isRequired": true,
+              "sourceLocation": {
+                "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+                "startPosition": {
+                  "line": 15,
+                  "offset": 29
+                },
+                "endPosition": {
+                  "line": 15,
+                  "offset": 40
+                }
+              },
+              "diagnostics": []
+            },
+            {
+              "type": [
+                "string"
+              ],
+              "name": "time",
+              "in": "query",
+              "isRequired": true,
+              "sourceLocation": {
+                "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+                "startPosition": {
+                  "line": 15,
+                  "offset": 42
+                },
+                "endPosition": {
+                  "line": 15,
+                  "offset": 53
+                }
+              },
+              "diagnostics": []
+            }
+          ],
+          "returns": [
+            "string",
+            "error"
+          ],
+          "interactions": [
+            {
+              "id": "002:[string]:get",
+              "type": "ballerina/http:2.8.1",
+              "serviceId": "002",
+              "sourceLocation": {
+                "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+                "startPosition": {
+                  "line": 21,
+                  "offset": 32
+                },
+                "endPosition": {
+                  "line": 21,
+                  "offset": 76
+                }
+              },
+              "diagnostics": []
+            }
+          ],
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+            "startPosition": {
+              "line": 15,
+              "offset": 4
+            },
+            "endPosition": {
+              "line": 23,
+              "offset": 5
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "id": "001:accounts:get",
+          "path": "accounts",
+          "parameters": [],
+          "returns": [
+            "aneesha/single_service_sample:model:0.1.0:Account"
+          ],
+          "interactions": [],
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+            "startPosition": {
+              "line": 25,
+              "offset": 4
+            },
+            "endPosition": {
+              "line": 27,
+              "offset": 5
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "id": "001:weather:get",
+          "path": "weather",
+          "parameters": [],
+          "returns": [
+            "string",
+            "error"
+          ],
+          "interactions": [
+            {
+              "id": "-459379229:getCurrentWeather:get",
+              "type": "ballerina/http:2.8.1",
+              "serviceId": "-459379229",
+              "sourceLocation": {
+                "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+                "startPosition": {
+                  "line": 15,
+                  "offset": 11
+                },
+                "endPosition": {
+                  "line": 15,
+                  "offset": 48
+                }
+              },
+              "diagnostics": []
+            }
+          ],
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+            "startPosition": {
+              "line": 29,
+              "offset": 4
+            },
+            "endPosition": {
+              "line": 33,
+              "offset": 5
+            }
+          },
+          "diagnostics": []
+        }
+      ],
+      "remoteFunctions": [],
+      "annotation": {
+        "id": "001",
+        "label": "greeting-service",
+        "sourceLocation": {
+          "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+          "startPosition": {
+            "line": 10,
+            "offset": 0
+          },
+          "endPosition": {
+            "line": 13,
+            "offset": 1
+          }
+        },
+        "diagnostics": []
+      },
+      "dependencies": [],
+      "sourceLocation": {
+        "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+        "startPosition": {
+          "line": 10,
+          "offset": 0
+        },
+        "endPosition": {
+          "line": 34,
+          "offset": 1
+        }
+      },
+      "diagnostics": []
+    },
+    "002": {
+      "id": "002",
+      "label": "time-service",
+      "type": "ballerina/http:2.8.1",
+      "resourceFunctions": [
+        {
+          "id": "002:greeting:get",
+          "path": "greeting",
+          "parameters": [
+            {
+              "type": [
+                "string"
+              ],
+              "name": "time",
+              "in": "query",
+              "isRequired": true,
+              "sourceLocation": {
+                "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+                "startPosition": {
+                  "line": 41,
+                  "offset": 35
+                },
+                "endPosition": {
+                  "line": 41,
+                  "offset": 46
+                }
+              },
+              "diagnostics": []
+            }
+          ],
+          "returns": [
+            "string"
+          ],
+          "interactions": [],
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+            "startPosition": {
+              "line": 41,
+              "offset": 4
+            },
+            "endPosition": {
+              "line": 57,
+              "offset": 5
+            }
+          },
+          "diagnostics": []
+        }
+      ],
+      "remoteFunctions": [],
+      "annotation": {
+        "id": "002",
+        "label": "time-service",
+        "sourceLocation": {
+          "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+          "startPosition": {
+            "line": 36,
+            "offset": 0
+          },
+          "endPosition": {
+            "line": 39,
+            "offset": 1
+          }
+        },
+        "diagnostics": []
+      },
+      "dependencies": [],
+      "sourceLocation": {
+        "filePath": "{srcPath}/ballerina/single_service_sample/main.bal",
+        "startPosition": {
+          "line": 36,
+          "offset": 0
+        },
+        "endPosition": {
+          "line": 58,
+          "offset": 1
+        }
+      },
+      "diagnostics": []
+    }
+  },
+  "entities": {
+    "aneesha/single_service_sample:model:0.1.0:Account": {
+      "attributes": [
+        {
+          "name": "AccountId",
+          "type": "string",
+          "optional": false,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [],
+          "isReadOnly": true,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/single_service_sample/modules/model/AccountModel.bal",
+            "startPosition": {
+              "line": 1,
+              "offset": 20
+            },
+            "endPosition": {
+              "line": 1,
+              "offset": 29
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "name": "Status",
+          "type": "string",
+          "optional": true,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [],
+          "isReadOnly": false,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/single_service_sample/modules/model/AccountModel.bal",
+            "startPosition": {
+              "line": 2,
+              "offset": 11
+            },
+            "endPosition": {
+              "line": 2,
+              "offset": 17
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "name": "Currency",
+          "type": "string",
+          "optional": false,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [],
+          "isReadOnly": false,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/single_service_sample/modules/model/AccountModel.bal",
+            "startPosition": {
+              "line": 3,
+              "offset": 11
+            },
+            "endPosition": {
+              "line": 3,
+              "offset": 19
+            }
+          },
+          "diagnostics": []
+        }
+      ],
+      "inclusions": [],
+      "isAnonymous": false,
+      "sourceLocation": {
+        "filePath": "{srcPath}/ballerina/single_service_sample/modules/model/AccountModel.bal",
+        "startPosition": {
+          "line": 0,
+          "offset": 12
+        },
+        "endPosition": {
+          "line": 0,
+          "offset": 19
+        }
+      },
+      "diagnostics": []
+    }
+  },
+  "functionEntryPoint": null,
+  "connections": []
+}

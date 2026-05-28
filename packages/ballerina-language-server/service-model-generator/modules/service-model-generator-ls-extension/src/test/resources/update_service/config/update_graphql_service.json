@@ -1,0 +1,191 @@
+{
+  "filePath": "sample2/main.bal",
+  "description": "Test updating a GraphQL service path, annotations, listener and docs",
+  "service": {
+    "id": "2",
+    "name": "GraphQL Service",
+    "type": "graphql",
+    "displayName": "GraphQL Service",
+    "moduleName": "graphql",
+    "orgName": "ballerina",
+    "version": "1.15.0",
+    "packageName": "graphql",
+    "listenerProtocol": "graphql",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.15.0.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the object"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "value": "This is a sample GraphQL service.\nThe service definition goes here.",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "properties": {
+      "listener": {
+        "metadata": {
+          "label": "Listeners",
+          "description": "The Listeners to be bound with the service"
+        },
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
+        "valueType": "MULTIPLE_SELECT",
+        "valueTypeConstraint": "graphql:Listener",
+        "value": "graphqlListener",
+        "values": [],
+        "items": [
+          "graphqlListener"
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "serviceType": {
+        "metadata": {
+          "label": "GraphQL Service Type",
+          "description": "The name of the service contract type"
+        },
+        "codedata": {
+          "type": "SERVICE_TYPE"
+        },
+        "placeholder": "Service",
+        "valueType": "SINGLE_SELECT",
+        "valueTypeConstraint": "string",
+        "value": "Service",
+        "items": [
+          "",
+          "Service"
+        ],
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "basePath": {
+        "metadata": {
+          "label": "Service Base Path",
+          "description": "The base path of the service"
+        },
+        "codedata": {
+          "type": "SERVICE_BASE_PATH"
+        },
+        "placeholder": "/graphql",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "string",
+        "value": "/gql",
+        "values": [],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "annotServiceConfig": {
+        "metadata": {
+          "label": "Service Configuration",
+          "description": "Configurations for the Graphql service"
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ServiceConfig"
+        },
+        "placeholder": "{}",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "graphql:GraphqlServiceConfig",
+        "value": "{\n    validation: true\n}",
+        "values": [],
+        "typeMembers": [
+          {
+            "type": "GraphqlServiceConfig",
+            "packageInfo": "ballerina:graphql:1.15.0",
+            "kind": "RECORD_TYPE",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 4,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 10,
+          "offset": 1
+        }
+      }
+    },
+    "functions": []
+  },
+  "output": {
+    "sample2/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 0
+          },
+          "end": {
+            "line": 4,
+            "character": 28
+          }
+        },
+        "newText": "# This is a sample GraphQL service.\n# The service definition goes here."
+      },
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 1
+          }
+        },
+        "newText": "@graphql:ServiceConfig{\n    validation: true\n}"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 8,
+            "character": 8
+          },
+          "end": {
+            "line": 8,
+            "character": 16
+          }
+        },
+        "newText": "/gql"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 8,
+            "character": 20
+          },
+          "end": {
+            "line": 8,
+            "character": 35
+          }
+        },
+        "newText": "graphqlListener"
+      }
+    ]
+  }
+}

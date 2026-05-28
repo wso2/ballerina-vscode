@@ -1,0 +1,113 @@
+{
+  "description": "Searching 'writeCsv' (a mid-word substring, mixed-case) must return functions whose names contain 'writeCsv' via case-insensitive LIKE matching, e.g. fileWriteCsv and fileWriteCsvFromStream",
+  "kind": "FUNCTION",
+  "source": "empty.bal",
+  "position": {
+    "startLine": {
+      "line": 1,
+      "offset": 1
+    },
+    "endLine": {
+      "line": 1,
+      "offset": 1
+    }
+  },
+  "queryMap": {
+    "q": "writeCsv",
+    "limit": "10",
+    "offset": "0"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Agent Tools",
+        "description": "Functions used as agent tools",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Imported Functions",
+        "description": "Functions imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "io",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fileWriteCsv",
+                "description": "Write CSV content to a file.\nWhen the input is a record[] type in `OVERWRITE`,  headers will be written to the CSV file by default.\nFor `APPEND`, order of the existing csv file is inferred using the headers and used as the order.\n```ballerina\ntype Coord record {int x;int y;};\nCoord[] contentRecord = [{x: 1,y: 2},{x: 1,y: 2}]\nstring[][] content = [[\"Anne\", \"Johnson\", \"SE\"], [\"John\", \"Cameron\", \"QA\"]];\nio:Error? result = io:fileWriteCsv(\"./resources/myfile.csv\", content);\nio:Error? resultRecord = io:fileWriteCsv(\"./resources/myfileRecord.csv\", contentRecord);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileWriteCsv",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fileWriteCsvFromStream",
+                "description": "Write CSV record stream to a file.\nWhen the input is a `stream<record, io:Error?>` in `OVERWRITE`,  headers will be written to the CSV file by default.\nFor `APPEND`, order of the existing csv file is inferred using the headers and used as the order.\n```ballerina\ntype Coord record {int x;int y;};\nCoord[] contentRecord = [{x: 1,y: 2},{x: 1,y: 2}]\nstring[][] content = [[\"Anne\", \"Johnson\", \"SE\"], [\"John\", \"Cameron\", \"QA\"]];\nstream<string[], io:Error?> stringStream = content.toStream();\nstream<Coord, io:Error?> recordStream = contentRecord.toStream();\nio:Error? result = io:fileWriteCsvFromStream(\"./resources/myfile.csv\", stringStream);\nio:Error? resultRecord = io:fileWriteCsvFromStream(\"./resources/myfileRecord.csv\", recordStream);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileWriteCsvFromStream",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

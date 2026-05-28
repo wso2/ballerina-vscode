@@ -1,0 +1,8 @@
+{
+  "description": "Convert boolean to decimal using ternary expression",
+  "output": "output.decimalField",
+  "outputType": "decimal",
+  "expression": "input.boolField",
+  "expressionType": "boolean",
+  "convertedExpression": "(input.boolField ? 1.0d : 0.0d)"
+}

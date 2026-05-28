@@ -1,0 +1,103 @@
+{
+  "source": "variable25.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable25.bal",
+      "startLine": {
+        "line": 20,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 20,
+        "offset": 34
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 19,
+    "offset": 36
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "fields": [],
+        "name": "var1",
+        "displayName": "var1",
+        "typeName": "redis:Options",
+        "kind": "record",
+        "category": "local-variable",
+        "moduleInfo": {
+          "org": "ballerinax",
+          "packageName": "redis",
+          "moduleName": "redis",
+          "version": "3.1.0"
+        },
+        "ref": "1527622454",
+        "typeInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "redis"
+        }
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "var2",
+      "displayName": "var2",
+      "typeName": "redis:Options",
+      "kind": "record",
+      "moduleInfo": {
+        "org": "ballerinax",
+        "packageName": "redis",
+        "moduleName": "redis",
+        "version": "3.1.0"
+      },
+      "ref": "1527622454",
+      "typeInfo": {
+        "orgName": "ballerinax",
+        "moduleName": "redis"
+      }
+    },
+    "mappings": [],
+    "refs": {
+      "1527622454": {
+        "fields": [
+          {
+            "name": "clientName",
+            "displayName": "clientName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
+          },
+          {
+            "name": "database",
+            "displayName": "database",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "connectionTimeout",
+            "displayName": "connectionTimeout",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "redis:Options",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

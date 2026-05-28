@@ -1,0 +1,8 @@
+{
+  "description": "Convert decimal to int using type cast",
+  "output": "output.intField",
+  "outputType": "int",
+  "expression": "input.decimalField",
+  "expressionType": "decimal",
+  "convertedExpression": "<int>input.decimalField"
+}

@@ -1,0 +1,8 @@
+[package]
+org = "wso2"
+name = "service_path_changes"
+version = "0.1.0"
+title = "service path changes"
+
+[build-options]
+sticky = true

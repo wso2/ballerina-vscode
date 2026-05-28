@@ -1,0 +1,33 @@
+{
+  "description": "Union of singleton string values treated as enum",
+  "source": "RefTypeTest/BalProject7",
+  "typeSymbolName": "Status",
+  "refType": {
+    "members": [
+      {
+        "dependentTypeKeys": [],
+        "name": "active"
+      },
+      {
+        "dependentTypeKeys": [],
+        "name": "inactive"
+      },
+      {
+        "dependentTypeKeys": [],
+        "name": "pending"
+      }
+    ],
+    "dependentTypeKeys": [],
+    "hashCode": "-732348210",
+    "key": "919172339",
+    "name": "Status",
+    "typeName": "enum",
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "test.streams",
+      "packageName": "test.streams",
+      "version": "0.1.0",
+      "modulePrefix": "streams"
+    }
+  }
+}

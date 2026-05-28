@@ -1,0 +1,63 @@
+{
+  "source": "agent_1/agents.bal",
+  "description": "Sample diagram node",
+  "orgName": "ballerina",
+  "agent": "FunctionCallAgent",
+  "models": [
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai.openai",
+      "packageName": "ai.openai",
+      "object": "ModelProvider",
+      "symbol": "init"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai.anthropic",
+      "packageName": "ai.anthropic",
+      "object": "ModelProvider",
+      "symbol": "init"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai.deepseek",
+      "packageName": "ai.deepseek",
+      "object": "ModelProvider",
+      "symbol": "init"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai.mistral",
+      "packageName": "ai.mistral",
+      "object": "ModelProvider",
+      "symbol": "init"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai.ollama",
+      "packageName": "ai.ollama",
+      "object": "ModelProvider",
+      "symbol": "init"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerinax",
+      "module": "ai.azure",
+      "packageName": "ai.azure",
+      "object": "OpenAiModelProvider",
+      "symbol": "init"
+    },
+    {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "symbol": "getDefaultModelProvider"
+    }
+  ]
+}

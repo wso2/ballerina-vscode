@@ -1,0 +1,42 @@
+name: cleanup caches by a branch
+on:
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: 'The number of the pull request'
+        required: true
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Cleanup
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            PR_NUMBER="${{ github.event.inputs.pull_request_number }}"
+          else
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+          fi
+
+          REPO=${{ github.repository }}
+          BRANCH="refs/pull/$PR_NUMBER/merge"
+
+          echo "Fetching list of cache keys"
+          cacheKeysForPR=$(gh cache list -R $REPO -r $BRANCH | cut -f 1)
+
+          ## Setting this to not fail the workflow while deleting cache keys. 
+          set +e
+          echo "Deleting caches..."
+          for cacheKey in $cacheKeysForPR
+          do
+            gh cache delete $cacheKey -R $REPO
+          done
+          echo "Done"
+        env:
+          GH_TOKEN: ${{ secrets.CHOREO_BOT_TOKEN }}

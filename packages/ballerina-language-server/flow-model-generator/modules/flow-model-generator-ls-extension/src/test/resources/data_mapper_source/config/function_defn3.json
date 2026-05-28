@@ -1,0 +1,53 @@
+{
+  "source": "function_defn2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_defn2.bal",
+      "startLine": {
+        "line": 31,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 34,
+        "offset": 2
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 20,
+    "offset": 51
+  },
+  "mapping": {
+    "output": "phoneNumbers.code",
+    "inputs": [
+      "secondaryPhonesItem.code"
+    ],
+    "expression": "secondaryPhonesItem.code",
+    "diagnostics": [],
+    "elements": [],
+    "isQueryExpression": false,
+    "isFunctionCall": false
+  },
+  "targetField": "transform.phoneNumbers",
+  "output": {
+    "function_defn2.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 33,
+            "character": 50
+          },
+          "end": {
+            "line": 33,
+            "character": 50
+          }
+        },
+        "newText": ", code: secondaryPhonesItem.code"
+      }
+    ]
+  }
+}

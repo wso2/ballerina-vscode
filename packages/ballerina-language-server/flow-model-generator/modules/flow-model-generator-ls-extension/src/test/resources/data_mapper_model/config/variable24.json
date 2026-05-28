@@ -1,0 +1,150 @@
+{
+  "source": "variable11_3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable11_3.bal",
+      "startLine": {
+        "line": 30,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 33,
+        "offset": 43
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 29,
+    "offset": 14
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "std",
+        "displayName": "std",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "545732303"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "var1909",
+      "displayName": "var1909",
+      "typeName": "Person",
+      "kind": "record",
+      "ref": "887620673"
+    },
+    "mappings": [
+      {
+        "output": "var1909.city",
+        "inputs": [
+          "std.lastName"
+        ],
+        "expression": "std.lastName",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "var1909.foo.bar.firstName",
+        "inputs": [
+          "std.firstName"
+        ],
+        "expression": "std.firstName",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "545732303": {
+        "fields": [
+          {
+            "name": "firstName",
+            "displayName": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "lastName",
+            "displayName": "lastName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "stdAge",
+            "displayName": "stdAge",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "887620673": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "city",
+            "displayName": "city",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "foo",
+            "displayName": "foo",
+            "typeName": "",
+            "kind": "record",
+            "optional": false,
+            "ref": "-263690226"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "-263690226": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "bar",
+            "displayName": "bar",
+            "typeName": "Student",
+            "kind": "record",
+            "optional": false,
+            "ref": "545732303"
+          }
+        ],
+        "typeName": "",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

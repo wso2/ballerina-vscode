@@ -1,0 +1,395 @@
+{
+  "filePath": "test_pack2/graphql_service.bal",
+  "position": {
+    "line": 85,
+    "offset": 0
+  },
+  "description": "Get a record type data",
+  "type": {
+    "name": "/graphql",
+    "editable": true,
+    "metadata": {
+      "label": "/graphql",
+      "description": ""
+    },
+    "codedata": {
+      "node": "SERVICE_DECLARATION",
+      "lineRange": {
+        "fileName": "graphql_service.bal",
+        "startLine": {
+          "line": 85,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 93,
+          "offset": 1
+        }
+      }
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "/graphql",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "qualifiers": {
+        "metadata": {
+          "label": "Type Qualifiers",
+          "description": "Qualifiers of the type"
+        },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT",
+            "selected": true
+          }
+        ],
+        "value": [],
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "isReadOnly": {
+        "metadata": {
+          "label": "readonly",
+          "description": "Is this readonly"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "members": [],
+    "functions": [
+      {
+        "accessor": "get",
+        "qualifiers": [
+          "RESOURCE"
+        ],
+        "parameters": [
+          {
+            "kind": "FIELD",
+            "refs": [
+              "ballerina/graphql:Context"
+            ],
+            "type": "graphql:Context",
+            "typeName": "graphql:Context",
+            "name": "context",
+            "optional": false,
+            "readonly": false,
+            "isGraphqlId": false,
+            "imports": {
+              "graphql": "ballerina/graphql:1.17.0"
+            },
+            "selected": false
+          }
+        ],
+        "kind": "RESOURCE",
+        "name": "g",
+        "description": "",
+        "returnType": {
+          "editable": false,
+          "codedata": {
+            "node": "UNION"
+          },
+          "properties": {
+            "isArray": {
+              "metadata": {
+                "label": "Is array type",
+                "description": "Is this type an array or list value"
+              },
+              "types": [
+                {
+                  "fieldType": "FLAG",
+                  "selected": true
+                }
+              ],
+              "value": "false",
+              "optional": true,
+              "editable": true,
+              "advanced": true,
+              "hidden": false
+            },
+            "arraySize": {
+              "metadata": {
+                "label": "Size of the array",
+                "description": "Array dimensions"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            }
+          },
+          "members": [
+            {
+              "kind": "TYPE",
+              "refs": [
+                "ProfileType"
+              ],
+              "type": "ProfileType",
+              "typeName": "ProfileType",
+              "name": "ProfileType",
+              "optional": false,
+              "readonly": false,
+              "isGraphqlId": false,
+              "imports": {
+                "test_pack2": "testorg/test_pack2:0.1.0"
+              },
+              "selected": false
+            },
+            {
+              "kind": "TYPE",
+              "refs": [],
+              "type": "string",
+              "typeName": "string",
+              "name": "string",
+              "optional": false,
+              "readonly": false,
+              "isGraphqlId": false,
+              "selected": false
+            }
+          ],
+          "allowAdditionalFields": false
+        },
+        "isGraphqlId": false,
+        "refs": [],
+        "properties": {
+          "isPrivate": {
+            "metadata": {
+              "label": "private",
+              "description": "Is this private"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "isPublic": {
+            "metadata": {
+              "label": "public",
+              "description": "Make visible across the project"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "isIsolated": {
+            "metadata": {
+              "label": "isolated",
+              "description": "Is this isolated"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        }
+      }
+    ],
+    "allowAdditionalFields": false
+  },
+  "refs": [
+    {
+      "name": "ProfileType",
+      "editable": true,
+      "metadata": {
+        "label": "ProfileType",
+        "description": ""
+      },
+      "codedata": {
+        "node": "ENUM",
+        "lineRange": {
+          "fileName": "graphql_service.bal",
+          "startLine": {
+            "line": 95,
+            "offset": 5
+          },
+          "endLine": {
+            "line": 95,
+            "offset": 16
+          }
+        }
+      },
+      "properties": {
+        "name": {
+          "metadata": {
+            "label": "Type name",
+            "description": "Unique name to identify the type"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "value": "ProfileType",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Is array type",
+            "description": "Is this type an array or list value"
+          },
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "selected": true
+            }
+          ],
+          "value": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false
+        },
+        "arraySize": {
+          "metadata": {
+            "label": "Size of the array",
+            "description": "Array dimensions"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "value": "",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false
+        },
+        "description": {
+          "metadata": {
+            "label": "Type description",
+            "description": "Detailed description about the type"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "value": "",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        }
+      },
+      "members": [
+        {
+          "kind": "NAME",
+          "refs": [],
+          "type": "\"teacher\"",
+          "typeName": "\"teacher\"",
+          "name": "TEACHER",
+          "defaultValue": "\"teacher\"",
+          "optional": false,
+          "readonly": false,
+          "isGraphqlId": false,
+          "selected": false
+        },
+        {
+          "kind": "NAME",
+          "refs": [],
+          "type": "\"STUDENT\"",
+          "typeName": "\"STUDENT\"",
+          "name": "STUDENT",
+          "optional": false,
+          "readonly": false,
+          "isGraphqlId": false,
+          "selected": false
+        }
+      ],
+      "allowAdditionalFields": false
+    }
+  ]
+}

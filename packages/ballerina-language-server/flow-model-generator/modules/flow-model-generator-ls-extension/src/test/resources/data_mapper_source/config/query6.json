@@ -1,0 +1,46 @@
+{
+  "source": "query4.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query4.bal",
+      "startLine": {
+        "line": 15,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 15,
+        "offset": 94
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 15,
+    "offset": 4
+  },
+  "mapping": {
+    "output": "myTypes4.i",
+    "expression": "abc"
+  },
+  "targetField": "myTypes4.0.0",
+  "output": {
+    "query4.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 92
+          },
+          "end": {
+            "line": 15,
+            "character": 92
+          }
+        },
+        "newText": "i: abc"
+      }
+    ]
+  }
+}

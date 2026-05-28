@@ -1,0 +1,51 @@
+name: Daily Build
+on:
+  schedule:
+    - cron: '30 13 * * *'
+  workflow_dispatch:
+
+jobs:
+  Build:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      ballerina: true
+      runTests: true
+      runBalE2ETests: true
+
+  NotifySuccess:
+    name: Notify
+    needs: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore build
+        uses: actions/download-artifact@v4
+        with:
+          name: ExtBuild
+          path: ./
+
+      - name: Set up workspace
+        run: |
+          unzip build.zip
+          rm build.zip
+
+      - name: Notification - Ballerina
+        uses: ./.github/actions/dailyBuildNotification
+        with:
+          title: Ballerina
+          fileName: ballerina
+          chatAPI: ${{ secrets.BI_TEAM_CHAT_API }}
+
+  NotifyFailure:
+    needs: Build
+    if: ${{ always() && contains(needs.*.result, 'failure') && github.repository == 'wso2/ballerina-vscode' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Failure Notification"
+        uses: ./.github/actions/failure-notification
+        with:
+          title: "Daily Build Failed"
+          run_id: ${{ github.run_id }}
+          chat_api: ${{ secrets.TOOLING_TEAM_CHAT_API }}
+          repository: ${{ github.repository }}

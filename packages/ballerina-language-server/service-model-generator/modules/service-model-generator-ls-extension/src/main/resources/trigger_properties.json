@@ -1,0 +1,152 @@
+{
+  "1": {
+    "name": "kafka",
+    "orgName": "ballerinax",
+    "packageName": "kafka",
+    "keywords": [
+      "kafka",
+      "network",
+      "messaging",
+      "event"
+    ],
+    "triggerName": "Kafka"
+  },
+  "2": {
+    "name": "rabbitmq",
+    "orgName": "ballerinax",
+    "packageName": "rabbitmq",
+    "keywords": [
+      "messaging",
+      "network",
+      "event"
+    ],
+    "triggerName": "RabbitMQ"
+  },
+  "3": {
+    "name": "mqtt",
+    "orgName": "ballerina",
+    "packageName": "mqtt",
+    "keywords": [
+      "mqtt",
+      "event"
+    ],
+    "triggerName": "MQTT"
+  },
+  "4": {
+    "name": "asb",
+    "orgName": "ballerinax",
+    "packageName": "asb",
+    "keywords": [
+      "azure",
+      "service bus",
+      "asb",
+      "azure service bus",
+      "event"
+    ],
+    "triggerName": "Azure Service Bus"
+  },
+  "5": {
+    "name": "salesforce",
+    "orgName": "ballerinax",
+    "packageName": "salesforce",
+    "keywords": [
+      "salesforce",
+      "event"
+    ],
+    "triggerName": "Salesforce"
+  },
+  "6": {
+    "name": "trigger.twilio",
+    "orgName": "ballerinax",
+    "packageName": "trigger.twilio",
+    "keywords": [
+      "twilio",
+      "event",
+      "sms"
+    ],
+    "triggerName": "Twilio"
+  },
+  "7": {
+    "name": "trigger.github",
+    "orgName": "ballerinax",
+    "packageName": "trigger.github",
+    "keywords": [
+      "github",
+      "event"
+    ],
+    "triggerName": "GitHub"
+  },
+  "8": {
+    "name": "ftp",
+    "orgName": "ballerina",
+    "packageName": "ftp",
+    "keywords": [
+      "FTP",
+      "SFTP",
+      "remote file",
+      "file",
+      "event"
+    ]
+  },
+  "9": {
+    "name": "file",
+    "orgName": "ballerina",
+    "packageName": "file",
+    "keywords": [
+      "file",
+      "directory",
+      "service",
+      "event"
+    ]
+  },
+  "10": {
+    "name": "mcp",
+    "orgName": "ballerina",
+    "packageName": "mcp",
+    "keywords": [
+      "mcp"
+    ]
+  },
+  "11": {
+    "name": "solace",
+    "orgName": "ballerinax",
+    "packageName": "solace",
+    "keywords": [
+      "solace",
+      "messaging",
+      "event"
+    ],
+    "triggerName": "Solace"
+  },
+  "12": {
+    "name": "trigger.shopify",
+    "orgName": "ballerinax",
+    "packageName": "trigger.shopify",
+    "keywords": [
+      "shopify",
+      "event"
+    ],
+    "triggerName": "Shopify"
+  },
+  "13": {
+    "name": "mssql",
+    "orgName": "ballerinax",
+    "packageName": "mssql",
+    "keywords": [
+      "mssql",
+      "cdc",
+      "event"
+    ]
+  },
+  "14": {
+    "name": "postgresql",
+    "orgName": "ballerinax",
+    "packageName": "postgresql",
+    "keywords": [
+      "postgresql",
+      "postgres",
+      "cdc",
+      "event"
+    ]
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "contractFile": "petstore.yaml",
+  "balToml": "[package]\norg = \"oas\"\nname = \"client1\"\nversion = \"0.1.0\"\n[[tool.openapi]]\nid = \"cl1\"\ntargetModule = \"mod5\"",
+  "module": "mod1",
+  "source": "main.bal",
+  "position": {
+    "line": 0,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "NEW_CONNECTION",
+    "org": "oas",
+    "packageName": "client1",
+    "module": "mod1",
+    "object": "Client",
+    "symbol": "init",
+    "isGenerated": "true",
+    "isNew": true
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Mod1",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/oas_client1_null.png"
+    },
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "oas",
+      "module": "mod1",
+      "packageName": "client1",
+      "object": "Client",
+      "symbol": "init",
+      "isNew": true,
+      "isGenerated": true
+    },
+    "returning": false,
+    "properties": {
+      "config": {
+        "metadata": {
+          "label": "Config",
+          "description": "The configurations to be used when initializing the `connector` "
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "mod1:ConnectionConfig",
+            "typeMembers": [
+              {
+                "type": "ConnectionConfig",
+                "packageInfo": "oas:client1.mod1:0.1.0",
+                "packageName": "client1",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "mod1:ConnectionConfig",
+            "selected": false
+          }
+        ],
+        "placeholder": "{}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "config"
+        },
+        "defaultValue": "{}"
+      },
+      "serviceUrl": {
+        "metadata": {
+          "label": "Service Url",
+          "description": "URL of the target service "
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "serviceUrl"
+        },
+        "defaultValue": "\"\""
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "mod1:Client",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {},
+        "imports": {
+          "mod1": "oas/client1.mod1"
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Connection Name",
+          "description": "Name of the connection"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "mod1Client",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "types": [
+          {
+            "fieldType": "ENUM",
+            "selected": true
+          }
+        ],
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  },
+  "textEdits": {
+    "connections.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import client1.mod1;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "final mod1:Client mod1Client = check new ();"
+      }
+    ]
+  },
+  "modules": [
+    "mod5",
+    "mod1"
+  ]
+}

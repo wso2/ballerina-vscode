@@ -1,0 +1,1012 @@
+{
+  "source": "model_provider/provider.bal",
+  "codedata": {
+    "node": "MODEL_PROVIDER",
+    "org": "ballerinax",
+    "module": "ai.ollama",
+    "packageName": "ai.ollama",
+    "object": "ModelProvider",
+    "symbol": "init",
+    "version": "1.0.1"
+  },
+  "expectedTemplate": {
+    "flowNode": {
+      "id": "31",
+      "metadata": {
+        "label": "Model Provider",
+        "description": "Initializes the client with the given connection configuration and model configuration.\n",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.ollama_1.0.1.png"
+      },
+      "codedata": {
+        "node": "MODEL_PROVIDER",
+        "org": "ballerinax",
+        "module": "ai.ollama",
+        "packageName": "ai.ollama",
+        "object": "ModelProvider",
+        "symbol": "init",
+        "version": "1.0.1",
+        "isNew": true
+      },
+      "returning": false,
+      "properties": {
+        "type": {
+          "metadata": {
+            "label": "Result Type",
+            "description": "Type of the variable"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "value": "ollama:ModelProvider",
+          "placeholder": "var",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {},
+          "imports": {
+            "ollama": "ballerinax/ai.ollama"
+          }
+        },
+        "variable": {
+          "metadata": {
+            "label": "Model Provider Name",
+            "description": "Name of the model-provider connection"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "value": "ollamaModelprovider",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "modelType": {
+          "metadata": {
+            "label": "Model Type",
+            "description": "The Ollama model name"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "placeholder": "\"\"",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {
+            "kind": "REQUIRED",
+            "originalName": "modelType"
+          }
+        },
+        "serviceUrl": {
+          "metadata": {
+            "label": "Service URL",
+            "description": "The base URL for the Ollama API endpoint"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "placeholder": "\"\"",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "DEFAULTABLE",
+            "originalName": "serviceUrl"
+          },
+          "defaultValue": "http://localhost:11434"
+        },
+        "mirostat": {
+          "metadata": {
+            "label": "Mirostat Sampling",
+            "description": "Enable Mirostat sampling for controlling perplexity.  \n- `0` = disabled  \n- `1` = Mirostat  \n- `2` = Mirostat 2.0  "
+          },
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                {
+                  "label": "0",
+                  "value": "0"
+                },
+                {
+                  "label": "1",
+                  "value": "1"
+                },
+                {
+                  "label": "2",
+                  "value": "2"
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "0|1|2",
+              "selected": false
+            }
+          ],
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "mirostat"
+          },
+          "defaultValue": "0"
+        },
+        "mirostatEta": {
+          "metadata": {
+            "label": "Mirostat Eta",
+            "description": "Influences how quickly the algorithm responds to feedback from the generated text.  \nA lower value results in slower adjustments, while a higher value makes the model more responsive.  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "float",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "float",
+              "selected": false
+            }
+          ],
+          "placeholder": "0.0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "mirostatEta"
+          },
+          "defaultValue": "0.1"
+        },
+        "mirostatTau": {
+          "metadata": {
+            "label": "Mirostat Tau",
+            "description": "Controls the balance between coherence and diversity of the output.  \nA lower value results in more focused and coherent text.  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "float",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "float",
+              "selected": false
+            }
+          ],
+          "placeholder": "0.0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "mirostatTau"
+          },
+          "defaultValue": "5.0"
+        },
+        "numCtx": {
+          "metadata": {
+            "label": "Context Window Size",
+            "description": "Sets the size of the context window used to generate the next token.  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "numCtx"
+          },
+          "defaultValue": "2048"
+        },
+        "repeatLastN": {
+          "metadata": {
+            "label": "Repeat Last N",
+            "description": "Sets how far back the model should look to prevent repetition.  \n- `0` = disabled  \n- `-1` = num_ctx  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "repeatLastN"
+          },
+          "defaultValue": "64"
+        },
+        "repeatPenalty": {
+          "metadata": {
+            "label": "Repeat Penalty",
+            "description": "Sets how strongly to penalize repetitions.  \nA higher value (e.g., `1.5`) will penalize repetitions more strongly,  \nwhile a lower value (e.g., `0.9`) will be more lenient.  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "float",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "float",
+              "selected": false
+            }
+          ],
+          "placeholder": "0.0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "repeatPenalty"
+          },
+          "defaultValue": "1.1"
+        },
+        "temperature": {
+          "metadata": {
+            "label": "Temperature",
+            "description": "Controls the creativity of the model's responses.  \nA higher value makes the output more diverse, while a lower value makes it more focused.  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "float",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "float",
+              "selected": false
+            }
+          ],
+          "placeholder": "0.0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "temperature"
+          },
+          "defaultValue": "0.8"
+        },
+        "seed": {
+          "metadata": {
+            "label": "Seed",
+            "description": "Sets the random number seed for deterministic text generation.  \nA specific value ensures the same output for identical prompts.  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "seed"
+          },
+          "defaultValue": "0"
+        },
+        "numPredict": {
+          "metadata": {
+            "label": "Number Of Tokens To Predict",
+            "description": "Maximum number of tokens to generate.  \n`-1` allows infinite generation.  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "numPredict"
+          },
+          "defaultValue": "-1"
+        },
+        "topK": {
+          "metadata": {
+            "label": "Top K",
+            "description": "Controls randomness by selecting the top-k most likely next words.  \nA higher value (e.g., `100`) increases diversity,  \nwhile a lower value (e.g., `10`) makes responses more conservative.  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "topK"
+          },
+          "defaultValue": "40"
+        },
+        "topP": {
+          "metadata": {
+            "label": "Top P",
+            "description": "Controls randomness by considering the cumulative probability of choices.  \nA higher value (e.g., `0.95`) increases diversity,  \nwhile a lower value (e.g., `0.5`) makes responses more conservative.  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "float",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "float",
+              "selected": false
+            }
+          ],
+          "placeholder": "0.0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "topP"
+          },
+          "defaultValue": "0.9"
+        },
+        "minP": {
+          "metadata": {
+            "label": "Min P",
+            "description": "Ensures a balance between quality and variety.  \nFilters out low-probability tokens relative to the highest probability token.  "
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "float",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "float",
+              "selected": false
+            }
+          ],
+          "placeholder": "0.0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "minP"
+          },
+          "defaultValue": "0.0"
+        },
+        "httpVersion": {
+          "metadata": {
+            "label": "HTTP Version",
+            "description": "The HTTP version understood by the client"
+          },
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                {
+                  "label": "2.0",
+                  "value": "\"2.0\""
+                },
+                {
+                  "label": "1.1",
+                  "value": "\"1.1\""
+                },
+                {
+                  "label": "1.0",
+                  "value": "\"1.0\""
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:HttpVersion",
+              "selected": false
+            }
+          ],
+          "placeholder": "\"2.0\"",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "httpVersion"
+          },
+          "defaultValue": "http:HTTP_2_0"
+        },
+        "http1Settings": {
+          "metadata": {
+            "label": "HTTP1 Settings",
+            "description": "Configurations related to HTTP/1.x protocol"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ClientHttp1Settings",
+              "typeMembers": [
+                {
+                  "type": "ClientHttp1Settings",
+                  "packageInfo": "ballerina:http:2.14.2",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ClientHttp1Settings",
+              "selected": false
+            }
+          ],
+          "placeholder": "{}",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "http1Settings"
+          },
+          "defaultValue": "{}"
+        },
+        "http2Settings": {
+          "metadata": {
+            "label": "HTTP2 Settings",
+            "description": "Configurations related to HTTP/2 protocol"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ClientHttp2Settings",
+              "typeMembers": [
+                {
+                  "type": "ClientHttp2Settings",
+                  "packageInfo": "ballerina:http:2.14.2",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ClientHttp2Settings",
+              "selected": false
+            }
+          ],
+          "placeholder": "{}",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "http2Settings"
+          },
+          "defaultValue": "{}"
+        },
+        "timeout": {
+          "metadata": {
+            "label": "Timeout",
+            "description": "The maximum time to wait (in seconds) for a response before closing the connection"
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
+              "selected": false
+            }
+          ],
+          "placeholder": "0.0d",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "timeout"
+          },
+          "defaultValue": "60"
+        },
+        "forwarded": {
+          "metadata": {
+            "label": "Forwarded",
+            "description": "The choice of setting `forwarded`/`x-forwarded` header"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "placeholder": "\"\"",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "forwarded"
+          },
+          "defaultValue": "\"disable\""
+        },
+        "poolConfig": {
+          "metadata": {
+            "label": "Pool Configuration",
+            "description": "Configurations associated with request pooling"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:PoolConfiguration",
+              "typeMembers": [
+                {
+                  "type": "PoolConfiguration",
+                  "packageInfo": "ballerina:http:2.14.2",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:PoolConfiguration",
+              "selected": false
+            }
+          ],
+          "placeholder": "{}",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "poolConfig"
+          },
+          "defaultValue": "{}"
+        },
+        "cache": {
+          "metadata": {
+            "label": "Cache Configuration",
+            "description": "HTTP caching related configurations"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:CacheConfig",
+              "typeMembers": [
+                {
+                  "type": "CacheConfig",
+                  "packageInfo": "ballerina:http:2.14.2",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:CacheConfig",
+              "selected": false
+            }
+          ],
+          "placeholder": "{}",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "cache"
+          },
+          "defaultValue": "{}"
+        },
+        "compression": {
+          "metadata": {
+            "label": "Compression",
+            "description": "Specifies the way of handling compression (`accept-encoding`) header"
+          },
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                {
+                  "label": "AUTO",
+                  "value": "\"AUTO\""
+                },
+                {
+                  "label": "ALWAYS",
+                  "value": "\"ALWAYS\""
+                },
+                {
+                  "label": "NEVER",
+                  "value": "\"NEVER\""
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:Compression",
+              "selected": false
+            }
+          ],
+          "placeholder": "\"AUTO\"",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "compression"
+          },
+          "defaultValue": "AUTO"
+        },
+        "circuitBreaker": {
+          "metadata": {
+            "label": "Circuit Breaker Configuration",
+            "description": "Configurations associated with the behaviour of the Circuit Breaker"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:CircuitBreakerConfig",
+              "typeMembers": [
+                {
+                  "type": "CircuitBreakerConfig",
+                  "packageInfo": "ballerina:http:2.14.2",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:CircuitBreakerConfig",
+              "selected": false
+            }
+          ],
+          "placeholder": "{}",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "circuitBreaker"
+          },
+          "defaultValue": "{}"
+        },
+        "retryConfig": {
+          "metadata": {
+            "label": "Retry Configuration",
+            "description": "Configurations associated with retrying"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:RetryConfig",
+              "typeMembers": [
+                {
+                  "type": "RetryConfig",
+                  "packageInfo": "ballerina:http:2.14.2",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:RetryConfig",
+              "selected": false
+            }
+          ],
+          "placeholder": "{}",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "retryConfig"
+          },
+          "defaultValue": "{}"
+        },
+        "responseLimits": {
+          "metadata": {
+            "label": "Response Limit Configuration",
+            "description": "Configurations associated with inbound response size limits"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ResponseLimitConfigs",
+              "typeMembers": [
+                {
+                  "type": "ResponseLimitConfigs",
+                  "packageInfo": "ballerina:http:2.14.2",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ResponseLimitConfigs",
+              "selected": false
+            }
+          ],
+          "placeholder": "{}",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "responseLimits"
+          },
+          "defaultValue": "{}"
+        },
+        "secureSocket": {
+          "metadata": {
+            "label": "Secure Socket Configuration",
+            "description": "SSL/TLS-related options"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ClientSecureSocket",
+              "typeMembers": [
+                {
+                  "type": "ClientSecureSocket",
+                  "packageInfo": "ballerina:http:2.14.2",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ClientSecureSocket",
+              "selected": false
+            }
+          ],
+          "placeholder": "{}",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "secureSocket"
+          },
+          "defaultValue": "{}"
+        },
+        "proxy": {
+          "metadata": {
+            "label": "Proxy Configuration",
+            "description": "Proxy server related options"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ProxyConfig",
+              "typeMembers": [
+                {
+                  "type": "ProxyConfig",
+                  "packageInfo": "ballerina:http:2.14.2",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ProxyConfig",
+              "selected": false
+            }
+          ],
+          "placeholder": "{}",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "proxy"
+          },
+          "defaultValue": "{}"
+        },
+        "validation": {
+          "metadata": {
+            "label": "Payload Validation",
+            "description": "Enables the inbound payload validation functionality which provided by the constraint package. Enabled by default"
+          },
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
+              "selected": false
+            }
+          ],
+          "placeholder": "false",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "validation"
+          },
+          "defaultValue": "true"
+        },
+        "scope": {
+          "metadata": {
+            "label": "Connection Scope",
+            "description": "Scope of the connection, Global or Local"
+          },
+          "types": [
+            {
+              "fieldType": "ENUM",
+              "selected": true
+            }
+          ],
+          "value": "Global",
+          "optional": false,
+          "editable": true,
+          "advanced": true,
+          "hidden": true
+        },
+        "checkError": {
+          "metadata": {
+            "label": "Check Error",
+            "description": "Terminate on error"
+          },
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "selected": true
+            }
+          ],
+          "value": true,
+          "optional": false,
+          "editable": false,
+          "advanced": true,
+          "hidden": true
+        }
+      },
+      "flags": 0
+    }
+  }
+}

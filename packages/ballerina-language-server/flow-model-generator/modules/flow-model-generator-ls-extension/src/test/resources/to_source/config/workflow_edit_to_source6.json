@@ -1,0 +1,109 @@
+{
+  "source": "workflow_data/functions.bal",
+  "description": "Edit an existing ctx+input+datas workflow - update the input type, preserving ctx and datas params",
+  "diagram": {
+    "metadata": {
+      "label": "Workflow Process Function",
+      "description": "Define a workflow process function"
+    },
+    "codedata": {
+      "isNew": false,
+      "node": "WORKFLOW",
+      "org": "ballerina",
+      "module": "workflow",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 9,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 11,
+          "offset": 112
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the function"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "bookingWorkflow",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "functionNameDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the function"
+        },
+        "valueType": "TEXT",
+        "value": "Process an booking workflow",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "inputType": {
+        "metadata": {
+          "label": "Input Type",
+          "description": "Type of the input data to the workflow"
+        },
+        "valueType": "TYPE",
+        "value": "ExpenseClaimInput",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "valueType": "TYPE",
+        "value": "error?",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "typeDescription": {
+        "metadata": {
+          "label": "Return Description",
+          "description": "Description of the return value"
+        },
+        "valueType": "TEXT",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "workflow_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 9,
+            "character": 0
+          },
+          "end": {
+            "line": 11,
+            "character": 112
+          }
+        },
+        "newText": "# Process an booking workflow\n@workflow:Workflow\nfunction bookingWorkflow( workflow:Context ctx, ExpenseClaimInput input, BookingWorkflowEvents events) returns error?"
+      }
+    ]
+  }
+}

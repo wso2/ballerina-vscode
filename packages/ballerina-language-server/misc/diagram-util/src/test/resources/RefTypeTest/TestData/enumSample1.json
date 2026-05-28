@@ -1,0 +1,96 @@
+{
+  "description": "A simple example of a reference-based type",
+  "source": "RefTypeTest/BalProject4",
+  "typeSymbolName": "Department",
+  "refType": {
+    "fields": [
+      {
+        "fieldName": "name",
+        "type": {
+          "dependentTypeKeys": [],
+          "name": "string",
+          "typeName": "string"
+        },
+        "optional": false,
+        "defaultValue": ""
+      },
+      {
+        "fieldName": "code",
+        "type": {
+          "members": [
+            {
+              "dependentTypeKeys": [],
+              "name": "FINANCE"
+            },
+            {
+              "dependentTypeKeys": [],
+              "name": "IT"
+            },
+            {
+              "dependentTypeKeys": [],
+              "name": "HR"
+            }
+          ],
+          "dependentTypeKeys": [],
+          "hashCode": "-959561237",
+          "key": "-1253237511",
+          "name": "DepartmentCode",
+          "typeName": "enum",
+          "moduleInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "packageName": "health.ccda.r1",
+            "version": "0.1.0",
+            "modulePrefix": "r1"
+          }
+        },
+        "optional": false,
+        "defaultValue": ""
+      }
+    ],
+    "dependentTypeKeys": [
+      "-1253237511"
+    ],
+    "hashCode": "1123774631",
+    "key": "1146573036",
+    "name": "Department",
+    "typeName": "record",
+    "dependentTypes": {
+      "-1253237511": {
+        "members": [
+          {
+            "dependentTypeKeys": [],
+            "name": "FINANCE"
+          },
+          {
+            "dependentTypeKeys": [],
+            "name": "IT"
+          },
+          {
+            "dependentTypeKeys": [],
+            "name": "HR"
+          }
+        ],
+        "dependentTypeKeys": [],
+        "hashCode": "-959561237",
+        "key": "-1253237511",
+        "name": "DepartmentCode",
+        "typeName": "enum",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
+      }
+    },
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r1",
+      "packageName": "health.ccda.r1",
+      "version": "0.1.0",
+      "modulePrefix": "r1"
+    }
+  }
+}

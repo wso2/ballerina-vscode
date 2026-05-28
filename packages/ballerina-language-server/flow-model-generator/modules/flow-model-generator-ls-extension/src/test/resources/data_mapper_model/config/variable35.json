@@ -1,0 +1,214 @@
+{
+  "source": "variable20.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable20.bal",
+      "startLine": {
+        "line": 35,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 35,
+        "offset": 112
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 34,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "user",
+        "displayName": "user",
+        "typeName": "User",
+        "kind": "record",
+        "category": "parameter",
+        "ref": "1373151159"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "user1",
+      "displayName": "user1",
+      "typeName": "User1",
+      "kind": "record",
+      "ref": "-381986982"
+    },
+    "mappings": [
+      {
+        "output": "user1.user2.user3.i3",
+        "inputs": [],
+        "expression": "0",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "user1.user2.user3.user4.user5.u",
+        "inputs": [],
+        "expression": "[user.name, user.name]",
+        "diagnostics": [],
+        "elements": [
+          {
+            "mappings": [
+              {
+                "output": "user1.user2.user3.user4.user5.u.0",
+                "inputs": [
+                  "user.name"
+                ],
+                "expression": "user.name",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              }
+            ]
+          },
+          {
+            "mappings": [
+              {
+                "output": "user1.user2.user3.user4.user5.u.1",
+                "inputs": [
+                  "user.name"
+                ],
+                "expression": "user.name",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "output": "user1.s1",
+        "inputs": [
+          "user.name"
+        ],
+        "expression": "user.name",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "-381986978": {
+        "fields": [
+          {
+            "member": {
+              "name": "u",
+              "displayName": "<uItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "u",
+            "displayName": "u",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "User5",
+        "kind": "record"
+      },
+      "-381986979": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "user5",
+            "displayName": "user5",
+            "typeName": "User5",
+            "kind": "record",
+            "optional": false,
+            "ref": "-381986978"
+          }
+        ],
+        "typeName": "User4",
+        "kind": "record"
+      },
+      "1373151159": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      },
+      "-381986980": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "user4",
+            "displayName": "user4",
+            "typeName": "User4",
+            "kind": "record",
+            "optional": false,
+            "ref": "-381986979"
+          },
+          {
+            "name": "i3",
+            "displayName": "i3",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "User3",
+        "kind": "record"
+      },
+      "-381986981": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "user3",
+            "displayName": "user3",
+            "typeName": "User3",
+            "kind": "record",
+            "optional": false,
+            "ref": "-381986980"
+          }
+        ],
+        "typeName": "User2",
+        "kind": "record"
+      },
+      "-381986982": {
+        "fields": [
+          {
+            "fields": [],
+            "name": "user2",
+            "displayName": "user2",
+            "typeName": "User2",
+            "kind": "record",
+            "optional": false,
+            "ref": "-381986981"
+          },
+          {
+            "name": "s1",
+            "displayName": "s1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "User1",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

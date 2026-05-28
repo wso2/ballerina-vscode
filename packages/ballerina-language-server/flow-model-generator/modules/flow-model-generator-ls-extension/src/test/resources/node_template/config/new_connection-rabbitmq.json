@@ -1,0 +1,464 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "",
+  "codedata": {
+    "node": "NEW_CONNECTION",
+    "org": "ballerinax",
+    "module": "rabbitmq",
+    "packageName": "rabbitmq",
+    "object": "Client",
+    "symbol": "init",
+    "version": "3.2.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "RabbitMQ",
+      "description": "The Ballerina interface to provide AMQP Channel related functionality.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png"
+    },
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "rabbitmq",
+      "packageName": "rabbitmq",
+      "object": "Client",
+      "symbol": "init",
+      "version": "3.2.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "host": {
+        "metadata": {
+          "label": "Host",
+          "description": "The host used for establishing the connection"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "host"
+        }
+      },
+      "port": {
+        "metadata": {
+          "label": "Port",
+          "description": "The port used for establishing the connection"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int",
+            "selected": false
+          }
+        ],
+        "placeholder": "0",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "port"
+        }
+      },
+      "username": {
+        "metadata": {
+          "label": "Username",
+          "description": "The username used for establishing the connection"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "username"
+        },
+        "defaultValue": "\"\""
+      },
+      "password": {
+        "metadata": {
+          "label": "Password",
+          "description": "The password used for establishing the connection"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "password"
+        },
+        "defaultValue": "\"\""
+      },
+      "virtualHost": {
+        "metadata": {
+          "label": "Virtual Host",
+          "description": "The virtual host to use when connecting to the broker"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "virtualHost"
+        },
+        "defaultValue": "\"\""
+      },
+      "connectionTimeout": {
+        "metadata": {
+          "label": "Connection Timeout",
+          "description": "Connection TCP establishment timeout in seconds and zero for infinite"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal",
+            "selected": false
+          }
+        ],
+        "placeholder": "0.0d",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "connectionTimeout"
+        },
+        "defaultValue": "0.0d"
+      },
+      "handshakeTimeout": {
+        "metadata": {
+          "label": "Handshake Timeout",
+          "description": "The AMQP 0-9-1 protocol handshake timeout in seconds"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal",
+            "selected": false
+          }
+        ],
+        "placeholder": "0.0d",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "handshakeTimeout"
+        },
+        "defaultValue": "0.0d"
+      },
+      "shutdownTimeout": {
+        "metadata": {
+          "label": "Shutdown Timeout",
+          "description": "Shutdown timeout in seconds, zero for infinite, and the default value is 10. If the consumers exceed\nthis timeout, then any remaining queued deliveries (and other Consumer callbacks) will be lost"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal",
+            "selected": false
+          }
+        ],
+        "placeholder": "0.0d",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "shutdownTimeout"
+        },
+        "defaultValue": "0.0d"
+      },
+      "heartbeat": {
+        "metadata": {
+          "label": "Heartbeat",
+          "description": "The initially-requested heartbeat timeout in seconds and zero for none"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal",
+            "selected": false
+          }
+        ],
+        "placeholder": "0.0d",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "heartbeat"
+        },
+        "defaultValue": "0.0d"
+      },
+      "validation": {
+        "metadata": {
+          "label": "Validation",
+          "description": "Configuration related to constraint validation check"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean",
+            "selected": false
+          }
+        ],
+        "placeholder": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "validation"
+        },
+        "defaultValue": "true"
+      },
+      "secureSocket": {
+        "metadata": {
+          "label": "Secure Socket",
+          "description": "Configurations for facilitating secure connections"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "rabbitmq:SecureSocket",
+            "typeMembers": [
+              {
+                "type": "SecureSocket",
+                "packageInfo": "ballerinax:rabbitmq:3.2.0",
+                "packageName": "rabbitmq",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "rabbitmq:SecureSocket",
+            "selected": false
+          }
+        ],
+        "placeholder": "{cert: {path: \"\", password: \"\"}}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "secureSocket"
+        },
+        "defaultValue": "{cert: {path: \"\", password: \"\"}}"
+      },
+      "auth": {
+        "metadata": {
+          "label": "Auth",
+          "description": "Configurations related to authentication"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "rabbitmq:Credentials",
+            "typeMembers": [
+              {
+                "type": "Credentials",
+                "packageInfo": "ballerinax:rabbitmq:3.2.0",
+                "packageName": "rabbitmq",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "rabbitmq:Credentials",
+            "selected": false
+          }
+        ],
+        "placeholder": "{username: \"\", password: \"\"}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "auth"
+        },
+        "defaultValue": "{username: \"\", password: \"\"}"
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "rabbitmq:Client",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {},
+        "imports": {
+          "rabbitmq": "ballerinax/rabbitmq"
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Connection Name",
+          "description": "Name of the connection"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "rabbitmqClient",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "types": [
+          {
+            "fieldType": "ENUM",
+            "selected": true
+          }
+        ],
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "removeComments": false,
+    "module": "CommonJS",
+    "target": "esnext",
+    "jsx": "react",
+    "outDir": "lib",
+    "rootDir": "./src",
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "**/*-spec.ts"]
+}

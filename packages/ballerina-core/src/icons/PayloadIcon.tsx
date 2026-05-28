@@ -1,0 +1,39 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+import React from 'react';
+
+export function PayloadIcon(props: any) {
+    const { onClick, ...restProps } = props;
+
+    const handleOnClick = (evt: React.MouseEvent) => {
+        evt.stopPropagation();
+        if (props && onClick) {
+            onClick();
+        }
+    }
+
+    return (
+        <svg width="14px" height="14px" viewBox="0 0 14 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" onClick={handleOnClick}>
+            <g id="VSC" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+                <g id="VSC-icons" transform="translate(-389.000000, -615.000000)" fill="#000000" fill-rule="nonzero">
+                    <path d="M389.991571,623.765992 L390.66124,624.508652 C390.242796,624.88597 390,625.420108 390,625.994521 C390,627.09909 390.895431,627.994521 392,627.994521 C393.054362,627.994521 393.918165,627.178643 393.994514,626.143783 L394,625.994521 L394,625.494521 L400,625.494521 L400,626.494521 L394.958,626.494521 L394.95501,626.515011 C394.718439,627.867423 393.576101,628.90832 392.176273,628.989428 L392,628.994521 C390.343146,628.994521 389,627.651375 389,625.994521 C389,625.200145 389.310996,624.454864 389.851666,623.900519 L389.991571,623.765992 Z M396.428055,617.71867 L398.967956,623.160992 L399.110307,623.113778 C400.359235,622.736776 401.742439,623.214152 402.480505,624.337063 L402.573052,624.487173 C403.401479,625.922051 402.909853,627.756822 401.474976,628.585249 C400.817591,628.964791 400.056565,629.076366 399.333863,628.917915 L399.137819,628.868005 L399.416766,627.907698 C399.937269,628.058892 400.496252,627.995615 400.974976,627.719224 C401.931561,627.166939 402.259311,625.943758 401.707026,624.987173 C401.179845,624.074069 400.041373,623.733932 399.106983,624.185242 L398.974976,624.255122 L398.502592,624.527853 L395.521896,618.141607 L396.428055,617.71867 Z M397.375398,615.402425 C398.014157,615.771212 398.483122,616.351389 398.714859,617.032087 L398.772127,617.220141 L397.806549,617.480254 C397.66959,616.971843 397.34059,616.537029 396.875398,616.26845 C395.918813,615.716165 394.695632,616.043916 394.143347,617.000501 C393.616167,617.913605 393.890836,619.06962 394.748876,619.65317 L394.875398,619.732552 L395.274279,619.962846 L392.319148,626.214188 L391.415073,625.786814 L393.992186,620.334074 L393.947135,620.299369 C392.894198,619.418287 392.563923,617.908545 393.193596,616.655704 L393.277322,616.500501 C394.105749,615.065623 395.94052,614.573998 397.375398,615.402425 Z" id="payload-icon"/>
+                </g>
+            </g>
+        </svg>
+    )
+}

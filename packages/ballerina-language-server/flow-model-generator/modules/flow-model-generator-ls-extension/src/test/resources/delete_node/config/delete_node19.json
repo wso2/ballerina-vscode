@@ -1,0 +1,65 @@
+{
+  "description": "Delete wait data.a from workflow function with single-field data record (deletes type def and param)",
+  "functionStart": {
+    "line": 14,
+    "offset": 0
+  },
+  "functionEnd": {
+    "line": 17,
+    "offset": 1
+  },
+  "nodeStart": {
+    "line": 16,
+    "offset": 4
+  },
+  "nodeEnd": {
+    "line": 16,
+    "offset": 34
+  },
+  "source": "delete_node_wait_data/functions.bal",
+  "output": {
+    "delete_node_wait_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 14,
+            "character": 0
+          },
+          "end": {
+            "line": 16,
+            "character": 3
+          }
+        },
+        "newText": ""
+      }
+    ],
+    "delete_node_wait_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 16,
+            "character": 4
+          },
+          "end": {
+            "line": 16,
+            "character": 34
+          }
+        },
+        "newText": ""
+      },
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 58
+          },
+          "end": {
+            "line": 15,
+            "character": 72
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,468 @@
+{
+  "modelVersion": "0.4.0",
+  "id": "cart_service",
+  "orgName": "test",
+  "version": "0.1.0",
+  "hasCompilationErrors": false,
+  "diagnostics": [],
+  "services": {
+    "cart": {
+      "id": "cart",
+      "label": "Cart",
+      "type": "ballerina/grpc:1.8.1",
+      "resourceFunctions": [],
+      "remoteFunctions": [
+        {
+          "id": "cart:AddItem",
+          "name": "AddItem",
+          "parameters": [
+            {
+              "type": [
+                "test/cart_service:0.1.0:AddItemRequest"
+              ],
+              "name": "value",
+              "isRequired": true,
+              "sourceLocation": {
+                "filePath": "{srcPath}/ballerina/microservice_grpc/cart/cart_service.bal",
+                "startPosition": {
+                  "line": 27,
+                  "offset": 28
+                },
+                "endPosition": {
+                  "line": 27,
+                  "offset": 48
+                }
+              },
+              "diagnostics": []
+            }
+          ],
+          "returns": [
+            "test/cart_service:0.1.0:Empty",
+            "error"
+          ],
+          "interactions": [],
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/cart_service.bal",
+            "startPosition": {
+              "line": 27,
+              "offset": 4
+            },
+            "endPosition": {
+              "line": 35,
+              "offset": 5
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "id": "cart:GetCart",
+          "name": "GetCart",
+          "parameters": [
+            {
+              "type": [
+                "test/cart_service:0.1.0:GetCartRequest"
+              ],
+              "name": "value",
+              "isRequired": true,
+              "sourceLocation": {
+                "filePath": "{srcPath}/ballerina/microservice_grpc/cart/cart_service.bal",
+                "startPosition": {
+                  "line": 36,
+                  "offset": 28
+                },
+                "endPosition": {
+                  "line": 36,
+                  "offset": 48
+                }
+              },
+              "diagnostics": []
+            }
+          ],
+          "returns": [
+            "test/cart_service:0.1.0:Cart",
+            "error"
+          ],
+          "interactions": [],
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/cart_service.bal",
+            "startPosition": {
+              "line": 36,
+              "offset": 4
+            },
+            "endPosition": {
+              "line": 41,
+              "offset": 5
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "id": "cart:EmptyCart",
+          "name": "EmptyCart",
+          "parameters": [
+            {
+              "type": [
+                "test/cart_service:0.1.0:EmptyCartRequest"
+              ],
+              "name": "value",
+              "isRequired": true,
+              "sourceLocation": {
+                "filePath": "{srcPath}/ballerina/microservice_grpc/cart/cart_service.bal",
+                "startPosition": {
+                  "line": 42,
+                  "offset": 30
+                },
+                "endPosition": {
+                  "line": 42,
+                  "offset": 52
+                }
+              },
+              "diagnostics": []
+            }
+          ],
+          "returns": [
+            "test/cart_service:0.1.0:Empty",
+            "error"
+          ],
+          "interactions": [],
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/cart_service.bal",
+            "startPosition": {
+              "line": 42,
+              "offset": 4
+            },
+            "endPosition": {
+              "line": 50,
+              "offset": 5
+            }
+          },
+          "diagnostics": []
+        }
+      ],
+      "annotation": {
+        "id": "cart",
+        "label": "Cart",
+        "sourceLocation": {
+          "filePath": "{srcPath}/ballerina/microservice_grpc/cart/cart_service.bal",
+          "startPosition": {
+            "line": 7,
+            "offset": 0
+          },
+          "endPosition": {
+            "line": 10,
+            "offset": 1
+          }
+        },
+        "diagnostics": []
+      },
+      "dependencies": [],
+      "sourceLocation": {
+        "filePath": "{srcPath}/ballerina/microservice_grpc/cart/cart_service.bal",
+        "startPosition": {
+          "line": 7,
+          "offset": 0
+        },
+        "endPosition": {
+          "line": 51,
+          "offset": 1
+        }
+      },
+      "diagnostics": []
+    }
+  },
+  "entities": {
+    "test/cart_service:0.1.0:GetCartRequest": {
+      "attributes": [
+        {
+          "name": "user_id",
+          "type": "string",
+          "optional": false,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [],
+          "isReadOnly": false,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+            "startPosition": {
+              "line": 26,
+              "offset": 11
+            },
+            "endPosition": {
+              "line": 26,
+              "offset": 18
+            }
+          },
+          "diagnostics": []
+        }
+      ],
+      "inclusions": [],
+      "isAnonymous": false,
+      "sourceLocation": {
+        "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+        "startPosition": {
+          "line": 25,
+          "offset": 12
+        },
+        "endPosition": {
+          "line": 25,
+          "offset": 26
+        }
+      },
+      "diagnostics": []
+    },
+    "test/cart_service:0.1.0:Empty": {
+      "attributes": [],
+      "inclusions": [],
+      "isAnonymous": false,
+      "sourceLocation": {
+        "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+        "startPosition": {
+          "line": 22,
+          "offset": 12
+        },
+        "endPosition": {
+          "line": 22,
+          "offset": 17
+        }
+      },
+      "diagnostics": []
+    },
+    "test/cart_service:0.1.0:Cart": {
+      "attributes": [
+        {
+          "name": "user_id",
+          "type": "string",
+          "optional": false,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [],
+          "isReadOnly": false,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+            "startPosition": {
+              "line": 2,
+              "offset": 11
+            },
+            "endPosition": {
+              "line": 2,
+              "offset": 18
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "name": "items",
+          "type": "test/cart_service:0.1.0:CartItem[]",
+          "optional": false,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [
+            {
+              "associate": "test/cart_service:0.1.0:CartItem",
+              "cardinality": {
+                "self": "1-1",
+                "associate": "0-m"
+              }
+            }
+          ],
+          "isReadOnly": false,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+            "startPosition": {
+              "line": 3,
+              "offset": 15
+            },
+            "endPosition": {
+              "line": 3,
+              "offset": 20
+            }
+          },
+          "diagnostics": []
+        }
+      ],
+      "inclusions": [],
+      "isAnonymous": false,
+      "sourceLocation": {
+        "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+        "startPosition": {
+          "line": 1,
+          "offset": 12
+        },
+        "endPosition": {
+          "line": 1,
+          "offset": 16
+        }
+      },
+      "diagnostics": []
+    },
+    "test/cart_service:0.1.0:AddItemRequest": {
+      "attributes": [
+        {
+          "name": "user_id",
+          "type": "string",
+          "optional": false,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [],
+          "isReadOnly": false,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+            "startPosition": {
+              "line": 7,
+              "offset": 11
+            },
+            "endPosition": {
+              "line": 7,
+              "offset": 18
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "name": "item",
+          "type": "test/cart_service:0.1.0:CartItem",
+          "optional": false,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [
+            {
+              "associate": "test/cart_service:0.1.0:CartItem",
+              "cardinality": {
+                "self": "1-1",
+                "associate": "1-1"
+              }
+            }
+          ],
+          "isReadOnly": false,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+            "startPosition": {
+              "line": 8,
+              "offset": 13
+            },
+            "endPosition": {
+              "line": 8,
+              "offset": 17
+            }
+          },
+          "diagnostics": []
+        }
+      ],
+      "inclusions": [],
+      "isAnonymous": false,
+      "sourceLocation": {
+        "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+        "startPosition": {
+          "line": 6,
+          "offset": 12
+        },
+        "endPosition": {
+          "line": 6,
+          "offset": 26
+        }
+      },
+      "diagnostics": []
+    },
+    "test/cart_service:0.1.0:EmptyCartRequest": {
+      "attributes": [
+        {
+          "name": "user_id",
+          "type": "string",
+          "optional": false,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [],
+          "isReadOnly": false,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+            "startPosition": {
+              "line": 30,
+              "offset": 11
+            },
+            "endPosition": {
+              "line": 30,
+              "offset": 18
+            }
+          },
+          "diagnostics": []
+        }
+      ],
+      "inclusions": [],
+      "isAnonymous": false,
+      "sourceLocation": {
+        "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+        "startPosition": {
+          "line": 29,
+          "offset": 12
+        },
+        "endPosition": {
+          "line": 29,
+          "offset": 28
+        }
+      },
+      "diagnostics": []
+    },
+    "test/cart_service:0.1.0:CartItem": {
+      "attributes": [
+        {
+          "name": "product_id",
+          "type": "string",
+          "optional": false,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [],
+          "isReadOnly": false,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+            "startPosition": {
+              "line": 12,
+              "offset": 11
+            },
+            "endPosition": {
+              "line": 12,
+              "offset": 21
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "name": "quantity",
+          "type": "int",
+          "optional": false,
+          "nillable": false,
+          "defaultValue": "",
+          "associations": [],
+          "isReadOnly": false,
+          "sourceLocation": {
+            "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+            "startPosition": {
+              "line": 13,
+              "offset": 8
+            },
+            "endPosition": {
+              "line": 13,
+              "offset": 16
+            }
+          },
+          "diagnostics": []
+        }
+      ],
+      "inclusions": [],
+      "isAnonymous": false,
+      "sourceLocation": {
+        "filePath": "{srcPath}/ballerina/microservice_grpc/cart/types.bal",
+        "startPosition": {
+          "line": 11,
+          "offset": 12
+        },
+        "endPosition": {
+          "line": 11,
+          "offset": 20
+        }
+      },
+      "diagnostics": []
+    }
+  },
+  "functionEntryPoint": null,
+  "connections": []
+}

@@ -1,0 +1,47 @@
+{
+  "description": "Record with array of primitives field",
+  "filePath": "proj",
+  "type": {
+    "fields": [
+      {
+        "name": "tags",
+        "typeName": "array",
+        "optional": false,
+        "defaultable": false,
+        "isRestType": false,
+        "selected": true,
+        "memberType": {
+          "typeName": "string",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false
+        },
+        "elements": [
+          {
+            "typeName": "string",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "value": "\"tag1\"",
+            "selected": true
+          },
+          {
+            "typeName": "string",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "value": "\"tag2\"",
+            "selected": true
+          }
+        ]
+      }
+    ],
+    "hasRestType": false,
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": true
+  },
+  "output": "{\n    tags: [\n        \"tag1\",\n        \"tag2\"\n    ]\n}"
+}

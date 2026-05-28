@@ -1,0 +1,106 @@
+{
+  "description": "",
+  "filePath": "assign.bal",
+  "context": {
+    "expression": "s",
+    "startLine": {
+      "line": 13,
+      "offset": 0
+    },
+    "offset": 1,
+    "lineOffset": 0,
+    "codedata": {
+      "node": "ASSIGN",
+      "lineRange": {
+        "fileName": "new_data.bal",
+        "startLine": {
+          "line": 1,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 1,
+          "offset": 14
+        }
+      },
+      "sourceCode": "i = 12;"
+    },
+    "property": {
+      "metadata": {
+        "label": "Variable",
+        "description": "Name of the variable/field"
+      },
+      "types": [
+        {
+          "fieldType": "LV_EXPRESSION",
+          "selected": true
+        }
+      ],
+      "value": "12",
+      "optional": true,
+      "editable": true,
+      "advanced": false
+    }
+  },
+  "completionContext": {
+    "triggerKind": "Invoked"
+  },
+  "completions": [
+    {
+      "label": "i",
+      "labelDetails": {
+        "detail": " int"
+      },
+      "kind": "Variable",
+      "detail": "int",
+      "sortText": "AB",
+      "insertText": "i",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "rec",
+      "labelDetails": {
+        "detail": " MyRecord",
+        "description": "Record"
+      },
+      "kind": "Variable",
+      "detail": "MyRecord",
+      "sortText": "AB",
+      "insertText": "rec",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "strucrturedRec",
+      "labelDetails": {
+        "detail": " MyRecord",
+        "description": "Record"
+      },
+      "kind": "Variable",
+      "detail": "MyRecord",
+      "sortText": "AB",
+      "insertText": "strucrturedRec",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "structuredArray",
+      "labelDetails": {
+        "detail": " int[]"
+      },
+      "kind": "Variable",
+      "detail": "int[]",
+      "sortText": "AB",
+      "insertText": "structuredArray",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "structuredMap",
+      "labelDetails": {
+        "detail": " map<string>"
+      },
+      "kind": "Variable",
+      "detail": "map<string>",
+      "sortText": "AB",
+      "insertText": "structuredMap",
+      "insertTextFormat": "Snippet"
+    }
+  ]
+}

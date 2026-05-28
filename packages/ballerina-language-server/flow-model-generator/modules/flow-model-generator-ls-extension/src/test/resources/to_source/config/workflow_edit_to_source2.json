@@ -1,0 +1,109 @@
+{
+  "source": "workflow_data/functions.bal",
+  "description": "Edit an existing ctx+datas workflow - add input type, injected before data param to preserve canonical order ctx,input,datas",
+  "diagram": {
+    "metadata": {
+      "label": "Workflow Process Function",
+      "description": "Define a workflow process function"
+    },
+    "codedata": {
+      "isNew": false,
+      "node": "WORKFLOW",
+      "org": "ballerina",
+      "module": "workflow",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 23,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 24,
+          "offset": 93
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the function"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "ctxDatasWorkflow",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "functionNameDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the function"
+        },
+        "valueType": "TEXT",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "inputType": {
+        "metadata": {
+          "label": "Input Type",
+          "description": "Type of the input data to the workflow"
+        },
+        "valueType": "TYPE",
+        "value": "BookingInput",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "valueType": "TYPE",
+        "value": "error?",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "typeDescription": {
+        "metadata": {
+          "label": "Return Description",
+          "description": "Description of the return value"
+        },
+        "valueType": "TEXT",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "workflow_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 23,
+            "character": 0
+          },
+          "end": {
+            "line": 24,
+            "character": 93
+          }
+        },
+        "newText": "@workflow:Workflow\nfunction ctxDatasWorkflow( workflow:Context ctx, BookingInput input, BookingWorkflowEvents events) returns error?"
+      }
+    ]
+  }
+}

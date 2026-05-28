@@ -1,0 +1,8 @@
+{
+  "description": "Get diff related to inline listener parameter changes",
+  "projectPath": "inline_listener_change",
+  "output": {
+    "loadDesignDiagrams": true,
+    "semanticDiffs": []
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "source": "variable2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2.bal",
+      "startLine": {
+        "line": 29,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 29,
+        "offset": 39
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "targetField": "var3.arr",
+  "mapping": {
+    "output": "arr",
+    "inputs": [],
+    "expression": "var2.arr",
+    "diagnostics": []
+  },
+  "clauseType": "select",
+  "output": {
+    "variable2.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 29,
+            "character": 29
+          },
+          "end": {
+            "line": 29,
+            "character": 37
+          }
+        },
+        "newText": "from var arrItem in var2.arr select {p: 0, q: {r: 0}}"
+      }
+    ]
+  }
+}

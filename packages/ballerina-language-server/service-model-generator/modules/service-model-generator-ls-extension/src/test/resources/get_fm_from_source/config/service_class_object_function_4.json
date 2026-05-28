@@ -1,0 +1,167 @@
+{
+  "filePath": "sample1/types.bal",
+  "description": "Get the function model of a object method in a class object",
+  "codedata": {
+    "lineRange": {
+      "fileName": "types.bal",
+      "startLine": {
+        "line": 16,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 17,
+        "offset": 5
+      }
+    }
+  },
+  "response": {
+    "metadata": {
+      "label": "",
+      "description": ""
+    },
+    "kind": "OBJECT_METHOD",
+    "accessor": {
+      "metadata": {
+        "label": "Accessor",
+        "description": "The accessor of the function"
+      },
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "name": {
+      "metadata": {
+        "label": "Function Name",
+        "description": "The name of the function"
+      },
+      "value": "save",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "parameters": [],
+    "schema": {
+      "parameter": {
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      }
+    },
+    "returnType": {
+      "hasError": false,
+      "isGraphqlId": false,
+      "metadata": {
+        "label": "Return Type",
+        "description": "The return type of the function"
+      },
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": true,
+    "editable": true,
+    "canAddParameters": true,
+    "codedata": {
+      "lineRange": {
+        "fileName": "types.bal",
+        "startLine": {
+          "line": 16,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 17,
+          "offset": 5
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,588 @@
+{
+  "source": "agent_3",
+  "toolName": "set",
+  "flowNode": {
+    "id": "120350",
+    "metadata": {
+      "label": "Function Definition",
+      "description": "Define a function"
+    },
+    "codedata": {
+      "node": "FUNCTION_DEFINITION",
+      "lineRange": {
+        "fileName": "agents.bal",
+        "startLine": {
+          "line": 89,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 97,
+          "offset": 70
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the function"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "scope": "Global",
+            "selected": true
+          }
+        ],
+        "value": "set",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "agents.bal",
+            "startLine": {
+              "line": 97,
+              "offset": 18
+            },
+            "endLine": {
+              "line": 97,
+              "offset": 21
+            }
+          }
+        }
+      },
+      "functionNameDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the function"
+        },
+        "types": [
+          {
+            "fieldType": "DOC_TEXT",
+            "selected": true
+          }
+        ],
+        "value": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "string|error?",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "typeDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the return value"
+        },
+        "types": [
+          {
+            "fieldType": "DOC_TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Make visible across the project"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "false",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "parameters": {
+        "metadata": {
+          "label": "Parameters",
+          "description": "Function parameters"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
+              "metadata": {
+                "label": "Parameter",
+                "description": "Function parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
+                }
+              ],
+              "value": {
+                "type": {
+                  "metadata": {
+                    "label": "Type",
+                    "description": "Type of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "variable": {
+                  "metadata": {
+                    "label": "Name",
+                    "description": "Name of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "parameterDescription": {
+                  "metadata": {
+                    "label": "Description",
+                    "description": "Description of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "DOC_TEXT",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": true,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
+              },
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          }
+        ],
+        "value": {
+          "key": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
+              }
+            ],
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "selected": false
+                  }
+                ],
+                "value": "string",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "variable": {
+                "metadata": {
+                  "label": "Name",
+                  "description": "Name of the parameter"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
+                  }
+                ],
+                "value": "key",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false,
+                "codedata": {
+                  "lineRange": {
+                    "fileName": "agents.bal",
+                    "startLine": {
+                      "line": 97,
+                      "offset": 29
+                    },
+                    "endLine": {
+                      "line": 97,
+                      "offset": 32
+                    }
+                  }
+                }
+              },
+              "parameterDescription": {
+                "metadata": {
+                  "label": "Description",
+                  "description": "Description of the parameter"
+                },
+                "types": [
+                  {
+                    "fieldType": "DOC_TEXT",
+                    "selected": false
+                  }
+                ],
+                "value": "The key to be used for the request\n",
+                "optional": true,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "value": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
+              }
+            ],
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "selected": false
+                  }
+                ],
+                "value": "string",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "variable": {
+                "metadata": {
+                  "label": "Name",
+                  "description": "Name of the parameter"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
+                  }
+                ],
+                "value": "value",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false,
+                "codedata": {
+                  "lineRange": {
+                    "fileName": "agents.bal",
+                    "startLine": {
+                      "line": 97,
+                      "offset": 41
+                    },
+                    "endLine": {
+                      "line": 97,
+                      "offset": 46
+                    }
+                  }
+                }
+              },
+              "parameterDescription": {
+                "metadata": {
+                  "label": "Description",
+                  "description": "Description of the parameter"
+                },
+                "types": [
+                  {
+                    "fieldType": "DOC_TEXT",
+                    "selected": false
+                  }
+                ],
+                "value": "",
+                "optional": true,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": true,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "annotations": {
+        "metadata": {
+          "label": "Annotations",
+          "description": "Annotations of the function"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "@ai:AgentTool\n@display {\n    iconPath: \"/path/icon.png\"\n}\n\n",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "isIsolated": {
+        "metadata": {
+          "label": "isolated",
+          "description": "Is this isolated"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "true",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "methodCallFlowNode": {
+    "id": "129137",
+    "metadata": {
+      "label": "set",
+      "description": "Set the value of a key.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+    },
+    "codedata": {
+      "node": "REMOTE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "redis",
+      "packageName": "redis",
+      "object": "Client",
+      "symbol": "set",
+      "version": "3.1.0",
+      "lineRange": {
+        "fileName": "agents.bal",
+        "startLine": {
+          "line": 98,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 98,
+          "offset": 53
+        }
+      },
+      "sourceCode": "string item = check redisClient->set(key, value);"
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use",
+          "data": {
+            "connectorType": "Database"
+          }
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "value": "redisClient",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "key": {
+        "metadata": {
+          "label": "Key",
+          "description": "Key referring to a value"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "value": "key",
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "key"
+        }
+      },
+      "value": {
+        "metadata": {
+          "label": "Value",
+          "description": "Values"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "value": "value",
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "value"
+        }
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "item",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "agents.bal",
+            "startLine": {
+              "line": 98,
+              "offset": 11
+            },
+            "endLine": {
+              "line": 98,
+              "offset": 15
+            }
+          }
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "string",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      }
+    },
+    "flags": 1
+  }
+}

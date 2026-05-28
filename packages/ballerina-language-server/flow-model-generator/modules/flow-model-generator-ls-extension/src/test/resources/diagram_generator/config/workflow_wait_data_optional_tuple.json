@@ -1,0 +1,385 @@
+{
+  "start": {
+    "line": 16,
+    "offset": 0
+  },
+  "end": {
+    "line": 18,
+    "offset": 1
+  },
+  "source": "workflow_wait_data_optional.bal",
+  "description": "Round-trip: source contains a mixed tuple `[string?, boolean]`. Each entry's optional flag must mirror per-member nilability and dataType strings must be bare",
+  "diagram": {
+    "fileName": "workflow_wait_data_optional.bal",
+    "nodes": [
+      {
+        "id": "51368",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Workflow",
+            "label": "optionalTupleWait",
+            "isServiceFunction": false,
+            "parameters": [
+              "workflow:Context ctx",
+              "OptionalEvents events"
+            ],
+            "return": "error?"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "workflow_wait_data_optional.bal",
+            "startLine": {
+              "line": 17,
+              "offset": 87
+            },
+            "endLine": {
+              "line": 19,
+              "offset": 1
+            }
+          },
+          "sourceCode": "# Optional wait — mixed tuple. The first member is nilable (`string?`); the second is non-nilable.\n# Each entry's `optional` flag must reflect that, and the `dataType` strings must be `string` / `boolean`.\n@workflow:Workflow\nfunction optionalTupleWait(workflow:Context ctx, OptionalEvents events) returns error? {\n    [string?, boolean] [note, pass] = check ctx->await([events.reviewerNote, events.compliancePass], minCount = 1);\n}"
+        },
+        "returning": false,
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 0
+      },
+      {
+        "id": "49839",
+        "metadata": {
+          "label": "Wait for Data",
+          "description": "Wait for workflow data to be received",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.4.0.png"
+        },
+        "codedata": {
+          "node": "WAIT_DATA",
+          "org": "ballerina",
+          "module": "workflow",
+          "packageName": "workflow",
+          "object": "Context",
+          "symbol": "await",
+          "version": "0.4.0",
+          "lineRange": {
+            "fileName": "workflow_wait_data_optional.bal",
+            "startLine": {
+              "line": 18,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 18,
+              "offset": 115
+            }
+          },
+          "sourceCode": "[string?, boolean] [note, pass] = check ctx->await([events.reviewerNote, events.compliancePass], minCount = 1);"
+        },
+        "returning": false,
+        "properties": {
+          "minCount": {
+            "metadata": {
+              "label": "Min Count",
+              "description": "Minimum completions required (default: all)"
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int:Unsigned32",
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int:Unsigned32",
+                "selected": false
+              }
+            ],
+            "value": "1",
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "minCount"
+            },
+            "defaultValue": "<int:Unsigned32>futures.length()"
+          },
+          "timeout": {
+            "metadata": {
+              "label": "Timeout",
+              "description": "Maximum wait duration; returns error on timeout"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "time:Duration",
+                "typeMembers": [
+                  {
+                    "type": "Duration",
+                    "packageInfo": "ballerina:time:2.8.0",
+                    "packageName": "time",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "time:Duration?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "timeout"
+            },
+            "imports": {
+              "time": "ballerina/time"
+            },
+            "defaultValue": "()"
+          },
+          "dataWaits": {
+            "metadata": {
+              "label": "Data Waits",
+              "description": "Data to wait for (one or more)"
+            },
+            "types": [
+              {
+                "fieldType": "REPEATABLE_PROPERTY",
+                "template": {
+                  "metadata": {
+                    "label": "Data Waits",
+                    "description": "Data to wait for (one or more)"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "FIXED_PROPERTY",
+                      "selected": false
+                    }
+                  ],
+                  "value": {
+                    "variable": {
+                      "metadata": {
+                        "label": "Data Receive Variable Name",
+                        "description": "Variable name to receive the data"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "scope": "Local",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "dataType": {
+                      "metadata": {
+                        "label": "Data Type",
+                        "description": "Type of the data to be received on successful wait"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TYPE",
+                          "ballerinaType": "anydata",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "dataName": {
+                      "metadata": {
+                        "label": "Data Name",
+                        "description": "Name of the data to reference when sending data to the workflow"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    }
+                  },
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              }
+            ],
+            "value": {
+              "0": {
+                "metadata": {
+                  "label": "Data Waits",
+                  "description": "Data to wait for (one or more)"
+                },
+                "types": [
+                  {
+                    "fieldType": "FIXED_PROPERTY",
+                    "selected": false
+                  }
+                ],
+                "value": {
+                  "variable": {
+                    "metadata": {
+                      "label": "Data Receive Variable Name",
+                      "description": "Variable name to receive the data"
+                    },
+                    "value": "note",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "dataType": {
+                    "metadata": {
+                      "label": "Data Type",
+                      "description": "Type of the data to be received on successful wait"
+                    },
+                    "value": "string?",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "dataName": {
+                    "metadata": {
+                      "label": "Data Name",
+                      "description": "Name of the data to reference when sending data to the workflow"
+                    },
+                    "value": "reviewerNote",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              "1": {
+                "metadata": {
+                  "label": "Data Waits",
+                  "description": "Data to wait for (one or more)"
+                },
+                "types": [
+                  {
+                    "fieldType": "FIXED_PROPERTY",
+                    "selected": false
+                  }
+                ],
+                "value": {
+                  "variable": {
+                    "metadata": {
+                      "label": "Data Receive Variable Name",
+                      "description": "Variable name to receive the data"
+                    },
+                    "value": "pass",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "dataType": {
+                    "metadata": {
+                      "label": "Data Type",
+                      "description": "Type of the data to be received on successful wait"
+                    },
+                    "value": "boolean",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "diagnostics": {
+                      "hasDiagnostics": true,
+                      "diagnostics": [
+                        {
+                          "severity": "ERROR",
+                          "message": "Tuple member at position 1 must be nilable (e.g., boolean?) when minCount (1) is less than the number of futures (2). Not all futures are guaranteed to complete"
+                        }
+                      ]
+                    }
+                  },
+                  "dataName": {
+                    "metadata": {
+                      "label": "Data Name",
+                      "description": "Name of the data to reference when sending data to the workflow"
+                    },
+                    "value": "compliancePass",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "optional": {
+            "metadata": {
+              "label": "Optional Data Types",
+              "description": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": false
+              }
+            ],
+            "value": false,
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
+                }
+              ]
+            }
+          }
+        },
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 1
+      }
+    ],
+    "connections": []
+  }
+}

@@ -1,0 +1,4 @@
+[workspace]
+name = "workspace_proj"
+title = "Workspace Project"
+packages = ["api-gateway", "user-service", "common"]

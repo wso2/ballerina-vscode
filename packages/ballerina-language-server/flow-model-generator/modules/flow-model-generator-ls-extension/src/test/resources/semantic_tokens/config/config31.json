@@ -1,0 +1,35 @@
+{
+  "description": "AI FileDocument with imageBytes variable in template expression",
+  "filePath": "",
+  "expression": "`Describe this image. ${<ai:FileDocument>{\ncontent: imageBytes}}`",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 22,
+      "length": 2,
+      "type": 5,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 24,
+      "length": 18,
+      "type": 3,
+      "modifiers": 0
+    },
+    {
+      "line": 1,
+      "col": 9,
+      "length": 10,
+      "type": 4,
+      "modifiers": 0
+    },
+    {
+      "line": 1,
+      "col": 20,
+      "length": 1,
+      "type": 6,
+      "modifiers": 0
+    }
+  ]
+}

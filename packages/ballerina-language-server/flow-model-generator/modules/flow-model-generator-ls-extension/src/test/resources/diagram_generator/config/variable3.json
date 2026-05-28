@@ -1,0 +1,138 @@
+{
+  "start": {
+    "line": 17,
+    "offset": 0
+  },
+  "end": {
+    "line": 19,
+    "offset": 1
+  },
+  "source": "new_data.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "new_data.bal",
+    "nodes": [
+      {
+        "id": "49539",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "testNewDataJson1",
+            "isServiceFunction": false
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "new_data.bal",
+            "startLine": {
+              "line": 17,
+              "offset": 28
+            },
+            "endLine": {
+              "line": 19,
+              "offset": 1
+            }
+          },
+          "sourceCode": "function testNewDataJson1() {\n    json j1 = {\"name\": \"John\", \"age\": 34};\n}"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "49766",
+        "metadata": {
+          "label": "Declare Variable",
+          "description": "Create a new variable"
+        },
+        "codedata": {
+          "node": "VARIABLE",
+          "lineRange": {
+            "fileName": "new_data.bal",
+            "startLine": {
+              "line": 18,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 18,
+              "offset": 42
+            }
+          },
+          "sourceCode": "json j1 = {\"name\": \"John\", \"age\": 34};"
+        },
+        "returning": false,
+        "properties": {
+          "expression": {
+            "metadata": {
+              "label": "Expression",
+              "description": "Initialize with value"
+            },
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
+              }
+            ],
+            "value": "{\"name\": \"John\", \"age\": 34}",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Name",
+              "description": "Name of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "j1",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "new_data.bal",
+                "startLine": {
+                  "line": 18,
+                  "offset": 9
+                },
+                "endLine": {
+                  "line": 18,
+                  "offset": 11
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "json",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}

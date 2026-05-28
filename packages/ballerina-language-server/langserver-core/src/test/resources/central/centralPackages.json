@@ -1,0 +1,133 @@
+{
+  "data": {
+    "packages": {
+      "packages": [
+        {
+          "name": "azure_storage_service",
+          "version": "4.3.0",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "azure_eventhub",
+          "version": "3.1.0",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "prometheus",
+          "version": "0.3.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "asana",
+          "version": "2.0.0",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "trigger.asb",
+          "version": "1.2.0",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "shopify.admin",
+          "version": "2.5.0",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "newsapi",
+          "version": "1.5.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "hubspot.crm.company",
+          "version": "2.3.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "hubspot.marketing",
+          "version": "2.3.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "hubspot.crm.import",
+          "version": "2.3.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "hubspot.crm.ticket",
+          "version": "2.3.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "hubspot.crm.product",
+          "version": "2.3.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "hubspot.files",
+          "version": "2.3.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "hubspot.analytics",
+          "version": "2.3.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "googleapis.vision",
+          "version": "1.6.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "azure.datalake",
+          "version": "1.5.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "azure.keyvault",
+          "version": "1.6.0",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "azure.sqldb",
+          "version": "1.5.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "ebay.browse",
+          "version": "1.5.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "azure.iothub",
+          "version": "1.5.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "flatapi",
+          "version": "1.5.1",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "confluent.cavroserdes",
+          "version": "0.1.0",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "ellucian.studentcharges",
+          "version": "1.0.0",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "interzoid.currencyexchange",
+          "version": "0.1.0",
+          "organization": "ballerinax"
+        },
+        {
+          "name": "Apache",
+          "version": "0.1.0",
+          "organization": "ballerinax"
+        }
+      ]
+    }
+  }
+}

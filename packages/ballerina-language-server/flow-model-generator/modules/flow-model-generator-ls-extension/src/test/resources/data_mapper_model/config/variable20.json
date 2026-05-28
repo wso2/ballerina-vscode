@@ -1,0 +1,235 @@
+{
+  "source": "variable10.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable10.bal",
+      "startLine": {
+        "line": 31,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 39,
+        "offset": 17
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 30,
+    "offset": 64
+  },
+  "propertyKey": "expression",
+  "targetField": "stores.0.credentials",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "fields": [],
+        "name": "bank",
+        "displayName": "bank",
+        "typeName": "Bank",
+        "kind": "record",
+        "category": "local-variable",
+        "focusExpression": "banks",
+        "ref": "1372568104"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "banks",
+          "displayName": "<banksItem>",
+          "typeName": "Bank",
+          "kind": "record",
+          "ref": "1372568104"
+        },
+        "name": "banks",
+        "displayName": "banks",
+        "typeName": "Bank[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "668760670"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "userInfo",
+          "displayName": "<userInfoItem>",
+          "typeName": "UserInfo",
+          "kind": "record",
+          "ref": "1889977605"
+        },
+        "name": "userInfo",
+        "displayName": "userInfo",
+        "typeName": "UserInfo[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "-481592369"
+      },
+      {
+        "fields": [],
+        "name": "info",
+        "displayName": "info",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "local-variable",
+        "focusExpression": "bank.userInfo",
+        "ref": "1889977605",
+        "isIterationVariable": true
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "credentials",
+        "displayName": "<credentialsItem>",
+        "typeName": "Credentials",
+        "kind": "record",
+        "ref": "242052496"
+      },
+      "name": "credentials",
+      "displayName": "credentials",
+      "typeName": "Credentials[]",
+      "kind": "array",
+      "ref": "1085256861"
+    },
+    "mappings": [
+      {
+        "output": "credentials.password",
+        "inputs": [
+          ""
+        ],
+        "expression": "",
+        "diagnostics": [
+          {
+            "code": "BCE0400",
+            "message": "missing identifier"
+          }
+        ],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "credentials.username",
+        "inputs": [
+          "info.username"
+        ],
+        "expression": "info.username\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "credentials",
+      "inputs": [
+        "bank.userInfo"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "info",
+          "type": "UserInfo",
+          "expression": "bank.userInfo",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{\n                           password: ,\n                           username: info.username\n                       }",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "1372568104": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "member": {
+              "fields": [],
+              "name": "userInfo",
+              "displayName": "<userInfoItem>",
+              "typeName": "UserInfo",
+              "kind": "record",
+              "ref": "1889977605"
+            },
+            "name": "userInfo",
+            "displayName": "userInfo",
+            "typeName": "UserInfo[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "-481592369"
+          }
+        ],
+        "typeName": "Bank",
+        "kind": "record"
+      },
+      "242052496": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

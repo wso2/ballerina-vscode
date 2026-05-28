@@ -1,0 +1,138 @@
+{
+  "description": "Test getting graphql listener model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "graphql",
+  "moduleName": "graphql",
+  "response": {
+    "service": {
+      "id": "2",
+      "name": "GraphQL Service",
+      "type": "graphql",
+      "displayName": "GraphQL Service",
+      "moduleName": "graphql",
+      "orgName": "ballerina",
+      "version": "1.16.0",
+      "packageName": "graphql",
+      "listenerProtocol": "graphql",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
+      "documentation": {
+        "metadata": {
+          "label": "Description",
+          "description": "The description of the class"
+        },
+        "codedata": {
+          "type": "DOCUMENTATION"
+        },
+        "valueType": "STRING",
+        "valueTypeConstraint": "string",
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "properties": {
+        "listener": {
+          "metadata": {
+            "label": "Listeners",
+            "description": "The Listeners to be bound with the service"
+          },
+          "codedata": {
+            "type": "LISTENER"
+          },
+          "placeholder": "",
+          "valueType": "MULTIPLE_SELECT_LISTENER",
+          "valueTypeConstraint": "graphql:Listener",
+          "value": "",
+          "values": [],
+          "items": [
+            "(+) Create and use a graphql listener with default configurations"
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "serviceType": {
+          "metadata": {
+            "label": "GraphQL Service Type",
+            "description": "The name of the service contract type"
+          },
+          "codedata": {
+            "type": "SERVICE_TYPE"
+          },
+          "placeholder": "Service",
+          "valueType": "SINGLE_SELECT",
+          "valueTypeConstraint": "string",
+          "value": "Service",
+          "items": [
+            "",
+            "Service"
+          ],
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "basePath": {
+          "metadata": {
+            "label": "Service Base Path",
+            "description": ""
+          },
+          "codedata": {
+            "type": "SERVICE_BASE_PATH"
+          },
+          "placeholder": "/graphql",
+          "valueType": "SERVICE_PATH",
+          "valueTypeConstraint": "string",
+          "value": "/graphql",
+          "values": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "readOnlyMetadata": {
+          "codedata": {
+            "type": "READONLY"
+          },
+          "placeholder": "false",
+          "valueType": "SINGLE_SELECT",
+          "value": {},
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "annotServiceConfig": {
+          "metadata": {
+            "label": "Service Configuration",
+            "description": "Define service configurations such as maximum query depth."
+          },
+          "codedata": {
+            "type": "ANNOTATION_ATTACHMENT",
+            "originalName": "ServiceConfig"
+          },
+          "placeholder": "{}",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "graphql:GraphqlServiceConfig",
+          "value": "",
+          "values": [],
+          "typeMembers": [
+            {
+              "type": "GraphqlServiceConfig",
+              "packageInfo": "ballerina:graphql:1.16.0",
+              "kind": "RECORD_TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      },
+      "functions": []
+    }
+  }
+}

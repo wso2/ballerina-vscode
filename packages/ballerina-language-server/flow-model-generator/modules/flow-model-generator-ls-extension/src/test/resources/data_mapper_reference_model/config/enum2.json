@@ -1,0 +1,132 @@
+{
+  "source": "enum2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "enum2.bal",
+      "startLine": {
+        "line": 23,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 26,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 23,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "id": "engineering",
+        "variableName": "engineering",
+        "typeName": "Department",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "-1148493925"
+      },
+      {
+        "members": [
+          {
+            "id": "DepartmentCode.FINANCE",
+            "variableName": "FINANCE",
+            "typeName": "FINANCE",
+            "kind": "FINANCE"
+          },
+          {
+            "id": "DepartmentCode.IT",
+            "variableName": "IT",
+            "typeName": "IT",
+            "kind": "IT"
+          },
+          {
+            "id": "DepartmentCode.HR",
+            "variableName": "HR",
+            "typeName": "HR",
+            "kind": "HR"
+          }
+        ],
+        "id": "enum",
+        "variableName": "DepartmentCode",
+        "typeName": "DepartmentCode",
+        "kind": "enum",
+        "category": "enum"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "id": "engineering2",
+      "variableName": "engineering2",
+      "typeName": "Department",
+      "kind": "record",
+      "ref": "-1148493925"
+    },
+    "mappings": [
+      {
+        "output": "engineering2.name",
+        "inputs": [],
+        "expression": "\"Engineering\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "engineering2.code",
+        "inputs": [
+          "engineering.code"
+        ],
+        "expression": "engineering.code\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "-1148493925": {
+        "fields": [
+          {
+            "id": "name",
+            "variableName": "name",
+            "typeName": "string",
+            "kind": "string"
+          },
+          {
+            "members": [
+              {
+                "id": "code.null",
+                "typeName": "FINANCE",
+                "kind": "FINANCE"
+              },
+              {
+                "id": "code.null",
+                "typeName": "IT",
+                "kind": "IT"
+              },
+              {
+                "id": "code.null",
+                "typeName": "HR",
+                "kind": "HR"
+              }
+            ],
+            "id": "code",
+            "variableName": "code",
+            "typeName": "DepartmentCode",
+            "kind": "union",
+            "ref": "-757557159"
+          }
+        ],
+        "typeName": "Department",
+        "kind": "record"
+      }
+    }
+  }
+}

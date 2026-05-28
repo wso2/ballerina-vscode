@@ -1,0 +1,120 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import { BallerinaConnectorInfo, BallerinaConnectorsRequest, BallerinaConnector } from "../../interfaces/ballerina";
+import { Metadata } from "../../interfaces/bi";
+import { TextEdit } from "../../interfaces/extended-lang-client";
+import { PropertyModel } from "../../interfaces/service";
+
+export interface ConnectorRequest {
+    id?: string
+    orgName?: string
+    packageName?: string
+    moduleName?: string
+    version?: string
+    name?: string
+    targetFile?: string
+}
+
+export interface ConnectorResponse extends BallerinaConnectorInfo {
+    error?: string;
+}
+
+export interface ConnectorsRequest extends BallerinaConnectorsRequest {
+    error?: string;
+}
+
+export interface ConnectorsResponse {
+    central: BallerinaConnector[];
+    local?: BallerinaConnector[];
+    error?: string;
+}
+
+export interface IntrospectCredentialsRequest {
+    connection?: string;
+    projectPath: string;
+}
+
+export interface IntrospectCredentialsResponse {
+    data: {
+        metadata: Metadata;
+        properties: { [key: string]: PropertyModel };
+        targetModule?: string;
+        modelFilePath?: string;
+    };
+}
+
+export interface IntrospectDatabaseRequest {
+    projectPath: string;
+    metadata: Metadata;
+    properties?: { [key: string]: PropertyModel };
+    targetModule?: string;
+    modelFilePath?: string;
+}
+
+export interface IntrospectDatabaseResponse {
+    tables?: TableInfo[];
+    targetModule?: string;
+    modelFilePath?: string;
+    errorMsg?: string;
+}
+export interface TableInfo {
+    table: string;
+    selected: boolean;
+    existing: boolean;
+}
+export interface PersistClientGenerateRequest {
+    projectPath: string;
+    targetModule?: string;
+    modelFilePath?: string;
+    connection?: string;
+    properties?: { [key: string]: PropertyModel };
+    tables: TableInfo[];
+}
+
+export interface PersistSource {
+    isModuleExists?: boolean;
+    textEditsMap?: {
+        [key: string]: TextEdit[];
+    };
+}
+export interface PersistClientGenerateResponse {
+    source?: PersistSource;
+    errorMsg?: string;
+    stackTrace?: string;
+}
+
+export interface WSDLApiClientGenerationRequest {
+    projectPath: string;
+    module: string;
+    wsdlFilePath: string;
+    portName?: string;
+    operations?: string[];
+}
+
+export interface WSDLApiClientGenerationResponse {
+    source?: WSDLApiClientSource;
+    errorMsg?: string;
+    stackTrace?: string;
+} 
+
+export interface WSDLApiClientSource {
+    textEditsMap: {
+        [key: string]: TextEdit[];
+    };
+}

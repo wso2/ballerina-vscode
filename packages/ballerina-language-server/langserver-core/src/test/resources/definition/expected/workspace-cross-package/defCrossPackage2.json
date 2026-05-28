@@ -1,0 +1,25 @@
+{
+  "source": {
+    "file": "workspace-project/app/main.bal"
+  },
+  "position": {
+    "line": 7,
+    "character": 10
+  },
+  "comment": "Cursor on 'User' in 'core:User user'",
+  "result": [
+    {
+      "uri": "workspace-project/core/services.bal",
+      "range": {
+        "start": {
+          "line": 8,
+          "character": 12
+        },
+        "end": {
+          "line": 8,
+          "character": 16
+        }
+      }
+    }
+  ]
+}

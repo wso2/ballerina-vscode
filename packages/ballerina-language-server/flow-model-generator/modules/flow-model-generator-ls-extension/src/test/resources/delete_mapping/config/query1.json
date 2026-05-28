@@ -1,0 +1,41 @@
+{
+  "source": "query1.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 31,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 36,
+        "offset": 6
+      }
+    },
+    "sourceCode": "Person p = {\n        contactDetails: {\n            phoneNumbers: from var secondaryPhonesItem in u.info.secondaryPhones\n                select secondaryPhonesItem\n        }\n    };"
+  },
+  "mapping": {
+    "output": "phoneNumbers.code",
+    "expression": "secondaryPhonesItem.code"
+  },
+  "targetField": "p.contactDetails.phoneNumbers",
+  "output": {
+    "query1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 34,
+            "character": 28
+          },
+          "end": {
+            "line": 34,
+            "character": 60
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}

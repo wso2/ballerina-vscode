@@ -1,0 +1,55 @@
+{
+  "source": "empty.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "ASSIGN"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Update Variable",
+      "description": "Update the value of an existing variable"
+    },
+    "codedata": {
+      "node": "ASSIGN",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable/field"
+        },
+        "types": [
+          {
+            "fieldType": "LV_EXPRESSION",
+            "selected": false
+          }
+        ],
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Update value"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_OR_EXPRESSION",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

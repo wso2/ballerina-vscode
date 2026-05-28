@@ -1,0 +1,73 @@
+{
+  "description": "A simple example of a map type",
+  "source": "RefTypeTest/BalProject6",
+  "typeSymbolName": "ComplexMap",
+  "refType": {
+    "valueType": {
+      "dependentTypeKeys": [],
+      "hashCode": "-488284530",
+      "key": "1269709352",
+      "name": "Person",
+      "typeName": "record",
+      "moduleInfo": {
+        "orgName": "ballerinax",
+        "moduleName": "test.maps",
+        "packageName": "test.maps",
+        "version": "0.1.0",
+        "modulePrefix": "maps"
+      }
+    },
+    "dependentTypeKeys": [
+      "1269709352"
+    ],
+    "hashCode": "1370668816",
+    "key": "-1347926049",
+    "name": "ComplexMap",
+    "typeName": "map",
+    "dependentTypes": {
+      "1269709352": {
+        "fields": [
+          {
+            "fieldName": "name",
+            "type": {
+              "dependentTypeKeys": [],
+              "name": "string",
+              "typeName": "string"
+            },
+            "optional": false,
+            "defaultValue": ""
+          },
+          {
+            "fieldName": "age",
+            "type": {
+              "dependentTypeKeys": [],
+              "name": "int",
+              "typeName": "int"
+            },
+            "optional": false,
+            "defaultValue": ""
+          }
+        ],
+        "dependentTypeKeys": [],
+        "hashCode": "-488284530",
+        "key": "1269709352",
+        "name": "Person",
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "test.maps",
+          "packageName": "test.maps",
+          "version": "0.1.0",
+          "modulePrefix": "maps"
+        }
+      }
+    },
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "test.maps",
+      "packageName": "test.maps",
+      "version": "0.1.0",
+      "modulePrefix": "maps"
+    }
+  }
+}

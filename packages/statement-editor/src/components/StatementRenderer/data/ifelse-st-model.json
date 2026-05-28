@@ -1,0 +1,358 @@
+{
+  "kind": "IfElseStatement",
+  "ifKeyword": {
+    "kind": "IfKeyword",
+    "isToken": true,
+    "value": "if",
+    "isMissing": false,
+    "position": {
+      "startLine": 13,
+      "startColumn": 4,
+      "endLine": 13,
+      "endColumn": 6
+    },
+    "leadingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": "    ",
+        "isInvalid": false
+      }
+    ],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ]
+  },
+  "condition": {
+    "kind": "BracedExpression",
+    "openParen": {
+      "kind": "OpenParenToken",
+      "isToken": true,
+      "value": "(",
+      "isMissing": false,
+      "position": {
+        "startLine": 13,
+        "startColumn": 7,
+        "endLine": 13,
+        "endColumn": 8
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": []
+    },
+    "expression": {
+      "kind": "SimpleNameReference",
+      "name": {
+        "kind": "IdentifierToken",
+        "isToken": true,
+        "value": "expression",
+        "isMissing": false,
+        "position": {
+          "startLine": 13,
+          "startColumn": 8,
+          "endLine": 13,
+          "endColumn": 18
+        },
+        "leadingMinutiae": [],
+        "trailingMinutiae": []
+      },
+      "source": "expression",
+      "syntaxDiagnostics": [],
+      "leadingMinutiae": [],
+      "trailingMinutiae": [],
+      "position": {
+        "startLine": 13,
+        "startColumn": 8,
+        "endLine": 13,
+        "endColumn": 18
+      },
+      "typeData": {
+        "typeSymbol": {
+          "typeKind": "boolean",
+          "kind": "TYPE",
+          "signature": "boolean"
+        },
+        "symbol": {
+          "deprecated": false,
+          "moduleID": {
+            "orgName": "laughinghorsejqdaa",
+            "moduleName": "ls_check",
+            "version": "0.1.0"
+          },
+          "kind": "VARIABLE"
+        },
+        "diagnostics": []
+      }
+    },
+    "closeParen": {
+      "kind": "CloseParenToken",
+      "isToken": true,
+      "value": ")",
+      "isMissing": false,
+      "position": {
+        "startLine": 13,
+        "startColumn": 18,
+        "endLine": 13,
+        "endColumn": 19
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": " ",
+          "isInvalid": false
+        }
+      ]
+    },
+    "source": "(expression) ",
+    "syntaxDiagnostics": [],
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ],
+    "position": {
+      "startLine": 13,
+      "startColumn": 7,
+      "endLine": 13,
+      "endColumn": 19
+    },
+    "typeData": {
+      "typeSymbol": {
+        "typeKind": "boolean",
+        "kind": "TYPE",
+        "signature": "boolean"
+      },
+      "symbol": {
+        "deprecated": false,
+        "moduleID": {
+          "orgName": "laughinghorsejqdaa",
+          "moduleName": "ls_check",
+          "version": "0.1.0"
+        },
+        "kind": "VARIABLE"
+      },
+      "diagnostics": []
+    }
+  },
+  "ifBody": {
+    "kind": "BlockStatement",
+    "openBraceToken": {
+      "kind": "OpenBraceToken",
+      "isToken": true,
+      "value": "{",
+      "isMissing": false,
+      "position": {
+        "startLine": 13,
+        "startColumn": 20,
+        "endLine": 13,
+        "endColumn": 21
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "END_OF_LINE_MINUTIAE",
+          "minutiae": "\n",
+          "isInvalid": false
+        }
+      ]
+    },
+    "statements": [],
+    "closeBraceToken": {
+      "kind": "CloseBraceToken",
+      "isToken": true,
+      "value": "}",
+      "isMissing": false,
+      "position": {
+        "startLine": 15,
+        "startColumn": 4,
+        "endLine": 15,
+        "endColumn": 5
+      },
+      "leadingMinutiae": [
+        {
+          "kind": "END_OF_LINE_MINUTIAE",
+          "minutiae": "\n",
+          "isInvalid": false
+        },
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": "    ",
+          "isInvalid": false
+        }
+      ],
+      "trailingMinutiae": [
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": " ",
+          "isInvalid": false
+        }
+      ]
+    },
+    "source": "{\n\n    } ",
+    "syntaxDiagnostics": [],
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "WHITESPACE_MINUTIAE",
+        "minutiae": " ",
+        "isInvalid": false
+      }
+    ],
+    "position": {
+      "startLine": 13,
+      "startColumn": 20,
+      "endLine": 15,
+      "endColumn": 5
+    },
+    "typeData": {
+      "diagnostics": []
+    }
+  },
+  "elseBody": {
+    "kind": "ElseBlock",
+    "elseKeyword": {
+      "kind": "ElseKeyword",
+      "isToken": true,
+      "value": "else",
+      "isMissing": false,
+      "position": {
+        "startLine": 15,
+        "startColumn": 6,
+        "endLine": 15,
+        "endColumn": 10
+      },
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "WHITESPACE_MINUTIAE",
+          "minutiae": " ",
+          "isInvalid": false
+        }
+      ]
+    },
+    "elseBody": {
+      "kind": "BlockStatement",
+      "openBraceToken": {
+        "kind": "OpenBraceToken",
+        "isToken": true,
+        "value": "{",
+        "isMissing": false,
+        "position": {
+          "startLine": 15,
+          "startColumn": 11,
+          "endLine": 15,
+          "endColumn": 12
+        },
+        "leadingMinutiae": [],
+        "trailingMinutiae": [
+          {
+            "kind": "END_OF_LINE_MINUTIAE",
+            "minutiae": "\n",
+            "isInvalid": false
+          }
+        ]
+      },
+      "statements": [],
+      "closeBraceToken": {
+        "kind": "CloseBraceToken",
+        "isToken": true,
+        "value": "}",
+        "isMissing": false,
+        "position": {
+          "startLine": 17,
+          "startColumn": 4,
+          "endLine": 17,
+          "endColumn": 5
+        },
+        "leadingMinutiae": [
+          {
+            "kind": "END_OF_LINE_MINUTIAE",
+            "minutiae": "\n",
+            "isInvalid": false
+          },
+          {
+            "kind": "WHITESPACE_MINUTIAE",
+            "minutiae": "    ",
+            "isInvalid": false
+          }
+        ],
+        "trailingMinutiae": [
+          {
+            "kind": "END_OF_LINE_MINUTIAE",
+            "minutiae": "\n",
+            "isInvalid": false
+          }
+        ]
+      },
+      "source": "{\n\n    }\n",
+      "syntaxDiagnostics": [],
+      "leadingMinutiae": [],
+      "trailingMinutiae": [
+        {
+          "kind": "END_OF_LINE_MINUTIAE",
+          "minutiae": "\n",
+          "isInvalid": false
+        }
+      ],
+      "position": {
+        "startLine": 15,
+        "startColumn": 11,
+        "endLine": 17,
+        "endColumn": 5
+      },
+      "typeData": {
+        "diagnostics": []
+      }
+    },
+    "source": "else {\n\n    }\n",
+    "syntaxDiagnostics": [],
+    "leadingMinutiae": [],
+    "trailingMinutiae": [
+      {
+        "kind": "END_OF_LINE_MINUTIAE",
+        "minutiae": "\n",
+        "isInvalid": false
+      }
+    ],
+    "position": {
+      "startLine": 15,
+      "startColumn": 6,
+      "endLine": 17,
+      "endColumn": 5
+    },
+    "typeData": {
+      "diagnostics": []
+    }
+  },
+  "source": "    if (expression) {\n\n    } else {\n\n    }\n",
+  "syntaxDiagnostics": [],
+  "leadingMinutiae": [
+    {
+      "kind": "WHITESPACE_MINUTIAE",
+      "minutiae": "    ",
+      "isInvalid": false
+    }
+  ],
+  "trailingMinutiae": [
+    {
+      "kind": "END_OF_LINE_MINUTIAE",
+      "minutiae": "\n",
+      "isInvalid": false
+    }
+  ],
+  "position": {
+    "startLine": 13,
+    "startColumn": 4,
+    "endLine": 17,
+    "endColumn": 5
+  },
+  "typeData": {
+    "diagnostics": []
+  }
+}

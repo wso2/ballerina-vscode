@@ -1,0 +1,577 @@
+/*
+ *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
+package io.ballerina.flowmodelgenerator.core.model.node;
+
+import com.google.gson.Gson;
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.flowmodelgenerator.core.AiUtils;
+import io.ballerina.flowmodelgenerator.core.CodeAnalyzer;
+import io.ballerina.flowmodelgenerator.core.Constants;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import io.ballerina.flowmodelgenerator.core.model.Metadata;
+import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
+import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
+import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
+import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Document;
+import io.ballerina.projects.Project;
+import io.ballerina.tools.text.TextDocument;
+import io.ballerina.tools.text.TextRange;
+import org.ballerinalang.langserver.common.utils.NameUtil;
+import org.eclipse.lsp4j.TextEdit;
+
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+/**
+ * Represents a function call node.
+ *
+ * @since 1.0.0
+ */
+public class AgentCallBuilder extends CallBuilder {
+
+    private static final String BALLERINA = "ballerina";
+    private Set<String> cachedVisibleSymbolNames;
+
+    // Agent Properties
+    public static final String AGENT = "AGENT";
+    public static final String SYSTEM_PROMPT = "systemPrompt";
+    public static final String TOOLS = "tools";
+    public static final String MODEL = "model";
+    public static final String MEMORY = "memory";
+
+    // Agent Call Properties
+    public static final String QUERY = "query";
+    public static final String SESSION_ID = "sessionId";
+    public static final String CONTEXT = "context";
+
+    public static final String ROLE = "role";
+    public static final String ROLE_LABEL = "Role";
+    public static final String ROLE_DOC = "Define the agent's primary function";
+    public static final String ROLE_PLACEHOLDER = "e.g., Customer Support Assistant, Sales Advisor, Data Analyst";
+
+    public static final String INSTRUCTIONS = "instructions";
+    public static final String INSTRUCTIONS_LABEL = "Instructions";
+    public static final String INSTRUCTIONS_DOC = "Detailed instructions for the agent";
+    public static final String INSTRUCTIONS_PLACEHOLDER = "e.g., You are a friendly assistant. Your goal is to...";
+
+    public static final String DESCRIPTION = "Executes the agent for a given user query.";
+
+    static final Set<String> AGENT_PARAMS_TO_HIDE =
+            Set.of(SYSTEM_PROMPT, TOOLS, MEMORY, MODEL, Property.TYPE_KEY, Property.VARIABLE_KEY);
+    static final Set<String> AGENT_CALL_PARAMS_TO_SHOW = Set.of(QUERY, SESSION_ID, CONTEXT);
+
+    private static final String STRING = "string";
+    private static final String AI_TRACE = "ai:Trace";
+    private static final List<String> TD_OPTIONS = List.of(STRING, AI_TRACE);
+
+    // Cache for agent templates to avoid expensive repeated creation
+    private static final Map<String, FlowNode> agentTemplateCache = new ConcurrentHashMap<>();
+
+    // Cache for agent call function templates to avoid repeated FunctionDataBuilder.build() calls
+    private static final Map<String, FlowNode> agentCallFnCache = new ConcurrentHashMap<>();
+
+    @Override
+    protected NodeKind getFunctionNodeKind() {
+        return NodeKind.AGENT_CALL;
+    }
+
+    @Override
+    protected FunctionData.Kind getFunctionResultKind() {
+        return FunctionData.Kind.FUNCTION;
+    }
+
+    @Override
+    public void setConcreteConstData() {
+        codedata().node(NodeKind.AGENT_CALL);
+        metadata().description(DESCRIPTION);
+    }
+
+    @Override
+    public void setConcreteTemplateData(TemplateContext context) {
+        setAgentProperties(this, context, null);
+        setAdditionalAgentProperties(this, null);
+
+        FlowNode callTemplate = getOrCreateCallFunctionTemplate(context);
+        restoreFromTemplate(callTemplate);
+
+        Codedata contextCd = context.codedata();
+        codedata().lineRange(contextCd.lineRange()).sourceCode(contextCd.sourceCode());
+
+        // TODO: This is a temporary solution until we have a proper plan for handling all generic types.
+        makeInferredTypePropertyOptional();
+        overrideVariableName(context);
+    }
+
+    private FlowNode getOrCreateCallFunctionTemplate(TemplateContext context) {
+        Codedata cd = context.codedata();
+        String cacheKey = String.format("%s|%s|%s|%s|%s",
+                cd.org(), cd.packageName(), cd.version(), cd.symbol(), cd.object());
+        return agentCallFnCache.computeIfAbsent(cacheKey, k -> {
+            AgentCallBuilder temp = new AgentCallBuilder();
+            temp.defaultModuleName(moduleInfo);
+            temp.callSuperSetConcreteTemplateData(context);
+            return temp.build();
+        });
+    }
+
+    void callSuperSetConcreteTemplateData(TemplateContext context) {
+        super.setConcreteTemplateData(context);
+    }
+
+    private void restoreFromTemplate(FlowNode template) {
+        Metadata md = template.metadata();
+        if (md != null) {
+            metadata().label(md.label()).description(md.description());
+            if (md.icon() != null) {
+                metadata().icon(md.icon());
+            }
+        }
+
+        Codedata cd = template.codedata();
+        if (cd != null) {
+            codedata().node(cd.node()).org(cd.org()).module(cd.module())
+                    .packageName(cd.packageName()).object(cd.object())
+                    .version(cd.version()).symbol(cd.symbol())
+                    .inferredReturnType(cd.inferredReturnType());
+        }
+
+        if (template.properties() != null) {
+            Map<String, Property> currentProps = properties().build();
+            template.properties().forEach(currentProps::put);
+        }
+
+        if (template.flags() != 0) {
+            flag(template.flags());
+        }
+    }
+
+    private void makeInferredTypePropertyOptional() {
+        if (formBuilder == null) {
+            return;
+        }
+        Map<String, Property> props = formBuilder.build();
+        for (Map.Entry<String, Property> entry : props.entrySet()) {
+            Property prop = entry.getValue();
+            if (prop.codedata() != null &&
+                    ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(prop.codedata().kind())) {
+                props.put(entry.getKey(), AiUtils.copyAsOptionalAdvanced(prop));
+                postProcessTdProperty(this, entry.getKey());
+            }
+        }
+    }
+
+    /**
+     * Post-processes the {@code td} inferred-type property on an AGENT_CALL node builder, converting it from a
+     * free-form expression field to a SINGLE_SELECT dropdown. Safe to call for any node builder or key — exits
+     * immediately when the conditions are not met.
+     *
+     * @param nodeBuilder the node builder to update
+     * @param key         the inferred type parameter key
+     */
+    public static void postProcessTdProperty(NodeBuilder nodeBuilder, String key) {
+        if (!(nodeBuilder instanceof AgentCallBuilder builder) || !"td".equals(key)
+                || builder.formBuilder == null) {
+            return;
+        }
+        Map<String, Property> props = builder.formBuilder.build();
+        Property prop = props.get(key);
+        if (prop == null || prop.metadata() == null) {
+            return;
+        }
+        // Ensure optional/advanced are set (needed when called from CodeAnalyzer for existing nodes)
+        Property updatedProperty = AiUtils.copyAsOptionalAdvanced(prop);
+        updatedProperty = AiUtils.createPropertyWithUpdatedLabel(updatedProperty, "Type Descriptor");
+        if (updatedProperty.value() == null || updatedProperty.value().toString().isEmpty()) {
+            updatedProperty = AiUtils.createUpdatedProperty(updatedProperty, STRING);
+        }
+        props.put(key, AiUtils.convertToSingleSelect(updatedProperty, TD_OPTIONS));
+    }
+
+    private Set<String> getVisibleSymbolNames(TemplateContext context) {
+        if (cachedVisibleSymbolNames == null) {
+            cachedVisibleSymbolNames = context.getAllVisibleSymbolNames();
+        }
+        return cachedVisibleSymbolNames;
+    }
+
+    @Override
+    protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context,
+                                           String label, String doc, boolean hidden) {
+        properties()
+                .type(functionData.returnType(), false, functionData.importStatements(), hidden,
+                        Property.RESULT_TYPE_LABEL)
+                .data(functionData.returnType(), getVisibleSymbolNames(context), label, doc, false);
+    }
+
+    private void overrideVariableName(TemplateContext context) {
+        if (formBuilder == null) {
+            return;
+        }
+        Map<String, Property> props = formBuilder.build();
+        Property variableProp = props.get(Property.VARIABLE_KEY);
+        if (variableProp == null) {
+            return;
+        }
+        String uniqueVarName = NameUtil.generateVariableName("string", getVisibleSymbolNames(context));
+        props.put(Property.VARIABLE_KEY, AiUtils.createUpdatedProperty(variableProp, uniqueVarName));
+    }
+
+    public static void setAgentProperties(NodeBuilder nodeBuilder, TemplateContext context,
+                                          Map<String, AiUtils.AgentPropertyValue> propertyValues) {
+        FlowNode agentNodeTemplate = getOrCreateAgentTemplate(context);
+        agentNodeTemplate.properties().forEach((key, property) -> {
+            String value = (propertyValues != null && propertyValues.containsKey(key))
+                    ? propertyValues.get(key).value()
+                    : null;
+            boolean isHidden = AGENT_PARAMS_TO_HIDE.contains(key);
+            AiUtils.addPropertyFromTemplate(nodeBuilder, key, property, value, isHidden);
+        });
+    }
+
+    public static void setAdditionalAgentProperties(NodeBuilder nodeBuilder,
+                                                    Map<String, AiUtils.AgentPropertyValue> propertyValues) {
+        AiUtils.AgentPropertyValue roleProperty = (propertyValues != null && propertyValues.containsKey(ROLE)) ?
+                propertyValues.get(ROLE) : null;
+        AiUtils.AgentPropertyValue instructionsProperty =
+                (propertyValues != null && propertyValues.containsKey(INSTRUCTIONS)) ?
+                        propertyValues.get(INSTRUCTIONS) : null;
+
+        String roleValue = roleProperty != null ? roleProperty.value() : "";
+        String instructionsValue = instructionsProperty != null ? instructionsProperty.value() : "";
+
+        // Restore backticks for UI display (in case values contain ${"`"} from templates)
+        roleValue = AiUtils.restoreBackticksFromStringTemplate(roleValue);
+        instructionsValue = AiUtils.restoreBackticksFromStringTemplate(instructionsValue);
+
+        // Default to PROMPT when no property value is provided (new/empty values)
+        Property.ValueType roleSelectedType = roleProperty != null ?
+                roleProperty.selectedType() : Property.ValueType.PROMPT;
+        Property.ValueType instructionsSelectedType = instructionsProperty != null ?
+                instructionsProperty.selectedType() : Property.ValueType.PROMPT;
+
+        AiUtils.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue,
+                roleSelectedType);
+        AiUtils.addStringProperty(nodeBuilder, INSTRUCTIONS, INSTRUCTIONS_LABEL, INSTRUCTIONS_DOC,
+                INSTRUCTIONS_PLACEHOLDER, instructionsValue, instructionsSelectedType);
+    }
+
+    private static FlowNode getOrCreateAgentTemplate(TemplateContext context) {
+        String cacheKey = String.format("%s|%s|%s",
+                context.codedata().org(),
+                context.codedata().packageName(),
+                context.codedata().version());
+        return agentTemplateCache.computeIfAbsent(cacheKey, k ->
+                new AgentBuilder().setConstData().setTemplateData(context).build()
+        );
+    }
+
+    private void newVariableWithInferredTypeAndDefault(SourceBuilder sourceBuilder) {
+        FlowNode flowNode = sourceBuilder.flowNode;
+        Optional<Property> optionalType = sourceBuilder.getProperty(Property.TYPE_KEY);
+        Optional<Property> variable = sourceBuilder.getProperty(Property.VARIABLE_KEY);
+
+        if (optionalType.isEmpty() || variable.isEmpty()) {
+            return;
+        }
+
+        Property type = optionalType.get();
+        String typeName = type.value().toString();
+
+        if (flowNode.codedata().inferredReturnType() != null) {
+            Optional<Property> inferredParam = flowNode.properties().values().stream()
+                    .filter(property -> property.codedata() != null && property.codedata().kind() != null &&
+                            property.codedata().kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name()))
+                    .findFirst();
+            if (inferredParam.isPresent()) {
+                String returnType = flowNode.codedata().inferredReturnType();
+                Object inferredValue = inferredParam.get().value();
+                // Default to "string" when the inferred type value is null or empty
+                String inferredType = (inferredValue != null && !inferredValue.toString().isEmpty())
+                        ? inferredValue.toString()
+                        : "string";
+                String inferredTypeDef = inferredParam.get()
+                        .codedata().originalName();
+                typeName = returnType.replace(inferredTypeDef, inferredType);
+            }
+        }
+
+        sourceBuilder.token().expressionWithType(typeName, variable.get()).keyword(SyntaxKind.EQUAL_TOKEN);
+    }
+
+    @Override
+    public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
+        // Use custom variable declaration with inferred type handling and default to "string"
+        newVariableWithInferredTypeAndDefault(sourceBuilder);
+
+        FlowNode agentCallNode = sourceBuilder.flowNode;
+        Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
+        Map<Path, List<TextEdit>> allTextEdits = new HashMap<>();
+
+        FlowNode modelProviderNode =
+                createModelProviderIfNeeded(sourceBuilder, agentCallNode, projectRoot, allTextEdits);
+        TemplateContext agentTemplateContext = resolveAgentContext(sourceBuilder, agentCallNode, projectRoot);
+        FlowNode agentNode = createAndConfigureAgentNode(agentTemplateContext, agentCallNode, modelProviderNode);
+
+        generateAgentSource(sourceBuilder, agentNode, agentTemplateContext, projectRoot, allTextEdits);
+        generateAgentCallSource(sourceBuilder, agentCallNode, agentNode, allTextEdits);
+
+        return allTextEdits;
+    }
+
+    private FlowNode createModelProviderIfNeeded(SourceBuilder sourceBuilder, FlowNode agentCallNode,
+                                                 Path projectRoot, Map<Path, List<TextEdit>> allTextEdits) {
+        Optional<Property> model = agentCallNode.getProperty(MODEL);
+        if (model.isPresent() && model.get().value() != null && !model.get().value().toString().isEmpty()) {
+            // Skip creating a new model provider since a model provider already exists
+            return null;
+        }
+
+        NodeBuilder.TemplateContext modelProviderContext =
+                AiUtils.createDefaultTemplateContext(sourceBuilder,
+                        AiUtils.getDefaultModelProviderCodedata(agentCallNode.codedata().org()));
+        FlowNode modelProviderNode = NodeBuilder.getNodeFromKind(
+                        Objects.equals(agentCallNode.codedata().org(), BALLERINA) ? NodeKind.MODEL_PROVIDER :
+                                NodeKind.CLASS_INIT)
+                .setConstData()
+                .setTemplateData(modelProviderContext)
+                .build();
+
+        SourceBuilder modelProviderSourceBuilder = new SourceBuilder(modelProviderNode,
+                sourceBuilder.workspaceManager, projectRoot);
+        Map<Path, List<TextEdit>> modelProviderTextEdits =
+                new ModelProviderBuilder().toSource(modelProviderSourceBuilder);
+        modelProviderTextEdits.forEach((path, textEdits) ->
+                allTextEdits.merge(path, textEdits, (existing, incoming) -> {
+                    List<TextEdit> merged = new ArrayList<>(existing);
+                    merged.addAll(incoming);
+                    return merged;
+                }));
+
+        return modelProviderNode;
+    }
+
+    private TemplateContext resolveAgentContext(SourceBuilder sourceBuilder, FlowNode agentCallNode, Path projectRoot) {
+        return agentCallNode.getProperty(Property.CONNECTION_KEY)
+                .filter(connection -> connection.value() != null && !connection.value().toString().isEmpty())
+                .map(connection -> extractAgentCodedata(sourceBuilder, agentCallNode, projectRoot))
+                .orElse(AiUtils.createDefaultTemplateContext(sourceBuilder,
+                        AiUtils.getDefaultAgentCodedata(agentCallNode.codedata().org())));
+    }
+
+    private TemplateContext extractAgentCodedata(SourceBuilder sourceBuilder, FlowNode agentCallNode,
+                                                 Path projectRoot) {
+        Object agentCodedataObj = agentCallNode.codedata().data().get(Constants.Ai.AGENT_CODEDATA);
+
+        if (agentCodedataObj == null) {
+            return AiUtils.createDefaultTemplateContext(sourceBuilder,
+                    AiUtils.getDefaultAgentCodedata(agentCallNode.codedata().org()));
+        }
+
+        Gson gson = new Gson();
+        Codedata agentCodedata = gson.fromJson(gson.toJson(agentCodedataObj), Codedata.class);
+
+        Path agentFilePath =
+                FileSystemUtils.resolveFilePathFromCodedata(agentCodedata, projectRoot);
+
+        return new NodeBuilder.TemplateContext(sourceBuilder.workspaceManager, agentFilePath,
+                agentCodedata.lineRange().startLine(), agentCodedata, null);
+    }
+
+    private FlowNode createAndConfigureAgentNode(TemplateContext agentTemplateContext, FlowNode agentCallNode,
+                                                 FlowNode modelProviderNode) {
+        FlowNode agentNode;
+
+        // Check if we should retrieve an existing agent node or create a new one
+        if (agentTemplateContext.codedata() != null && agentTemplateContext.codedata().isNew() != null
+                && !agentTemplateContext.codedata().isNew()) {
+            // Retrieve existing agent node from the semantic model using the lineRange
+            agentNode = findExistingAgentNode(agentTemplateContext);
+        } else {
+            // Create a new agent node
+            agentNode = new AgentBuilder().setConstData().setTemplateData(agentTemplateContext).build();
+        }
+
+        updateAgentNodeProperties(agentNode, agentCallNode);
+
+        if (modelProviderNode != null) {
+            AiUtils.copyPropertyValue(agentNode, modelProviderNode, MODEL, Property.VARIABLE_KEY);
+        } else {
+            AiUtils.copyPropertyValue(agentNode, agentCallNode, MODEL, MODEL);
+            AiUtils.copyPropertyValue(agentNode, agentCallNode, Property.VARIABLE_KEY, Property.CONNECTION_KEY);
+        }
+
+        return agentNode;
+    }
+
+    private void generateAgentSource(SourceBuilder sourceBuilder, FlowNode agentNode,
+                                     TemplateContext agentTemplateContext, Path projectRoot,
+                                     Map<Path, List<TextEdit>> allTextEdits) {
+        Path agentFilePath =
+                FileSystemUtils.resolveFilePathFromCodedata(agentTemplateContext.codedata(), projectRoot);
+        SourceBuilder agentSourceBuilder = new SourceBuilder(agentNode, sourceBuilder.workspaceManager, agentFilePath);
+        Map<Path, List<TextEdit>> agentTextEdits =
+                NodeBuilder.getNodeFromKind(agentNode.codedata().node()).toSource(agentSourceBuilder);
+        agentTextEdits.forEach((path, textEdits) ->
+                allTextEdits.merge(path, textEdits, (existing, incoming) -> {
+                    List<TextEdit> merged = new ArrayList<>(existing);
+                    merged.addAll(incoming);
+                    return merged;
+                }));
+    }
+
+    private void generateAgentCallSource(SourceBuilder sourceBuilder, FlowNode agentCallNode, FlowNode agentNode,
+                                         Map<Path, List<TextEdit>> allTextEdits) {
+        Optional<Property> connection = agentNode.getProperty(Property.VARIABLE_KEY);
+        if (connection.isEmpty()) {
+            throw new IllegalStateException("Agent variable must be defined for an agent call node");
+        }
+
+        if (FlowNodeUtil.hasCheckKeyFlagSet(agentCallNode)) {
+            sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
+        }
+
+        Set<String> excludeKeys = getExcludeKeys(agentCallNode);
+        Map<Path, List<TextEdit>> callTextEdits = sourceBuilder.token()
+                .name(connection.get().toSourceCode())
+                .keyword(BALLERINA.equals(agentCallNode.codedata().org()) ?
+                        SyntaxKind.DOT_TOKEN : SyntaxKind.RIGHT_ARROW_TOKEN)
+                .name(agentCallNode.metadata().label())
+                .stepOut()
+                .functionParameters(agentCallNode, excludeKeys)
+                .textEdit()
+                .build();
+
+        callTextEdits.forEach((path, textEdits) ->
+                allTextEdits.merge(path, textEdits, (existing, incoming) -> {
+                    List<TextEdit> merged = new ArrayList<>(existing);
+                    merged.addAll(incoming);
+                    return merged;
+                }));
+    }
+
+    private Set<String> getExcludeKeys(FlowNode agentCallNode) {
+        return agentCallNode.properties() != null
+                ? agentCallNode.properties().keySet().stream()
+                .filter(key -> !AGENT_CALL_PARAMS_TO_SHOW.contains(key))
+                .collect(Collectors.toSet())
+                : new HashSet<>();
+    }
+
+    private void updateAgentNodeProperties(FlowNode agentNode, FlowNode agentCallNode) {
+        if (agentNode.properties() == null) {
+            return;
+        }
+        AiUtils.copyCommonProperties(agentNode, agentCallNode);
+        updateSystemPromptProperty(agentNode, agentCallNode);
+    }
+
+    private void updateSystemPromptProperty(FlowNode agentNode, FlowNode agentCallNode) {
+        Property systemPrompt = agentNode.properties().get(SYSTEM_PROMPT);
+        if (systemPrompt == null) {
+            return;
+        }
+        String role = agentCallNode.getProperty(ROLE).map(Property::value).orElse("").toString();
+        String instructions = agentCallNode.getProperty(INSTRUCTIONS).map(Property::value).orElse("").toString();
+
+        String escapedRole = isPromptTypeSelected(agentCallNode.getProperty(ROLE).orElse(null))
+                ? AiUtils.replaceBackticksForStringTemplate(role) : role;
+        String escapedInstructions = isPromptTypeSelected(agentCallNode.getProperty(INSTRUCTIONS).orElse(null))
+                ? AiUtils.replaceBackticksForStringTemplate(instructions) : instructions;
+
+        String systemPromptValue =
+                "{role: " + escapedRole + ", instructions: " + escapedInstructions + "}";
+
+        Property updatedProperty = AiUtils.createUpdatedProperty(systemPrompt, systemPromptValue);
+        agentNode.properties().put(SYSTEM_PROMPT, updatedProperty);
+    }
+
+    private boolean isPromptTypeSelected(Property property) {
+        if (property == null || property.types() == null) {
+            return false;
+        }
+        return property.types().stream()
+                .anyMatch(type -> type.fieldType() == Property.ValueType.PROMPT && type.selected());
+    }
+
+    private FlowNode findExistingAgentNode(TemplateContext agentTemplateContext) {
+        // Get the document from the workspace manager
+        Path filePath = agentTemplateContext.filePath();
+        Document document = agentTemplateContext.workspaceManager().document(filePath)
+                .orElseThrow(() -> new IllegalStateException("Document not found for path: " + filePath));
+
+        // Get the syntax tree and semantic model
+        SyntaxTree syntaxTree = document.syntaxTree();
+        TextDocument textDocument = syntaxTree.textDocument();
+        SemanticModel semanticModel = agentTemplateContext.workspaceManager()
+                .semanticModel(filePath)
+                .orElseThrow(() -> new IllegalStateException("Semantic model not found for path: " + filePath));
+
+        // Get the syntax node at the lineRange from the codedata
+        Codedata codedata = agentTemplateContext.codedata();
+        TextRange textRange = CommonUtils.toTextRange(textDocument, codedata.lineRange());
+        NonTerminalNode syntaxNode = ((ModulePartNode) syntaxTree.rootNode()).findNode(textRange, true);
+
+        // Extract scope from the codedata, defaulting to LOCAL_SCOPE if not found
+        String scope = Property.LOCAL_SCOPE;
+        if (codedata.data() != null && codedata.data().containsKey(Property.SCOPE_KEY)) {
+            Object scopeValue = codedata.data().get(Property.SCOPE_KEY);
+            if (scopeValue != null) {
+                scope = scopeValue.toString();
+            }
+        }
+
+        // Use CodeAnalyzer to analyze the syntax node and generate FlowNode
+        Project project = document.module().project();
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope,
+                Map.of(), Map.of(), textDocument,
+                ModuleInfo.from(document.module().descriptor()), false,
+                agentTemplateContext.workspaceManager(), filePath);
+        syntaxNode.accept(codeAnalyzer);
+
+        // Get the generated flow nodes and return the first one (should be the agent node)
+        List<FlowNode> flowNodes = codeAnalyzer.getFlowNodes();
+        if (flowNodes.isEmpty()) {
+            throw new IllegalStateException(
+                    "No flow node found for the existing agent at line range: " + codedata.lineRange());
+        }
+
+        return flowNodes.getFirst();
+    }
+}

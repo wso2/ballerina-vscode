@@ -1,0 +1,120 @@
+{
+  "source": "recursive2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "recursive2.bal",
+      "startLine": {
+        "line": 16,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 6
+      }
+    },
+    "sourceCode": "Order orderItem = {};"
+  },
+  "position": {
+    "line": 16,
+    "offset": 4
+  },
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "engineering",
+        "displayName": "engineering",
+        "typeName": "Department",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "-954444226"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "alice",
+      "displayName": "alice",
+      "typeName": "Employee",
+      "kind": "record",
+      "ref": "-944716646"
+    },
+    "mappings": [
+      {
+        "output": "alice.name",
+        "inputs": [],
+        "expression": "\"Alice\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "alice.department",
+        "inputs": [
+          "engineering"
+        ],
+        "expression": "engineering\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "-954444226": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "member": {
+              "fields": [],
+              "name": "employees",
+              "displayName": "<employeesItem>",
+              "typeName": "Employee",
+              "kind": "record",
+              "ref": "-944716646"
+            },
+            "name": "employees",
+            "displayName": "employees",
+            "typeName": "Employee[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "281439725"
+          }
+        ],
+        "typeName": "Department",
+        "kind": "record"
+      },
+      "-944716646": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "department",
+            "displayName": "department",
+            "typeName": "Department",
+            "kind": "record",
+            "optional": false,
+            "ref": "-954444226"
+          }
+        ],
+        "typeName": "Employee",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

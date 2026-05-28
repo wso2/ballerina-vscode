@@ -1,0 +1,609 @@
+{
+  "filePath": "update_service_class.bal",
+  "description": "Update the name of the service class",
+  "serviceClass": {
+    "id": "0",
+    "name": "Book",
+    "type": "service",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the object"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "valueType": "STRING",
+      "valueTypeConstraint": "string",
+      "value": "This is a sample service class.\nThe service class definition goes here.",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Class Name",
+          "description": "The name of the class definition"
+        },
+        "placeholder": "",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "string",
+        "value": "UpdatedBook",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "update_service_class.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 37,
+          "offset": 1
+        }
+      }
+    },
+    "functions": [
+      {
+        "metadata": {
+          "label": "Init Method",
+          "description": "Init Method"
+        },
+        "qualifiers": [],
+        "kind": "INIT",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Function Name",
+            "description": "The name of the function"
+          },
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "init",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "valueType": "TYPE",
+              "value": "string",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "valueType": "IDENTIFIER",
+              "value": "name",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": false,
+            "optional": false,
+            "advanced": false,
+            "hidden": false
+          }
+        ],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "returnType": {
+          "hasError": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the function"
+          },
+          "valueType": "TYPE",
+          "value": "error?",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "optional": false,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "update_service_class.bal",
+            "startLine": {
+              "line": 5,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 12,
+              "offset": 5
+            }
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "Resource Method",
+          "description": "Resource Method"
+        },
+        "qualifiers": [],
+        "kind": "RESOURCE",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "get",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Function Name",
+            "description": "The name of the function"
+          },
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "author/[int id]",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "returnType": {
+          "hasError": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the function"
+          },
+          "valueType": "TYPE",
+          "value": "string|error?",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "optional": false,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "update_service_class.bal",
+            "startLine": {
+              "line": 14,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 28,
+              "offset": 5
+            }
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "Remote Method",
+          "description": "Remote Method"
+        },
+        "qualifiers": [],
+        "kind": "REMOTE",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Function Name",
+            "description": "The name of the function"
+          },
+          "placeholder": "",
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "string",
+          "value": "addAuthor",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "valueType": "TYPE",
+              "value": "Author",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "valueType": "IDENTIFIER",
+              "value": "author",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": false,
+            "optional": false,
+            "advanced": false,
+            "hidden": false
+          }
+        ],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "returnType": {
+          "hasError": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the function"
+          },
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "optional": false,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 30,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 36,
+              "offset": 5
+            }
+          }
+        }
+      }
+    ],
+    "fields": [
+      {
+        "isPrivate": true,
+        "isFinal": true,
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "string",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "id",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      },
+      {
+        "isPrivate": true,
+        "isFinal": true,
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "string",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "name",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      },
+      {
+        "isPrivate": true,
+        "isFinal": false,
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "Author[]",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "authors",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "valueType": "EXPRESSION",
+          "value": "[]",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      }
+    ]
+  },
+  "output": {
+    "update_service_class.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 21
+          },
+          "end": {
+            "line": 0,
+            "character": 25
+          }
+        },
+        "newText": "UpdatedBook"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "# This is a sample service class.\n# The service class definition goes here.\n"
+      }
+    ]
+  }
+}

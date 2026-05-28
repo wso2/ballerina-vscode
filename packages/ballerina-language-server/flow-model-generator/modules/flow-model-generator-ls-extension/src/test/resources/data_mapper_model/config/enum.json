@@ -1,0 +1,129 @@
+{
+  "source": "enum.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "enum.bal",
+      "startLine": {
+        "line": 18,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 21,
+        "offset": 6
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 18,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "members": [
+          {
+            "name": "DepartmentCode.FINANCE",
+            "displayName": "FINANCE",
+            "typeName": "FINANCE",
+            "kind": "FINANCE"
+          },
+          {
+            "name": "DepartmentCode.IT",
+            "displayName": "IT",
+            "typeName": "IT",
+            "kind": "IT"
+          },
+          {
+            "name": "DepartmentCode.HR",
+            "displayName": "HR",
+            "typeName": "HR",
+            "kind": "HR"
+          }
+        ],
+        "name": "enum",
+        "displayName": "DepartmentCode",
+        "typeName": "DepartmentCode",
+        "kind": "enum",
+        "category": "enum"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "engineering",
+      "displayName": "engineering",
+      "typeName": "Department",
+      "kind": "record",
+      "ref": "-954444226"
+    },
+    "mappings": [
+      {
+        "output": "engineering.name",
+        "inputs": [],
+        "expression": "\"Engineering\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "engineering.code",
+        "inputs": [
+          "DepartmentCode.IT"
+        ],
+        "expression": "IT\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "-954444226": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "members": [
+              {
+                "name": "DepartmentCode.FINANCE",
+                "displayName": "FINANCE",
+                "typeName": "FINANCE",
+                "kind": "FINANCE"
+              },
+              {
+                "name": "DepartmentCode.IT",
+                "displayName": "IT",
+                "typeName": "IT",
+                "kind": "IT"
+              },
+              {
+                "name": "DepartmentCode.HR",
+                "displayName": "HR",
+                "typeName": "HR",
+                "kind": "HR"
+              }
+            ],
+            "name": "code",
+            "displayName": "DepartmentCode",
+            "typeName": "DepartmentCode",
+            "kind": "enum",
+            "optional": false,
+            "ref": "-1735710389"
+          }
+        ],
+        "typeName": "Department",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

@@ -1,0 +1,405 @@
+{
+  "start": {
+    "line": 87,
+    "offset": 0
+  },
+  "end": {
+    "line": 96,
+    "offset": 1
+  },
+  "source": "comment.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "comment.bal",
+    "nodes": [
+      {
+        "id": "119692",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "commentInForeachBody",
+            "isServiceFunction": false,
+            "parameters": [
+              "int i"
+            ]
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "comment.bal",
+            "startLine": {
+              "line": 87,
+              "offset": 44
+            },
+            "endLine": {
+              "line": 96,
+              "offset": 1
+            }
+          },
+          "sourceCode": "public function commentInForeachBody(int i) {\n    int x = 0;\n\n    foreach var item in 1..<3 {\n        // Increment `x`\n        x = x + 1;\n\n        // Precess `x`\n    }\n}"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "119178",
+        "metadata": {
+          "label": "Declare Variable",
+          "description": "Create a new variable"
+        },
+        "codedata": {
+          "node": "VARIABLE",
+          "lineRange": {
+            "fileName": "comment.bal",
+            "startLine": {
+              "line": 88,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 88,
+              "offset": 14
+            }
+          },
+          "sourceCode": "int x = 0;"
+        },
+        "returning": false,
+        "properties": {
+          "expression": {
+            "metadata": {
+              "label": "Expression",
+              "description": "Initialize with value"
+            },
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
+              }
+            ],
+            "value": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Name",
+              "description": "Name of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "x",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "comment.bal",
+                "startLine": {
+                  "line": 88,
+                  "offset": 8
+                },
+                "endLine": {
+                  "line": 88,
+                  "offset": 9
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "int",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "121308",
+        "metadata": {
+          "label": "Foreach",
+          "description": "Iterate over a block of code."
+        },
+        "codedata": {
+          "node": "FOREACH",
+          "lineRange": {
+            "fileName": "comment.bal",
+            "startLine": {
+              "line": 90,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 95,
+              "offset": 5
+            }
+          },
+          "sourceCode": "foreach var item in 1..<3 {\n        // Increment `x`\n        x = x + 1;\n\n        // Precess `x`\n    }"
+        },
+        "returning": false,
+        "branches": [
+          {
+            "label": "Body",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "BODY",
+              "lineRange": {
+                "fileName": "comment.bal",
+                "startLine": {
+                  "line": 90,
+                  "offset": 30
+                },
+                "endLine": {
+                  "line": 95,
+                  "offset": 5
+                }
+              },
+              "sourceCode": "{\n        // Increment `x`\n        x = x + 1;\n\n        // Precess `x`\n    }"
+            },
+            "repeatable": "ONE",
+            "children": [
+              {
+                "id": "122040",
+                "metadata": {
+                  "label": "Comment",
+                  "description": "Increment `x`"
+                },
+                "codedata": {
+                  "node": "COMMENT",
+                  "lineRange": {
+                    "fileName": "comment.bal",
+                    "startLine": {
+                      "line": 91,
+                      "offset": 0
+                    },
+                    "endLine": {
+                      "line": 91,
+                      "offset": 24
+                    }
+                  },
+                  "sourceCode": "Increment `x`"
+                },
+                "returning": false,
+                "properties": {
+                  "comment": {
+                    "metadata": {
+                      "label": "Comment",
+                      "description": "Comment to describe the flow"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "Increment `x`",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "123274",
+                "metadata": {
+                  "label": "Update Variable",
+                  "description": "Update the value of an existing variable"
+                },
+                "codedata": {
+                  "node": "ASSIGN",
+                  "lineRange": {
+                    "fileName": "comment.bal",
+                    "startLine": {
+                      "line": 92,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 92,
+                      "offset": 18
+                    }
+                  },
+                  "sourceCode": "// Increment `x`\n        x = x + 1;"
+                },
+                "returning": false,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Update value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
+                      }
+                    ],
+                    "value": "x + 1",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "variable": {
+                    "metadata": {
+                      "label": "Variable",
+                      "description": "Name of the variable/field"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "LV_EXPRESSION",
+                        "selected": false
+                      }
+                    ],
+                    "value": "x",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "124053",
+                "metadata": {
+                  "label": "Comment",
+                  "description": "Precess `x`"
+                },
+                "codedata": {
+                  "node": "COMMENT",
+                  "lineRange": {
+                    "fileName": "comment.bal",
+                    "startLine": {
+                      "line": 93,
+                      "offset": 0
+                    },
+                    "endLine": {
+                      "line": 94,
+                      "offset": 22
+                    }
+                  },
+                  "sourceCode": "Precess `x`"
+                },
+                "returning": false,
+                "properties": {
+                  "comment": {
+                    "metadata": {
+                      "label": "Comment",
+                      "description": "Comment to describe the flow"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "Precess `x`",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "variable": {
+            "metadata": {
+              "label": "Variable Name",
+              "description": "Name of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "item",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "comment.bal",
+                "startLine": {
+                  "line": 90,
+                  "offset": 16
+                },
+                "endLine": {
+                  "line": 90,
+                  "offset": 20
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Variable Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "var",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          },
+          "collection": {
+            "metadata": {
+              "label": "Collection",
+              "description": "Collection to iterate"
+            },
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "ballerinaType": "(any|error)[]|stream<any|error, ()>|string|map<any|error>|json",
+                "selected": true
+              }
+            ],
+            "value": "1..<3 ",
+            "placeholder": "[]",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}

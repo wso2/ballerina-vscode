@@ -1,0 +1,16 @@
+{
+  "description": "No results search test",
+  "kind": "AGENT",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": "xyz123"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Agents"
+      },
+      "items": []
+    }
+  ]
+}

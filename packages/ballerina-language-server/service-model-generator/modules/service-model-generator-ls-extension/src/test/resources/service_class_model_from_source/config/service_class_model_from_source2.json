@@ -1,0 +1,1142 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test the model generated for a service class",
+  "start": {
+    "line": 0,
+    "offset": 0
+  },
+  "end": {
+    "line": 40,
+    "offset": 0
+  },
+  "context": "TYPE_DIAGRAM",
+  "response": {
+    "id": "0",
+    "name": "Book",
+    "type": "service",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the class"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "value": "This is a sample Ballerina service class definition",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "properties": {
+      "name": {
+        "imports": {},
+        "metadata": {
+          "label": "Class Name",
+          "description": "The name of the class definition"
+        },
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 1,
+              "offset": 21
+            },
+            "endLine": {
+              "line": 1,
+              "offset": 25
+            }
+          }
+        },
+        "value": "Book",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 40,
+          "offset": 1
+        }
+      }
+    },
+    "functions": [
+      {
+        "metadata": {
+          "label": "Init Method",
+          "description": "Init Method"
+        },
+        "kind": "INIT",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Function Name",
+            "description": "The name of the function"
+          },
+          "codedata": {
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 6,
+                "offset": 13
+              },
+              "endLine": {
+                "line": 6,
+                "offset": 17
+              }
+            }
+          },
+          "value": "init",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the resource"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "name",
+              "description": "name"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "value": "string",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "value": "name",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        },
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the function"
+          },
+          "value": "error?",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "optional": false,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 6,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 13,
+              "offset": 5
+            }
+          }
+        },
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Configuration related to the resource function."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig"
+            },
+            "placeholder": "{}",
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ResourceConfig",
+                "typeMembers": [
+                  {
+                    "type": "ResourceConfig",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": true
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "Resource Method",
+          "description": "Resource Method"
+        },
+        "kind": "RESOURCE",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "value": "get",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Resource Path",
+            "description": "The resource path"
+          },
+          "codedata": {
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 15,
+                "offset": 22
+              },
+              "endLine": {
+                "line": 15,
+                "offset": 25
+              }
+            }
+          },
+          "value": "author/[int id]",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the resource"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "parameters": [],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        },
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the resource"
+          },
+          "value": "string|error?",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "optional": false,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 15,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 29,
+              "offset": 5
+            }
+          }
+        },
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Configuration related to the resource function."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig"
+            },
+            "placeholder": "{}",
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ResourceConfig",
+                "typeMembers": [
+                  {
+                    "type": "ResourceConfig",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": true
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "Remote Method",
+          "description": "Remote Method"
+        },
+        "kind": "REMOTE",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Resource Path",
+            "description": "The resource path"
+          },
+          "codedata": {
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 33,
+                "offset": 20
+              },
+              "endLine": {
+                "line": 33,
+                "offset": 29
+              }
+            }
+          },
+          "value": "addAuthor",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the resource"
+          },
+          "value": "Remote method to add an author",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "author",
+              "description": "author"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "value": "Author",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "value": "author",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "value": "Author ID",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        },
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the resource"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "optional": false,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 31,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 39,
+              "offset": 5
+            }
+          }
+        },
+        "properties": {
+          "annotResourceConfig": {
+            "metadata": {
+              "label": "Resource Configuration",
+              "description": "Configuration related to the resource function."
+            },
+            "codedata": {
+              "type": "ANNOTATION_ATTACHMENT",
+              "originalName": "ResourceConfig"
+            },
+            "placeholder": "{}",
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ResourceConfig",
+                "typeMembers": [
+                  {
+                    "type": "ResourceConfig",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": true
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          }
+        }
+      }
+    ],
+    "fields": [
+      {
+        "isPrivate": true,
+        "isFinal": true,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 28
+            }
+          }
+        },
+        "type": {
+          "metadata": {
+            "label": "Field Type",
+            "description": "The type of the field"
+          },
+          "value": "string",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Field Name",
+            "description": "The name of the field"
+          },
+          "codedata": {
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 2,
+                "offset": 25
+              },
+              "endLine": {
+                "line": 2,
+                "offset": 27
+              }
+            }
+          },
+          "value": "id",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Initial Value",
+            "description": "The initial value of the filed"
+          },
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "isPrivate": true,
+        "isFinal": true,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 3,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 3,
+              "offset": 30
+            }
+          }
+        },
+        "type": {
+          "metadata": {
+            "label": "Field Type",
+            "description": "The type of the field"
+          },
+          "value": "string",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Field Name",
+            "description": "The name of the field"
+          },
+          "codedata": {
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 3,
+                "offset": 25
+              },
+              "endLine": {
+                "line": 3,
+                "offset": 29
+              }
+            }
+          },
+          "value": "name",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Initial Value",
+            "description": "The initial value of the filed"
+          },
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "isPrivate": true,
+        "isFinal": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 4,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 4,
+              "offset": 34
+            }
+          }
+        },
+        "type": {
+          "metadata": {
+            "label": "Field Type",
+            "description": "The type of the field"
+          },
+          "value": "Author[]",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Field Name",
+            "description": "The name of the field"
+          },
+          "codedata": {
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 4,
+                "offset": 21
+              },
+              "endLine": {
+                "line": 4,
+                "offset": 28
+              }
+            }
+          },
+          "value": "authors",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Initial Value",
+            "description": "The initial value of the filed"
+          },
+          "value": "[]",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      }
+    ]
+  }
+}

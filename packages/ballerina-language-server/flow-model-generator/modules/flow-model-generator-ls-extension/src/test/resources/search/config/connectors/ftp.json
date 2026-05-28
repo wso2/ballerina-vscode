@@ -1,0 +1,31 @@
+{
+  "description": "Sample flow model",
+  "kind": "CONNECTOR",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": "ftp"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "FTP",
+        "description": "FTP client for connecting to and managing FTP/SFTP servers.\nSupports reading files in various formats (text, JSON, XML, CSV, bytes) and writing files with overwrite or append options.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.19.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "ftp",
+        "packageName": "ftp",
+        "object": "Client",
+        "symbol": "init",
+        "version": "2.19.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    }
+  ]
+}

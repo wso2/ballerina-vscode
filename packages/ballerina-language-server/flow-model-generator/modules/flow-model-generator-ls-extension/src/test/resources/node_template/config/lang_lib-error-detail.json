@@ -1,0 +1,96 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "org": "ballerina",
+    "module": "lang.error",
+    "packageName": "lang.error",
+    "symbol": "detail",
+    "version": "0.0.0",
+    "isNew": true
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "detail",
+      "description": "Returns the error's detail record.\n\n```ballerina\nerror(\"file not found\", file = \"test.bal\").detail() ⇒ {\"file\":\"test.bal\"}\n```\n\nThe returned value will be immutable.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.error_0.0.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "lang.error",
+      "packageName": "lang.error",
+      "symbol": "detail",
+      "version": "0.0.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "e": {
+        "metadata": {
+          "label": "E",
+          "description": "the error value"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "error:error<error:Detail>",
+            "selected": false
+          }
+        ],
+        "placeholder": "error(\"\")",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "e"
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "error:Detail & readonly",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "errorDetailtypeReadonly",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

@@ -1,0 +1,268 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "RESOURCE_ACTION_CALL",
+    "org": "ballerinax",
+    "module": "docusign.dsadmin",
+    "packageName": "docusign.dsadmin",
+    "object": "Client",
+    "symbol": "get",
+    "parentSymbol": "dsAdminClient",
+    "resourcePath": "/v2/organizations/[organizationId]/accounts/[accountId]/groups"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "get",
+      "description": "Returns the list of groups in an account.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_docusign.dsadmin_2.0.0.png"
+    },
+    "codedata": {
+      "node": "RESOURCE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "docusign.dsadmin",
+      "packageName": "docusign.dsadmin",
+      "object": "Client",
+      "symbol": "get",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "dsadmin:Client",
+            "selected": false
+          }
+        ],
+        "value": "dsAdminClient",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "resourcePath": {
+        "metadata": {
+          "label": "Resource Path",
+          "description": "Resource Path"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_PATH",
+            "selected": false
+          }
+        ],
+        "value": "/v2/organizations/[organizationId]/accounts/[accountId]/groups",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "originalName": "/v2/organizations/[organizationId]/accounts/[accountId]/groups"
+        }
+      },
+      "organizationId": {
+        "metadata": {
+          "label": "organizationId",
+          "description": "The organization ID Guid"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PATH_PARAM",
+          "originalName": "organizationId"
+        }
+      },
+      "accountId": {
+        "metadata": {
+          "label": "accountId",
+          "description": "The account ID Guid"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PATH_PARAM",
+          "originalName": "accountId"
+        }
+      },
+      "start": {
+        "metadata": {
+          "label": "Start",
+          "description": "Index of first item to include in the response. The default value is 0."
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Signed32",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int:Signed32?",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "'start"
+        },
+        "defaultValue": "()"
+      },
+      "take": {
+        "metadata": {
+          "label": "Take",
+          "description": "Page size of the response. The default value is 20."
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Signed32",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int:Signed32?",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "take"
+        },
+        "defaultValue": "()"
+      },
+      "end": {
+        "metadata": {
+          "label": "End",
+          "description": "Index of the last item to include in the response. Ignored if `take` parameter is specified."
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Signed32",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int:Signed32?",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "end"
+        },
+        "defaultValue": "()"
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "dsadmin:MemberGroupsResponse",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "dsadminMembergroupsresponse",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

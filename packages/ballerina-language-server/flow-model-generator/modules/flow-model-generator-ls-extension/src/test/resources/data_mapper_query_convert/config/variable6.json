@@ -1,0 +1,44 @@
+{
+  "source": "variable5.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable5.bal",
+      "startLine": {
+        "line": 32,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 32,
+        "offset": 30
+      }
+    },
+    "sourceCode": ""
+  },
+  "mapping": {
+    "output": "names",
+    "inputs": [],
+    "expression": "banks",
+    "diagnostics": []
+  },
+  "propertyKey": "expression",
+  "clauseType": "collect",
+  "output": {
+    "variable5.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 32,
+            "character": 24
+          },
+          "end": {
+            "line": 32,
+            "character": 29
+          }
+        },
+        "newText": "from var banksItem in banks collect 0"
+      }
+    ]
+  }
+}

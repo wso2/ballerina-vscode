@@ -1,0 +1,20 @@
+{
+  "source": "variable8.bal",
+  "description": "Test reference type visualization",
+  "codedata": {
+    "node": "TYPEDESC",
+    "org": "",
+    "module": "",
+    "packageName": "",
+    "symbol": "PhoneNumbers",
+    "version": ""
+  },
+  "position": {
+    "line": 7,
+    "offset": 12
+  },
+  "visualizableProperties": {
+    "isDataMapped": false,
+    "defaultValue": "[]"
+  }
+}

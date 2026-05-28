@@ -1,0 +1,8 @@
+{
+  "description": "Convert int to float (implicit conversion)",
+  "output": "output.floatField",
+  "outputType": "float",
+  "expression": "input.intField",
+  "expressionType": "int",
+  "convertedExpression": "<float>input.intField"
+}

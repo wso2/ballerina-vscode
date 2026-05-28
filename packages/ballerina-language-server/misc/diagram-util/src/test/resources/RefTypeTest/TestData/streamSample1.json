@@ -1,0 +1,29 @@
+{
+  "description": "A simple example of a stream type",
+  "source": "RefTypeTest/BalProject7",
+  "typeSymbolName": "SimpleStream",
+  "refType": {
+    "valueType": {
+      "dependentTypeKeys": [],
+      "name": "string",
+      "typeName": "string"
+    },
+    "completionType": {
+      "dependentTypeKeys": [],
+      "name": "error",
+      "typeName": "error"
+    },
+    "dependentTypeKeys": [],
+    "hashCode": "1886136989",
+    "key": "-1968111597",
+    "name": "SimpleStream",
+    "typeName": "stream",
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "test.streams",
+      "packageName": "test.streams",
+      "version": "0.1.0",
+      "modulePrefix": "streams"
+    }
+  }
+}

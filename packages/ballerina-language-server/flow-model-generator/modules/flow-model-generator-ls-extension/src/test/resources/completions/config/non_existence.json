@@ -1,0 +1,129 @@
+{
+  "description": "",
+  "filePath": "proj",
+  "context": {
+    "expression": "{}",
+    "startLine": {
+      "line": 6,
+      "offset": 0
+    },
+    "offset": 1,
+    "lineOffset": 0,
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "docusign.dsadmin",
+      "object": "Client",
+      "symbol": "init",
+      "id": 1569
+    },
+    "property": {
+      "metadata": {
+        "label": "auth",
+        "description": "Configurations related to client authentication"
+      },
+      "types": [
+        {
+          "fieldType": "RECORD_MAP_EXPRESSION",
+          "ballerinaType": "http:BearerTokenConfig|dsadmin:OAuth2RefreshTokenGrantConfig",
+          "typeMembers": [
+            {
+              "type": "BearerTokenConfig",
+              "packageInfo": "ballerina:http:2.10.11",
+              "packageName": "http",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            },
+            {
+              "type": "OAuth2RefreshTokenGrantConfig",
+              "packageInfo": "ballerinax:docusign.dsadmin:2.0.0",
+              "packageName": "docusign.dsadmin",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            }
+          ],
+          "selected": false
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "http:BearerTokenConfig|dsadmin:OAuth2RefreshTokenGrantConfig",
+          "selected": true
+        }
+      ],
+      "placeholder": "{token: \"\"}",
+      "optional": false,
+      "editable": true,
+      "advanced": false,
+      "imports": {
+        "http": "ballerina/http:2.14.0"
+      },
+      "codedata": {
+        "kind": "INCLUDED_FIELD",
+        "originalName": "auth"
+      }
+    }
+  },
+  "completionContext": {
+    "triggerKind": "Invoked"
+  },
+  "completions": [
+    {
+      "label": "readonly",
+      "kind": "Keyword",
+      "detail": "Keyword",
+      "sortText": "U",
+      "filterText": "readonly",
+      "insertText": "readonly ",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "secondVal",
+      "labelDetails": {
+        "detail": " string"
+      },
+      "kind": "Variable",
+      "detail": "string",
+      "sortText": "F",
+      "insertText": "secondVal",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "firstVal",
+      "kind": "Variable",
+      "detail": "\"first\"",
+      "documentation": {
+        "right": {
+          "kind": "markdown",
+          "value": ""
+        }
+      },
+      "sortText": "F",
+      "insertText": "firstVal",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "admission",
+      "labelDetails": {
+        "detail": " Admission",
+        "description": "Parameter"
+      },
+      "kind": "Variable",
+      "detail": "Admission",
+      "sortText": "F",
+      "insertText": "admission",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "person",
+      "labelDetails": {
+        "detail": " Person",
+        "description": "Parameter"
+      },
+      "kind": "Variable",
+      "detail": "Person",
+      "sortText": "F",
+      "insertText": "person",
+      "insertTextFormat": "Snippet"
+    }
+  ]
+}

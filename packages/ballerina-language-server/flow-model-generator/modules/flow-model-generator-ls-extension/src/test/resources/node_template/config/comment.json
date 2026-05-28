@@ -1,0 +1,38 @@
+{
+  "source": "empty.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "COMMENT"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Comment"
+    },
+    "codedata": {
+      "node": "COMMENT",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "comment": {
+        "metadata": {
+          "label": "Comment",
+          "description": "Comment to describe the flow"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

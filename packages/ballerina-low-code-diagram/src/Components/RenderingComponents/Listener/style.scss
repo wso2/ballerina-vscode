@@ -1,0 +1,86 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+.listener-comp {
+    box-sizing: border-box;
+    height: 49px;
+    width: 275px;
+    border: 1px solid #e6e7ec;
+    border-radius: 6px;
+    background-color: #fff;
+    font-family: inherit;
+    font-weight: 300;
+
+    .listener-header {
+        display: flex;
+        flex-direction: row;
+        height: 49px;
+        width: 100%;
+
+        .listener-content {
+            display: flex;
+            align-content: center;
+            align-items: center;
+            width: 75%;
+            padding-left: 16px;
+            font-size: 13px;
+            font-weight: normal;
+
+            .listener-icon {
+                width: 16px;
+            }
+
+            .listener-type {
+                padding-left: 10px;
+                color: #222228;
+            }
+
+            .listener-name {
+                padding-left: 10px;
+                color: #8d91a3;
+            }
+        }
+
+        .listener-amendment-options {
+            display: flex;
+            flex-direction: row;
+            width: 25%;
+            align-items: center;
+
+            .edit-btn-wrapper,
+            .delete-btn-wrapper {
+                text-align: center;
+                padding-right: 5px;
+                width: 25px;
+
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+        .show-on-hover {
+            display: none;
+        }
+
+        &:hover {
+            .show-on-hover {
+                display: block;
+            }
+        }
+    }
+}

@@ -1,0 +1,8 @@
+{
+  "description": "Convert string to int using int:fromString with error handling",
+  "output": "output.intField",
+  "outputType": "int",
+  "expression": "input.stringField",
+  "expressionType": "string",
+  "convertedExpression": "(let int|error tmp = int:fromString(input.stringField) in (tmp is error ? 0 : tmp))"
+}

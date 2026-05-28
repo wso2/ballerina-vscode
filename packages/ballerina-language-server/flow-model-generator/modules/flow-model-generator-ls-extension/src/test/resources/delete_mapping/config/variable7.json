@@ -1,0 +1,41 @@
+{
+  "source": "variable5.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable5.bal",
+      "startLine": {
+        "line": 11,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 13,
+        "offset": 10
+      }
+    },
+    "sourceCode": "ArrType arr2 = {\n            rec: [{i: 0}, {i: 1}, {i: 2}]\n        };"
+  },
+  "mapping": {
+    "output": "arr2.rec.2"
+  },
+  "targetField": "arr2",
+  "output": {
+    "variable5.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 12,
+            "character": 32
+          },
+          "end": {
+            "line": 12,
+            "character": 40
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}
+

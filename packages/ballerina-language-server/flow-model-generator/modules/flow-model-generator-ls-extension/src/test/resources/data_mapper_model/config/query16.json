@@ -1,0 +1,244 @@
+{
+  "source": "query8.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query8.bal",
+      "startLine": {
+        "line": 15,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 15,
+        "offset": 97
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 15,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "myTypes5.0",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "fields": [],
+          "name": "myTypes1",
+          "displayName": "<myTypes1Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "819315698"
+        },
+        "name": "myTypes1",
+        "displayName": "myTypes1",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "2079019383"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "myTypes2",
+          "displayName": "<myTypes2Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "819315698"
+        },
+        "name": "myTypes2",
+        "displayName": "myTypes2",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "2079019383"
+      },
+      {
+        "member": {
+          "member": {
+            "fields": [],
+            "name": "myTypes3",
+            "displayName": "<myTypes3ItemItem>",
+            "typeName": "MyType",
+            "kind": "record",
+            "ref": "819315698"
+          },
+          "name": "myTypes3",
+          "displayName": "<myTypes3Item>",
+          "typeName": "MyType[]",
+          "kind": "array",
+          "ref": "2079019383"
+        },
+        "name": "myTypes3",
+        "displayName": "myTypes3",
+        "typeName": "MyType[][]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "2079019383"
+      },
+      {
+        "member": {
+          "member": {
+            "fields": [],
+            "name": "myTypes4",
+            "displayName": "<myTypes4ItemItem>",
+            "typeName": "MyType",
+            "kind": "record",
+            "ref": "819315698"
+          },
+          "name": "myTypes4",
+          "displayName": "<myTypes4Item>",
+          "typeName": "MyType[]",
+          "kind": "array",
+          "ref": "2079019383"
+        },
+        "name": "myTypes4",
+        "displayName": "myTypes4",
+        "typeName": "MyType[][]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "2079019383"
+      },
+      {
+        "fields": [],
+        "name": "types",
+        "displayName": "types",
+        "typeName": "Types",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "-382721523"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "myType3",
+          "displayName": "<myType3Item>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "819315698"
+        },
+        "name": "myType3",
+        "displayName": "myType3",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "category": "local-variable",
+        "focusExpression": "myTypes3",
+        "ref": "2079019383",
+        "isIterationVariable": true
+      }
+    ],
+    "output": {
+      "member": {
+        "member": {
+          "fields": [],
+          "name": "myTypes5",
+          "displayName": "<myTypes5ItemItem>",
+          "typeName": "MyType",
+          "kind": "record",
+          "ref": "819315698"
+        },
+        "name": "myTypes5",
+        "displayName": "<myTypes5Item>",
+        "typeName": "MyType[]",
+        "kind": "array",
+        "ref": "2079019383"
+      },
+      "name": "myTypes5",
+      "displayName": "myTypes5",
+      "typeName": "MyType[][]",
+      "kind": "array",
+      "ref": "2079019383"
+    },
+    "mappings": [
+      {
+        "output": "myTypes5",
+        "inputs": [
+          "myType3"
+        ],
+        "expression": "from var y in myType3 select y",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": true,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "myTypes5",
+      "inputs": [
+        "myTypes3"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "myType3",
+          "type": "MyType[]",
+          "expression": "myTypes3",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "from var y in myType3 select y",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "-382721523": {
+        "fields": [
+          {
+            "member": {
+              "member": {
+                "fields": [],
+                "name": "t",
+                "displayName": "<tItemItem>",
+                "typeName": "MyType",
+                "kind": "record",
+                "ref": "819315698"
+              },
+              "name": "t",
+              "displayName": "<tItem>",
+              "typeName": "MyType[]",
+              "kind": "array",
+              "ref": "2079019383"
+            },
+            "name": "t",
+            "displayName": "t",
+            "typeName": "MyType[][]",
+            "kind": "array",
+            "optional": false,
+            "ref": "2079019383"
+          }
+        ],
+        "typeName": "Types",
+        "kind": "record"
+      },
+      "819315698": {
+        "fields": [
+          {
+            "name": "name1",
+            "displayName": "name1",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "i",
+            "displayName": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "MyType",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

@@ -1,0 +1,84 @@
+<!--
+  ~  Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~  WSO2 Inc. licenses this file to you under the Apache License,
+  ~  Version 2.0 (the "License"); you may not use this file except
+  ~  in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing,
+  ~  software distributed under the License is distributed on an
+  ~  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~  KIND, either express or implied.  See the License for the
+  ~  specific language governing permissions and limitations
+  ~  under the License.
+  -->
+
+<FindBugsFilter>
+    <Match>
+        <Or>
+            <And>
+                <Class name="org.ballerinalang.debugadapter.JBallerinaDebugServer"/>
+                <Or>
+                    <Bug pattern="DM_EXIT"/>
+                    <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+                    <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+                    <And>
+                        <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+                        <Method name="evaluate"/>
+                    </And>
+                    <And>
+                        <Bug pattern="DE_MIGHT_IGNORE"/>
+                        <Method name="terminateDebuggee"/>
+                    </And>
+                    <And>
+                        <Bug pattern="BC_UNCONFIRMED_CAST"/>
+                        <Or>
+                            <Method name="attach"/>
+                            <Method name="launchDebuggeeProgram"/>
+                        </Or>
+                    </And>
+                </Or>
+            </And>
+            <And>
+                <Bug pattern="REC_CATCH_EXCEPTION"/>
+            </And>
+            <And>
+                <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+                <Class name="org.ballerinalang.debugadapter.evaluation.DebugExpressionCompiler"/>
+                <Method name="validateForCompilationErrors"/>
+            </And>
+            <And>
+                <Bug pattern="BC_UNCONFIRMED_CAST"/>
+                <Class name="org.ballerinalang.debugadapter.evaluation.engine.expression.MethodCallExpressionEvaluator"/>
+            </And>
+            <And>
+                <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON"/>
+                <Class name="org.ballerinalang.debugadapter.evaluation.engine.expression.MethodCallExpressionEvaluator"/>
+                <Method name="invokeObjectMethod"/>
+            </And>
+            <And>
+                <Bug pattern="BC_UNCONFIRMED_CAST"/>
+                <Or>
+                    <Class name="org.ballerinalang.debugadapter.completion.CompletionGenerator"/>
+                    <Class name="org.ballerinalang.debugadapter.JBallerinaDebugServer"/>
+                </Or>
+            </And>
+            <And>
+                <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"/>
+                <Or>
+                    <Class name="org.ballerinalang.debugadapter.utils.ServerUtils"/>
+                </Or>
+            </And>
+        </Or>
+    </Match>
+    <Match>
+        <Class name="org.ballerinalang.debugadapter.completion.util.CompletionUtil"/>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,CT_CONSTRUCTOR_THROW"/>
+    </Match>
+</FindBugsFilter>
