@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import {
     EVENT_TYPE,
     MACHINE_VIEW,
+    DIRECTORY_MAP,
     CDModel,
     CDService,
     NodePosition,
@@ -132,18 +133,28 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
     };
 
     const handleGoToWorkflow = (workflow: CDWorkflow) => {
-        if (workflow.location) {
-            goToView(workflow.location.filePath, {
-                startLine: workflow.location.startLine.line,
-                startColumn: workflow.location.startLine.offset,
-                endLine: workflow.location.endLine.line,
-                endColumn: workflow.location.endLine.offset,
-            });
+        if (!workflow.location) {
+            return;
         }
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.BIDiagram,
+                documentUri: workflow.location.filePath,
+                position: {
+                    startLine: workflow.location.startLine.line,
+                    startColumn: workflow.location.startLine.offset,
+                    endLine: workflow.location.endLine.line,
+                    endColumn: workflow.location.endLine.offset,
+                },
+                identifier: workflow.symbol,
+                artifactType: DIRECTORY_MAP.WORKFLOW,
+            },
+        });
     };
 
-    const handleGoToConnection = async (connection: CDConnection) => {
-        await rpcClient.getVisualizerRpcClient().openView({
+    const handleGoToConnection = (connection: CDConnection) => {
+        rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.EditConnectionWizard,
