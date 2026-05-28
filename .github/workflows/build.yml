@@ -116,7 +116,15 @@ jobs:
           format: 'table'
           exit-code: '1'
           timeout: '10m'
-          skip-dirs: 'common/temp,submodules'
+          # LS test-resource trees contain sample maven/npm/etc projects with
+          # intentionally-old dependencies. They are parser inputs (the LS
+          # ingests them as text in tests), never built or shipped, so trivy
+          # findings against them are false positives.
+          skip-dirs: >-
+            common/temp,
+            submodules,
+            packages/ballerina-language-server/**/src/test/resources,
+            packages/ballerina-language-server/**/src/test/data
           ignore-unfixed: true
 
   ExtTest_Ballerina:
