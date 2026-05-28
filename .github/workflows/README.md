@@ -24,7 +24,7 @@ Each has `defaults.run.working-directory: packages/ballerina-language-server` in
 |---|---|---|
 | `build.yml` | `workflow_call` only | Reusable build pipeline (ballerina-only) |
 | `daily-build.yml` | nightly cron + manual | Runs the LS multi-branch pack/test/Windows-build matrix **and** calls `build.yml` for the extension (with `runTests: true`, `runBalE2ETests: true`), then dispatches success/failure notifications |
-| `pull-request.yml` | PRs + manual | Detects changes with `dorny/paths-filter`; runs LS gradle build (Ubuntu+Windows) and/or `build.yml` for the extension depending on what changed |
+| `pull-request.yml` | PRs + manual | Detects changes with `dorny/paths-filter`; if anything build-relevant changed, runs `build.yml` which builds the entire chain (LS via Gradle, then all TS packages and the extension VSIX via rush) in a single job. Windows LS coverage runs in `daily-build.yml` only. |
 | `release-vsix.yml` | manual dispatch | Builds, creates GitHub release, opens version-bump PR back to `stable/ballerina` |
 | `publish-vsix.yml` | manual dispatch | Publishes a built VSIX (passed by `workflowRunId`) to VSCode Marketplace + OpenVSX |
 | `cache-cleanup.yml` | PR closed + manual | Generic — usable as-is |
