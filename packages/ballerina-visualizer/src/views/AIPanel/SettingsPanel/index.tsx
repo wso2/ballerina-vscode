@@ -21,7 +21,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 
 import { AIChatView, DangerActionButton, PrimaryActionButton, SuccessActionButton } from "../styles";
-import { AIMachineEventType, McpServerStatusDTO, SkillEntry } from "@wso2/ballerina-core";
+import { AIMachineEventType, AgentsMdFileInfoDTO, McpServerStatusDTO, SkillEntry } from "@wso2/ballerina-core";
 import { CustomizeRow, CustomizeEntry } from "./CustomizeRow";
 import type { PanelRoute } from "../components/AIChat";
 
@@ -120,6 +120,7 @@ interface SettingsPanelProps {
     onClose: () => void;
     onNavigate?: (route: PanelRoute) => void;
     mcpToolsEnabled?: boolean;
+    mcpPreviewEnabled?: boolean;
 }
 
 export const SettingsPanel = (props: SettingsPanelProps) => {
@@ -129,6 +130,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     const [mcpEnabled, setMcpEnabled] = useState(!!props.mcpToolsEnabled);
     const [mcpServers, setMcpServers] = useState<McpServerStatusDTO[]>([]);
     const [skills, setSkills] = useState<SkillEntry[]>([]);
+    const [agentsMdInfo, setAgentsMdInfo] = useState<AgentsMdFileInfoDTO | null>(null);
 
     useEffect(() => {
         isCopilotAuthorized().then(setCopilotAuthorized);
@@ -149,10 +151,16 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
 
     useEffect(() => {
         let cancelled = false;
-        rpcClient.getAiPanelRpcClient().getSkills()
+        const api = rpcClient.getAiPanelRpcClient();
+        api.getSkills()
             .then(resp => { if (!cancelled) setSkills(resp.skills); })
             .catch(() => { /* noop */ });
-        return () => { cancelled = true; };
+        api.getAgentsMdFileInfo().then(info => !cancelled && setAgentsMdInfo(info)).catch(() => { /* noop */ });
+        const dispose = rpcClient.onAgentsMdFileInfoChanged((info: AgentsMdFileInfoDTO) => {
+            if (cancelled) return;
+            setAgentsMdInfo(info);
+        });
+        return () => { cancelled = true; dispose(); };
     }, [rpcClient]);
 
     const mcpSubtitle = (() => {
@@ -169,20 +177,43 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
         return enabled === 0 ? "None enabled" : `${enabled} of ${skills.length} enabled`;
     })();
 
+    const agentsMdSubtitle = (() => {
+        if (!agentsMdInfo) return "…";
+        if (!agentsMdInfo.hasWorkspace) return "No workspace open";
+        if (!agentsMdInfo.fileExists) return "No AGENTS.md (click icon to create)";
+        if (agentsMdInfo.isEmpty) return "Empty file";
+        const n = agentsMdInfo.lineCount ?? 0;
+        return `${n} line${n === 1 ? "" : "s"}`;
+    })();
+
+    const handleOpenAgentsMd = () => {
+        rpcClient.getAiPanelRpcClient().openOrCreateAgentsMd().catch(() => { /* noop */ });
+    };
+
+
     const customizeEntries: CustomizeEntry[] = [
-        {
+        // MCP is behind the beta preview flag; hidden entirely until it's on.
+        ...(props.mcpPreviewEnabled ? [{
             id: "mcp",
             icon: <Icon name="PowerPlug" sx={{ fontSize: "18px", display: "flex", alignItems: "center" }} />,
             label: "MCP servers",
             subtitle: mcpSubtitle,
             onOpenPanel: () => props.onNavigate?.("mcp"),
-        },
+        } as CustomizeEntry] : []),
         {
             id: "skills",
             icon: <span className="codicon codicon-lightbulb-sparkle" style={{ fontSize: 16 }} />,
             label: "Skills",
             subtitle: skillsSubtitle,
             onOpenPanel: () => props.onNavigate?.("skills"),
+        },
+        {
+            id: "agents",
+            icon: <span className="codicon codicon-file" style={{ fontSize: 16 }} />,
+            label: "Agent instructions",
+            subtitle: agentsMdSubtitle,
+            onEditFile: handleOpenAgentsMd,
+            editFileTitle: agentsMdInfo?.fileExists ? "Edit AGENTS.md" : "Create AGENTS.md",
         },
     ];
 

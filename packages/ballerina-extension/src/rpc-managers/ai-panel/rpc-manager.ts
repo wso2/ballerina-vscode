@@ -79,7 +79,12 @@ import {
     McpLoadErrorsDTO,
     McpGroupStatesDTO,
     SetMcpGroupEnabledRequest,
+    AgentsMdFileInfoDTO,
 } from "@wso2/ballerina-core";
+import {
+    getAgentsMdFileInfo as getAgentsMdFileInfoImpl,
+    openOrCreateAgentsMd as openOrCreateAgentsMdImpl,
+} from "../../features/ai/agent/agents-md";
 import { ConfigurationTarget } from "vscode";
 import { getMcpClientManager, ensureMcpConfigFileExists, writeMcpServer, updateMcpServer, deleteMcpServer } from "../../features/ai/agent/mcp";
 import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged, notifyMcpGroupStatesChanged } from "../../RPCLayer";
@@ -1155,6 +1160,10 @@ User reverted the last made changes. The files have been restored to the state b
         await workspace.getConfiguration('ballerina').update('copilot.enableSkills', !!params?.enabled, ConfigurationTarget.Global);
     }
 
+    async getMcpPreviewEnabled(): Promise<boolean> {
+        return workspace.getConfiguration('ballerina').get<boolean>('copilot.mcp.preview', false);
+    }
+
     async getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
         return { hasWorkspace: !!resolveProjectRootPath() && vscode.workspace.isTrusted };
     }
@@ -1280,6 +1289,14 @@ User reverted the last made changes. The files have been restored to the state b
         await workspace.getConfiguration('ballerina').update('copilot.enableMcpTools', !!params?.enabled, ConfigurationTarget.Global);
         // The existing onDidChangeConfiguration listener in activator.ts handles
         // setup/teardown of the manager and pushes config_change + mcpServersChanged.
+    }
+
+    async getAgentsMdFileInfo(): Promise<AgentsMdFileInfoDTO> {
+        return getAgentsMdFileInfoImpl();
+    }
+
+    async openOrCreateAgentsMd(): Promise<void> {
+        await openOrCreateAgentsMdImpl();
     }
 
     private async refreshAndNotify(): Promise<void> {

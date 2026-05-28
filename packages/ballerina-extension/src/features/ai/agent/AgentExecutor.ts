@@ -24,6 +24,7 @@ import { getAnthropicClient, getProviderCacheControl, addCacheControlToMessages,
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
 import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
+import { prepareAgentsMdForTurn } from './agents-md';
 import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { scanCustomSkills, scanUserSkills } from './tools/skill-tool/skill-reader';
@@ -276,6 +277,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const model = await getAnthropicClient(ANTHROPIC_SONNET_4);
 
             const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
+            const agentsMd = await prepareAgentsMdForTurn(workspaceId || '', threadId);
 
             const globalDisabled = new Set(getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH).disabledSkills);
             const projectConfigPath = projectRootPath
@@ -292,7 +294,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             ).filter(s => !allDisabled.has(s.name));
             const userSkills = scanUserSkills().filter(s => !allDisabled.has(s.name));
 
-            const userMessageContent = getUserPrompt(params, tempProjectPath, projects, customSkills);
+            const userMessageContent = getUserPrompt(params, tempProjectPath, projects, customSkills, agentsMd.text);
 
             const systemPromptText = getSystemPrompt(projects, params.operationType, userSkills, allDisabled);
             const floorTokens = estimateFloorTokens(systemPromptText, JSON.stringify(userMessageContent));
@@ -307,6 +309,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 isPlanMode: params.isPlanMode,
                 operationType: params.operationType,
                 generationType: 'agent',
+                agentsMdLastReadHash: agentsMd.hashToPersist,
             });
 
             // 4. Get chat history from storage (if enabled) — AFTER pre-turn compaction

@@ -745,3 +745,13 @@ export interface SetMcpGroupEnabledRequest {
     enabled: boolean;
 }
 
+// ==================================
+// AGENTS.md Settings
+// ==================================
+export interface AgentsMdFileInfoDTO {
+    fileExists: boolean;
+    lineCount?: number;
+    isEmpty?: boolean;
+    hasWorkspace: boolean;
+}
+

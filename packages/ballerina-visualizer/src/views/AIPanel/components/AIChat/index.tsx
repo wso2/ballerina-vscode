@@ -265,6 +265,7 @@ const AIChat: React.FC = () => {
     } | null>(null);
     const [showContextUsage, setShowContextUsage] = useState(false);
     const [mcpToolsEnabled, setMcpToolsEnabled] = useState(false);
+    const [mcpPreviewEnabled, setMcpPreviewEnabled] = useState(false);
 
     const [runningServices, setRunningServices] = useState<RunningServiceInfo[]>([]);
     const [skills, setSkills] = useState<SkillEntry[]>([]);
@@ -433,6 +434,7 @@ const AIChat: React.FC = () => {
     useEffect(() => {
         rpcClient.getAiPanelRpcClient().getShowContextUsage().then(setShowContextUsage).catch(() => {});
         rpcClient.getAiPanelRpcClient().getMcpToolsEnabled().then(setMcpToolsEnabled).catch(() => {});
+        rpcClient.getAiPanelRpcClient().getMcpPreviewEnabled().then(setMcpPreviewEnabled).catch(() => {});
     }, []);
 
     const handleCheckpointRestore = async (checkpointId: string) => {
@@ -945,6 +947,8 @@ const AIChat: React.FC = () => {
                 setShowContextUsage((response as any).value);
             } else if ((response as any).key === 'mcpToolsEnabled') {
                 setMcpToolsEnabled((response as any).value);
+            } else if ((response as any).key === 'mcpPreview') {
+                setMcpPreviewEnabled((response as any).value);
             }
 
         } else if (type === "stop") {
@@ -2314,7 +2318,7 @@ const AIChat: React.FC = () => {
                             onToggleWebSearch={handleToggleWebSearch}
                             disabled={isUsageExceeded}
                             contextUsage={showContextUsage ? contextUsage : null}
-                            mcpToolsEnabled={mcpToolsEnabled}
+                            mcpToolsEnabled={mcpPreviewEnabled && mcpToolsEnabled}
                             onOpenMcpManager={() => pushPanel("mcp")}
                             runningServicesPanel={{
                                 services: runningServices,
@@ -2328,7 +2332,7 @@ const AIChat: React.FC = () => {
                 </AIChatView>
             )}
             {activePanel === "settings" && (
-                <SettingsPanel onClose={popPanel} onNavigate={pushPanel} mcpToolsEnabled={mcpToolsEnabled} />
+                <SettingsPanel onClose={popPanel} onNavigate={pushPanel} mcpToolsEnabled={mcpToolsEnabled} mcpPreviewEnabled={mcpPreviewEnabled} />
             )}
             {activePanel === "mcp" && <McpManagerPanel onClose={popPanel} />}
             {activePanel === "skills" && <SkillsManager onClose={popPanel} />}

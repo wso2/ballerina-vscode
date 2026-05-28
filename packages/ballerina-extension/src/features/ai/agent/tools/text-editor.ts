@@ -314,7 +314,7 @@ export function createWriteExecute(
         console.error(`[FileWriteTool] File already exists with content: ${file_path}`);
         const result = {
           success: false,
-          message: `File '${file_path}' already exists with content. Use file_edit or file_multi_edit to modify it instead.`,
+          message: `File '${file_path}' already exists with content. Use ${FILE_SINGLE_EDIT_TOOL_NAME} or ${FILE_BATCH_EDIT_TOOL_NAME} to modify it instead.`,
           error: `Error: ${ErrorMessages.FILE_ALREADY_EXISTS}`
         };
         emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result, file_path);
@@ -417,7 +417,7 @@ export function createEditExecute(
       console.error(`[FileEditTool] File not found: ${file_path}`);
       const result = {
         success: false,
-        message: `File '${file_path}' not found. Use file_write to create new files.`,
+        message: `File '${file_path}' not found. Use ${FILE_WRITE_TOOL_NAME} to create new files.`,
         error: `Error: ${ErrorMessages.FILE_NOT_FOUND}`
       };
       emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result, file_path);
@@ -566,7 +566,7 @@ export function createMultiEditExecute(
       console.error(`[FileMultiEditTool] File not found: ${file_path}`);
       const result = {
         success: false,
-        message: `File '${file_path}' not found. Use file_write to create new files.`,
+        message: `File '${file_path}' not found. Use ${FILE_WRITE_TOOL_NAME} to create new files.`,
         error: `Error: ${ErrorMessages.FILE_NOT_FOUND}`
       };
       emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result, file_path);

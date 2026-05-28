@@ -576,7 +576,7 @@ export interface CompactionDisabledEvent {
 /** Fired when a VS Code configuration setting relevant to the AI panel changes */
 export interface ConfigChangeEvent {
     type: 'config_change';
-    key: 'showContextUsage' | 'mcpToolsEnabled';
+    key: 'showContextUsage' | 'mcpToolsEnabled' | 'mcpPreview';
     value: boolean;
 }
 
@@ -740,6 +740,8 @@ export interface GenerationMetadata {
     commandType?: string;
     /** C15/M07: Compaction metadata if this generation was created by compaction */
     compactionMetadata?: GenerationCompactionMetadata;
+    /** Hash of AGENTS.md content injected this turn (or "removed" sentinel after a removal note). */
+    agentsMdLastReadHash?: string;
 }
 
 /**
