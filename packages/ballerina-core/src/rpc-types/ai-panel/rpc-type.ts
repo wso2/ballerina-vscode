@@ -77,7 +77,7 @@ import {
     McpLoadErrorsDTO,
     McpGroupStatesDTO,
     SetMcpGroupEnabledRequest,
-    AgentsMdStateDTO,
+    AgentsMdFileInfoDTO,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -165,7 +165,6 @@ export const mcpLoadErrorsChanged: NotificationType<McpLoadErrorsDTO> = { method
 export const getMcpGroupStates: RequestType<void, McpGroupStatesDTO> = { method: `${_preFix}/getMcpGroupStates` };
 export const setMcpGroupEnabled: RequestType<SetMcpGroupEnabledRequest, void> = { method: `${_preFix}/setMcpGroupEnabled` };
 export const mcpGroupStatesChanged: NotificationType<McpGroupStatesDTO> = { method: `${_preFix}/mcpGroupStatesChanged` };
-export const getAgentsMdState: RequestType<void, AgentsMdStateDTO> = { method: `${_preFix}/getAgentsMdState` };
-export const setAgentsMdEnabled: RequestType<boolean, void> = { method: `${_preFix}/setAgentsMdEnabled` };
+export const getAgentsMdFileInfo: RequestType<void, AgentsMdFileInfoDTO> = { method: `${_preFix}/getAgentsMdFileInfo` };
 export const openOrCreateAgentsMd: RequestType<void, void> = { method: `${_preFix}/openOrCreateAgentsMd` };
-export const agentsMdStateChanged: NotificationType<AgentsMdStateDTO> = { method: `${_preFix}/agentsMdStateChanged` };
+export const agentsMdFileInfoChanged: NotificationType<AgentsMdFileInfoDTO> = { method: `${_preFix}/agentsMdFileInfoChanged` };

@@ -145,8 +145,7 @@ import {
     getMcpLoadErrors,
     getMcpGroupStates,
     setMcpGroupEnabled,
-    getAgentsMdState,
-    setAgentsMdEnabled,
+    getAgentsMdFileInfo,
     openOrCreateAgentsMd,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
@@ -160,7 +159,7 @@ import {
     McpLoadErrorsDTO,
     McpGroupStatesDTO,
     SetMcpGroupEnabledRequest,
-    AgentsMdStateDTO,
+    AgentsMdFileInfoDTO,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -490,12 +489,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(setMcpGroupEnabled, HOST_EXTENSION, params);
     }
 
-    getAgentsMdState(): Promise<AgentsMdStateDTO> {
-        return this._messenger.sendRequest(getAgentsMdState, HOST_EXTENSION);
-    }
-
-    setAgentsMdEnabled(enabled: boolean): Promise<void> {
-        return this._messenger.sendRequest(setAgentsMdEnabled, HOST_EXTENSION, enabled);
+    getAgentsMdFileInfo(): Promise<AgentsMdFileInfoDTO> {
+        return this._messenger.sendRequest(getAgentsMdFileInfo, HOST_EXTENSION);
     }
 
     openOrCreateAgentsMd(): Promise<void> {

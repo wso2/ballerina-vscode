@@ -140,8 +140,7 @@ import {
     setMcpGroupEnabled,
     SetMcpGroupEnabledRequest,
     OpenMcpConfigRequest,
-    getAgentsMdState,
-    setAgentsMdEnabled,
+    getAgentsMdFileInfo,
     openOrCreateAgentsMd,
 } from "@wso2/ballerina-core";
 import { workspace } from 'vscode';
@@ -240,8 +239,7 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getMcpLoadErrors, () => rpcManger.getMcpLoadErrors());
     messenger.onRequest(getMcpGroupStates, () => rpcManger.getMcpGroupStates());
     messenger.onRequest(setMcpGroupEnabled, (args: SetMcpGroupEnabledRequest) => rpcManger.setMcpGroupEnabled(args));
-    messenger.onRequest(getAgentsMdState, () => rpcManger.getAgentsMdState());
-    messenger.onRequest(setAgentsMdEnabled, (enabled: boolean) => rpcManger.setAgentsMdEnabled(enabled));
+    messenger.onRequest(getAgentsMdFileInfo, () => rpcManger.getAgentsMdFileInfo());
     messenger.onRequest(openOrCreateAgentsMd, () => rpcManger.openOrCreateAgentsMd());
 
     // Push updates to the webview whenever the set of running services changes.

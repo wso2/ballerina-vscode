@@ -32,15 +32,14 @@
 
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
-import { ConfigurationTarget, Disposable, RelativePattern, Uri, window, workspace } from 'vscode';
-import type { AgentsMdStateDTO, ChatThread } from '@wso2/ballerina-core';
-import { notifyAgentsMdStateChanged } from '../../../../RPCLayer';
+import { Disposable, RelativePattern, Uri, window, workspace } from 'vscode';
+import type { AgentsMdFileInfoDTO, ChatThread } from '@wso2/ballerina-core';
+import { notifyAgentsMdFileInfoChanged } from '../../../../RPCLayer';
 import { chatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
 import { FILE_READ_TOOL_NAME } from '../tools/text-editor';
 
 const AGENTS_MD_FILENAME = 'AGENTS.md';
 const MAX_LINES_IN_BLOCK = 200;
-const SETTING_KEY = 'ballerina.copilot.agentsMd.enabled';
 
 const STARTER_TEMPLATE = `# Project instructions for the WSO2 Integrator Copilot
 `;
@@ -55,14 +54,6 @@ export interface AgentsMdContent {
     hash: string;
     /** Total number of lines in the normalised content. */
     lineCount: number;
-}
-
-/**
- * Setting-driven gate. Default is `true`. When disabled, AGENTS.md is not read
- * or injected for any thread, regardless of state.
- */
-export function isAgentsMdEnabled(): boolean {
-    return workspace.getConfiguration().get<boolean>(SETTING_KEY, true);
 }
 
 /**
@@ -204,11 +195,11 @@ export interface AgentsMdTurnPrep {
 }
 
 /**
- * Single entry point for AgentExecutor: reads current AGENTS.md (or treats as absent when the setting is off),
- * walks the thread to find the last-shown hash, and decides what to inject this turn.
+ * Single entry point for AgentExecutor: reads current AGENTS.md, walks the
+ * thread to find the last-shown hash, and decides what to inject this turn.
  */
 export async function prepareAgentsMdForTurn(workspacePath: string, threadId: string): Promise<AgentsMdTurnPrep> {
-    const current = isAgentsMdEnabled() ? await readAgentsMd(workspacePath) : null;
+    const current = await readAgentsMd(workspacePath);
     const thread = workspacePath
         ? chatStateStorage.getOrCreateThread(workspacePath, threadId)
         : undefined;
@@ -226,37 +217,29 @@ export async function prepareAgentsMdForTurn(workspacePath: string, threadId: st
 }
 
 // ============================================================================
-// Settings panel surface: read state, toggle setting, open-or-create the file,
-// and a file watcher that pushes state changes to the webview.
+// Settings panel surface: read state, open-or-create the file, and a file
+// watcher that pushes state changes to the webview.
 // ============================================================================
 
 function getFirstWorkspaceRoot(): string | undefined {
     return workspace.workspaceFolders?.[0]?.uri.fsPath;
 }
 
-export async function getAgentsMdState(): Promise<AgentsMdStateDTO> {
-    const enabled = isAgentsMdEnabled();
+export async function getAgentsMdFileInfo(): Promise<AgentsMdFileInfoDTO> {
     const root = getFirstWorkspaceRoot();
     if (!root) {
-        return { enabled, fileExists: false, hasWorkspace: false };
+        return { fileExists: false, hasWorkspace: false };
     }
     const current = await readAgentsMd(root);
     if (!current) {
-        // File absent or whitespace-only — treat both as no usable content.
-        return { enabled, fileExists: false, hasWorkspace: true };
+        return { fileExists: false, hasWorkspace: true };
     }
     return {
-        enabled,
         fileExists: true,
         hasWorkspace: true,
         lineCount: current.lineCount,
         isEmpty: false,
     };
-}
-
-export async function setAgentsMdEnabled(enabled: boolean): Promise<void> {
-    await workspace.getConfiguration().update(SETTING_KEY, enabled, ConfigurationTarget.Global);
-    notifyAgentsMdStateChanged(await getAgentsMdState());
 }
 
 export async function openOrCreateAgentsMd(): Promise<void> {
@@ -274,43 +257,32 @@ export async function openOrCreateAgentsMd(): Promise<void> {
     }
     if (!exists) {
         await workspace.fs.writeFile(fileUri, Buffer.from(STARTER_TEMPLATE, 'utf8'));
-        notifyAgentsMdStateChanged(await getAgentsMdState());
+        notifyAgentsMdFileInfoChanged(await getAgentsMdFileInfo());
     }
     await window.showTextDocument(fileUri, { preview: false });
 }
 
 /**
- * Watches the workspace AGENTS.md and the setting so the Settings row stays in
- * sync with external edits/deletes/creates and config flips. Dispose on extension
- * teardown.
+ * Watches the workspace AGENTS.md so the Settings row stays in sync with
+ * external edits/deletes/creates. Dispose on extension teardown.
  */
 export function registerAgentsMdWatcher(): Disposable {
     const root = getFirstWorkspaceRoot();
+    if (!root) {
+        return { dispose: () => { /* no watcher to dispose */ } };
+    }
     const broadcast = async () => {
         try {
-            notifyAgentsMdStateChanged(await getAgentsMdState());
+            notifyAgentsMdFileInfoChanged(await getAgentsMdFileInfo());
         } catch (err) {
             console.warn('[agentsMd] failed to broadcast state:', err);
         }
     };
-    const configListener = workspace.onDidChangeConfiguration((e) => {
-        if (e.affectsConfiguration(SETTING_KEY)) {
-            broadcast();
-        }
-    });
-    if (!root) {
-        return { dispose: () => configListener.dispose() };
-    }
     const watcher = workspace.createFileSystemWatcher(
         new RelativePattern(Uri.file(root), AGENTS_MD_FILENAME)
     );
     watcher.onDidCreate(broadcast);
     watcher.onDidChange(broadcast);
     watcher.onDidDelete(broadcast);
-    return {
-        dispose: () => {
-            watcher.dispose();
-            configListener.dispose();
-        },
-    };
+    return { dispose: () => watcher.dispose() };
 }

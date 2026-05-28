@@ -21,7 +21,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 
 import { AIChatView, DangerActionButton, PrimaryActionButton, SuccessActionButton } from "../styles";
-import { AIMachineEventType, AgentsMdStateDTO, McpServerStatusDTO, SkillEntry } from "@wso2/ballerina-core";
+import { AIMachineEventType, AgentsMdFileInfoDTO, McpServerStatusDTO, SkillEntry } from "@wso2/ballerina-core";
 import { CustomizeRow, CustomizeEntry } from "./CustomizeRow";
 import type { PanelRoute } from "../components/AIChat";
 
@@ -130,8 +130,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     const [mcpEnabled, setMcpEnabled] = useState(!!props.mcpToolsEnabled);
     const [mcpServers, setMcpServers] = useState<McpServerStatusDTO[]>([]);
     const [skills, setSkills] = useState<SkillEntry[]>([]);
-    const [agentsMdState, setAgentsMdState] = useState<AgentsMdStateDTO | null>(null);
-    const [agentsMdTogglePending, setAgentsMdTogglePending] = useState(false);
+    const [agentsMdInfo, setAgentsMdInfo] = useState<AgentsMdFileInfoDTO | null>(null);
 
     useEffect(() => {
         isCopilotAuthorized().then(setCopilotAuthorized);
@@ -156,11 +155,10 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
         api.getSkills()
             .then(resp => { if (!cancelled) setSkills(resp.skills); })
             .catch(() => { /* noop */ });
-        api.getAgentsMdState().then(s => !cancelled && setAgentsMdState(s)).catch(() => { /* noop */ });
-        const dispose = rpcClient.onAgentsMdStateChanged((s: AgentsMdStateDTO) => {
+        api.getAgentsMdFileInfo().then(info => !cancelled && setAgentsMdInfo(info)).catch(() => { /* noop */ });
+        const dispose = rpcClient.onAgentsMdFileInfoChanged((info: AgentsMdFileInfoDTO) => {
             if (cancelled) return;
-            setAgentsMdState(s);
-            setAgentsMdTogglePending(false);
+            setAgentsMdInfo(info);
         });
         return () => { cancelled = true; dispose(); };
     }, [rpcClient]);
@@ -180,23 +178,12 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     })();
 
     const agentsMdSubtitle = (() => {
-        if (!agentsMdState) return "…";
-        if (!agentsMdState.enabled) return "Off";
-        if (!agentsMdState.hasWorkspace) return "On · No workspace open";
-        if (!agentsMdState.fileExists) return "On · No AGENTS.md (click pencil to create)";
-        const n = agentsMdState.lineCount ?? 0;
-        return `On · ${n} line${n === 1 ? "" : "s"}`;
+        if (!agentsMdInfo) return "…";
+        if (!agentsMdInfo.hasWorkspace) return "No workspace open";
+        if (!agentsMdInfo.fileExists) return "No AGENTS.md (click icon to create)";
+        const n = agentsMdInfo.lineCount ?? 0;
+        return `${n} line${n === 1 ? "" : "s"}`;
     })();
-
-    const handleToggleAgentsMd = () => {
-        if (agentsMdTogglePending || !agentsMdState) return;
-        setAgentsMdTogglePending(true);
-        rpcClient.getAiPanelRpcClient()
-            .setAgentsMdEnabled(!agentsMdState.enabled)
-            .catch(() => setAgentsMdTogglePending(false));
-        // Safety: clear pending if no notification arrives within 8s.
-        window.setTimeout(() => setAgentsMdTogglePending(false), 8000);
-    };
 
     const handleOpenAgentsMd = () => {
         rpcClient.getAiPanelRpcClient().openOrCreateAgentsMd().catch(() => { /* noop */ });
@@ -224,14 +211,8 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
             icon: <span className="codicon codicon-file" style={{ fontSize: 16 }} />,
             label: "Agent instructions",
             subtitle: agentsMdSubtitle,
-            toggle: {
-                on: agentsMdState?.enabled ?? true,
-                pending: agentsMdTogglePending,
-                onToggle: handleToggleAgentsMd,
-                title: (agentsMdState?.enabled ?? true) ? "Disable AGENTS.md" : "Enable AGENTS.md",
-            },
             onEditFile: handleOpenAgentsMd,
-            editFileTitle: agentsMdState?.fileExists ? "Edit AGENTS.md" : "Create AGENTS.md",
+            editFileTitle: agentsMdInfo?.fileExists ? "Edit AGENTS.md" : "Create AGENTS.md",
         },
     ];
 

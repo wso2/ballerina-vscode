@@ -79,11 +79,10 @@ import {
     McpLoadErrorsDTO,
     McpGroupStatesDTO,
     SetMcpGroupEnabledRequest,
-    AgentsMdStateDTO,
+    AgentsMdFileInfoDTO,
 } from "@wso2/ballerina-core";
 import {
-    getAgentsMdState as getAgentsMdStateImpl,
-    setAgentsMdEnabled as setAgentsMdEnabledImpl,
+    getAgentsMdFileInfo as getAgentsMdFileInfoImpl,
     openOrCreateAgentsMd as openOrCreateAgentsMdImpl,
 } from "../../features/ai/agent/agents-md";
 import { ConfigurationTarget } from "vscode";
@@ -1288,12 +1287,8 @@ User reverted the last made changes. The files have been restored to the state b
         // setup/teardown of the manager and pushes config_change + mcpServersChanged.
     }
 
-    async getAgentsMdState(): Promise<AgentsMdStateDTO> {
-        return getAgentsMdStateImpl();
-    }
-
-    async setAgentsMdEnabled(enabled: boolean): Promise<void> {
-        await setAgentsMdEnabledImpl(enabled);
+    async getAgentsMdFileInfo(): Promise<AgentsMdFileInfoDTO> {
+        return getAgentsMdFileInfoImpl();
     }
 
     async openOrCreateAgentsMd(): Promise<void> {

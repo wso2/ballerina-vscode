@@ -305,11 +305,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enable Model Context Protocol (MCP) tool support in the WSO2 Integrator Copilot."
-                },
-                "ballerina.copilot.agentsMd.enabled": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Use AGENTS.md as project instructions in the WSO2 Integrator Copilot chat."
                 }
             }
         },

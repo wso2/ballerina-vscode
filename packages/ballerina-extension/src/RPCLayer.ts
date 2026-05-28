@@ -19,7 +19,7 @@
 import { WebviewView, WebviewPanel, window } from 'vscode';
 import { Messenger } from 'vscode-messenger';
 import { StateMachine } from './stateMachine';
-import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated, approvalOverlayState, ApprovalOverlayState, onIdentifierUpdated, ProjectStructureArtifactResponse, runningServicesChanged, RunningServiceInfo, evaluationHistoryUpdated, mcpServersChanged, McpServerStatusDTO, mcpLoadErrorsChanged, McpLoadErrorsDTO, mcpGroupStatesChanged, McpGroupStatesDTO, agentsMdStateChanged, AgentsMdStateDTO } from '@wso2/ballerina-core';
+import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated, approvalOverlayState, ApprovalOverlayState, onIdentifierUpdated, ProjectStructureArtifactResponse, runningServicesChanged, RunningServiceInfo, evaluationHistoryUpdated, mcpServersChanged, McpServerStatusDTO, mcpLoadErrorsChanged, McpLoadErrorsDTO, mcpGroupStatesChanged, McpGroupStatesDTO, agentsMdFileInfoChanged, AgentsMdFileInfoDTO } from '@wso2/ballerina-core';
 import { EvaluationHistoryWebview } from './views/evaluation-history/webview';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { registerVisualizerRpcHandlers } from './rpc-managers/visualizer/rpc-handler';
@@ -245,8 +245,8 @@ export function notifyMcpGroupStatesChanged(groups: McpGroupStatesDTO) {
     RPCLayer._messenger.sendNotification(mcpGroupStatesChanged, { type: 'webview', webviewType: AiPanelWebview.viewType }, groups);
 }
 
-export function notifyAgentsMdStateChanged(state: AgentsMdStateDTO) {
-    RPCLayer._messenger.sendNotification(agentsMdStateChanged, { type: 'webview', webviewType: AiPanelWebview.viewType }, state);
+export function notifyAgentsMdFileInfoChanged(state: AgentsMdFileInfoDTO) {
+    RPCLayer._messenger.sendNotification(agentsMdFileInfoChanged, { type: 'webview', webviewType: AiPanelWebview.viewType }, state);
 }
 
 export function notifyOnIdentifierUpdated(artifacts: ProjectStructureArtifactResponse[]) {
