@@ -192,7 +192,7 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
         }
     };
 
-    const handleDeleteComponent = async (component: CDListener | CDService | CDAutomation | CDConnection, nodeType?: string) => {
+    const handleDeleteComponent = async (component: CDListener | CDService | CDAutomation | CDConnection | CDWorkflow, nodeType?: string) => {
         console.log(">>> delete component", component);
         setIsDeleting(true);
         try {
