@@ -10,6 +10,9 @@ build/
 build-app/
 lib/
 out/
+# Don't let the broad build/ pattern above hide the composite action
+!.github/actions/build/
+!.github/actions/build/**
 *.vsix
 **/vsix
 **/resources/jslibs

@@ -1,0 +1,138 @@
+name: "Build Ballerina VSIX"
+inputs:
+  isPreRelease:
+    default: true
+    type: boolean
+  ballerinaLsTag:
+    description: Override Ballerina LS download tag (latest, prerelease, v1.5.0). Overrides isPreRelease for LS download.
+    type: string
+    required: false
+    default: ''
+  enableCache:
+    default: true
+    type: boolean
+  enableLSCache:
+    default: false
+    type: boolean
+  ballerina:
+    description: Update Ballerina extension version
+    type: boolean
+    required: false
+    default: false
+  version:
+    default: "N/A"
+    type: string
+    required: false
+  balVersion:
+    default: 2201.13.2
+    type: string
+  token:
+    type: string
+    required: false
+  BALLERINA_AUTH_ORG:
+    type: string
+  BALLERINA_AUTH_CLIENT_ID:
+    type: string
+  BALLERINA_DEV_COPLIOT_ROOT_URL:
+    type: string
+  BALLERINA_DEV_COPLIOT_AUTH_ORG:
+    type: string
+  BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID:
+    type: string
+  BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL:
+    type: string
+  COPILOT_ROOT_URL:
+    type: string
+  COPILOT_DEV_ROOT_URL:
+    type: string
+  APPINSIGHTS_INSTRUMENTATION_KEY:
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Rush
+      uses: gigara/setup-rush@v1.2.0
+      with:
+        pnpm: 10.11.0
+        node: 22.x
+        cache-rush: ${{ inputs.enableCache }}
+        cache-pnpm: ${{ inputs.enableCache }}
+        set-env: ${{ inputs.enableCache }}
+
+    - uses: ballerina-platform/setup-ballerina@v1
+      name: Install Ballerina
+      with:
+        version: ${{ inputs.balVersion }}
+
+    - name: Update version - Ballerina
+      if: ${{ inputs.ballerina == 'true' }}
+      uses: ./.github/actions/updateVersion
+      with:
+        path: "ballerina-extension"
+        isPreRelease: ${{ inputs.isPreRelease }}
+        version: ${{ inputs.version }}
+
+    - name: Copy .env.example to .env
+      shell: bash
+      run: |
+        find . -path ./submodules -prune -o -type f -name ".env.example" -print | while read example; do
+          envfile="$(dirname "$example")/.env"
+          cp "$example" "$envfile"
+        done
+
+    - name: Resolve Ballerina LS version
+      id: resolve-ballerina-ls-version
+      if: ${{ inputs.enableLSCache == 'true' }}
+      shell: bash
+      run: node packages/ballerina-extension/scripts/download-ls.js --resolve-version
+      env:
+        BALLERINA_LS_TAG: ${{ inputs.ballerinaLsTag != '' && inputs.ballerinaLsTag || (inputs.isPreRelease == 'true' && 'prerelease' || 'latest') }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+
+    - name: Restore Ballerina LS from cache
+      id: ballerina-ls-cache
+      if: ${{ inputs.enableLSCache == 'true' }}
+      uses: actions/cache@v4
+      with:
+        path: packages/ballerina-extension/ls
+        key: ballerina-ls-${{ steps.resolve-ballerina-ls-version.outputs.version }}
+        retention-days: 1
+
+    - name: Build repo
+      shell: bash
+      id: build
+      run: |
+        node common/scripts/install-run-rush.js build --to ballerina --verbose
+      env:
+        isPreRelease: ${{ inputs.isPreRelease == 'true' }}
+        BALLERINA_LS_TAG: ${{ inputs.enableLSCache == 'true' && steps.resolve-ballerina-ls-version.outputs.version || (inputs.ballerinaLsTag != '' && inputs.ballerinaLsTag || (inputs.isPreRelease == 'true' && 'prerelease' || 'latest')) }}
+        BALLERINA_AUTH_ORG: ${{ inputs.BALLERINA_AUTH_ORG }}
+        BALLERINA_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_AUTH_CLIENT_ID }}
+        BALLERINA_DEV_COPLIOT_ROOT_URL: ${{ inputs.BALLERINA_DEV_COPLIOT_ROOT_URL }}
+        BALLERINA_DEV_COPLIOT_AUTH_ORG: ${{ inputs.BALLERINA_DEV_COPLIOT_AUTH_ORG }}
+        BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID }}
+        BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL: ${{ inputs.BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL }}
+        COPILOT_ROOT_URL: ${{ inputs.COPILOT_ROOT_URL }}
+        COPILOT_DEV_ROOT_URL: ${{ inputs.COPILOT_DEV_ROOT_URL }}
+        APPINSIGHTS_INSTRUMENTATION_KEY: ${{ inputs.APPINSIGHTS_INSTRUMENTATION_KEY }}
+
+    - name: Compress build
+      shell: bash
+      run: |
+        zip -rq build.zip ./ -x 'common/temp*' -x '**/node_modules/*' -x 'submodules/wso2-vscode-extensions/.git/*'
+        zip VSIX.zip *.vsix
+
+    - name: Save build
+      uses: actions/upload-artifact@v4
+      with:
+        path: build.zip
+        name: ExtBuild
+        retention-days: 1
+
+    - name: Save VSIX
+      uses: actions/upload-artifact@v4
+      with:
+        path: VSIX.zip
+        name: VSIX
+        retention-days: 30
