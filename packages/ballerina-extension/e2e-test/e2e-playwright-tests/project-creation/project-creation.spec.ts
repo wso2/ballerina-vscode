@@ -62,12 +62,17 @@ export default function createTests() {
 
             console.log('Filling integration create form');
 
+            const projectName = "testProject";
             const integrationName = "testIntegration";
             await form.fill({
                 values: {
                     'Integration Name*': {
                         type: 'input',
                         value: integrationName,
+                    },
+                    "Project Name*": {
+                        type: 'input',
+                        value: projectName,
                     }
                 },
             });
@@ -81,8 +86,8 @@ export default function createTests() {
             console.log('Waiting for project and BI webview');
             const testAttempt = testInfo.retry + 1;
             const artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
-            console.log('Waiting for integration name to be visible');
-            await artifactWebView.locator(`text=${integrationName}`).waitFor({ timeout: 40000 });
+            console.log('Waiting for project name to be visible');
+            await artifactWebView.locator(`text=${projectName}`).waitFor({ timeout: 40000 });
 
             console.log('Clicking on the integration name');
             // Click on the integration name ("testIntegration") directly from the BI webview project tree, not the project explorer

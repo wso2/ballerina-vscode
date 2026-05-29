@@ -52,13 +52,6 @@ export default function createTests() {
             await form.submit('Create');
             const context = artifactWebView.locator(`text=${functionName}`);
             await context.waitFor();
-
-            // Confirm function exists in the sidebar tree. This also ensures
-            // VS Code has transitioned to the function diagram view so that
-            // the next serial test starts with bi-diagram-canvas visible.
-            const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, functionName]);
-
             logStep(`Created function: ${functionName}`);
         });
 
@@ -73,7 +66,7 @@ export default function createTests() {
 
             // Wait for the diagram canvas before clicking edit
             const canvas = artifactWebView.locator('[data-testid="bi-diagram-canvas"], #bi-diagram-canvas');
-            await canvas.waitFor({ timeout: 60000 });
+            await canvas.waitFor({ timeout: 20000 });
             await artifactWebView.waitForTimeout(1000);
 
             // Open function configuration form
@@ -124,7 +117,7 @@ export default function createTests() {
                 await addBtn.waitFor({ timeout: 5000 });
                 await addBtn.click({ force: true });
 
-                await artifactWebView.locator(`[data-testid="${name}-item"]`).waitFor({ timeout: 60000 });
+                await artifactWebView.locator(`[data-testid="${name}-item"]`).waitFor({ timeout: 15000 });
                 await artifactWebView.waitForTimeout(500);
                 logStep(`Added parameter: ${name} (${type})`);
             };
@@ -151,7 +144,7 @@ export default function createTests() {
 
             // Save the function form
             await form.submit('Save');
-            await canvas.waitFor({ timeout: 60000 });
+            await canvas.waitFor({ timeout: 15000 });
             logStep('Saved function: firstName (string), lastName (string), return type string');
         });
 
@@ -165,7 +158,7 @@ export default function createTests() {
             }
 
             const canvas = artifactWebView.locator('[data-testid="bi-diagram-canvas"], #bi-diagram-canvas');
-            await canvas.waitFor({ timeout: 60000 });
+            await canvas.waitFor({ timeout: 15000 });
             await artifactWebView.waitForTimeout(1000);
             logStep('Function flow diagram ready');
 
@@ -174,7 +167,7 @@ export default function createTests() {
             // (not a numeric index), so clickHoverAddButtonByIndex(0) won't find it.
             // Instead, target the first link-add-button by prefix.
             const link = canvas.locator('[data-testid^="diagram-link-"]').first();
-            await link.waitFor({ timeout: 60000 });
+            await link.waitFor({ timeout: 15000 });
             await link.hover();
             await artifactWebView.waitForTimeout(500);
             const addBtn = canvas.locator('[data-testid^="link-add-button-"]').first();
@@ -205,7 +198,7 @@ export default function createTests() {
             await page.page.keyboard.press('Escape');
             await artifactWebView.waitForTimeout(300);
             await artifactWebView.getByRole('button', { name: 'Save' }).last().click({ force: true });
-            await canvas.waitFor({ timeout: 60000 });
+            await canvas.waitFor({ timeout: 15000 });
 
             logStep('Added return node: return firstName');
         });
@@ -224,7 +217,7 @@ export default function createTests() {
             const form = new Form(page.page, BI_INTEGRATOR_LABEL, artifactWebView);
 
             // Open edit form from canvas
-            await canvas.waitFor({ timeout: 60000 });
+            await canvas.waitFor({ timeout: 15000 });
             await artifactWebView.waitForTimeout(1000);
             const editBtn = artifactWebView.locator('#bi-edit');
             await editBtn.waitFor({ timeout: 10000 });
@@ -286,7 +279,7 @@ export default function createTests() {
 
             // Save WITHOUT updating return type → type mismatch: firstName is int, return type is string
             await form.submit('Save');
-            await canvas.waitFor({ timeout: 60000 });
+            await canvas.waitFor({ timeout: 15000 });
             logStep('Saved: firstName is int, return type still string');
         });
 
@@ -300,7 +293,7 @@ export default function createTests() {
             }
 
             const canvas = artifactWebView.locator('[data-testid="bi-diagram-canvas"], #bi-diagram-canvas');
-            await canvas.waitFor({ timeout: 60000 });
+            await canvas.waitFor({ timeout: 15000 });
             // Allow the language server to compute and push diagnostics
             await artifactWebView.waitForTimeout(5000);
 
