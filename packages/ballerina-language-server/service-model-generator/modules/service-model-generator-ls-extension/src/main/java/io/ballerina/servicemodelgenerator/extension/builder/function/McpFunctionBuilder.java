@@ -400,11 +400,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
         return result;
     }
 
-    /**
-     * Returns the doc-comment {@link TextEdit} emitted by {@code addFunctionDocTextEdits}, identified by its
-     * leading {@code #}. Returns empty when the original source had no doc string AND no parameter docs were
-     * generated, in which case the parent emits no doc edit at all.
-     */
+    // The doc-comment edit (leading '#' or empty); absent when the source had no doc string and no param docs.
     private static Optional<TextEdit> findDocCommentEdit(Map<String, List<TextEdit>> textEdits) {
         return textEdits.values().stream()
                 .flatMap(List::stream)
@@ -419,10 +415,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
                 .findFirst();
     }
 
-    /**
-     * Inserts a fresh doc-comment block above the function's metadata, matching the anchor used by
-     * {@code addFunctionDocTextEdits} when metadata exists but no doc string is present.
-     */
+    // Inserts a fresh doc-comment block at the metadata anchor when the source had no doc string.
     private static void insertNewDocEdit(Map<String, List<TextEdit>> result, UpdateModelContext context,
                                          String toolDescription, String returnType) {
         Optional<MetadataNode> metadata = context.functionNode().metadata();
@@ -441,8 +434,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
     @Override
     public Function getModelFromSource(ModelFromSourceContext context) {
         Function function = super.getModelFromSource(context);
-        // MCP tools are remote functions; without this, FunctionBuilderRouter.updateFunction would treat them
-        // as OBJECT_METHOD and dispatch to DefaultFunctionBuilder, bypassing MCP-specific save handling.
+        // Mark as REMOTE so updateFunction routes saves here instead of DefaultFunctionBuilder.
         function.setKind(KIND_REMOTE);
 
         FunctionDefinitionNode functionNode = (FunctionDefinitionNode) context.node();
@@ -459,20 +451,16 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
     }
 
     /**
-     * Handles the {@code @mcp:Tool} annotation when present. If its {@code description} field is a string literal,
-     * its value is hoisted into the {@code toolDescription} property (so the form renders it as a doc-style field)
-     * and stripped from the annotation source held on {@code annotTool}; any other fields (e.g. {@code schema}) are
-     * preserved verbatim. The {@code annotTool} entry's {@code types} list is always patched to a non-null value
-     * so the frontend form does not crash on a malformed property.
+     * Hoists a string-literal {@code description} from the {@code @mcp:Tool} annotation into the
+     * {@code toolDescription} property and strips it from the annotation, preserving any other fields. Also seeds
+     * {@code annotTool.types} so the frontend form does not crash on the property the parent left without types.
      */
     private static void processToolAnnotation(Function function, MetadataNode metadata) {
         Value annotProperty = function.getProperties().get(TOOL_ANNOTATION_PROPERTY);
         if (annotProperty == null) {
             return;
         }
-        // Parent's updateAnnotationAttachmentProperty doesn't set types. The frontend form factory mounts every
-        // property regardless of enabled flag and throws when types is null/empty, so seed a placeholder type. The
-        // editor itself stays hidden because we leave the parent's enabled=false default in place.
+        // Seed types: the form factory mounts every property and throws on null/empty types. Stays hidden via enabled=false.
         if (annotProperty.getTypes() == null || annotProperty.getTypes().isEmpty()) {
             annotProperty.setTypes(new ArrayList<>(List.of(PropertyType.types(Value.FieldType.TEXT, "string"))));
         }
@@ -484,8 +472,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
 
         MappingConstructorExpressionNode mapping = toolAnnotation.annotValue().get();
         SpecificFieldNode descriptionField = null;
-        // Source-code snippets so spread fields (...x), computed-name fields, etc. are preserved verbatim
-        // alongside ordinary SpecificFieldNode entries.
+        // Keep source snippets so non-description fields (schema, spread fields) round-trip verbatim.
         List<String> keptFieldSources = new ArrayList<>();
         for (MappingFieldNode field : mapping.fields()) {
             if (field instanceof SpecificFieldNode specific
@@ -536,10 +523,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
         return null;
     }
 
-    /**
-     * Returns the contents of a double-quoted string literal expression, or {@code null} if {@code expr} is not
-     * such a literal. Used to decide whether the description can be safely hoisted into the doc-comment form.
-     */
+    // Contents of a double-quoted string literal, or null if expr is not one.
     private static String extractStringLiteral(ExpressionNode expr) {
         if (!(expr instanceof BasicLiteralNode literal)) {
             return null;
@@ -564,12 +548,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
                 .build();
     }
 
-    /**
-     * Reconstructs a mapping-constructor source string from pre-captured field source snippets. Snippets come
-     * straight from {@link MappingFieldNode#toSourceCode()} so nested values like a {@code map<json>} schema, as
-     * well as spread fields, are preserved byte-for-byte. The result is the annotation value that
-     * {@code addFunctionAnnotationTextEdits} will splice back into source.
-     */
+    // Rebuilds the annotation mapping body from the kept field source snippets.
     private static String buildAnnotationValue(List<String> keptFieldSources) {
         StringBuilder sb = new StringBuilder(" {");
         boolean first = true;
