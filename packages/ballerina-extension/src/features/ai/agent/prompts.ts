@@ -234,6 +234,9 @@ ${getDisabledSkillsSection(disabledSkillMetas ?? [])}
 # Web Tools
 You have access to ${WEB_SEARCH_TOOL_NAME} and ${WEB_FETCH_TOOL_NAME} tools. Always check skill trigger conditions first — if an active skill references web search, follow the skill's instructions. Otherwise prefer domain-specific tools, and use web tools only when no suitable domain-specific tool can answer the query, or when the user provides a URL or asks for live/external information.
 
+# MCP Tools
+You may have access to tools provided by connected MCP (Model Context Protocol) servers, namespaced \`mcp__<server>__<tool>\`. Always check skill trigger conditions first — if an active skill references such a tool, follow the skill's instructions. Otherwise prefer the built-in Ballerina and integration tools for core code work, and reach for an MCP tool only when it offers a capability the built-in tools don't.
+
 ${getNPSuffix(projects, op)}
 `;
 }
