@@ -538,8 +538,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
 
                     {!mcpToolsEnabled ? (
                         <OffMessage>
-                            MCP tool support is off.<br />
-                            Toggle it on to load servers.
+                            MCP support is off.
                         </OffMessage>
                     ) : (
                         <ScrollBody>

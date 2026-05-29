@@ -876,7 +876,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                 )}
                 {!mcpToolsEnabled ? (
                     <EmptyHint>
-                        MCP tool support is off. Toggle it on in the header to load servers.
+                        MCP support is off.
                     </EmptyHint>
                 ) : togglePending ? (
                     <Loader label="Loading MCP servers…" />
