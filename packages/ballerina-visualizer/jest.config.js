@@ -17,12 +17,41 @@
  */
 
 module.exports = {
-    preset: 'ts-jest',
-    testEnvironment: 'node',
-    testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
-    globals: {
-        'ts-jest': {
+    preset: 'ts-jest/presets/js-with-ts',
+    testEnvironment: 'jsdom',
+    transform: {
+        '^.+\\.(js|jsx)$': 'babel-jest',
+        '^.+\\.(ts|tsx)$': ['ts-jest', {
             isolatedModules: true,
-        },
+            tsconfig: {
+                // Visualizer sources rely on the automatic JSX runtime (no `import React`),
+                // so use 'react-jsx' here rather than the classic 'react' transform.
+                jsx: 'react-jsx',
+                esModuleInterop: true,
+                allowSyntheticDefaultImports: true,
+            }
+        }],
     },
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+    testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
+    moduleNameMapper: {
+        '^@vscode/codicons/dist/codicon.css$': '<rootDir>/node_modules/identity-obj-proxy',
+        '\\.(css|less|sass|scss)$': '<rootDir>/node_modules/identity-obj-proxy',
+        '\\.(svg|png|jpg|jpeg|gif)$': '<rootDir>/node_modules/identity-obj-proxy',
+        '^react$': '<rootDir>/node_modules/react/index.js',
+        '^react-dom$': '<rootDir>/node_modules/react-dom/index.js',
+    },
+    setupFilesAfterEnv: [
+        '<rootDir>/src/test/jest.env.ts',
+    ],
+    setupFiles: ['<rootDir>/src/test/matchMedia.ts'],
+    transformIgnorePatterns: [
+        '<rootDir>/node_modules/(?!(@wso2)/)' // Only transform @wso2 packages
+    ],
+    collectCoverageFrom: [
+        'src/**/*.{ts,tsx}',
+        '!src/**/*.d.ts',
+        '!src/**/*.stories.{ts,tsx}',
+        '!src/test/**/*'
+    ]
 };

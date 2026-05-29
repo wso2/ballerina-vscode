@@ -964,6 +964,27 @@ importers:
         specifier: 1.6.1
         version: 1.6.1
     devDependencies:
+      '@babel/core':
+        specifier: 7.27.1
+        version: 7.27.1
+      '@babel/preset-env':
+        specifier: 7.27.2
+        version: 7.27.2(@babel/core@7.27.1)
+      '@babel/preset-react':
+        specifier: 7.27.1
+        version: 7.27.1(@babel/core@7.27.1)
+      '@babel/preset-typescript':
+        specifier: 7.27.1
+        version: 7.27.1(@babel/core@7.27.1)
+      '@testing-library/dom':
+        specifier: 10.4.0
+        version: 10.4.0
+      '@testing-library/jest-dom':
+        specifier: 6.6.3
+        version: 6.6.3
+      '@testing-library/react':
+        specifier: 16.3.0
+        version: 16.3.0(@testing-library/dom@10.4.0)(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@types/jest':
         specifier: 29.5.14
         version: 29.5.14
@@ -1003,6 +1024,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: 8.32.1
         version: 8.32.1(eslint@9.27.0)(typescript@5.8.3)
+      babel-jest:
+        specifier: 29.7.0
+        version: 29.7.0(@babel/core@7.27.1)
       buffer:
         specifier: 6.0.3
         version: 6.0.3
@@ -1021,9 +1045,15 @@ importers:
       eslint-plugin-react-refresh:
         specifier: 0.4.20
         version: 0.4.20(eslint@9.27.0)
+      identity-obj-proxy:
+        specifier: 3.0.0
+        version: 3.0.0
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@22.15.24)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@types/node@22.15.24)(typescript@5.8.3))
+      jest-environment-jsdom:
+        specifier: 29.7.0
+        version: 29.7.0
       sass-loader:
         specifier: 16.0.5
         version: 16.0.5(sass@1.89.0)(webpack@5.104.1)
@@ -19720,7 +19750,7 @@ snapshots:
   '@babel/plugin-proposal-object-rest-spread@7.12.1(@babel/core@7.12.9)':
     dependencies:
       '@babel/core': 7.12.9
-      '@babel/helper-plugin-utils': 7.10.4
+      '@babel/helper-plugin-utils': 7.29.7
       '@babel/plugin-syntax-object-rest-spread': 7.8.3(@babel/core@7.12.9)
       '@babel/plugin-transform-parameters': 7.29.7(@babel/core@7.12.9)
 
@@ -33399,7 +33429,7 @@ snapshots:
 
   fork-ts-checker-webpack-plugin@4.1.6:
     dependencies:
-      '@babel/code-frame': 7.10.4
+      '@babel/code-frame': 7.29.7
       chalk: 2.4.2
       micromatch: 3.1.10
       minimatch: 3.1.5
@@ -35903,7 +35933,7 @@ snapshots:
     dependencies:
       browser-resolve: 1.11.3
       is-builtin-module: 1.0.0
-      resolve: 1.6.0
+      resolve: 1.22.12
 
   jest-resolve@22.4.3:
     dependencies:

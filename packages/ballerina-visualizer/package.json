@@ -13,7 +13,8 @@
     "copy:assets": "copyfiles -u 1 \"src/**/*.scss\"  \"src/**/*.svg\"  \"src/**/*.css\" \"src/resources/assets/font/*.*\" lib/",
     "deploy": "npm publish",
     "postbuild": "node ./scripts/clean-jslibs.js && copyfiles -u 1 -V build/*.js build/fonts/* build/images/* -e build/*.txt ../ballerina-extension/resources/jslibs",
-    "test": "jest"
+    "test": "jest",
+    "test:updateSnapshots": "jest --updateSnapshot"
   },
   "keywords": [],
   "dependencies": {
@@ -99,7 +100,17 @@
     "webpack-dev-server": "5.2.4",
     "@types/jest": "29.5.14",
     "jest": "29.7.0",
-    "ts-jest": "29.3.4"
+    "ts-jest": "29.3.4",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/dom": "10.4.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "jest-environment-jsdom": "29.7.0",
+    "babel-jest": "29.7.0",
+    "@babel/core": "7.27.1",
+    "@babel/preset-env": "7.27.2",
+    "@babel/preset-react": "7.27.1",
+    "@babel/preset-typescript": "7.27.1",
+    "identity-obj-proxy": "3.0.0"
   },
   "author": "wso2",
   "license": "UNLICENSED",

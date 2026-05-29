@@ -1,0 +1,109 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FileIntegrationForm - snapshots renders the existing-handler fixture: existing-handler 1`] = `
+"/* Emotion Styles */
+.css-2 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: end; -ms-flex-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end;}
+.css-3 {min-width: 50px;}
+.css-0 {height: calc(100% - 87px); padding: 16px; overflow-y: scroll;}
+.css-1 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; padding-bottom: 20px; gap: 10px;}
+
+/* DOM */
+<div>
+  <div
+    class="css-0"
+  >
+    <div
+      class="css-1"
+    />
+    <div
+      class="css-2"
+    >
+      <vscode-button
+        style="margin-right: 8px;"
+        title="Cancel"
+      >
+        <div
+          class="css-3"
+          style="min-width: 50px;"
+        >
+          Cancel
+        </div>
+        <input
+          slot="form-associated-proxy"
+          style="display: none;"
+          type="undefined"
+        />
+      </vscode-button>
+      <vscode-button
+        title="Save"
+      >
+        <div
+          class="css-3"
+          style="min-width: 50px;"
+        >
+          Save
+        </div>
+        <input
+          slot="form-associated-proxy"
+          style="display: none;"
+          type="undefined"
+        />
+      </vscode-button>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`FileIntegrationForm - snapshots renders the new-handler fixture (isNew): new-handler 1`] = `
+"/* Emotion Styles */
+.css-2 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: end; -ms-flex-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end;}
+.css-3 {min-width: 50px;}
+.css-0 {height: calc(100% - 87px); padding: 16px; overflow-y: scroll;}
+.css-1 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; padding-bottom: 20px; gap: 10px;}
+
+/* DOM */
+<div>
+  <div
+    class="css-0"
+  >
+    <div
+      class="css-1"
+    />
+    <div
+      class="css-2"
+    >
+      <vscode-button
+        style="margin-right: 8px;"
+        title="Cancel"
+      >
+        <div
+          class="css-3"
+          style="min-width: 50px;"
+        >
+          Cancel
+        </div>
+        <input
+          slot="form-associated-proxy"
+          style="display: none;"
+          type="undefined"
+        />
+      </vscode-button>
+      <vscode-button
+        title="Save"
+      >
+        <div
+          class="css-3"
+          style="min-width: 50px;"
+        >
+          Save
+        </div>
+        <input
+          slot="form-associated-proxy"
+          style="display: none;"
+          type="undefined"
+        />
+      </vscode-button>
+    </div>
+  </div>
+</div>"
+`;
