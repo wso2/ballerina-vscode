@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import { BUILT_IN_MCP_SERVERS } from "./builtIns";
 import { loadMcpConfig, McpLoadErrors } from "./configLoader";
 import {
     McpConnectionStatus,
@@ -198,8 +199,23 @@ export class McpClientManager {
         return { ...this.lastErrors };
     }
 
+    /**
+     * Synthesize entries for every shipped built-in MCP server, so they flow
+     * through the same connect/disconnect path as on-disk entries. Built-ins
+     * are independent of user/workspace and never get shadowed — they share
+     * no namespace.
+     */
+    private builtInEntries(): { scope: McpScope; name: string; config: McpServerConfig }[] {
+        return BUILT_IN_MCP_SERVERS.map(b => ({
+            scope: "builtin" as McpScope,
+            name: b.id,
+            config: b.defaultConfig,
+        }));
+    }
+
     private async doRefresh(): Promise<void> {
-        const { entries, errors } = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
+        const { entries: diskEntries, errors } = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
+        const entries = [...diskEntries, ...this.builtInEntries()];
         this.lastErrors = errors;
         const desiredKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
 
@@ -274,6 +290,12 @@ export class McpClientManager {
         if (override !== undefined) {
             return override;
         }
+        // Built-ins fall back to the per-entry `autoEnable` flag (default off).
+        // The user can still toggle them; their override persists in the store.
+        if (scope === "builtin") {
+            const def = BUILT_IN_MCP_SERVERS.find(b => b.id === name);
+            return def?.autoEnable === true;
+        }
         return cfg.disabled !== true;
     }
 
@@ -285,10 +307,11 @@ export class McpClientManager {
         return this.isGroupEnabled(scope) && this.isServerEnabled(scope, name, cfg);
     }
 
-    getGroupStates(): { user: boolean; workspace: boolean } {
+    getGroupStates(): { user: boolean; workspace: boolean; builtin: boolean } {
         return {
             user: this.isGroupEnabled("user"),
             workspace: this.isGroupEnabled("workspace"),
+            builtin: this.isGroupEnabled("builtin"),
         };
     }
 
@@ -304,7 +327,10 @@ export class McpClientManager {
     /** Drop any server-scoped override keys that no longer have a matching entry in the config files. */
     async pruneOrphanOverrides(): Promise<void> {
         const { entries } = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
-        const liveKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
+        const liveKeys = new Set([
+            ...entries.map(e => keyOf(e.scope, e.name)),
+            ...this.builtInEntries().map(e => keyOf(e.scope, e.name)),
+        ]);
         for (const key of this.enabledOverrides.keys()) {
             if (key.startsWith("group:")) { continue; }
             if (!liveKeys.has(key)) {

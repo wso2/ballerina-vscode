@@ -18,7 +18,7 @@
 
 export type McpTransportType = "stdio" | "http";
 
-export type McpScope = "user" | "workspace";
+export type McpScope = "user" | "workspace" | "builtin";
 
 export interface McpStdioServerConfig {
     type?: "stdio";

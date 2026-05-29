@@ -684,7 +684,7 @@ export interface PromptEnhancementResponse {
 // ==================================
 export type McpTransportType = "stdio" | "http";
 export type McpConnectionStatus = "disconnected" | "connecting" | "connected" | "failed";
-export type McpScope = "user" | "workspace";
+export type McpScope = "user" | "workspace" | "builtin";
 export interface McpToolSummaryDTO {
     name: string;
     description?: string;
@@ -749,6 +749,7 @@ export interface McpLoadErrorsDTO {
 export interface McpGroupStatesDTO {
     user: boolean;
     workspace: boolean;
+    builtin: boolean;
 }
 export interface SetMcpGroupEnabledRequest {
     scope: McpScope;

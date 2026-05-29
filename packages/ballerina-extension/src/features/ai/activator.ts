@@ -338,7 +338,7 @@ async function teardownMcp(): Promise<void> {
     try {
         notifyMcpServersChanged([]);
         notifyMcpLoadErrorsChanged({});
-        notifyMcpGroupStatesChanged({ user: true, workspace: true });
+        notifyMcpGroupStatesChanged({ user: true, workspace: true, builtin: true });
     } catch (err) {
         console.warn('[mcp] Failed to push empty servers list on teardown:', err);
     }

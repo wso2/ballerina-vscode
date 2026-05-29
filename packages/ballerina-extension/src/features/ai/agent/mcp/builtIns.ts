@@ -30,11 +30,14 @@ export interface BuiltInMcpServer {
      * the flag in the UI but does not run any auth flow yet.
      */
     requiresAuth?: boolean;
+    /**
+     * Optional. When `true`, this server is on by default on first run —
+     * useful for trusted WSO2 connectors that should "just work". When the
+     * field is omitted or `false`, the server is off until the user toggles
+     * it on. Either way, the user's choice overrides this and persists.
+     */
+    autoEnable?: boolean;
 }
 
-/**
- * Curated list of "blessed" MCP connectors that the Copilot offers as one-click
- * adds in the MCP panel. Intentionally empty in v1; populating this list is the
- * single-file extension point for shipping a WSO2/Choreo connector later.
- */
+/** Built-in MCP servers shipped with the Copilot. Empty until curated connectors land. */
 export const BUILT_IN_MCP_SERVERS: readonly BuiltInMcpServer[] = [];

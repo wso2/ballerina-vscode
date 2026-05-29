@@ -331,7 +331,12 @@ const OffMessage = styled.div`
     line-height: 1.5;
 `;
 
-const SCOPE_ORDER: McpScope[] = ["workspace", "user"];
+const SCOPE_ORDER: McpScope[] = ["builtin", "workspace", "user"];
+
+function scopeLabel(scope: McpScope): string {
+    if (scope === "builtin") { return "Built-in"; }
+    return scope === "workspace" ? "Project" : "User";
+}
 
 function transportLabel(s: McpServerStatusDTO): string {
     if (s.shadowed) {
@@ -361,7 +366,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
     // from flashing while the backend is still spawning MCP clients.
     const [togglePending, setTogglePending] = useState(false);
     const [pendingToggle, setPendingToggle] = useState<Set<string>>(new Set());
-    const [groupStates, setGroupStates] = useState<McpGroupStatesDTO>({ user: true, workspace: true });
+    const [groupStates, setGroupStates] = useState<McpGroupStatesDTO>({ user: true, workspace: true, builtin: true });
     const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -584,7 +589,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                                 grouped.map((group) => (
                                     <React.Fragment key={group[0].scope}>
                                         <GroupLabel>
-                                            <span>{group[0].scope === "workspace" ? "Project" : "User"}</span>
+                                            <span>{scopeLabel(group[0].scope)}</span>
                                             {!groupStates[group[0].scope] && (
                                                 <GroupOffBadge title="Open the Manage panel to enable this group">
                                                     Disabled
@@ -611,7 +616,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                                                     type="button"
                                                     on={s.enabled}
                                                     disabled={rowPending || !groupActive}
-                                                    title={!groupActive ? `${s.scope === "workspace" ? "Project" : "User"} group is off — enable the group to change individual servers` : s.enabled ? "Disable this server" : "Enable this server"}
+                                                    title={!groupActive ? `${scopeLabel(s.scope)} group is off — enable the group to change individual servers` : s.enabled ? "Disable this server" : "Enable this server"}
                                                     onClick={() => handleToggleServer(s.scope, s.name, s.enabled)}
                                                 />
                                                 )}

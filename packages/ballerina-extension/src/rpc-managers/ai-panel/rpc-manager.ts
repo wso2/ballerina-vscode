@@ -1162,6 +1162,10 @@ User reverted the last made changes. The files have been restored to the state b
 
     async openMcpConfig(params: OpenMcpConfigRequest): Promise<void> {
         const scope = params?.scope ?? "user";
+        // Built-in servers are shipped with the extension — there is no JSON file to edit.
+        if (scope === "builtin") {
+            return;
+        }
         let workspacePath: string | undefined;
         if (scope === "workspace") {
             workspacePath = resolveProjectRootPath() || undefined;
@@ -1210,7 +1214,7 @@ User reverted the last made changes. The files have been restored to the state b
     async getMcpGroupStates(): Promise<McpGroupStatesDTO> {
         const manager = getMcpClientManager();
         if (!manager) {
-            return { user: true, workspace: true };
+            return { user: true, workspace: true, builtin: true };
         }
         return manager.getGroupStates();
     }
@@ -1239,6 +1243,9 @@ User reverted the last made changes. The files have been restored to the state b
             return { success: false, error: cfgError };
         }
         const scope = params.scope ?? "user";
+        if (scope === "builtin") {
+            return { success: false, error: "Built-in servers cannot be added — they ship with the extension." };
+        }
         let workspacePath: string | undefined;
         if (scope === "workspace") {
             workspacePath = resolveProjectRootPath() || undefined;
@@ -1269,6 +1276,9 @@ User reverted the last made changes. The files have been restored to the state b
             return { success: false, error: cfgError };
         }
         const scope = params.scope ?? "user";
+        if (scope === "builtin") {
+            return { success: false, error: "Built-in servers cannot be edited — they ship with the extension." };
+        }
         let workspacePath: string | undefined;
         if (scope === "workspace") {
             workspacePath = resolveProjectRootPath() || undefined;
@@ -1294,6 +1304,9 @@ User reverted the last made changes. The files have been restored to the state b
             return { success: false, error: "Server name is required." };
         }
         const scope = params.scope ?? "user";
+        if (scope === "builtin") {
+            return { success: false, error: "Built-in servers cannot be deleted — they ship with the extension." };
+        }
         let workspacePath: string | undefined;
         if (scope === "workspace") {
             workspacePath = resolveProjectRootPath() || undefined;

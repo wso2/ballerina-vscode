@@ -512,10 +512,17 @@ interface EditTarget {
     config: McpServerConfigDTO;
 }
 
-const SCOPE_ORDER: McpScope[] = ["workspace", "user"];
+const SCOPE_ORDER: McpScope[] = ["builtin", "workspace", "user"];
 
 function scopeHeading(scope: McpScope): string {
+    if (scope === "builtin") { return "Built-in"; }
     return scope === "workspace" ? "Project" : "User";
+}
+
+function scopeHelperText(scope: McpScope): string {
+    if (scope === "builtin") { return "Curated by WSO2"; }
+    if (scope === "workspace") { return "Used only with this project"; }
+    return "Available across all your projects";
 }
 
 export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
@@ -528,7 +535,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     const [collapsedSections, setCollapsedSections] = useState<Set<McpScope>>(new Set());
     const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
     const [pendingToggle, setPendingToggle] = useState<Set<string>>(new Set());
-    const [groupStates, setGroupStates] = useState<McpGroupStatesDTO>({ user: true, workspace: true });
+    const [groupStates, setGroupStates] = useState<McpGroupStatesDTO>({ user: true, workspace: true, builtin: true });
     const [pendingGroups, setPendingGroups] = useState<Set<McpScope>>(new Set());
     const [showAddModal, setShowAddModal] = useState(false);
     const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
@@ -705,6 +712,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                     ? "failed"
                     : "disabled";
         const meta = `${s.transport} · ${statusText}${s.shadowed ? " · shadowed by project" : ""}`;
+        const isBuiltIn = s.scope === "builtin";
 
         return (
             <ServerRow key={key}>
@@ -733,25 +741,27 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                                     </RowExpandChevron>
                                 )}
                             </RowNameButton>
-                            <RowActions className="mcp-row-actions">
-                                <RowIconButton
-                                    type="button"
-                                    title="Edit server"
-                                    aria-label="Edit server"
-                                    onClick={() => handleEdit(s)}
-                                >
-                                    <span className="codicon codicon-edit" />
-                                </RowIconButton>
-                                <RowIconButton
-                                    type="button"
-                                    $danger
-                                    title="Delete server"
-                                    aria-label="Delete server"
-                                    onClick={() => setConfirmDelete(key)}
-                                >
-                                    <span className="codicon codicon-trash" />
-                                </RowIconButton>
-                            </RowActions>
+                            {!isBuiltIn && (
+                                <RowActions className="mcp-row-actions">
+                                    <RowIconButton
+                                        type="button"
+                                        title="Edit server"
+                                        aria-label="Edit server"
+                                        onClick={() => handleEdit(s)}
+                                    >
+                                        <span className="codicon codicon-edit" />
+                                    </RowIconButton>
+                                    <RowIconButton
+                                        type="button"
+                                        $danger
+                                        title="Delete server"
+                                        aria-label="Delete server"
+                                        onClick={() => setConfirmDelete(key)}
+                                    >
+                                        <span className="codicon codicon-trash" />
+                                    </RowIconButton>
+                                </RowActions>
+                            )}
                             {isTogglePending ? (
                                 <TogglePendingSlot title={s.enabled ? "Disabling…" : "Enabling…"}>
                                     <span className="codicon codicon-loading codicon-modifier-spin" style={{ fontSize: 12 }} />
@@ -812,6 +822,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
         const isCollapsed = collapsedSections.has(scope);
         const groupOn = groupStates[scope];
         const groupPending = pendingGroups.has(scope);
+        const isBuiltInSection = scope === "builtin";
         return (
             <Section key={scope}>
                 <SectionHeader>
@@ -841,22 +852,20 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                         )}
                     </SectionGroupToggleSlot>
                     <SectionDivider />
-                    <Button
-                        appearance="icon"
-                        tooltip={jsonDisabled ? "No trusted project is open" : "Edit raw JSON"}
-                        disabled={jsonDisabled}
-                        onClick={scope === "user" ? handleOpenJsonUser : handleOpenJsonProject}
-                    >
-                        <Codicon name="go-to-file" />
-                    </Button>
+                    {!isBuiltInSection && (
+                        <Button
+                            appearance="icon"
+                            tooltip={jsonDisabled ? "No trusted project is open" : "Edit raw JSON"}
+                            disabled={jsonDisabled}
+                            onClick={scope === "user" ? handleOpenJsonUser : handleOpenJsonProject}
+                        >
+                            <Codicon name="go-to-file" />
+                        </Button>
+                    )}
                 </SectionHeader>
                 {!isCollapsed && (
                     <>
-                        <SectionHelper>
-                            {scope === "workspace"
-                                ? "Used only with this project"
-                                : "Available across all your projects"}
-                        </SectionHelper>
+                        <SectionHelper>{scopeHelperText(scope)}</SectionHelper>
                         <RowsContainer>{items.map(renderCard)}</RowsContainer>
                     </>
                 )}
