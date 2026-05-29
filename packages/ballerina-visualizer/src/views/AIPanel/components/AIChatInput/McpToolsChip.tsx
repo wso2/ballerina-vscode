@@ -504,7 +504,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                 title={chipTitle}
                 onClick={toggleVisible}
             >
-                <Icon name="PowerPlug" sx={{ fontSize: "16px", display: "flex", alignItems: "center", height: "16px" }} iconSx={{ position: "relative", top: "1px" }} />
+                <Icon name="bi-mcp" sx={{ fontSize: "12px", display: "flex", alignItems: "center", height: "12px" }} iconSx={{ position: "relative", top: "1px" }} />
                 <StatusDot status={headlineStatus} />
             </Chip>
 

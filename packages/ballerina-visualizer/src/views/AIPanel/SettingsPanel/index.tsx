@@ -193,7 +193,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     const customizeEntries: CustomizeEntry[] = [
         {
             id: "mcp",
-            icon: <Icon name="PowerPlug" sx={{ fontSize: "18px", display: "flex", alignItems: "center" }} />,
+            icon: <Icon name="bi-mcp" sx={{ fontSize: "18px", display: "flex", alignItems: "center" }} />,
             label: "MCP servers",
             subtitle: mcpSubtitle,
             onOpenPanel: () => props.onNavigate?.("mcp"),
