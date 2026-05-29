@@ -286,23 +286,28 @@ const ToggleSwitch = styled.button<{ on: boolean; disabled?: boolean }>`
     flex-shrink: 0;
     opacity: ${(p: { disabled?: boolean }) => (p.disabled ? 0.5 : 1)};
     background: ${(p: { on: boolean }) => (p.on
-        ? "var(--vscode-inputOption-activeBackground, var(--vscode-focusBorder))"
+        ? "var(--vscode-button-background)"
         : "var(--vscode-input-background)")};
     border: 1px solid ${(p: { on: boolean }) => (p.on
-        ? "var(--vscode-inputOption-activeBorder, var(--vscode-checkbox-border, transparent))"
-        : "var(--vscode-checkbox-border, var(--vscode-input-border, transparent))")};
+        ? "var(--vscode-contrastBorder, var(--vscode-button-background))"
+        : "var(--vscode-contrastBorder, var(--vscode-checkbox-border, var(--vscode-descriptionForeground)))")};
     transition: background 0.15s, border-color 0.15s;
 
     &::after {
         content: "";
         position: absolute;
+        box-sizing: border-box;
         top: 1px;
         left: ${(p: { on: boolean }) => (p.on ? "13px" : "1px")};
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: var(--vscode-foreground);
-        transition: left 0.15s;
+        background: ${(p: { on: boolean }) => (p.on
+            ? "var(--vscode-button-foreground)"
+            : "var(--vscode-descriptionForeground)")};
+        border: 1px solid var(--vscode-contrastBorder, transparent);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        transition: left 0.15s, background 0.15s;
     }
 `;
 
