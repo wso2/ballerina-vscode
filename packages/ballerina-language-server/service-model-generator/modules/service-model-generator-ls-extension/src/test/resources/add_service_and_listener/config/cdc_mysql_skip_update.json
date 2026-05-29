@@ -1,0 +1,328 @@
+{
+  "filePath": "sample6/main.bal",
+  "description": "Test adding a MySQL CDC service with update disabled: listener gets skippedOperations=[\"u\"] and onUpdate is omitted",
+  "serviceInitModel": {
+    "id": "20",
+    "displayName": "MySQL CDC Integration",
+    "description": "Create a service to capture data changes from a MySQL database using CDC",
+    "orgName": "ballerinax",
+    "packageName": "mysql",
+    "moduleName": "mysql",
+    "version": "1.18.0",
+    "type": "event",
+    "properties": {
+      "table": {
+        "metadata": {
+          "label": "Table",
+          "description": "The fully-qualified table name to capture events from. Format: `<database>.<table>`"
+        },
+        "codedata": {
+          "argType": "annotationParam",
+          "originalName": "tables"
+        },
+        "placeholder": "",
+        "value": "",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "listenerVarName": {
+        "metadata": {
+          "label": "Listener Name",
+          "description": "Provide a name for the listener being created"
+        },
+        "codedata": {
+          "argType": "LISTENER_VAR_NAME"
+        },
+        "placeholder": "mysqlCdcListener",
+        "value": "mysqlCdcListener",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "ballerinaType": "CdcListener",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "host": {
+        "metadata": {
+          "label": "Host",
+          "description": "The hostname of the MySQL Server"
+        },
+        "codedata": {
+          "argType": "databaseConfig",
+          "originalName": "hostname"
+        },
+        "placeholder": "localhost",
+        "value": "\"localhost\"",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "port": {
+        "metadata": {
+          "label": "Port",
+          "description": "The port number of the MySQL Server"
+        },
+        "codedata": {
+          "argType": "databaseConfig",
+          "originalName": "port"
+        },
+        "placeholder": "3306",
+        "value": "3306",
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "username": {
+        "metadata": {
+          "label": "Username",
+          "description": "The username for the MySQL Server connection"
+        },
+        "codedata": {
+          "argType": "databaseConfig",
+          "originalName": "username"
+        },
+        "placeholder": "",
+        "value": "\"root\"",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "password": {
+        "metadata": {
+          "label": "Password",
+          "description": "The password for the MySQL Server connection"
+        },
+        "codedata": {
+          "argType": "databaseConfig",
+          "originalName": "password"
+        },
+        "placeholder": "",
+        "value": "\"Test@1234\"",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "databases": {
+        "metadata": {
+          "label": "Databases",
+          "description": "List of databases to capture changes from. If not specified, events from all databases will be captured."
+        },
+        "codedata": {
+          "argType": "databaseConfig",
+          "originalName": "includedDatabases"
+        },
+        "placeholder": "",
+        "values": [
+          "\"testdb\""
+        ],
+        "types": [
+          {
+            "fieldType": "TEXT_SET",
+            "ballerinaType": "string",
+            "selected": false,
+            "minItems": 0,
+            "defaultItems": 0
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "enableCreate": {
+        "metadata": {
+          "label": "Insert events",
+          "description": "When enabled, the CDC listener will capture INSERT events"
+        },
+        "codedata": {
+          "argType": "CDC_OPERATION_ENABLE",
+          "originalName": "c"
+        },
+        "value": "true",
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "enableUpdate": {
+        "metadata": {
+          "label": "Update events",
+          "description": "When enabled, the CDC listener will capture UPDATE events"
+        },
+        "codedata": {
+          "argType": "CDC_OPERATION_ENABLE",
+          "originalName": "u"
+        },
+        "value": "false",
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "enableDelete": {
+        "metadata": {
+          "label": "Delete events",
+          "description": "When enabled, the CDC listener will capture DELETE events"
+        },
+        "codedata": {
+          "argType": "CDC_OPERATION_ENABLE",
+          "originalName": "d"
+        },
+        "value": "true",
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "database": {
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+        },
+        "value": "{hostname : \"localhost\", port : 3306, username : \"root\", password : \"Test@1234\", includedDatabases : [\"testdb\"]}",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      }
+    }
+  },
+  "output": {
+    "sample6/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerinax/cdc;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerinax/mysql;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerinax/mysql.cdc.driver as _;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nlistener mysql:CdcListener mysqlCdcListener = new (database = {hostname : \"localhost\", port : 3306, username : \"root\", password : \"Test@1234\", includedDatabases : [\"testdb\"]}, options = {skippedOperations: [\"u\"]});"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nservice cdc:Service on mysqlCdcListener {\n}\n"
+      }
+    ]
+  }
+}

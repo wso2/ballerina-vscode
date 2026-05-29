@@ -560,6 +560,8 @@ function getCustomEntryNodeIcon(type: string) {
             return "bi-mssql";
         case "postgresql":
             return "bi-postgresql";
+        case "mysql":
+            return "bi-mysql";
         case "trigger.shopify":
         case "shopify":
             return "bi-shopify";

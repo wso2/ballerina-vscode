@@ -18,44 +18,18 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.Qualifier;
-import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.VariableSymbol;
-import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
-import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
-import io.ballerina.compiler.syntax.tree.NewExpressionNode;
-import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
-import io.ballerina.projects.Document;
-import io.ballerina.projects.DocumentId;
-import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
-import io.ballerina.tools.diagnostics.Location;
-import io.ballerina.tools.text.TextRange;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.POSTGRESQL;
-import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getArgList;
 
 /**
  * Builder class for PostgreSQL CDC service.
@@ -64,7 +38,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.get
  */
 public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
 
-    private static final Logger LOGGER = Logger.getLogger(PostgresqlCdcServiceBuilder.class.getName());
     private static final String CDC_POSTGRESQL_SERVICE_MODEL_LOCATION = "services/cdc_postgresql.json";
     private static final String POSTGRESQL_CDC_DRIVER_MODULE_NAME = "postgresql.cdc.driver";
     private static final String DISPLAY_LABEL = "PostgreSQL CDC";
@@ -111,134 +84,12 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
     }
 
     @Override
-    protected Map<String, Map<String, Value>> extractListenerConfigs(
-            Set<String> listenerNames, SemanticModel semanticModel, Project project) {
-        Map<String, Map<String, Value>> configs = new LinkedHashMap<>();
-        for (String listenerName : listenerNames) {
-            Map<String, Value> config = extractSinglePostgresqlListenerConfig(listenerName, semanticModel, project);
-            if (config != null && !config.isEmpty()) {
-                configs.put(listenerName, config);
-            }
-        }
-        return configs;
+    protected Set<String> getMetadataKeys() {
+        return METADATA_KEYS;
     }
 
     @Override
-    protected void applyInitModelMetadata(Map<String, Map<String, Value>> configs,
-                                           Map<String, Value> templateProps) {
-        for (Map<String, Value> config : configs.values()) {
-            for (String key : METADATA_KEYS) {
-                Value configValue = config.get(key);
-                Value templateValue = templateProps.get(key);
-                if (configValue != null && templateValue != null && templateValue.getMetadata() != null) {
-                    configValue.setMetadata(templateValue.getMetadata());
-                }
-            }
-        }
-    }
-
-    private Map<String, Value> extractSinglePostgresqlListenerConfig(
-            String listenerName, SemanticModel semanticModel, Project project) {
-        Optional<VariableSymbol> listenerSymbol = Optional.empty();
-        for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
-            if (!(moduleSymbol instanceof VariableSymbol variableSymbol)
-                    || !variableSymbol.qualifiers().contains(Qualifier.LISTENER)) {
-                continue;
-            }
-            if (variableSymbol.getName().isPresent() && variableSymbol.getName().get().equals(listenerName)) {
-                listenerSymbol = Optional.of(variableSymbol);
-                break;
-            }
-        }
-        if (listenerSymbol.isEmpty() || listenerSymbol.get().getLocation().isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        Location location = listenerSymbol.get().getLocation().get();
-        try {
-            Path path = project.sourceRoot().resolve(location.lineRange().fileName());
-            DocumentId documentId = project.documentId(path);
-            Document document = project.currentPackage().getDefaultModule().document(documentId);
-            if (document == null) {
-                return null;
-            }
-
-            ModulePartNode modulePartNode = document.syntaxTree().rootNode();
-            TextRange range = TextRange.from(location.textRange().startOffset(), location.textRange().length());
-            NonTerminalNode foundNode = modulePartNode.findNode(range);
-            while (foundNode != null && !(foundNode instanceof ListenerDeclarationNode)) {
-                foundNode = foundNode.parent();
-            }
-            if (foundNode == null) {
-                return null;
-            }
-
-            ListenerDeclarationNode listenerNode = (ListenerDeclarationNode) foundNode;
-            return extractConfigFromPostgresqlListenerDeclaration(listenerNode);
-        } catch (RuntimeException e) {
-            LOGGER.warning("Failed to extract listener config for '" + listenerName + "': " + e.getMessage());
-            return null;
-        }
-    }
-
-    private Map<String, Value> extractConfigFromPostgresqlListenerDeclaration(ListenerDeclarationNode listenerNode) {
-        Map<String, Value> config = new LinkedHashMap<>();
-
-        Node initializer = listenerNode.initializer();
-        NewExpressionNode newExpressionNode;
-        if (initializer instanceof CheckExpressionNode checkExpressionNode) {
-            if (!(checkExpressionNode.expression() instanceof NewExpressionNode newExpr)) {
-                LOGGER.severe("Unexpected expression type inside CheckExpressionNode: "
-                        + checkExpressionNode.expression().getClass().getName());
-                return config;
-            }
-            newExpressionNode = newExpr;
-        } else if (initializer instanceof NewExpressionNode newExpr) {
-            newExpressionNode = newExpr;
-        } else {
-            LOGGER.severe("Unexpected initializer type in PostgreSQL listener declaration: "
-                    + initializer.getClass().getName());
-            return config;
-        }
-
-        SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
-        if (arguments == null) {
-            return config;
-        }
-
-        for (FunctionArgumentNode argument : arguments) {
-            if (!(argument instanceof NamedArgumentNode namedArg)) {
-                continue;
-            }
-            String argName = namedArg.argumentName().name().text().trim();
-
-            switch (argName) {
-                case "database" -> extractDatabaseConfigFields(namedArg, config);
-                case "options" -> config.put(KEY_OPTIONS,
-                        ListenerUtil.buildReadOnlyTextValue("Options",
-                                "Additional options for the CDC engine",
-                                namedArg.expression().toSourceCode().trim()));
-                case "livenessInterval" -> config.put(KEY_LIVENESS_INTERVAL,
-                        ListenerUtil.buildReadOnlyNumberValue("Liveness Interval",
-                                "Interval in seconds for the CDC engine liveness check",
-                                namedArg.expression().toSourceCode().trim()));
-                case "internalSchemaStorage" -> config.put(KEY_INTERNAL_SCHEMA_STORAGE,
-                        ListenerUtil.buildReadOnlyTextValue("Internal Schema Storage",
-                                "Storage configuration for the internal schema history",
-                                namedArg.expression().toSourceCode().trim()));
-                case "offsetStorage" -> config.put(KEY_OFFSET_STORAGE,
-                        ListenerUtil.buildReadOnlyTextValue("Offset Storage",
-                                "Storage configuration for CDC offsets",
-                                namedArg.expression().toSourceCode().trim()));
-                default -> {
-                }
-            }
-        }
-
-        return config;
-    }
-
-    private void extractDatabaseConfigFields(NamedArgumentNode databaseArg, Map<String, Value> config) {
+    protected void extractDatabaseConfigFields(NamedArgumentNode databaseArg, Map<String, Value> config) {
         if (!(databaseArg.expression() instanceof MappingConstructorExpressionNode mapping)) {
             return;
         }
@@ -282,24 +133,5 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
                 }
             }
         }
-    }
-
-    private List<String> extractListValues(SpecificFieldNode field) {
-        List<String> values = new ArrayList<>();
-        Optional<ExpressionNode> valueExpr = field.valueExpr();
-        if (valueExpr.isPresent() && valueExpr.get() instanceof ListConstructorExpressionNode listNode) {
-            for (Node node : listNode.expressions()) {
-                if (node instanceof ExpressionNode expr) {
-                    String val = expr.toSourceCode().trim();
-                    if (val.startsWith("\"") && val.endsWith("\"")) {
-                        val = val.substring(1, val.length() - 1);
-                    }
-                    if (!val.isEmpty()) {
-                        values.add(val);
-                    }
-                }
-            }
-        }
-        return values;
     }
 }
