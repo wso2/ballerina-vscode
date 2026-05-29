@@ -71,17 +71,17 @@ const HeaderDivider = styled.div`
     flex-shrink: 0;
 `;
 
-const HeaderInlineToggle = styled.button<{ on: boolean }>`
+const HeaderInlineToggle = styled.button<{ $on: boolean }>`
     width: 30px;
     height: 16px;
     border-radius: 8px;
     cursor: pointer;
     position: relative;
     flex-shrink: 0;
-    background: ${(p: { on: boolean }) => (p.on
+    background: ${(p: { $on: boolean }) => (p.$on
         ? "var(--vscode-inputOption-activeBackground, var(--vscode-focusBorder))"
         : "var(--vscode-input-background)")};
-    border: 1px solid ${(p: { on: boolean }) => (p.on
+    border: 1px solid ${(p: { $on: boolean }) => (p.$on
         ? "var(--vscode-inputOption-activeBorder, var(--vscode-checkbox-border, transparent))"
         : "var(--vscode-checkbox-border, var(--vscode-input-border, transparent))")};
     transition: background 0.15s, border-color 0.15s;
@@ -90,7 +90,7 @@ const HeaderInlineToggle = styled.button<{ on: boolean }>`
         content: "";
         position: absolute;
         top: 1px;
-        left: ${(p: { on: boolean }) => (p.on ? "15px" : "1px")};
+        left: ${(p: { $on: boolean }) => (p.$on ? "15px" : "1px")};
         width: 12px;
         height: 12px;
         border-radius: 50%;
@@ -120,6 +120,12 @@ const SectionHeader = styled.div`
     align-items: center;
     gap: 8px;
     margin-bottom: 4px;
+
+    /* When hovered or any child is focused, reveal the group toggle slot. */
+    &:hover .mcp-group-toggle-slot,
+    &:focus-within .mcp-group-toggle-slot {
+        visibility: visible;
+    }
 `;
 
 const SectionTitleButton = styled.button`
@@ -204,42 +210,134 @@ const CenteredEmptyBody = styled.div`
     max-width: 360px;
 `;
 
-const ServerCard = styled.div`
-    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
-    border-radius: 6px;
-    padding: 10px 12px;
+const SectionHelper = styled.div`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    margin: -2px 0 4px 16px;
+`;
+
+const RowsContainer = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+    border-radius: 6px;
+    overflow: hidden;
     background: var(--vscode-editor-background);
 `;
 
-const CardHeader = styled.div`
+/* One server. The first row is always the compact header (name + meta +
+   toggle). Edit/Delete reveal on hover or keyboard focus inside the row. */
+const ServerRow = styled.div`
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--vscode-panel-border);
+
+    &:last-child { border-bottom: none; }
+`;
+
+const RowHeader = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 6px 10px;
+    transition: background 0.12s ease;
+
+    &:hover { background: var(--vscode-list-hoverBackground); }
+
+    /* Reveal row actions on hover or any focus within the row. */
+    &:hover .mcp-row-actions,
+    &:focus-within .mcp-row-actions {
+        visibility: visible;
+    }
 `;
 
-const CardName = styled.span`
-    font-size: 13px;
-    font-weight: 600;
+const RowNameButton = styled.button<{ $clickable: boolean }>`
+    flex: 1;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
     color: var(--vscode-foreground);
+    font-family: var(--vscode-font-family);
+    text-align: left;
+    cursor: ${(p: { $clickable: boolean }) => (p.$clickable ? "pointer" : "default")};
+`;
+
+const RowName = styled.span<{ $dim?: boolean }>`
+    font-size: 13px;
+    font-weight: 500;
+    color: ${(p: { $dim?: boolean }) => (p.$dim
+        ? "var(--vscode-descriptionForeground)"
+        : "var(--vscode-foreground)")};
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    /* Fill remaining space so the per-server toggle anchors to the card's
-       right edge — consistent x-position across rows for fast scanning. */
-    flex: 1;
     min-width: 0;
 `;
 
-const StatusDot = styled.span<{ status: McpServerStatusDTO["status"] }>`
+const RowMeta = styled.span<{ $failed?: boolean }>`
+    flex-shrink: 0;
+    font-size: 11.5px;
+    color: ${(p: { $failed?: boolean }) => (p.$failed
+        ? "var(--vscode-errorForeground)"
+        : "var(--vscode-descriptionForeground)")};
+    white-space: nowrap;
+`;
+
+const RowExpandChevron = styled.span`
+    flex-shrink: 0;
+    color: var(--vscode-descriptionForeground);
+    opacity: 0.7;
+    display: inline-flex;
+    align-items: center;
+`;
+
+const RowActions = styled.div`
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    /* Hidden by default; RowHeader hover/focus-within reveals via the
+       .mcp-row-actions class hook. */
+    visibility: hidden;
+`;
+
+const RowIconButton = styled.button<{ $danger?: boolean }>`
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-font-family);
+
+    &:hover {
+        background: ${(p: { $danger?: boolean }) => (p.$danger
+            ? "var(--vscode-inputValidation-errorBackground, var(--vscode-toolbar-hoverBackground))"
+            : "var(--vscode-toolbar-hoverBackground)")};
+        color: ${(p: { $danger?: boolean }) => (p.$danger
+            ? "var(--vscode-errorForeground)"
+            : "var(--vscode-foreground)")};
+    }
+
+    .codicon { font-size: 14px; }
+`;
+
+const StatusDot = styled.span<{ $status: McpServerStatusDTO["status"] }>`
     width: 8px;
     height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
-    background: ${(p: { status: McpServerStatusDTO["status"] }) => {
-        switch (p.status) {
+    background: ${(p: { $status: McpServerStatusDTO["status"] }) => {
+        switch (p.$status) {
             case "connected": return "var(--vscode-charts-green, #388a34)";
             case "connecting": return "var(--vscode-charts-blue, #007acc)";
             case "failed": return "var(--vscode-errorForeground, #f48771)";
@@ -248,30 +346,15 @@ const StatusDot = styled.span<{ status: McpServerStatusDTO["status"] }>`
     }};
 `;
 
-const CardSubline = styled.div`
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-`;
-
-const CardError = styled.div`
+const RowError = styled.div`
+    padding: 0 12px 8px 28px;
     font-size: 11px;
     color: var(--vscode-errorForeground);
     word-break: break-word;
 `;
 
-const ToolsExpand = styled.button`
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: transparent;
-    border: none;
-    color: var(--vscode-foreground);
-    font-size: 11px;
-    cursor: pointer;
-    padding: 0;
-    align-self: flex-start;
-
-    &:hover { opacity: 0.85; }
+const ExpandedToolsArea = styled.div`
+    padding: 0 12px 10px 28px;
 `;
 
 const ToolsList = styled.div`
@@ -339,13 +422,6 @@ const ToolDesc = styled.span`
     text-overflow: ellipsis;
 `;
 
-const ActionRow = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 4px;
-`;
-
 const TogglePendingSlot = styled.span`
     width: 30px;
     height: 16px;
@@ -356,17 +432,26 @@ const TogglePendingSlot = styled.span`
     flex-shrink: 0;
 `;
 
-const ToggleSwitch = styled.button<{ on: boolean }>`
+const SectionGroupToggleSlot = styled.span<{ $pending: boolean }>`
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    /* Hidden until section header hover/focus; pending state stays visible
+       so the in-flight transition is observable even off-hover. */
+    visibility: ${(p: { $pending: boolean }) => (p.$pending ? "visible" : "hidden")};
+`;
+
+const ToggleSwitch = styled.button<{ $on: boolean }>`
     width: 30px;
     height: 16px;
     border-radius: 8px;
     cursor: pointer;
     position: relative;
     flex-shrink: 0;
-    background: ${(p: { on: boolean }) => (p.on
+    background: ${(p: { $on: boolean }) => (p.$on
         ? "var(--vscode-inputOption-activeBackground, var(--vscode-focusBorder))"
         : "var(--vscode-input-background)")};
-    border: 1px solid ${(p: { on: boolean }) => (p.on
+    border: 1px solid ${(p: { $on: boolean }) => (p.$on
         ? "var(--vscode-inputOption-activeBorder, var(--vscode-checkbox-border, transparent))"
         : "var(--vscode-checkbox-border, var(--vscode-input-border, transparent))")};
     transition: background 0.15s, border-color 0.15s;
@@ -375,7 +460,7 @@ const ToggleSwitch = styled.button<{ on: boolean }>`
         content: "";
         position: absolute;
         top: 1px;
-        left: ${(p: { on: boolean }) => (p.on ? "15px" : "1px")};
+        left: ${(p: { $on: boolean }) => (p.$on ? "15px" : "1px")};
         width: 12px;
         height: 12px;
         border-radius: 50%;
@@ -397,8 +482,22 @@ const ConfirmRow = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11px;
+    min-width: 0;
+    font-size: 12px;
     color: var(--vscode-foreground);
+    font-family: var(--vscode-font-family);
+`;
+
+const ConfirmText = styled.span`
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    strong {
+        font-weight: 600;
+    }
 `;
 
 const Spacer = styled.div`
@@ -596,79 +695,102 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
         const isTogglePending = pendingToggle.has(key);
         const groupActive = groupStates[s.scope];
         const toolCount = s.tools.length;
-        const subline = s.status === "connected"
-            ? `${s.transport} · ${toolCount} tool${toolCount === 1 ? "" : "s"}`
+        const hasTools = toolCount > 0;
+        const dim = !s.enabled || !groupActive;
+        const statusText = s.status === "connected"
+            ? `${toolCount} tool${toolCount === 1 ? "" : "s"}`
             : s.status === "connecting"
-                ? `${s.transport} · connecting…`
+                ? "connecting…"
                 : s.status === "failed"
-                    ? `${s.transport} · failed`
-                    : `${s.transport} · disabled`;
+                    ? "failed"
+                    : "disabled";
+        const meta = `${s.transport} · ${statusText}${s.shadowed ? " · shadowed by project" : ""}`;
 
         return (
-            <ServerCard key={key}>
-                <CardHeader>
-                    <StatusDot status={s.status} />
-                    <CardName title={s.name}>{s.name}</CardName>
-                    {isTogglePending ? (
-                        <TogglePendingSlot title={s.enabled ? "Disabling…" : "Enabling…"}>
-                            <span className="codicon codicon-loading codicon-modifier-spin" style={{ fontSize: 12 }} />
-                        </TogglePendingSlot>
-                    ) : (
-                        <ToggleSwitch
-                            type="button"
-                            on={s.enabled}
-                            disabled={isTogglePending || !groupActive}
-                            title={!groupActive ? `${scopeHeading(s.scope)} group is off — enable the group to change individual servers` : s.enabled ? "Disable this server" : "Enable this server"}
-                            onClick={() => handleToggleServer(s)}
-                        />
-                    )}
-                </CardHeader>
-                <CardSubline>{subline}{s.shadowed ? " · shadowed by project" : ""}</CardSubline>
-                {s.status === "failed" && s.error && <CardError>{s.error}</CardError>}
-
-                {toolCount > 0 && (
-                    <>
-                        <ToolsExpand type="button" onClick={() => toggleExpanded(key)}>
-                            <span className={`codicon codicon-${isExpanded ? "chevron-down" : "chevron-right"}`} style={{ fontSize: 12 }} />
-                            Tools ({toolCount})
-                        </ToolsExpand>
-                        {isExpanded && (
-                            <ToolsList>
-                                {s.tools.map(t => (
-                                    <ToolRow key={t.name}>
-                                        <ToolIcon>
-                                            <span className="codicon codicon-symbol-method" style={{ fontSize: 12 }} />
-                                        </ToolIcon>
-                                        <ToolBody>
-                                            <ToolName title={t.name}>{t.name}</ToolName>
-                                            {t.description && (
-                                                <ToolDesc className="tool-desc" title={t.description}>{t.description}</ToolDesc>
-                                            )}
-                                        </ToolBody>
-                                    </ToolRow>
-                                ))}
-                            </ToolsList>
-                        )}
-                    </>
-                )}
-
-                <ActionRow>
+            <ServerRow key={key}>
+                <RowHeader>
                     {isConfirming ? (
                         <ConfirmRow>
-                            <span>Delete this server?</span>
+                            <ConfirmText>Delete <strong>{s.name}</strong>?</ConfirmText>
                             <Spacer />
                             <DeleteButton type="button" onClick={() => handleDelete(s)}>Yes, delete</DeleteButton>
                             <ActionButton type="button" onClick={() => setConfirmDelete(null)}>Cancel</ActionButton>
                         </ConfirmRow>
                     ) : (
                         <>
-                            <Spacer />
-                            <ActionButton type="button" onClick={() => handleEdit(s)}>Edit</ActionButton>
-                            <DeleteButton type="button" onClick={() => setConfirmDelete(key)}>Delete</DeleteButton>
+                            <StatusDot $status={s.status} />
+                            <RowNameButton
+                                type="button"
+                                $clickable={hasTools}
+                                onClick={() => hasTools && toggleExpanded(key)}
+                                title={hasTools ? (isExpanded ? "Hide tools" : "Show tools") : s.name}
+                            >
+                                <RowName $dim={dim} title={s.name}>{s.name}</RowName>
+                                <RowMeta $failed={s.status === "failed"}>{meta}</RowMeta>
+                                {hasTools && (
+                                    <RowExpandChevron>
+                                        <span className={`codicon codicon-${isExpanded ? "chevron-down" : "chevron-right"}`} style={{ fontSize: 11 }} />
+                                    </RowExpandChevron>
+                                )}
+                            </RowNameButton>
+                            <RowActions className="mcp-row-actions">
+                                <RowIconButton
+                                    type="button"
+                                    title="Edit server"
+                                    aria-label="Edit server"
+                                    onClick={() => handleEdit(s)}
+                                >
+                                    <span className="codicon codicon-edit" />
+                                </RowIconButton>
+                                <RowIconButton
+                                    type="button"
+                                    $danger
+                                    title="Delete server"
+                                    aria-label="Delete server"
+                                    onClick={() => setConfirmDelete(key)}
+                                >
+                                    <span className="codicon codicon-trash" />
+                                </RowIconButton>
+                            </RowActions>
+                            {isTogglePending ? (
+                                <TogglePendingSlot title={s.enabled ? "Disabling…" : "Enabling…"}>
+                                    <span className="codicon codicon-loading codicon-modifier-spin" style={{ fontSize: 12 }} />
+                                </TogglePendingSlot>
+                            ) : (
+                                <ToggleSwitch
+                                    type="button"
+                                    $on={s.enabled}
+                                    disabled={isTogglePending || !groupActive}
+                                    title={!groupActive ? `${scopeHeading(s.scope)} group is off — enable the group to change individual servers` : s.enabled ? "Disable this server" : "Enable this server"}
+                                    onClick={() => handleToggleServer(s)}
+                                />
+                            )}
                         </>
                     )}
-                </ActionRow>
-            </ServerCard>
+                </RowHeader>
+
+                {s.status === "failed" && s.error && <RowError>{s.error}</RowError>}
+
+                {hasTools && isExpanded && (
+                    <ExpandedToolsArea>
+                        <ToolsList>
+                            {s.tools.map(t => (
+                                <ToolRow key={t.name}>
+                                    <ToolIcon>
+                                        <span className="codicon codicon-symbol-method" style={{ fontSize: 12 }} />
+                                    </ToolIcon>
+                                    <ToolBody>
+                                        <ToolName title={t.name}>{t.name}</ToolName>
+                                        {t.description && (
+                                            <ToolDesc className="tool-desc" title={t.description}>{t.description}</ToolDesc>
+                                        )}
+                                    </ToolBody>
+                                </ToolRow>
+                            ))}
+                        </ToolsList>
+                    </ExpandedToolsArea>
+                )}
+            </ServerRow>
         );
     };
 
@@ -701,18 +823,23 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                         <span className={`codicon codicon-${isCollapsed ? "chevron-right" : "chevron-down"}`} />
                         {scopeHeading(scope)} ({items.length})
                     </SectionTitleButton>
-                    {groupPending ? (
-                        <TogglePendingSlot title={groupOn ? "Disabling group…" : "Enabling group…"}>
-                            <span className="codicon codicon-loading codicon-modifier-spin" style={{ fontSize: 12 }} />
-                        </TogglePendingSlot>
-                    ) : (
-                        <ToggleSwitch
-                            type="button"
-                            on={groupOn}
-                            title={groupOn ? `Disable all ${scopeHeading(scope).toLowerCase()} servers` : `Enable all ${scopeHeading(scope).toLowerCase()} servers`}
-                            onClick={() => handleToggleGroup(scope)}
-                        />
-                    )}
+                    <SectionGroupToggleSlot
+                        className="mcp-group-toggle-slot"
+                        $pending={groupPending}
+                    >
+                        {groupPending ? (
+                            <TogglePendingSlot title={groupOn ? "Disabling group…" : "Enabling group…"}>
+                                <span className="codicon codicon-loading codicon-modifier-spin" style={{ fontSize: 12 }} />
+                            </TogglePendingSlot>
+                        ) : (
+                            <ToggleSwitch
+                                type="button"
+                                $on={groupOn}
+                                title={groupOn ? `Disable all ${scopeHeading(scope).toLowerCase()} servers` : `Enable all ${scopeHeading(scope).toLowerCase()} servers`}
+                                onClick={() => handleToggleGroup(scope)}
+                            />
+                        )}
+                    </SectionGroupToggleSlot>
                     <SectionDivider />
                     <Button
                         appearance="icon"
@@ -723,7 +850,16 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                         <Codicon name="go-to-file" />
                     </Button>
                 </SectionHeader>
-                {!isCollapsed && items.map(renderCard)}
+                {!isCollapsed && (
+                    <>
+                        <SectionHelper>
+                            {scope === "workspace"
+                                ? "Used only with this project"
+                                : "Available across all your projects"}
+                        </SectionHelper>
+                        <RowsContainer>{items.map(renderCard)}</RowsContainer>
+                    </>
+                )}
             </Section>
         );
     };
@@ -741,7 +877,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                     <ExperimentalTag size="sm" label="Beta" tooltip="MCP tool support is in beta and may change." />
                     <HeaderInlineToggle
                         type="button"
-                        on={mcpToolsEnabled}
+                        $on={mcpToolsEnabled}
                         title={mcpToolsEnabled ? "Disable MCP" : "Enable MCP"}
                         onClick={handleToggleGlobal}
                     />
