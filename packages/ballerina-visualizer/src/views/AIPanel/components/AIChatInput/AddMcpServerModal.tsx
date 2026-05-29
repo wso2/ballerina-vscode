@@ -159,29 +159,6 @@ const Input = styled.input<{ hasError?: boolean }>`
     }
 `;
 
-const Textarea = styled.textarea`
-    background: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, var(--vscode-panel-border)));
-    border-radius: 3px;
-    padding: 6px 8px;
-    font-size: 12px;
-    font-family: var(--vscode-editor-font-family, ui-monospace, monospace);
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 64px;
-    resize: vertical;
-
-    &:focus {
-        outline: none;
-        border-color: var(--vscode-focusBorder, var(--vscode-button-background));
-    }
-
-    &::placeholder {
-        color: var(--vscode-input-placeholderForeground, var(--vscode-descriptionForeground));
-    }
-`;
-
 const KvTable = styled.div`
     display: flex;
     flex-direction: column;
@@ -191,6 +168,13 @@ const KvTable = styled.div`
 const KvRowEl = styled.div`
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 24px;
+    gap: 6px;
+    align-items: center;
+`;
+
+const ArgRowEl = styled.div`
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 24px;
     gap: 6px;
     align-items: center;
 `;
@@ -288,13 +272,41 @@ const SecondaryButton = styled(BaseButton)`
     }
 `;
 
-/** Split a multi-line args textarea into a list, dropping empty lines. */
-function splitArgLines(value: string): string[] {
-    return value
-        .split(/\r?\n/)
-        .map(s => s.trimEnd())
-        .filter(s => s.length > 0);
+interface ArgsEditorProps {
+    rows: string[];
+    onChange: (rows: string[]) => void;
 }
+
+const ArgsEditor: React.FC<ArgsEditorProps> = ({ rows, onChange }) => {
+    const updateRow = (idx: number, value: string) => {
+        const next = rows.slice();
+        next[idx] = value;
+        onChange(next);
+    };
+    const removeRow = (idx: number) => {
+        const next = rows.slice();
+        next.splice(idx, 1);
+        onChange(next);
+    };
+    return (
+        <KvTable>
+            {rows.map((row, idx) => (
+                <ArgRowEl key={idx}>
+                    <Input
+                        type="text"
+                        value={row}
+                        placeholder="argument"
+                        onChange={(e) => updateRow(idx, e.target.value)}
+                    />
+                    <KvRemove type="button" title="Remove" onClick={() => removeRow(idx)}>
+                        <span className="codicon codicon-trash" style={{ fontSize: 12 }} />
+                    </KvRemove>
+                </ArgRowEl>
+            ))}
+            <KvAdd type="button" onClick={() => onChange([...rows, ""])}>+ Add argument</KvAdd>
+        </KvTable>
+    );
+};
 
 type KvRow = { key: string; value: string };
 
@@ -368,7 +380,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
     const [transport, setTransport] = useState<Transport>("stdio");
     const [name, setName] = useState("");
     const [command, setCommand] = useState("");
-    const [argsText, setArgsText] = useState("");
+    const [argsRows, setArgsRows] = useState<string[]>([]);
     const [envRows, setEnvRows] = useState<KvRow[]>([]);
     const [url, setUrl] = useState("");
     const [headerRows, setHeaderRows] = useState<KvRow[]>([]);
@@ -394,7 +406,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             setTransport("stdio");
             setName("");
             setCommand("");
-            setArgsText("");
+            setArgsRows([]);
             setEnvRows([]);
             setUrl("");
             setHeaderRows([]);
@@ -409,7 +421,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             setName(editTarget.name);
             if (editTarget.config.type === "stdio") {
                 setCommand(editTarget.config.command);
-                setArgsText((editTarget.config.args ?? []).join("\n"));
+                setArgsRows(editTarget.config.args ?? []);
                 setEnvRows(recordToRows(editTarget.config.env));
                 setUrl("");
                 setHeaderRows([]);
@@ -417,7 +429,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                 setUrl(editTarget.config.url);
                 setHeaderRows(recordToRows(editTarget.config.headers));
                 setCommand("");
-                setArgsText("");
+                setArgsRows([]);
                 setEnvRows([]);
             }
             setServerError(null);
@@ -461,7 +473,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
         setServerError(null);
         let config: McpServerConfigDTO;
         if (transport === "stdio") {
-            const args = splitArgLines(argsText);
+            const args = argsRows.map(a => a.trim()).filter(Boolean);
             const env = rowsToRecord(envRows);
             config = {
                 type: "stdio",
@@ -570,15 +582,8 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                                 />
                             </FieldGroup>
                             <FieldGroup>
-                                <Label htmlFor="mcp-args">Arguments</Label>
-                                <Textarea
-                                    id="mcp-args"
-                                    value={argsText}
-                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setArgsText(e.target.value)}
-                                    placeholder={"-y\nyour-mcp-package"}
-                                    rows={3}
-                                />
-                                <Hint>One argument per line. Empty lines are ignored.</Hint>
+                                <Label>Arguments</Label>
+                                <ArgsEditor rows={argsRows} onChange={setArgsRows} />
                             </FieldGroup>
                             <FieldGroup>
                                 <Label>Environment variables</Label>
