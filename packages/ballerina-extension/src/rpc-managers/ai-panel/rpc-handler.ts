@@ -143,9 +143,6 @@ import {
     getMcpPreviewEnabled,
     getMcpWorkspaceContext,
     getMcpLoadErrors,
-    getMcpGroupStates,
-    setMcpGroupEnabled,
-    SetMcpGroupEnabledRequest,
     OpenMcpConfigRequest,
     getAgentsMdFileInfo,
     openOrCreateAgentsMd,
@@ -248,8 +245,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getMcpPreviewEnabled, () => rpcManger.getMcpPreviewEnabled());
     messenger.onRequest(getMcpWorkspaceContext, () => rpcManger.getMcpWorkspaceContext());
     messenger.onRequest(getMcpLoadErrors, () => rpcManger.getMcpLoadErrors());
-    messenger.onRequest(getMcpGroupStates, () => rpcManger.getMcpGroupStates());
-    messenger.onRequest(setMcpGroupEnabled, (args: SetMcpGroupEnabledRequest) => rpcManger.setMcpGroupEnabled(args));
     messenger.onRequest(getAgentsMdFileInfo, () => rpcManger.getAgentsMdFileInfo());
     messenger.onRequest(openOrCreateAgentsMd, () => rpcManger.openOrCreateAgentsMd());
 

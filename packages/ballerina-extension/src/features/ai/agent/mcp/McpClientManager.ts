@@ -228,7 +228,7 @@ export class McpClientManager {
                 this.servers.delete(key);
                 continue;
             }
-            const enabled = this.isEffectivelyEnabled(desired.scope, desired.name, desired.config);
+            const enabled = this.isServerEnabled(desired.scope, desired.name, desired.config);
             const configChanged = configKey(desired.config) !== configKey(state.config);
             if (configChanged) {
                 await this.disconnect(state);
@@ -244,7 +244,7 @@ export class McpClientManager {
         const opens: Promise<void>[] = [];
         for (const entry of entries) {
             const key = keyOf(entry.scope, entry.name);
-            const enabled = this.isEffectivelyEnabled(entry.scope, entry.name, entry.config);
+            const enabled = this.isServerEnabled(entry.scope, entry.name, entry.config);
             if (!enabled) {
                 this.servers.set(key, {
                     scope: entry.scope,
@@ -299,27 +299,6 @@ export class McpClientManager {
         return cfg.disabled !== true;
     }
 
-    isGroupEnabled(scope: McpScope): boolean {
-        return this.enabledOverrides.get(`group:${scope}`) !== false;
-    }
-
-    private isEffectivelyEnabled(scope: McpScope, name: string, cfg: McpServerConfig): boolean {
-        return this.isGroupEnabled(scope) && this.isServerEnabled(scope, name, cfg);
-    }
-
-    getGroupStates(): { user: boolean; workspace: boolean; builtin: boolean } {
-        return {
-            user: this.isGroupEnabled("user"),
-            workspace: this.isGroupEnabled("workspace"),
-            builtin: this.isGroupEnabled("builtin"),
-        };
-    }
-
-    async setGroupEnabled(scope: McpScope, enabled: boolean): Promise<void> {
-        await this.enabledOverrides.set(`group:${scope}`, enabled);
-        await this.refresh();
-    }
-
     async deleteServerOverride(scope: McpScope, name: string): Promise<void> {
         await this.enabledOverrides.delete(keyOf(scope, name));
     }
@@ -332,7 +311,6 @@ export class McpClientManager {
             ...this.builtInEntries().map(e => keyOf(e.scope, e.name)),
         ]);
         for (const key of this.enabledOverrides.keys()) {
-            if (key.startsWith("group:")) { continue; }
             if (!liveKeys.has(key)) {
                 await this.enabledOverrides.delete(key);
             }

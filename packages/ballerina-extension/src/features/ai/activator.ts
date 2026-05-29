@@ -46,7 +46,7 @@ import { initMcpClientManager, disposeMcpClientManager, watchMcpConfig, getMcpCl
 import { registerAgentsMdWatcher } from './agent/agents-md';
 import { resolveProjectRootPath } from './agent';
 import { extension } from '../../BalExtensionContext';
-import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged, notifyMcpGroupStatesChanged } from '../../RPCLayer';
+import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged } from '../../RPCLayer';
 import { sendConfigChangeNotification } from './utils/ai-utils';
 
 /**
@@ -302,7 +302,6 @@ function setupMcp(): void {
         try {
             notifyMcpServersChanged(manager.listServers());
             notifyMcpLoadErrorsChanged(manager.getLoadErrors());
-            notifyMcpGroupStatesChanged(manager.getGroupStates());
         } catch (err) {
             console.warn('[mcp] Failed to push servers-changed notification:', err);
         }
@@ -338,7 +337,6 @@ async function teardownMcp(): Promise<void> {
     try {
         notifyMcpServersChanged([]);
         notifyMcpLoadErrorsChanged({});
-        notifyMcpGroupStatesChanged({ user: true, workspace: true, builtin: true });
     } catch (err) {
         console.warn('[mcp] Failed to push empty servers list on teardown:', err);
     }
