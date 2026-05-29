@@ -537,8 +537,8 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
     }
 
     /**
-     * Returns the unescaped contents of a double-quoted string literal expression, or {@code null} if {@code expr}
-     * is not such a literal. Used to decide whether the description can be safely hoisted into the doc-comment form.
+     * Returns the contents of a double-quoted string literal expression, or {@code null} if {@code expr} is not
+     * such a literal. Used to decide whether the description can be safely hoisted into the doc-comment form.
      */
     private static String extractStringLiteral(ExpressionNode expr) {
         if (!(expr instanceof BasicLiteralNode literal)) {
@@ -548,31 +548,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
         if (text.length() < 2 || !text.startsWith("\"") || !text.endsWith("\"")) {
             return null;
         }
-        return unescapeBalString(text.substring(1, text.length() - 1));
-    }
-
-    private static String unescapeBalString(String s) {
-        StringBuilder out = new StringBuilder(s.length());
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (c == '\\' && i + 1 < s.length()) {
-                char next = s.charAt(++i);
-                switch (next) {
-                    case 'n' -> out.append('\n');
-                    case 't' -> out.append('\t');
-                    case 'r' -> out.append('\r');
-                    case '\\' -> out.append('\\');
-                    case '"' -> out.append('"');
-                    default -> {
-                        out.append('\\');
-                        out.append(next);
-                    }
-                }
-            } else {
-                out.append(c);
-            }
-        }
-        return out.toString();
+        return text.substring(1, text.length() - 1);
     }
 
     private static Value buildToolDescriptionValue(String description) {
