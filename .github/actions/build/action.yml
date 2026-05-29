@@ -1,52 +1,57 @@
 name: "Build Ballerina VSIX"
+# Composite-action inputs only support description / required / default. The
+# 'type:' key is silently ignored by the Actions runtime — drop it. All input
+# values are passed as strings.
 inputs:
   isPreRelease:
-    default: true
-    type: boolean
+    description: Whether this is a prerelease build
+    required: false
+    default: 'true'
   ballerinaLsTag:
     description: Override Ballerina LS download tag (latest, prerelease, v1.5.0). Overrides isPreRelease for LS download.
-    type: string
     required: false
     default: ''
   enableCache:
-    default: true
-    type: boolean
+    description: Enable rush/pnpm install caches
+    required: false
+    default: 'true'
   enableLSCache:
-    default: false
-    type: boolean
+    description: Enable cache for the Ballerina LS jar
+    required: false
+    default: 'false'
   ballerina:
     description: Update Ballerina extension version
-    type: boolean
     required: false
-    default: false
+    default: 'false'
   version:
-    default: "N/A"
-    type: string
+    description: Version bump kind (patch/minor/major) or N/A
     required: false
+    default: 'N/A'
   balVersion:
-    default: 2201.13.2
-    type: string
+    description: Ballerina distribution version
+    required: false
+    default: '2201.13.2'
   token:
-    type: string
+    description: GitHub token for the LS download / publish steps
     required: false
   BALLERINA_AUTH_ORG:
-    type: string
+    required: false
   BALLERINA_AUTH_CLIENT_ID:
-    type: string
-  BALLERINA_DEV_COPLIOT_ROOT_URL:
-    type: string
-  BALLERINA_DEV_COPLIOT_AUTH_ORG:
-    type: string
-  BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID:
-    type: string
-  BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL:
-    type: string
+    required: false
+  BALLERINA_DEV_COPILOT_ROOT_URL:
+    required: false
+  BALLERINA_DEV_COPILOT_AUTH_ORG:
+    required: false
+  BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID:
+    required: false
+  BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL:
+    required: false
   COPILOT_ROOT_URL:
-    type: string
+    required: false
   COPILOT_DEV_ROOT_URL:
-    type: string
+    required: false
   APPINSIGHTS_INSTRUMENTATION_KEY:
-    type: string
+    required: false
 
 runs:
   using: "composite"
@@ -118,7 +123,6 @@ runs:
       with:
         path: packages/ballerina-extension/ls
         key: ballerina-ls-${{ steps.resolve-ballerina-ls-version.outputs.version }}
-        retention-days: 1
 
     - name: Build repo
       shell: bash
@@ -138,10 +142,10 @@ runs:
         packagePAT: ${{ inputs.token != '' && inputs.token || github.token }}
         BALLERINA_AUTH_ORG: ${{ inputs.BALLERINA_AUTH_ORG }}
         BALLERINA_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_AUTH_CLIENT_ID }}
-        BALLERINA_DEV_COPLIOT_ROOT_URL: ${{ inputs.BALLERINA_DEV_COPLIOT_ROOT_URL }}
-        BALLERINA_DEV_COPLIOT_AUTH_ORG: ${{ inputs.BALLERINA_DEV_COPLIOT_AUTH_ORG }}
-        BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID }}
-        BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL: ${{ inputs.BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL }}
+        BALLERINA_DEV_COPILOT_ROOT_URL: ${{ inputs.BALLERINA_DEV_COPILOT_ROOT_URL }}
+        BALLERINA_DEV_COPILOT_AUTH_ORG: ${{ inputs.BALLERINA_DEV_COPILOT_AUTH_ORG }}
+        BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID }}
+        BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL: ${{ inputs.BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL }}
         COPILOT_ROOT_URL: ${{ inputs.COPILOT_ROOT_URL }}
         COPILOT_DEV_ROOT_URL: ${{ inputs.COPILOT_DEV_ROOT_URL }}
         APPINSIGHTS_INSTRUMENTATION_KEY: ${{ inputs.APPINSIGHTS_INSTRUMENTATION_KEY }}

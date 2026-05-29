@@ -100,10 +100,14 @@ jobs:
           token: ${{ secrets.CHOREO_BOT_TOKEN }}
           BALLERINA_AUTH_ORG: ${{ secrets.BALLERINA_AUTH_ORG }}
           BALLERINA_AUTH_CLIENT_ID: ${{ secrets.BALLERINA_AUTH_CLIENT_ID }}
-          BALLERINA_DEV_COPLIOT_ROOT_URL: ${{ secrets.BALLERINA_DEV_COPLIOT_ROOT_URL }}
-          BALLERINA_DEV_COPLIOT_AUTH_ORG: ${{ secrets.BALLERINA_DEV_COPLIOT_AUTH_ORG }}
-          BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID: ${{ secrets.BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID }}
-          BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL: ${{ secrets.BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL }}
+          # NOTE: input keys (left) use the corrected COPILOT spelling;
+          # secret names (right) keep the COPLIOT typo to match what's
+          # configured on the org. Rename the org secrets and update the
+          # right side when convenient.
+          BALLERINA_DEV_COPILOT_ROOT_URL: ${{ secrets.BALLERINA_DEV_COPLIOT_ROOT_URL }}
+          BALLERINA_DEV_COPILOT_AUTH_ORG: ${{ secrets.BALLERINA_DEV_COPLIOT_AUTH_ORG }}
+          BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID: ${{ secrets.BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID }}
+          BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL: ${{ secrets.BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL }}
           COPILOT_ROOT_URL: ${{ secrets.COPILOT_ROOT_URL }}
           COPILOT_DEV_ROOT_URL: ${{ secrets.COPILOT_DEV_ROOT_URL }}
           APPINSIGHTS_INSTRUMENTATION_KEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATION_KEY }}
