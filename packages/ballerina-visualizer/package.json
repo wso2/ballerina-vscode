@@ -14,7 +14,8 @@
     "deploy": "npm publish",
     "postbuild": "node ./scripts/clean-jslibs.js && copyfiles -u 1 -V build/*.js build/fonts/* build/images/* -e build/*.txt ../ballerina-extension/resources/jslibs",
     "test": "jest",
-    "test:updateSnapshots": "jest --updateSnapshot"
+    "test:updateSnapshots": "jest --updateSnapshot",
+    "test:coverage": "jest FileIntegrationForm --coverage --collectCoverageFrom='src/views/BI/ServiceDesigner/Forms/FileIntegrationForm/**/*.{ts,tsx}' --collectCoverageFrom='!**/FileIntegrationConfigForm.tsx'"
   },
   "keywords": [],
   "dependencies": {

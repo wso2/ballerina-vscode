@@ -17,48 +17,29 @@
  */
 
 import React from "react";
-import { FunctionModel, ServiceModel } from "@wso2/ballerina-core";
-import { FileIntegrationForm, FileIntegrationFormProps } from "./index";
-import { renderWithRpc } from "../../../../../test/test-utils";
+import fs from "fs";
+import path from "path";
+import { FileIntegrationForm } from "./index";
+import { renderWithRpc, propsFromFixture, FileIntegrationFixture } from "../../../../../test/test-utils";
 import { buildSnapshot } from "../../../../../test/snapshot-utils";
 
-import existingHandler from "./__fixtures__/existingHandler.json";
-import newHandler from "./__fixtures__/newHandler.json";
-
-const existingServiceModel = existingHandler.serviceModel as unknown as ServiceModel;
-const existingFunctionModel = existingHandler.functionModel as unknown as FunctionModel;
-const newServiceModel = newHandler.serviceModel as unknown as ServiceModel;
-
-const buildProps = (overrides: Partial<FileIntegrationFormProps> = {}): FileIntegrationFormProps => ({
-    model: existingServiceModel,
-    functionModel: existingFunctionModel,
-    isSaving: false,
-    isNew: false,
-    filePath: "/project/service.bal",
-    selectedHandler: "onCreate",
-    onSave: jest.fn(),
-    onClose: jest.fn(),
-    ...overrides,
-});
-
 /**
- * Renders the form and returns an Emotion-normalized snapshot string. The
- * normalization makes these snapshots survive component extraction and Emotion
- * hash churn — only genuine structural changes alter the snapshot.
+ * Snapshot cases are GENERATED from fixtures: every *.json in __fixtures__/ produces
+ * one Emotion-normalized snapshot. To add a snapshot, drop a fixture file and run
+ * `pnpm test:updateSnapshots` — no test code to write. The normalization makes these
+ * survive component extraction and Emotion hash churn (only real structural changes
+ * alter the snapshot).
  */
-const snapshotForm = (overrides: Partial<FileIntegrationFormProps> = {}): string => {
-    const { container } = renderWithRpc(<FileIntegrationForm {...buildProps(overrides)} />);
-    return buildSnapshot(container);
-};
+const fixturesDir = path.join(__dirname, "__fixtures__");
+const fixtures: { file: string; data: FileIntegrationFixture }[] = fs
+    .readdirSync(fixturesDir)
+    .filter((f) => f.endsWith(".json"))
+    .sort()
+    .map((file) => ({ file, data: require(path.join(fixturesDir, file)) as FileIntegrationFixture }));
 
 describe("FileIntegrationForm - snapshots", () => {
-    it("renders the existing-handler fixture", () => {
-        expect(snapshotForm()).toMatchSnapshot("existing-handler");
-    });
-
-    it("renders the new-handler fixture (isNew)", () => {
-        expect(
-            snapshotForm({ isNew: true, functionModel: undefined, model: newServiceModel })
-        ).toMatchSnapshot("new-handler");
+    it.each(fixtures)("renders fixture $file", ({ file, data }) => {
+        const { container } = renderWithRpc(<FileIntegrationForm {...propsFromFixture(data)} />);
+        expect(buildSnapshot(container)).toMatchSnapshot(data.name ?? file);
     });
 });

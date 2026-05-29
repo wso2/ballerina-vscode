@@ -52,6 +52,8 @@ module.exports = {
         'src/**/*.{ts,tsx}',
         '!src/**/*.d.ts',
         '!src/**/*.stories.{ts,tsx}',
-        '!src/test/**/*'
+        '!src/test/**/*',
+        // Separate component used by ServiceDesigner, not part of FileIntegrationForm's scope.
+        '!src/**/FileIntegrationConfigForm.tsx'
     ]
 };

@@ -1,0 +1,33 @@
+{
+    "_comment": "Edit mode with a parameter flagged advanced:true. Drives the collapsible 'Advanced Parameters' section and its toggle checkbox.",
+    "name": "advanced-params",
+    "isNew": false,
+    "selectedHandler": "onCreate",
+    "filePath": "/project/service.bal",
+    "model": {
+        "id": 0,
+        "name": "ftpService",
+        "type": "ftp",
+        "moduleName": "ftp",
+        "orgName": "ballerinax",
+        "version": "1.0.0",
+        "packageName": "ftp",
+        "listenerProtocol": "ftp",
+        "icon": "",
+        "functions": []
+    },
+    "functionModel": {
+        "metadata": { "label": "onCreate", "description": "Triggered when a file is created" },
+        "kind": "REMOTE",
+        "enabled": true,
+        "optional": false,
+        "editable": true,
+        "codedata": { "lineRange": { "fileName": "service.bal", "startLine": { "line": 5, "offset": 4 }, "endLine": { "line": 8, "offset": 5 } } },
+        "name": { "metadata": { "label": "JSON", "description": "Handle the file as JSON" }, "value": "onCreate", "enabled": true, "editable": false },
+        "parameters": [
+            { "kind": "DATA_BINDING", "enabled": true, "name": { "metadata": { "label": "Content" }, "value": "content" }, "type": { "metadata": {}, "value": "anydata", "placeholder": "anydata" } },
+            { "kind": "OPTIONAL", "advanced": true, "enabled": false, "metadata": { "label": "Connection timeout", "description": "Timeout in seconds for the connection" }, "name": { "metadata": { "label": "Timeout" }, "value": "timeout" }, "type": { "metadata": {}, "value": "decimal", "placeholder": "decimal" } }
+        ],
+        "returnType": { "metadata": { "label": "Return Type", "description": "" }, "value": "error?", "enabled": true, "editable": false }
+    }
+}

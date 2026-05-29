@@ -1,6 +1,10 @@
 {
-    "_comment": "Phase-1 hand-authored fixture shaped like a serviceDesigner getServiceModelFromCode / handler response. Edit mode (isNew=false): a single enabled FTP 'onCreate' handler. No file-format group (one variant) and no post-process actions, so the form renders simply and Save is enabled. Replace wholesale with a captured ballerina-language-server response in Phase 2.",
-    "serviceModel": {
+    "_comment": "Phase-1 hand-authored fixture. Edit mode: a single enabled FTP 'onCreate' handler. No file-format group (one variant) and no post-process actions, so the form renders simply and Save is enabled. Replace wholesale with a captured ballerina-language-server response in Phase 2.",
+    "name": "existing-handler",
+    "isNew": false,
+    "selectedHandler": "onCreate",
+    "filePath": "/project/service.bal",
+    "model": {
         "id": 0,
         "name": "ftpService",
         "type": "ftp",

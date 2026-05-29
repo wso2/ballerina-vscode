@@ -61,6 +61,40 @@ export function createMockRpcClient() {
 }
 
 /**
+ * Self-describing FileIntegrationForm fixture envelope. Hand-authored in Phase 1;
+ * swappable with captured language-server responses later. `model` is the
+ * ServiceModel; `serviceModel` is accepted as a legacy alias.
+ */
+export interface FileIntegrationFixture {
+    name?: string;
+    isNew?: boolean;
+    selectedHandler?: string;
+    filePath?: string;
+    model?: any;
+    serviceModel?: any;
+    functionModel?: any;
+}
+
+/**
+ * Maps a fixture envelope to FileIntegrationForm props, with `onSave`/`onClose`
+ * as jest spies and optional per-test overrides. Used by both the snapshot
+ * (auto-discovery) and behavioral test files so the mapping lives in one place.
+ */
+export function propsFromFixture(fx: FileIntegrationFixture, overrides: Record<string, any> = {}) {
+    return {
+        model: fx.model ?? fx.serviceModel,
+        functionModel: fx.functionModel,
+        isNew: fx.isNew ?? false,
+        selectedHandler: fx.selectedHandler,
+        filePath: fx.filePath ?? "/project/service.bal",
+        isSaving: false,
+        onSave: jest.fn(),
+        onClose: jest.fn(),
+        ...overrides,
+    };
+}
+
+/**
  * Renders `ui` inside the real (exported) RPC `Context.Provider` with a fake
  * rpcClient, so components that call `useRpcContext()` work in jsdom tests.
  *
