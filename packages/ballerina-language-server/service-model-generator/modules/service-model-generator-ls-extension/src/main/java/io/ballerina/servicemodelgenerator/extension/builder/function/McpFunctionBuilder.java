@@ -65,7 +65,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
     private static final String TOOL_DESCRIPTION_PROPERTY = "toolDescription";
 
     // mcp:Tool annotation handling
-    private static final String TOOL_ANNOTATION_SIMPLE_NAME = "Tool";
+    private static final String TOOL_ANNOTATION_REF = MCP + ":Tool";
     private static final String TOOL_ANNOTATION_PROPERTY = "annotTool";
     private static final String DESCRIPTION_FIELD_NAME = "description";
 
@@ -330,18 +330,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
 
         // Set tool description in function properties
         if (toolDescription != null && !toolDescription.isEmpty()) {
-            Value toolDescValue =
-                    new Value.ValueBuilder()
-                            .metadata("Tool Description", "Description of what this MCP tool does")
-                            .setPlaceholder("Describe what this tool does...")
-                            .types(List.of(PropertyType.types(Value.FieldType.TEXT, "string")))
-                            .value(toolDescription)
-                            .enabled(true)
-                            .editable(true)
-                            .optional(true)
-                            .setAdvanced(false)
-                            .build();
-            function.getProperties().put(TOOL_DESCRIPTION_PROPERTY, toolDescValue);
+            function.getProperties().put(TOOL_DESCRIPTION_PROPERTY, buildToolDescriptionValue(toolDescription));
         }
 
         // Set parameter documentation
@@ -452,15 +441,14 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
 
     /**
      * Hoists a string-literal {@code description} from the {@code @mcp:Tool} annotation into the
-     * {@code toolDescription} property and strips it from the annotation, preserving any other fields. Also seeds
-     * {@code annotTool.types} so the frontend form does not crash on the property the parent left without types.
+     * {@code toolDescription} property and strips it from the annotation, preserving any other fields.
      */
     private static void processToolAnnotation(Function function, MetadataNode metadata) {
         Value annotProperty = function.getProperties().get(TOOL_ANNOTATION_PROPERTY);
         if (annotProperty == null) {
             return;
         }
-        // Seed types: the form factory mounts every property and throws on null/empty types. Stays hidden via enabled=false.
+        // The parent leaves annotation-attachment properties without a types list; populate it so it is well-formed.
         if (annotProperty.getTypes() == null || annotProperty.getTypes().isEmpty()) {
             annotProperty.setTypes(new ArrayList<>(List.of(PropertyType.types(Value.FieldType.TEXT, "string"))));
         }
@@ -509,14 +497,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
 
     private static AnnotationNode findToolAnnotation(MetadataNode metadata) {
         for (AnnotationNode annotation : metadata.annotations()) {
-            String ref = annotation.annotReference().toString().trim();
-            int colonIdx = ref.indexOf(':');
-            if (colonIdx < 0) {
-                continue;
-            }
-            String module = ref.substring(0, colonIdx).trim();
-            String simple = ref.substring(colonIdx + 1).trim();
-            if (MCP.equals(module) && TOOL_ANNOTATION_SIMPLE_NAME.equals(simple)) {
+            if (TOOL_ANNOTATION_REF.equals(annotation.annotReference().toString().trim())) {
                 return annotation;
             }
         }
