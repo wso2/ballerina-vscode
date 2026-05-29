@@ -19,23 +19,12 @@
 import { McpServerConfig } from "./types";
 
 export interface BuiltInMcpServer {
-    /** Stable id used as the server name when added to the user's config. */
+    /** Stable id, also used as the server name. */
     id: string;
     displayName: string;
     description: string;
-    /** The config that will be written into the user's `mcp.json` on enable. */
     defaultConfig: McpServerConfig;
-    /**
-     * Marks servers that need credentials before they will connect. v1 surfaces
-     * the flag in the UI but does not run any auth flow yet.
-     */
-    requiresAuth?: boolean;
-    /**
-     * Optional. When `true`, this server is on by default on first run —
-     * useful for trusted WSO2 connectors that should "just work". When the
-     * field is omitted or `false`, the server is off until the user toggles
-     * it on. Either way, the user's choice overrides this and persists.
-     */
+    /** When true, the server is on by default on first run; the user's toggle still overrides and persists. */
     autoEnable?: boolean;
 }
 

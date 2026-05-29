@@ -19,7 +19,7 @@
 import { jsonSchema, tool, Tool } from "ai";
 
 import { CopilotEventHandler } from "../../utils/events";
-import { McpClientManager } from "./McpClientManager";
+import { getMcpClientManager, McpClientManager } from "./McpClientManager";
 import { namespaceToolName } from "./naming";
 
 /**
@@ -121,4 +121,10 @@ export function bridgeMcpTools(opts: BridgeOptions): Record<string, Tool> {
         }
     }
     return out;
+}
+
+/** Bridged tools from the active manager's connected servers; `{}` when MCP is off. */
+export function getMcpTools(eventHandler: CopilotEventHandler): Record<string, Tool> {
+    const manager = getMcpClientManager();
+    return manager ? bridgeMcpTools({ manager, eventHandler }) : {};
 }

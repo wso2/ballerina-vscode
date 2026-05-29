@@ -498,6 +498,18 @@ export function getMcpClientManager(): McpClientManager | undefined {
     return singleton;
 }
 
+/** Refresh the active manager so mid-session mcp.json edits take effect. No-op if MCP is off; errors are logged, never thrown. */
+export async function refreshMcpClientManager(): Promise<void> {
+    if (!singleton) {
+        return;
+    }
+    try {
+        await singleton.refresh();
+    } catch (err) {
+        console.warn('[mcp] refresh failed:', err);
+    }
+}
+
 export async function disposeMcpClientManager(): Promise<void> {
     if (singleton) {
         await singleton.dispose();
