@@ -44,7 +44,7 @@ jobs:
     runs-on: codebuild-ballerina-vscode-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Restore build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ExtBuild
           path: ./
@@ -55,7 +55,7 @@ jobs:
           rm build.zip
 
       - name: Setup Rush
-        uses: gigara/setup-rush@v1.2.0
+        uses: gigara/setup-rush@7ba3446572d15f5eacc85de383ad9679dfb7223c # v1.2.0
         with:
           pnpm: 10.11.0
           node: 22.x
@@ -97,7 +97,7 @@ jobs:
     if: ${{ always() && contains(needs.*.result, 'failure') && github.repository == 'wso2/ballerina-vscode' }}
     runs-on: codebuild-ballerina-vscode-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: "Failure Notification"
         uses: ./.github/actions/failure-notification
         with:
