@@ -90,7 +90,26 @@
      */
     "globalOverrides": {
       "lodash": ">=4.18.0",
-      "brace-expansion@>=5.0.0 <6": "5.0.6"
+      "brace-expansion@>=5.0.0 <6": "5.0.6",
+      // Security overrides — keep in sync with trivy findings. Bump to the
+      // first fix version listed for each CVE. If a bump breaks workspace
+      // consumers, narrow the selector (e.g. "pkg@<x.y.z": "x.y.z").
+      "@tootallnate/once": "3.0.1",
+      "braces": "3.0.3",
+      "dompurify": "3.4.0",
+      "http-proxy": "1.18.1",
+      "js-yaml@4": "4.1.1",
+      "micromatch": "4.0.8",
+      "prismjs": "1.30.0",
+      "protobufjs": "7.5.8",
+      "qs@6": "6.15.2",
+      "serialize-javascript": "7.0.5",
+      "tmp": "0.2.6",
+      // uuid 8.x has no in-line fix; bump to 11.1.1 (fix line for v11). Revert
+      // if this breaks consumers that strictly need uuid v8 API.
+      "uuid@8": "11.1.1",
+      "uuid@>=11 <11.1.1": "11.1.1",
+      "yaml@2": "2.8.3"
     },
   
     /**

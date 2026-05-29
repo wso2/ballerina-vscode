@@ -1,11 +1,5 @@
 name: Build master
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/ballerina-language-server/**'
-      - '.github/workflows/ls-build-master.yml'
   workflow_dispatch:
 
 defaults:

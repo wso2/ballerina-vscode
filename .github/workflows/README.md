@@ -9,9 +9,11 @@ then pruned to a ballerina-only monorepo. Paths have been rewritten to the new l
 | File | Source | Trigger |
 |---|---|---|
 | `ls-build-master.yml` | ballerina-language-server repo | push to main, scoped to `packages/ballerina-language-server/**` |
-| `ls-daily-build.yml` | ballerina-language-server repo | scheduled + manual |
 | `ls-publish-release.yml` | ballerina-language-server repo | manual release |
 | `ls-trivy.yml` | ballerina-language-server repo | scheduled security scan + manual |
+
+(The LS PR build and LS daily build are merged into `pull-request.yml` and
+`daily-build.yml` respectively.)
 
 Each has `defaults.run.working-directory: packages/ballerina-language-server` injected so
 `./gradlew …` steps resolve correctly from repo root.
@@ -21,8 +23,8 @@ Each has `defaults.run.working-directory: packages/ballerina-language-server` in
 | File | Trigger | Notes |
 |---|---|---|
 | `build.yml` | `workflow_call` only | Reusable build pipeline (ballerina-only) |
-| `daily-build.yml` | nightly cron + manual | Calls `build.yml` with `ballerina: true`, `runTests: true`, `runBalE2ETests: true` |
-| `pull-request.yml` | PRs + manual | Detects changes with `dorny/paths-filter`; runs LS gradle build (Ubuntu+Windows) and/or `build.yml` for the extension depending on what changed |
+| `daily-build.yml` | nightly cron + manual | Runs the LS multi-branch pack/test/Windows-build matrix **and** calls `build.yml` for the extension (with `runTests: true`, `runBalE2ETests: true`), then dispatches success/failure notifications |
+| `pull-request.yml` | PRs + manual | Detects changes with `dorny/paths-filter`; if anything build-relevant changed, runs `build.yml` which builds the entire chain (LS via Gradle, then all TS packages and the extension VSIX via rush) in a single job. Windows LS coverage runs in `daily-build.yml` only. |
 | `release-vsix.yml` | manual dispatch | Builds, creates GitHub release, opens version-bump PR back to `stable/ballerina` |
 | `publish-vsix.yml` | manual dispatch | Publishes a built VSIX (passed by `workflowRunId`) to VSCode Marketplace + OpenVSX |
 | `cache-cleanup.yml` | PR closed + manual | Generic — usable as-is |
