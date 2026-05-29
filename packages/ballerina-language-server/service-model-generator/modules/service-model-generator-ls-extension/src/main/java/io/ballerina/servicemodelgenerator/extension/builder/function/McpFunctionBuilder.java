@@ -20,8 +20,14 @@ package io.ballerina.servicemodelgenerator.extension.builder.function;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
@@ -37,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +51,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
@@ -56,11 +64,17 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
     private static final String MCP_FUNCTION_MODEL_LOCATION = "functions/mcp_tool.json";
     private static final String TOOL_DESCRIPTION_PROPERTY = "toolDescription";
 
+    // mcp:Tool annotation handling
+    private static final String TOOL_ANNOTATION_SIMPLE_NAME = "Tool";
+    private static final String TOOL_ANNOTATION_PROPERTY = "annotTool";
+    private static final String DESCRIPTION_FIELD_NAME = "description";
+
     // Documentation format constants
     private static final String DOC_COMMENT_PREFIX = "# ";
     private static final String DOC_COMMENT_SEPARATOR = "    #";
     private static final String DOC_RETURN_PREFIX = "    # + return - ";
     private static final String PARAM_DOC_PATTERN_STR = "# + ";
+    private static final String DOC_INDENT = "    ";
 
     // Regex pattern for parameter documentation
     private static final Pattern PARAM_PATTERN = Pattern.compile("^\\s*#\\s*\\+\\s+(\\w+)\\s*-\\s*(.*)$");
@@ -280,18 +294,6 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
     }
 
     /**
-     * Finds the first TextEdit in the result map.
-     *
-     * @param textEdits Map of text edits
-     * @return Optional containing the first TextEdit
-     */
-    private static Optional<TextEdit> findFirstEdit(Map<String, List<TextEdit>> textEdits) {
-        return textEdits.values().stream()
-                .flatMap(List::stream)
-                .findFirst();
-    }
-
-    /**
      * Parses the markdown documentation string and populates the function model.
      *
      * @param function      The function model to populate
@@ -380,40 +382,69 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
         String toolDescription = extractToolDescription(context.function());
         String returnType = getReturnTypeDescription(context.function());
 
-        Optional<TextEdit> firstEdit = findFirstEdit(result);
-        if (firstEdit.isEmpty()) {
-            return result;
-        }
-
-        TextEdit edit = firstEdit.get();
-        String originalText = edit.getNewText();
-
-        if (originalText == null) {
-            return result;
-        }
-
-        String stripped = originalText.stripLeading();
-
-        if (stripped.startsWith("#")) {
-            // Has documentation - keep it and add tool desc + return type
-            updateDocumentationEdit(edit, originalText, toolDescription, returnType);
-        } else if (stripped.isEmpty()) {
-            // Empty string - add only tool desc and return type
-            String newDoc = buildCompleteDocumentation(toolDescription, "", returnType);
-            edit.setNewText(newDoc);
-        } else {
-            // Non-documentation content - skip update
-            // This could be other code content that shouldn't have documentation prepended
+        Optional<TextEdit> docEdit = findDocCommentEdit(result);
+        if (docEdit.isPresent()) {
+            TextEdit edit = docEdit.get();
+            String originalText = edit.getNewText();
+            String stripped = originalText == null ? "" : originalText.stripLeading();
+            if (stripped.startsWith("#")) {
+                updateDocumentationEdit(edit, originalText, toolDescription, returnType);
+            } else if (stripped.isEmpty()) {
+                edit.setNewText(buildCompleteDocumentation(toolDescription, "", returnType));
+            }
+        } else if (toolDescription != null && !toolDescription.trim().isEmpty()) {
+            // Annotation-form source had no doc comment; insert one at the metadata anchor.
+            insertNewDocEdit(result, context, toolDescription, returnType);
         }
 
         return result;
     }
 
+    /**
+     * Returns the doc-comment {@link TextEdit} emitted by {@code addFunctionDocTextEdits}, identified by its
+     * leading {@code #}. Returns empty when the original source had no doc string AND no parameter docs were
+     * generated, in which case the parent emits no doc edit at all.
+     */
+    private static Optional<TextEdit> findDocCommentEdit(Map<String, List<TextEdit>> textEdits) {
+        return textEdits.values().stream()
+                .flatMap(List::stream)
+                .filter(edit -> {
+                    String text = edit.getNewText();
+                    if (text == null) {
+                        return false;
+                    }
+                    String stripped = text.stripLeading();
+                    return stripped.startsWith("#") || stripped.isEmpty();
+                })
+                .findFirst();
+    }
+
+    /**
+     * Inserts a fresh doc-comment block above the function's metadata, matching the anchor used by
+     * {@code addFunctionDocTextEdits} when metadata exists but no doc string is present.
+     */
+    private static void insertNewDocEdit(Map<String, List<TextEdit>> result, UpdateModelContext context,
+                                         String toolDescription, String returnType) {
+        Optional<MetadataNode> metadata = context.functionNode().metadata();
+        if (metadata.isEmpty()) {
+            return;
+        }
+        String filePath = result.keySet().stream().findFirst().orElse(null);
+        if (filePath == null) {
+            return;
+        }
+        String docBlock = DOC_INDENT + buildCompleteDocumentation(toolDescription, "", returnType);
+        TextEdit insertEdit = new TextEdit(Utils.toRange(metadata.get().lineRange().startLine()), docBlock);
+        result.get(filePath).addFirst(insertEdit);
+    }
+
     @Override
     public Function getModelFromSource(ModelFromSourceContext context) {
         Function function = super.getModelFromSource(context);
+        // MCP tools are remote functions; without this, FunctionBuilderRouter.updateFunction would treat them
+        // as OBJECT_METHOD and dispatch to DefaultFunctionBuilder, bypassing MCP-specific save handling.
+        function.setKind(KIND_REMOTE);
 
-        // Extract and parse documentation from the function node
         FunctionDefinitionNode functionNode = (FunctionDefinitionNode) context.node();
         if (functionNode.metadata().isPresent()) {
             MetadataNode metadata = functionNode.metadata().get();
@@ -421,9 +452,160 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
                 String documentation = metadata.documentationString().get().toString();
                 parseDocumentation(function, documentation);
             }
+            processToolAnnotation(function, metadata);
         }
 
         return function;
+    }
+
+    /**
+     * Handles the {@code @mcp:Tool} annotation when present. If its {@code description} field is a string literal,
+     * its value is hoisted into the {@code toolDescription} property (so the form renders it as a doc-style field)
+     * and stripped from the annotation source held on {@code annotTool}; any other fields (e.g. {@code schema}) are
+     * preserved verbatim. The {@code annotTool} entry's {@code types} list is always patched to a non-null value
+     * so the frontend form does not crash on a malformed property.
+     */
+    private static void processToolAnnotation(Function function, MetadataNode metadata) {
+        Value annotProperty = function.getProperties().get(TOOL_ANNOTATION_PROPERTY);
+        if (annotProperty == null) {
+            return;
+        }
+        // Parent's updateAnnotationAttachmentProperty doesn't set types. The frontend form factory mounts every
+        // property regardless of enabled flag and throws when types is null/empty, so seed a placeholder type. The
+        // editor itself stays hidden because we leave the parent's enabled=false default in place.
+        if (annotProperty.getTypes() == null || annotProperty.getTypes().isEmpty()) {
+            annotProperty.setTypes(new ArrayList<>(List.of(PropertyType.types(Value.FieldType.TEXT, "string"))));
+        }
+
+        AnnotationNode toolAnnotation = findToolAnnotation(metadata);
+        if (toolAnnotation == null || toolAnnotation.annotValue().isEmpty()) {
+            return;
+        }
+
+        MappingConstructorExpressionNode mapping = toolAnnotation.annotValue().get();
+        SpecificFieldNode descriptionField = null;
+        // Source-code snippets so spread fields (...x), computed-name fields, etc. are preserved verbatim
+        // alongside ordinary SpecificFieldNode entries.
+        List<String> keptFieldSources = new ArrayList<>();
+        for (MappingFieldNode field : mapping.fields()) {
+            if (field instanceof SpecificFieldNode specific
+                    && DESCRIPTION_FIELD_NAME.equals(specific.fieldName().toString().trim())) {
+                descriptionField = specific;
+            } else {
+                keptFieldSources.add(field.toSourceCode().trim());
+            }
+        }
+
+        if (descriptionField == null) {
+            return;
+        }
+
+        String literal = extractStringLiteral(descriptionField.valueExpr().orElse(null));
+        if (literal == null) {
+            // Non-literal description (template / variable / expression). Leave the annotation untouched.
+            return;
+        }
+
+        // Only hoist if parseDocumentation didn't already set it from a doc comment.
+        if (!function.getProperties().containsKey(TOOL_DESCRIPTION_PROPERTY)) {
+            function.getProperties().put(TOOL_DESCRIPTION_PROPERTY, buildToolDescriptionValue(literal));
+        }
+
+        if (keptFieldSources.isEmpty()) {
+            // Annotation only contained the description we just hoisted; suppress emission on save.
+            annotProperty.setEnabled(false);
+            annotProperty.setEditable(true);
+        } else {
+            annotProperty.setValue(buildAnnotationValue(keptFieldSources));
+        }
+    }
+
+    private static AnnotationNode findToolAnnotation(MetadataNode metadata) {
+        for (AnnotationNode annotation : metadata.annotations()) {
+            String ref = annotation.annotReference().toString().trim();
+            int colonIdx = ref.indexOf(':');
+            if (colonIdx < 0) {
+                continue;
+            }
+            String module = ref.substring(0, colonIdx).trim();
+            String simple = ref.substring(colonIdx + 1).trim();
+            if (MCP.equals(module) && TOOL_ANNOTATION_SIMPLE_NAME.equals(simple)) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the unescaped contents of a double-quoted string literal expression, or {@code null} if {@code expr}
+     * is not such a literal. Used to decide whether the description can be safely hoisted into the doc-comment form.
+     */
+    private static String extractStringLiteral(ExpressionNode expr) {
+        if (!(expr instanceof BasicLiteralNode literal)) {
+            return null;
+        }
+        String text = literal.literalToken().text();
+        if (text.length() < 2 || !text.startsWith("\"") || !text.endsWith("\"")) {
+            return null;
+        }
+        return unescapeBalString(text.substring(1, text.length() - 1));
+    }
+
+    private static String unescapeBalString(String s) {
+        StringBuilder out = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '\\' && i + 1 < s.length()) {
+                char next = s.charAt(++i);
+                switch (next) {
+                    case 'n' -> out.append('\n');
+                    case 't' -> out.append('\t');
+                    case 'r' -> out.append('\r');
+                    case '\\' -> out.append('\\');
+                    case '"' -> out.append('"');
+                    default -> {
+                        out.append('\\');
+                        out.append(next);
+                    }
+                }
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
+    }
+
+    private static Value buildToolDescriptionValue(String description) {
+        return new Value.ValueBuilder()
+                .metadata("Tool Description", "Description of what this MCP tool does")
+                .setPlaceholder("Describe what this tool does...")
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT, "string")))
+                .value(description)
+                .enabled(true)
+                .editable(true)
+                .optional(true)
+                .setAdvanced(false)
+                .build();
+    }
+
+    /**
+     * Reconstructs a mapping-constructor source string from pre-captured field source snippets. Snippets come
+     * straight from {@link MappingFieldNode#toSourceCode()} so nested values like a {@code map<json>} schema, as
+     * well as spread fields, are preserved byte-for-byte. The result is the annotation value that
+     * {@code addFunctionAnnotationTextEdits} will splice back into source.
+     */
+    private static String buildAnnotationValue(List<String> keptFieldSources) {
+        StringBuilder sb = new StringBuilder(" {");
+        boolean first = true;
+        for (String fieldSource : keptFieldSources) {
+            if (!first) {
+                sb.append(",");
+            }
+            sb.append(NEW_LINE).append(DOC_INDENT).append(fieldSource);
+            first = false;
+        }
+        sb.append(NEW_LINE).append("}");
+        return sb.toString();
     }
 
     @Override
