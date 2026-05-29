@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+# Validate strict versioning in package.json files
+echo "🔍 Validating package.json versions..."
+
+# Get all staged package.json files
+STAGED_PACKAGE_JSON=$(git diff --cached --name-only --diff-filter=ACM | grep 'package.json$' || true)
+
+if [ -n "$STAGED_PACKAGE_JSON" ]; then
+  # Convert to array and pass to validation script
+  node common/scripts/validate-package-versions.js "$STAGED_PACKAGE_JSON"
+  
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ Pre-commit hook failed: Non-strict versions found in package.json files."
+    echo "   Please fix the version declarations and try again."
+    exit 1
+  fi
+  
+  echo "✅ All staged package.json files use strict versioning."
+else
+  echo "ℹ️  No package.json files in this commit."
+fi
