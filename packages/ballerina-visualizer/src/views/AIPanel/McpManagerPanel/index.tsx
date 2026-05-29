@@ -509,6 +509,11 @@ interface EditTarget {
 
 const SCOPE_ORDER: McpScope[] = ["builtin", "workspace", "user"];
 
+/** Display name for a transport token. */
+function transportName(transport: string): string {
+    return transport === "http" ? "Streamable HTTP" : "Stdio";
+}
+
 function scopeHeading(scope: McpScope): string {
     if (scope === "builtin") { return "Built-in"; }
     return scope === "workspace" ? "Project" : "User";
@@ -674,7 +679,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                 : s.status === "failed"
                     ? "failed"
                     : "disabled";
-        const meta = `${s.transport} · ${statusText}${s.shadowed ? " · shadowed by project" : ""}`;
+        const meta = `${transportName(s.transport)} · ${statusText}${s.shadowed ? " · shadowed by project" : ""}`;
         const isBuiltIn = s.scope === "builtin";
 
         return (

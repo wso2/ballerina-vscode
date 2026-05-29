@@ -326,21 +326,27 @@ function scopeLabel(scope: McpScope): string {
     return scope === "workspace" ? "Project" : "User";
 }
 
+/** Display name for a transport token. */
+function transportName(transport: string): string {
+    return transport === "http" ? "Streamable HTTP" : "Stdio";
+}
+
 function transportLabel(s: McpServerStatusDTO): string {
+    const transport = transportName(s.transport);
     if (s.shadowed) {
-        return `${s.transport} · shadowed by project`;
+        return `${transport} · shadowed by project`;
     }
     if (s.status === "failed" && s.error) {
         return `Failed: ${s.error}`;
     }
     if (s.status === "disconnected") {
-        return `${s.transport} · disabled`;
+        return `${transport} · disabled`;
     }
     if (s.status === "connecting") {
-        return `${s.transport} · connecting`;
+        return `${transport} · connecting`;
     }
     const n = s.tools.length;
-    return `${s.transport} · ${n} tool${n === 1 ? "" : "s"}`;
+    return `${transport} · ${n} tool${n === 1 ? "" : "s"}`;
 }
 
 export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onOpenMcpManager }) => {

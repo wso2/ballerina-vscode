@@ -565,7 +565,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                         <Label>Transport</Label>
                         <TabRow>
                             <Tab active={transport === "stdio"} onClick={() => setTransport("stdio")}>Stdio</Tab>
-                            <Tab active={transport === "http"} onClick={() => setTransport("http")}>HTTP</Tab>
+                            <Tab active={transport === "http"} onClick={() => setTransport("http")}>Streamable HTTP</Tab>
                         </TabRow>
                     </FieldGroup>
 
