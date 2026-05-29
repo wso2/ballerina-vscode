@@ -120,11 +120,12 @@ function normaliseConfigForDto(cfg: McpServerConfig, transport: McpTransportType
             ...(stdio.env ? { env: stdio.env } : {}),
         };
     }
-    const http = cfg as { url?: string; headers?: Record<string, string> };
+    const http = cfg as { url?: string; headers?: Record<string, string>; headersFromEnv?: Record<string, string> };
     return {
         type: "http",
         url: http.url ?? "",
         ...(http.headers ? { headers: http.headers } : {}),
+        ...(http.headersFromEnv ? { headersFromEnv: http.headersFromEnv } : {}),
     };
 }
 
@@ -381,7 +382,16 @@ export class McpClientManager {
             throw new Error("http MCP server config requires 'url'");
         }
         const url = new URL(cfg.url);
-        const headers = cfg.headers ?? {};
+        const headers: Record<string, string> = { ...(cfg.headers ?? {}) };
+        // Resolve env-var-backed headers at connect time so secrets stay out of mcp.json.
+        for (const [name, envVar] of Object.entries(cfg.headersFromEnv ?? {})) {
+            const value = process.env[envVar];
+            if (typeof value === "string" && value) {
+                headers[name] = value;
+            } else {
+                console.warn(`[mcp] Header '${name}' references unset env var '${envVar}'`);
+            }
+        }
         return new StreamableHTTPClientTransport(url, {
             requestInit: { headers },
         });

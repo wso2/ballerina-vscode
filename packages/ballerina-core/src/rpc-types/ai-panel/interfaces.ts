@@ -691,7 +691,7 @@ export interface McpToolSummaryDTO {
 }
 export type McpServerConfigDTO =
     | { type: "stdio"; command: string; args?: string[]; env?: Record<string, string> }
-    | { type: "http"; url: string; headers?: Record<string, string> };
+    | { type: "http"; url: string; headers?: Record<string, string>; headersFromEnv?: Record<string, string> };
 export interface McpServerStatusDTO {
     name: string;
     scope: McpScope;

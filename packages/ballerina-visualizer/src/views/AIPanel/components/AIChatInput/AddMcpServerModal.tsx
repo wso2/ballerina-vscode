@@ -384,6 +384,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
     const [envRows, setEnvRows] = useState<KvRow[]>([]);
     const [url, setUrl] = useState("");
     const [headerRows, setHeaderRows] = useState<KvRow[]>([]);
+    const [envHeaderRows, setEnvHeaderRows] = useState<KvRow[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
 
@@ -410,6 +411,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             setEnvRows([]);
             setUrl("");
             setHeaderRows([]);
+            setEnvHeaderRows([]);
             setSubmitting(false);
             setServerError(null);
             return;
@@ -425,9 +427,11 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                 setEnvRows(recordToRows(editTarget.config.env));
                 setUrl("");
                 setHeaderRows([]);
+                setEnvHeaderRows([]);
             } else {
                 setUrl(editTarget.config.url);
                 setHeaderRows(recordToRows(editTarget.config.headers));
+                setEnvHeaderRows(recordToRows(editTarget.config.headersFromEnv));
                 setCommand("");
                 setArgsRows([]);
                 setEnvRows([]);
@@ -483,10 +487,12 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             };
         } else {
             const headers = rowsToRecord(headerRows);
+            const headersFromEnv = rowsToRecord(envHeaderRows);
             config = {
                 type: "http",
                 url: url.trim(),
                 ...(Object.keys(headers).length > 0 ? { headers } : {}),
+                ...(Object.keys(headersFromEnv).length > 0 ? { headersFromEnv } : {}),
             };
         }
         try {
@@ -607,7 +613,11 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                             <FieldGroup>
                                 <Label>Headers</Label>
                                 <KvEditor rows={headerRows} onChange={setHeaderRows} keyPlaceholder="Header-Name" valuePlaceholder="value" />
-                                <Hint>For Bearer tokens, add a row with key <code>Authorization</code> and value <code>Bearer your-token</code>.</Hint>
+                            </FieldGroup>
+                            <FieldGroup>
+                                <Label>Headers from environment variables</Label>
+                                <KvEditor rows={envHeaderRows} onChange={setEnvHeaderRows} keyPlaceholder="Header-Name" valuePlaceholder="ENV_VAR_NAME" />
+                                <Hint>The value is read from the named environment variable at connect time, so secrets stay out of the config file. Use this for tokens — e.g. <code>Authorization</code> from <code>MCP_TOKEN</code>.</Hint>
                             </FieldGroup>
                         </>
                     )}

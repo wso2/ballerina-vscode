@@ -32,6 +32,8 @@ export interface McpHttpServerConfig {
     type?: "http";
     url: string;
     headers?: Record<string, string>;
+    /** Header name → env var name. The value is read from the environment at connect time so secrets stay out of mcp.json. */
+    headersFromEnv?: Record<string, string>;
     disabled?: boolean;
 }
 
@@ -51,7 +53,7 @@ export interface McpToolSummary {
 /** DTO-shaped variant: `type` is required, internal `disabled` flag is dropped. */
 export type NormalisedMcpServerConfig =
     | { type: "stdio"; command: string; args?: string[]; env?: Record<string, string> }
-    | { type: "http"; url: string; headers?: Record<string, string> };
+    | { type: "http"; url: string; headers?: Record<string, string>; headersFromEnv?: Record<string, string> };
 
 export interface McpServerStatus {
     name: string;
