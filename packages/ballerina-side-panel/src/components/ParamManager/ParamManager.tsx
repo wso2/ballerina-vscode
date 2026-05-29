@@ -350,11 +350,7 @@ export function ParamManager(props: ParamManagerProps) {
             {paramComponents}
             {(editingSegmentId === -1) && (
                 <AddButtonWrapper>
-                    <LinkButton
-                        data-testid="bi-add-parameter"
-                        sx={readonly && { color: "var(--vscode-badge-background)" }}
-                        onClick={!readonly && onAddClick}
-                    >
+                    <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" }} onClick={!readonly && onAddClick} >
                         <Codicon name="add" />
                         <>{`Add ${selectedNode === "DATA_MAPPER_DEFINITION" ? "Input" : isGraphql ? "Argument" : "Parameter"}`}</>
                     </LinkButton>
