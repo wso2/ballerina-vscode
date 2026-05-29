@@ -250,22 +250,13 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
 
 const MCP_ENABLED_OVERRIDE_KEY = 'ballerina.copilot.mcp.enabledOverrides';
 const MCP_ENABLE_SETTING = 'copilot.enableMcpTools';
-const MCP_PREVIEW_SETTING = 'copilot.mcp.preview';
 
 let mcpWatchDisposer: (() => void) | null = null;
 let mcpTrustDisposable: { dispose(): void } | null = null;
 
-function isMcpPreviewEnabled(): boolean {
-    return vscodeWorkspace.getConfiguration('ballerina').get<boolean>(MCP_PREVIEW_SETTING, false);
-}
-
+// MCP runs only when the user enabled it.
 function isMcpEnabled(): boolean {
     return vscodeWorkspace.getConfiguration('ballerina').get<boolean>(MCP_ENABLE_SETTING, false);
-}
-
-// MCP runs only when the feature is in preview (master gate) and the user enabled it.
-function shouldRunMcp(): boolean {
-    return isMcpPreviewEnabled() && isMcpEnabled();
 }
 
 function setupMcp(): void {
@@ -343,26 +334,20 @@ async function teardownMcp(): Promise<void> {
 }
 
 function activateMcp(): void {
-    if (shouldRunMcp()) {
+    if (isMcpEnabled()) {
         setupMcp();
     }
     const disposable = vscodeWorkspace.onDidChangeConfiguration((e) => {
-        const previewChanged = e.affectsConfiguration(`ballerina.${MCP_PREVIEW_SETTING}`);
         const enableChanged = e.affectsConfiguration(`ballerina.${MCP_ENABLE_SETTING}`);
-        if (!previewChanged && !enableChanged) {
+        if (!enableChanged) {
             return;
         }
-        if (shouldRunMcp()) {
+        if (isMcpEnabled()) {
             setupMcp();
         } else {
             teardownMcp().catch(err => console.warn('[mcp] teardown failed:', err));
         }
-        if (previewChanged) {
-            sendConfigChangeNotification('mcpPreview', isMcpPreviewEnabled());
-        }
-        if (enableChanged) {
-            sendConfigChangeNotification('mcpToolsEnabled', isMcpEnabled());
-        }
+        sendConfigChangeNotification('mcpToolsEnabled', isMcpEnabled());
     });
     extension.context?.subscriptions.push(disposable);
 }

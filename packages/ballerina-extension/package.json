@@ -293,14 +293,6 @@
                     "default": false,
                     "description": "Show context usage indicator in the AI chat input footer."
                 },
-                "ballerina.copilot.mcp.preview": {
-                    "type": "boolean",
-                    "default": false,
-                    "tags": [
-                        "beta"
-                    ],
-                    "description": "Beta: enable Model Context Protocol (MCP) tool support and its management UI in the WSO2 Integrator Copilot. While off, MCP is hidden everywhere."
-                },
                 "ballerina.copilot.enableMcpTools": {
                     "type": "boolean",
                     "default": false,

@@ -140,7 +140,6 @@ import {
     setMcpToolsEnabled,
     SetMcpToolsEnabledRequest,
     getMcpToolsEnabled,
-    getMcpPreviewEnabled,
     getMcpWorkspaceContext,
     getMcpLoadErrors,
     OpenMcpConfigRequest,
@@ -242,7 +241,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(deleteMcpServer, (args: DeleteMcpServerRequest) => rpcManger.deleteMcpServer(args));
     messenger.onRequest(setMcpToolsEnabled, (args: SetMcpToolsEnabledRequest) => rpcManger.setMcpToolsEnabled(args));
     messenger.onRequest(getMcpToolsEnabled, () => rpcManger.getMcpToolsEnabled());
-    messenger.onRequest(getMcpPreviewEnabled, () => rpcManger.getMcpPreviewEnabled());
     messenger.onRequest(getMcpWorkspaceContext, () => rpcManger.getMcpWorkspaceContext());
     messenger.onRequest(getMcpLoadErrors, () => rpcManger.getMcpLoadErrors());
     messenger.onRequest(getAgentsMdFileInfo, () => rpcManger.getAgentsMdFileInfo());

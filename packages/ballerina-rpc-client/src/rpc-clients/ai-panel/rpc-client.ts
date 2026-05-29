@@ -148,7 +148,6 @@ import {
     deleteMcpServer,
     setMcpToolsEnabled,
     getMcpToolsEnabled,
-    getMcpPreviewEnabled,
     getMcpWorkspaceContext,
     getMcpLoadErrors,
     getAgentsMdFileInfo,
@@ -487,10 +486,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getMcpToolsEnabled(): Promise<boolean> {
         return this._messenger.sendRequest(getMcpToolsEnabled, HOST_EXTENSION);
-    }
-
-    getMcpPreviewEnabled(): Promise<boolean> {
-        return this._messenger.sendRequest(getMcpPreviewEnabled, HOST_EXTENSION);
     }
 
     getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
