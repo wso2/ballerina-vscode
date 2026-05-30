@@ -15,7 +15,7 @@
 // under the License.
 
 import { ChatNotify, CodeContext, FileAttatchment, OperationType, SourceFile } from "@wso2/ballerina-core";
-import { LLMEvaluationResult } from "../utils/evaluator-utils";
+import { LLMEvaluationResult, ContextRetrievalEvaluationResult } from "../utils/evaluator-utils";
 
 /**
  * Test use case definition
@@ -119,5 +119,6 @@ export interface TestCaseResult {
         readonly noDiagnosticsCheck: boolean;
     };
     readonly evaluationResult?: LLMEvaluationResult;
+    readonly contextRetrievalEvaluation?: ContextRetrievalEvaluationResult;
     readonly generatedSources?: readonly SourceFile[];
 }

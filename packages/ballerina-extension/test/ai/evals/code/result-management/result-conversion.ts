@@ -75,6 +75,7 @@ export function convertTestResultToUsecaseResult(testResult: TestCaseResult, ite
         duration: testResult.result.duration,
         timestamp: testResult.result.startTime,
         evaluationResult: testResult.evaluationResult,
+        contextRetrievalEvaluation: testResult.contextRetrievalEvaluation,
         errorEvents: errorEvents.length > 0 ? errorEvents : undefined,
         toolEvents: toolEvents.length > 0 ? toolEvents : undefined,
         iteration,

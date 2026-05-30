@@ -20,11 +20,20 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import path from "path";
 import fs from "fs";
 import { z } from 'zod';
+import { ToolEvent } from '../types';
 
 export interface LLMEvaluationResult {
     is_correct: boolean;
     reasoning: string;
     rating: number;
+}
+
+export interface ContextRetrievalEvaluationResult {
+    is_relevant: boolean;
+    covered: string;
+    missing: string;
+    critical_gaps: string;
+    recommendations: string;
 }
 
 const anthropic = createAnthropic({
@@ -149,6 +158,171 @@ Use the submit_evaluation tool to provide your assessment.`;
             is_correct: false,
             reasoning: `Failed to evaluate due to an error: ${error instanceof Error ? error.message : "Unknown error"}`,
             rating: 0
+        };
+    }
+}
+
+function extractFileReadSection(toolEvents: readonly ToolEvent[], initialSource: SourceFile[]): string {
+    const contentByPath = new Map<string, string>();
+    for (const file of initialSource) {
+        const normalized = file.filePath.replace(/\\/g, '/');
+        contentByPath.set(normalized, file.content);
+        const parts = normalized.split('/');
+        for (let i = 1; i < parts.length; i++) {
+            contentByPath.set(parts.slice(i).join('/'), file.content);
+        }
+    }
+
+    const seen = new Set<string>();
+    const fileReads: string[] = [];
+
+    for (const event of toolEvents) {
+        if (event.type === 'tool_result' && event.toolName === 'file_read') {
+            const fileName = event.toolOutput?.fileName || 'unknown';
+            if (seen.has(fileName)) continue;
+            seen.add(fileName);
+
+            const content = contentByPath.get(fileName) ?? contentByPath.get(fileName.replace(/\\/g, '/'));
+            if (content) {
+                fileReads.push(`--- File: ${fileName} ---\n${content}`);
+            } else {
+                fileReads.push(`--- File: ${fileName} --- (content not available)`);
+            }
+        }
+    }
+
+    if (fileReads.length === 0) {
+        return "No files were read by the agent.";
+    }
+
+    return fileReads.join('\n\n');
+}
+
+const contextRetrievalSchema = z.object({
+    is_relevant: z.boolean().describe(
+        'True if the agent retrieved every existing component (function, type, constant, etc.) from the codebase needed to fulfill the user query. False otherwise.'
+    ),
+    covered: z.string().describe(
+        'Existing components from the codebase the agent retrieved that are relevant to the query. ' +
+        'Format: "- <file name>\\n  - <component name and line number>\\n  - <one sentence: why relevant>". ' +
+        'Write "None" if nothing relevant was retrieved.'
+    ),
+    missing: z.string().describe(
+        'Existing components from the codebase that were NOT retrieved but are required. ' +
+        'Each entry must give a definitive reason the component is required (e.g. "the change must call this function"). No "likely", "possibly", or speculative language. ' +
+        'Do NOT list components that the agent must newly create. ' +
+        'Format: "- <file name>\\n  - <component name and line number>\\n  - <one sentence: why required>". ' +
+        'Write "None" if nothing is missing.'
+    ),
+    critical_gaps: z.string().describe(
+        'Subset of "missing" whose absence blocks correct implementation. Same format and strictness rules as missing. Write "None" if there are no critical gaps. If any entry is listed here, is_relevant must be false.'
+    ),
+    recommendations: z.string().describe(
+        'Optional suggestions to complete the retrieval. Write "None" if no further retrieval is needed.'
+    )
+});
+
+/**
+ * Uses an LLM to evaluate whether the agent retrieved relevant context
+ * via the read tool for implementing the user query.
+ *
+ * @param userQuery The original request from the user.
+ * @param initialSource The complete codebase (ground truth).
+ * @param toolEvents The tool events captured during test execution.
+ * @returns A promise that resolves to a context retrieval evaluation result.
+ */
+export async function evaluateContextRetrievalWithLLM(
+    userQuery: string,
+    initialSource: SourceFile[],
+    toolEvents: readonly ToolEvent[]
+): Promise<ContextRetrievalEvaluationResult> {
+    console.log("🤖 Starting LLM-based context retrieval evaluation...");
+
+    const stringifySources = (sources: SourceFile[]): string => {
+        if (sources.length === 0) return "No files in the project.";
+        return sources.map(file => `--- File: ${file.filePath} ---\n${file.content}`).join("\n\n");
+    };
+
+    const initialCodeString = stringifySources(initialSource);
+    const fileReadSection = extractFileReadSection(toolEvents, initialSource);
+
+    const systemPrompt = `You are a code retrieval evaluator.
+
+Your role is to:
+1. Compare the codebase against the context the agent retrieved via file reads
+2. Determine if the agent retrieved every existing component needed to fulfill the user query
+3. List what was covered and, if anything is missing, state a concrete reason for each gap
+
+Be strict:
+- Components the agent must newly create are NOT retrieval requirements.
+- If the required pattern is already demonstrated by another component the agent retrieved (e.g. an analogous endpoint, a sibling function, a parallel type), it is NOT missing. Only flag a component if the agent could not have written correct code without reading it.
+- Do not use speculative language. If you cannot point to a specific detail (signature, name, type, value) in the missing component that is not derivable from any retrieved component, do not list it.`;
+
+    const userPrompt = `
+# User Query
+\`\`\`
+${userQuery}
+\`\`\`
+
+# Complete Codebase (Ground Truth)
+\`\`\`ballerina
+${initialCodeString}
+\`\`\`
+
+# Context Retrieved by the Agent
+${fileReadSection}
+
+---
+
+Evaluate whether the agent retrieved every existing component from the codebase required to fulfill the user query. Consider:
+- Which existing components are needed to implement the query?
+- Did the agent retrieve each of them?
+- For anything missing, what is the concrete reason it is required?
+
+Use the submit_evaluation tool to provide your assessment.`;
+
+    try {
+        const result = await generateText({
+            model: anthropic('claude-sonnet-4-5-20250929'),
+            system: systemPrompt,
+            prompt: userPrompt,
+            temperature: 0.1,
+            tools: {
+                submit_evaluation: {
+                    description:
+                        'Submit a comprehensive evaluation of whether the agent retrieved sufficient context for implementing the user query.',
+                    inputSchema: contextRetrievalSchema,
+                }
+            },
+            toolChoice: {
+                type: 'tool',
+                toolName: 'submit_evaluation'
+            },
+            maxRetries: 1,
+        });
+
+        const toolCall = result.toolCalls[0];
+
+        if (!toolCall || toolCall.toolName !== 'submit_evaluation') {
+            throw new Error("Expected submit_evaluation tool call but received none");
+        }
+
+        const evaluationResult = toolCall.input as ContextRetrievalEvaluationResult;
+
+        console.log(`✅ Context Retrieval Evaluation Complete. Relevant: ${evaluationResult.is_relevant}`);
+        console.log(`   Covered: ${evaluationResult.covered}`);
+        console.log(`   Missing: ${evaluationResult.missing}`);
+        console.log(`   Critical Gaps: ${evaluationResult.critical_gaps}`);
+        return evaluationResult;
+
+    } catch (error) {
+        console.error("Error during context retrieval evaluation:", error);
+        return {
+            is_relevant: false,
+            covered: "None",
+            missing: `Failed to evaluate due to an error: ${error instanceof Error ? error.message : "Unknown error"}`,
+            critical_gaps: "Evaluation failed",
+            recommendations: "Retry evaluation"
         };
     }
 }

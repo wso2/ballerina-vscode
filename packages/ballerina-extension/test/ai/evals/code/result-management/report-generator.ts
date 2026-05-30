@@ -31,6 +31,14 @@ export function generateComprehensiveReport(summary: Summary): void {
     console.log(`   Overall Accuracy: ${summary.accuracy}%`);
     console.log(`   Average LLM Evaluation Rating: ${summary.evaluationSummary.toFixed(2)}/10`);
 
+    // Display context retrieval summary
+    const resultsWithContextEval = summary.results.filter(r => r.contextRetrievalEvaluation !== undefined);
+    if (resultsWithContextEval.length > 0) {
+        const relevantCount = resultsWithContextEval.filter(r => r.contextRetrievalEvaluation!.is_relevant).length;
+        console.log(`\n🔍 CONTEXT RETRIEVAL EVALUATION:`);
+        console.log(`   Relevant: ${relevantCount}/${resultsWithContextEval.length} (${Math.round(relevantCount / resultsWithContextEval.length * 100)}%)`);
+    }
+
     // Display iteration-specific summaries if multiple iterations
     if (summary.iterations && summary.iterations > 1 && summary.iterationResults) {
         logIterationSummaries(summary.iterationResults);
@@ -155,6 +163,10 @@ function logSuccessfulCompilations(results: readonly UsecaseResult[]): void {
         if (result.evaluationResult) {
             console.log(`      LLM Rating: ${result.evaluationResult.rating.toFixed(1)}/10 (${result.evaluationResult.is_correct ? '✅' : '❌'})`);
         }
+        if (result.contextRetrievalEvaluation) {
+            const ctx = result.contextRetrievalEvaluation;
+            console.log(`      Context Retrieval: ${ctx.is_relevant ? '✅' : '❌'} Relevant: ${ctx.is_relevant}`);
+        }
         if (result.files.length > 0) {
             console.log(`      Files: ${result.files.map(f => f.fileName).join(', ')}`);
         }
@@ -176,6 +188,10 @@ function logFailedCompilations(results: readonly UsecaseResult[]): void {
         if (result.evaluationResult) {
             console.log(`      LLM Rating: ${result.evaluationResult.rating.toFixed(1)}/10`);
             console.log(`      LLM Reasoning: ${result.evaluationResult.reasoning.substring(0, 100)}${result.evaluationResult.reasoning.length > 100 ? '...' : ''}`);
+        }
+        if (result.contextRetrievalEvaluation) {
+            const ctx = result.contextRetrievalEvaluation;
+            console.log(`      Context Retrieval: ${ctx.is_relevant ? '✅' : '❌'} Relevant: ${ctx.is_relevant}`);
         }
 
         if (result.errorEvents && result.errorEvents.length > 0) {

@@ -15,8 +15,9 @@
 // under the License.
 
 import { TestEventResult, TestUseCase, TestCaseResult } from '../types';
-import { evaluateCodeWithLLM, LLMEvaluationResult } from './evaluator-utils';
+import { evaluateCodeWithLLM, evaluateContextRetrievalWithLLM, LLMEvaluationResult } from './evaluator-utils';
 import { SourceFile } from '@wso2/ballerina-core';
+import { ToolEvent, ToolCallEvent, ToolResultEvent, EvalsToolResultEvent } from '../types';
 
 /**
  * Validates test result based on error events and diagnostics
@@ -43,6 +44,20 @@ export async function validateTestResult(result: TestEventResult, useCase: TestU
     }
     const evaluation: LLMEvaluationResult = await evaluateCodeWithLLM(useCase.usecase, initialSources, finalSources);
 
+    const toolEvents: ToolEvent[] = result.events
+        .filter(event => event.type === 'tool_call' || event.type === 'tool_result' || event.type === 'evals_tool_result')
+        .map(event => {
+            if (event.type === 'tool_call') {
+                return { type: 'tool_call', toolName: event.toolName } as ToolCallEvent;
+            } else if (event.type === 'tool_result') {
+                return { type: 'tool_result', toolName: event.toolName, toolOutput: event.toolOutput } as ToolResultEvent;
+            } else {
+                return { type: 'evals_tool_result', toolName: event.toolName, output: event.output } as EvalsToolResultEvent;
+            }
+        });
+
+    const contextRetrievalEval = await evaluateContextRetrievalWithLLM(useCase.usecase, initialSources, toolEvents);
+
     return {
         useCase,
         result,
@@ -50,6 +65,7 @@ export async function validateTestResult(result: TestEventResult, useCase: TestU
         failureReason: failureReason || undefined,
         validationDetails,
         evaluationResult: evaluation,
+        contextRetrievalEvaluation: contextRetrievalEval,
         generatedSources: finalSources
     };
 }
