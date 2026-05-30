@@ -22,6 +22,8 @@ import { FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_N
 import { CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
 import { CONFIG_COLLECTOR_TOOL } from "./tools/config-collector";
 import { CLARIFY_TOOL } from "./tools/clarify";
+import { GREP_TOOL_NAME } from "./tools/grep";
+import { GLOB_TOOL_NAME } from "./tools/glob";
 import { TEST_RUNNER_TOOL_NAME } from "./tools/test-runner";
 import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
@@ -181,7 +183,7 @@ ${getLanglibInstructions()}
 - If you receive complete structure of the codebase, it contains the complete source of all .bal files (test and resource files excluded) provided directly in your context.
 
 ## Context Retrieval
-- Explore the codebase with ${FILE_READ_TOOL_NAME}, and keep exploring until you have all the context required to answer confidently.
+- Explore the codebase with ${GREP_TOOL_NAME}, ${FILE_READ_TOOL_NAME}, and ${GLOB_TOOL_NAME}, and keep exploring until you have all the context required to answer confidently.
 
 ### Rules for exploration
 - **DO NOT** guess the implementation based on signatures from Codebase High Level Overview or excerpts you retrieved. Always read the actual source code before using any information about a component in the codebase. This is critical to avoid hallucinations and wrong assumptions.

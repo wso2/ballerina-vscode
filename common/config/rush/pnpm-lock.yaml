@@ -121,6 +121,9 @@ importers:
       '@types/lodash':
         specifier: 4.14.200
         version: 4.14.200
+      '@vscode/ripgrep':
+        specifier: 1.15.9
+        version: 1.15.9
       '@vscode/test-electron':
         specifier: 2.5.2
         version: 2.5.2
@@ -7565,6 +7568,9 @@ packages:
 
   '@vscode/codicons@0.0.44':
     resolution: {integrity: sha512-F7qPRumUK3EHjNdopfICLGRf3iNPoZQt+McTHAn4AlOWPB3W2kL4H0S7uqEqbyZ6rCxaeDjpAn3MCUnwTu/VJQ==}
+
+  '@vscode/ripgrep@1.15.9':
+    resolution: {integrity: sha512-4q2PXRvUvr3bF+LsfrifmUZgSPmCNcUZo6SbEAZgArIChchkezaxLoIeQMJe/z3CCKStvaVKpBXLxN3Z8lQjFQ==}
 
   '@vscode/test-electron@2.5.2':
     resolution: {integrity: sha512-8ukpxv4wYe0iWMRQU18jhzJOHkeGKbnw7xWRX3Zw1WJA4cEKbHcmmLPdPrPtL6rhDcrlCZN+xKRpv09n4gRHYg==}
@@ -28290,6 +28296,14 @@ snapshots:
   '@vercel/oidc@3.1.0': {}
 
   '@vscode/codicons@0.0.44': {}
+
+  '@vscode/ripgrep@1.15.9':
+    dependencies:
+      https-proxy-agent: 7.0.6
+      proxy-from-env: 1.1.0
+      yauzl: 2.10.0
+    transitivePeerDependencies:
+      - supports-color
 
   '@vscode/test-electron@2.5.2':
     dependencies:
