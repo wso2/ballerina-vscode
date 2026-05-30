@@ -187,7 +187,8 @@ export async function getProjectSource(requestType: OperationType, ctx: Executio
         return [convertToProjectSource(project, "", true)];
     }
 
-    const packagePaths = StateMachine.context().projectInfo?.children.map(child => child.projectPath);
+    const packagePaths = StateMachine.context().projectInfo?.children?.map(child => child.projectPath)
+        ?? workspaceTomlValues.workspace.packages;
     // Load all packages in parallel
     const projectSources: ProjectSource[] = await Promise.all(
         packagePaths.map(async (pkgPath) => {

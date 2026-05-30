@@ -270,7 +270,15 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const loginMethod = await getLoginMethod();
             const model = await getAnthropicClient(ANTHROPIC_SONNET_4);
 
-            const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
+            // Code Map is fetched at query submission time in index.ts generateAgent
+            const codeMapMarkdown = this.config.codeMapMarkdown;
+            if (codeMapMarkdown) {
+                console.log(`[AgentExecutor] Code Map included in LLM prompt (${codeMapMarkdown.length} chars)`);
+            } else {
+                console.log(`[AgentExecutor] No Code Map available — sending prompt without Code Map`);
+            }
+
+            const userMessageContent = getUserPrompt(params, tempProjectPath, projects, codeMapMarkdown);
 
             // Estimate fixed overhead (system prompt + codebase) to decide if compaction is viable
             const systemPromptText = getSystemPrompt(projects, params.operationType);
@@ -296,7 +304,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             // 5. Build LLM messages with history
             const historyMessages = populateHistoryForAgent(chatHistory);
             const cacheOptions = await getProviderCacheControl();
-            
+
             const allMessages: ModelMessage[] = [
                 {
                     role: "system",

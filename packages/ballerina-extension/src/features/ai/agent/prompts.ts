@@ -53,7 +53,7 @@ Create a very high-level and concise design plan for the given user requirement.
 You must use ${TASK_WRITE_TOOL_NAME} tool to create and manage tasks.
 This plan will be visible to the user and the execution will be guided on the tasks you create.
 
-- Break down the implementation into specific, actionable tasks. Each task should be concise and high level as they are visible to a very high level user. 
+- Break down the implementation into specific, actionable tasks. Each task should be concise and high level as they are visible to a very high level user.
 - Each task should have a type. This type will be used to guide the user through the generation proccess.
 - Track each task as you work through them and mark tasks as you start and complete them
 
@@ -114,7 +114,7 @@ Plan the implementation approach in your reasoning. Keep output minimal — no d
 Identify the libraries required to implement the user requirement. Use ${LIBRARY_SEARCH_TOOL} to discover relevant libraries, then use ${LIBRARY_GET_TOOL} to fetch their full details.
 
 ### Step 3: Write the code
-Write/modify the Ballerina code to implement the user requirement. Use the ${FILE_BATCH_EDIT_TOOL_NAME}, ${FILE_SINGLE_EDIT_TOOL_NAME}, ${FILE_WRITE_TOOL_NAME} tools to write/modify the code. 
+Write/modify the Ballerina code to implement the user requirement. Use the ${FILE_BATCH_EDIT_TOOL_NAME}, ${FILE_SINGLE_EDIT_TOOL_NAME}, ${FILE_WRITE_TOOL_NAME} tools to write/modify the code.
 
 ### Step 4: Validate the code
 Once the code is written, always use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them. You may call it multiple times after making changes.
@@ -239,7 +239,7 @@ System context:
 </system-reminder>`;
 }
 
-export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[]) {
+export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[], codeMapMarkdown?: string) {
     const content = [];
 
     content.push({
