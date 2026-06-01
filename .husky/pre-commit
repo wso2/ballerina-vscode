@@ -7,9 +7,9 @@ echo "🔍 Validating package.json versions..."
 STAGED_PACKAGE_JSON=$(git diff --cached --name-only --diff-filter=ACM | grep 'package.json$' || true)
 
 if [ -n "$STAGED_PACKAGE_JSON" ]; then
-  # Convert to array and pass to validation script
-  node common/scripts/validate-package-versions.js "$STAGED_PACKAGE_JSON"
-  
+  # Pass each file as a separate argument
+  echo "$STAGED_PACKAGE_JSON" | xargs node common/scripts/validate-package-versions.js
+
   if [ $? -ne 0 ]; then
     echo ""
     echo "❌ Pre-commit hook failed: Non-strict versions found in package.json files."

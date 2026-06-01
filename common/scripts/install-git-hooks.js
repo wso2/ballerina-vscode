@@ -5,7 +5,7 @@
  * It should be run as part of the postRushInstall event hook.
  */
 
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -28,9 +28,9 @@ if (!fs.existsSync(huskyPath)) {
   }
 }
 
-// Now initialize husky
+// Set git core.hooksPath to .husky (Husky v9: run bin with no args)
 try {
-  execSync(`node "${huskyPath}" install`, {
+  execFileSync(process.execPath, [huskyPath], {
     cwd: repoRoot,
     stdio: 'inherit'
   });
