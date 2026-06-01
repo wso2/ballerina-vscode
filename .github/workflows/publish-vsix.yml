@@ -101,13 +101,20 @@ jobs:
           fi
 
       - name: Trigger external repo workflow for ballerina release
-        if: ${{ github.event.inputs.isPreRelease == 'false' && steps.create_release.outputs.release_created == 'true' && secrets.CLOUD_EDITOR_BUILDER_REPO != '' }}
+        if: ${{ github.event.inputs.isPreRelease == 'false' && steps.create_release.outputs.release_created == 'true' }}
+        env:
+          CLOUD_EDITOR_BUILDER_REPO: ${{ secrets.CLOUD_EDITOR_BUILDER_REPO }}
+          CLOUD_EDITOR_BUILDER_REPO_TOKEN: ${{ secrets.CLOUD_EDITOR_BUILDER_REPO_TOKEN }}
         run: |
+          if [ -z "$CLOUD_EDITOR_BUILDER_REPO" ]; then
+            echo "CLOUD_EDITOR_BUILDER_REPO secret not set, skipping"
+            exit 0
+          fi
           echo "Triggering external repository workflow for ballerina v${{ steps.vsix.outputs.version }}"
           response=$(curl -s -w "%{http_code}" -X POST \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.CLOUD_EDITOR_BUILDER_REPO_TOKEN }}" \
-            https://api.github.com/repos/${{ secrets.CLOUD_EDITOR_BUILDER_REPO }}/dispatches \
+            -H "Authorization: Bearer $CLOUD_EDITOR_BUILDER_REPO_TOKEN" \
+            "https://api.github.com/repos/${CLOUD_EDITOR_BUILDER_REPO}/dispatches" \
             -d '{"event_type": "extension_published", "client_payload": {"extension": "'"${EXTENSION_NAME}"'", "version": "${{ steps.vsix.outputs.version }}", "release_url": "https://github.com/'"${REPO}"'/releases/tag/v${{ steps.vsix.outputs.version }}"}}')
 
           http_code=$(echo "$response" | tail -c 4)
