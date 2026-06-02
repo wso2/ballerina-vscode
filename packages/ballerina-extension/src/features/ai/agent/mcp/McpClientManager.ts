@@ -60,6 +60,18 @@ const { StreamableHTTPClientTransport } = require("@modelcontextprotocol/sdk/cli
 const CLIENT_NAME = "wso2-integrator-copilot";
 const CLIENT_VERSION = "1.0.0";
 
+const CONNECT_TIMEOUT_MS = 30000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(`Timed out after ${ms}ms: ${label}`)), ms);
+        promise.then(
+            value => { clearTimeout(timer); resolve(value); },
+            err => { clearTimeout(timer); reject(err); },
+        );
+    });
+}
+
 interface McpToolDescriptor {
     name: string;
     description?: string;
@@ -319,11 +331,12 @@ export class McpClientManager {
     }
 
     private async connect(state: ServerState): Promise<void> {
+        let client: McpClient | undefined;
         try {
-            const client = new McpClientImpl({ name: CLIENT_NAME, version: CLIENT_VERSION });
+            client = new McpClientImpl({ name: CLIENT_NAME, version: CLIENT_VERSION });
             const transport = this.buildTransport(state.config);
-            await client.connect(transport);
-            const { tools } = await client.listTools();
+            await withTimeout(client.connect(transport), CONNECT_TIMEOUT_MS, `connect to '${state.scope}:${state.name}'`);
+            const { tools } = await withTimeout(client.listTools(), CONNECT_TIMEOUT_MS, `list tools for '${state.scope}:${state.name}'`);
             // Disposed mid-connect: close the client instead of leaking it.
             if (this.disposed) {
                 await client.close().catch(() => { /* ignore */ });
@@ -349,6 +362,10 @@ export class McpClientManager {
             state.status = "connected";
             state.error = undefined;
         } catch (err: any) {
+            // Close a half-open client so a timed-out stdio child / socket doesn't leak.
+            if (client) {
+                client.close().catch(() => { /* ignore */ });
+            }
             state.status = "failed";
             state.error = err?.message ?? String(err);
             state.client = undefined;
