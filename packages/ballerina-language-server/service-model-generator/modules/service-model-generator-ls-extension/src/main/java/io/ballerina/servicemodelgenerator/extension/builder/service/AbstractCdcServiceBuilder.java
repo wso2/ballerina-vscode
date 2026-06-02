@@ -21,9 +21,25 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Qualifier;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
+import io.ballerina.compiler.syntax.tree.NewExpressionNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
+import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
@@ -40,6 +56,8 @@ import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourc
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import io.ballerina.tools.diagnostics.Location;
+import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.formatter.core.FormatterException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
@@ -49,13 +67,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -78,6 +100,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVIC
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.extractParameterKinds;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.restoreAndUpdateDataBindingParams;
+import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getArgList;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
@@ -91,6 +114,8 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExis
  * @since 1.5.0
  */
 public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
+
+    private static final Logger LOGGER = Logger.getLogger(AbstractCdcServiceBuilder.class.getName());
 
     // Public field name constants (used in databinding)
     public static final String AFTER_ENTRY_FIELD = "afterEntry";
@@ -118,6 +143,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     protected static final String KEY_USERNAME = "username";
     protected static final String KEY_PASSWORD = "password";
     protected static final String KEY_DATABASE = "database";
+    protected static final String KEY_DATABASES = "databases";
     protected static final String KEY_SCHEMAS = "schemas";
     protected static final String KEY_SECURE_SOCKET = "secureSocket";
     protected static final String KEY_OPTIONS = "options";
@@ -205,26 +231,195 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     protected abstract String getDisplayLabel();
 
     /**
+     * Returns the set of property keys that participate in metadata application from the JSON template
+     * onto extracted listener configs (used by {@link #applyInitModelMetadata}).
+     */
+    protected abstract Set<String> getMetadataKeys();
+
+    /**
+     * Extracts database-specific fields (hostname, port, username, password, secure, plus per-db fields
+     * such as {@code databaseInstance} for MSSQL, {@code databaseName} for PostgreSQL, etc.) from the
+     * {@code database} named argument of the listener constructor and writes them into {@code config}.
+     */
+    protected abstract void extractDatabaseConfigFields(
+            NamedArgumentNode databaseArg, Map<String, Value> config);
+
+    /**
      * Extracts read-only listener configurations from existing listener declarations in source code.
+     * Iterates over each listener name and delegates per-listener extraction to
+     * {@link #extractSingleListenerConfig}.
      *
      * @param listenerNames  Set of listener variable names to extract configs for
      * @param semanticModel  Semantic model for symbol resolution
      * @param project        Project for source traversal
      * @return Map of listener name to its configuration properties (read-only Values)
      */
-    protected abstract Map<String, Map<String, Value>> extractListenerConfigs(
-            Set<String> listenerNames, SemanticModel semanticModel, Project project);
+    protected Map<String, Map<String, Value>> extractListenerConfigs(
+            Set<String> listenerNames, SemanticModel semanticModel, Project project) {
+        Map<String, Map<String, Value>> configs = new LinkedHashMap<>();
+        for (String listenerName : listenerNames) {
+            Map<String, Value> config = extractSingleListenerConfig(listenerName, semanticModel, project);
+            if (config != null && !config.isEmpty()) {
+                configs.put(listenerName, config);
+            }
+        }
+        return configs;
+    }
 
     /**
      * Applies metadata (labels, descriptions) from the JSON template properties onto the extracted
      * existing listener configs so that labels and descriptions are consistent between
-     * "Create new" and "Use existing" views.
+     * "Create new" and "Use existing" views. The set of keys to apply metadata for is provided by
+     * {@link #getMetadataKeys}.
      *
      * @param configs        Extracted listener configs (listener name -> property key -> Value)
      * @param templateProps  Properties from the JSON template (the init model properties)
      */
-    protected abstract void applyInitModelMetadata(Map<String, Map<String, Value>> configs,
-                                                    Map<String, Value> templateProps);
+    protected void applyInitModelMetadata(Map<String, Map<String, Value>> configs,
+                                          Map<String, Value> templateProps) {
+        for (Map<String, Value> config : configs.values()) {
+            for (String key : getMetadataKeys()) {
+                Value configValue = config.get(key);
+                Value templateValue = templateProps.get(key);
+                if (configValue != null && templateValue != null && templateValue.getMetadata() != null) {
+                    configValue.setMetadata(templateValue.getMetadata());
+                }
+            }
+        }
+    }
+
+    /**
+     * Resolves a listener variable in the semantic model, walks back to its {@link ListenerDeclarationNode},
+     * and delegates to {@link #extractConfigFromListenerDeclaration} for db-aware field extraction.
+     */
+    protected Map<String, Value> extractSingleListenerConfig(
+            String listenerName, SemanticModel semanticModel, Project project) {
+        Optional<VariableSymbol> listenerSymbol = Optional.empty();
+        for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
+            if (!(moduleSymbol instanceof VariableSymbol variableSymbol)
+                    || !variableSymbol.qualifiers().contains(Qualifier.LISTENER)) {
+                continue;
+            }
+            if (variableSymbol.getName().isPresent() && variableSymbol.getName().get().equals(listenerName)) {
+                listenerSymbol = Optional.of(variableSymbol);
+                break;
+            }
+        }
+        if (listenerSymbol.isEmpty() || listenerSymbol.get().getLocation().isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Location location = listenerSymbol.get().getLocation().get();
+        try {
+            Path path = project.sourceRoot().resolve(location.lineRange().fileName());
+            DocumentId documentId = project.documentId(path);
+            Document document = project.currentPackage().getDefaultModule().document(documentId);
+            if (document == null) {
+                return null;
+            }
+
+            ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+            TextRange range = TextRange.from(location.textRange().startOffset(), location.textRange().length());
+            NonTerminalNode foundNode = modulePartNode.findNode(range);
+            while (foundNode != null && !(foundNode instanceof ListenerDeclarationNode)) {
+                foundNode = foundNode.parent();
+            }
+            if (foundNode == null) {
+                return null;
+            }
+
+            ListenerDeclarationNode listenerNode = (ListenerDeclarationNode) foundNode;
+            return extractConfigFromListenerDeclaration(listenerNode);
+        } catch (RuntimeException e) {
+            LOGGER.warning("Failed to extract listener config for '" + listenerName + "': " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Extracts shared listener arguments ({@code options}, {@code livenessInterval},
+     * {@code internalSchemaStorage}, {@code offsetStorage}) from the listener declaration's
+     * {@code new()} call, and delegates {@code database} field extraction to the db-specific
+     * {@link #extractDatabaseConfigFields} hook.
+     */
+    protected Map<String, Value> extractConfigFromListenerDeclaration(ListenerDeclarationNode listenerNode) {
+        Map<String, Value> config = new LinkedHashMap<>();
+
+        Node initializer = listenerNode.initializer();
+        NewExpressionNode newExpressionNode;
+        if (initializer instanceof CheckExpressionNode checkExpressionNode) {
+            if (!(checkExpressionNode.expression() instanceof NewExpressionNode newExpr)) {
+                LOGGER.severe("Unexpected expression type inside CheckExpressionNode: "
+                        + checkExpressionNode.expression().getClass().getName());
+                return config;
+            }
+            newExpressionNode = newExpr;
+        } else if (initializer instanceof NewExpressionNode newExpr) {
+            newExpressionNode = newExpr;
+        } else {
+            LOGGER.severe("Unexpected initializer type in " + kind() + " listener declaration: "
+                    + initializer.getClass().getName());
+            return config;
+        }
+
+        SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
+        if (arguments == null) {
+            return config;
+        }
+
+        for (FunctionArgumentNode argument : arguments) {
+            if (!(argument instanceof NamedArgumentNode namedArg)) {
+                continue;
+            }
+            String argName = namedArg.argumentName().name().text().trim();
+
+            switch (argName) {
+                case "database" -> extractDatabaseConfigFields(namedArg, config);
+                case "options" -> config.put(KEY_OPTIONS,
+                        ListenerUtil.buildReadOnlyTextValue("Options",
+                                "Additional options for the CDC engine",
+                                namedArg.expression().toSourceCode().trim()));
+                case "livenessInterval" -> config.put(KEY_LIVENESS_INTERVAL,
+                        ListenerUtil.buildReadOnlyNumberValue("Liveness Interval",
+                                "Interval in seconds for the CDC engine liveness check",
+                                namedArg.expression().toSourceCode().trim()));
+                case "internalSchemaStorage" -> config.put(KEY_INTERNAL_SCHEMA_STORAGE,
+                        ListenerUtil.buildReadOnlyTextValue("Internal Schema Storage",
+                                "Storage configuration for the internal schema history",
+                                namedArg.expression().toSourceCode().trim()));
+                case "offsetStorage" -> config.put(KEY_OFFSET_STORAGE,
+                        ListenerUtil.buildReadOnlyTextValue("Offset Storage",
+                                "Storage configuration for CDC offsets",
+                                namedArg.expression().toSourceCode().trim()));
+                default -> {
+                }
+            }
+        }
+
+        return config;
+    }
+
+    /**
+     * Parses a list-typed field's value expression and returns the unquoted string items.
+     */
+    protected static List<String> extractListValues(SpecificFieldNode field) {
+        List<String> values = new ArrayList<>();
+        Optional<ExpressionNode> valueExpr = field.valueExpr();
+        if (valueExpr.isPresent() && valueExpr.get() instanceof ListConstructorExpressionNode listNode) {
+            for (Node node : listNode.expressions()) {
+                if (node instanceof ExpressionNode expr) {
+                    String val = expr.toSourceCode().trim();
+                    if (val.startsWith("\"") && val.endsWith("\"")) {
+                        val = val.substring(1, val.length() - 1);
+                    }
+                    if (!val.isEmpty()) {
+                        values.add(val);
+                    }
+                }
+            }
+        }
+        return values;
+    }
 
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {

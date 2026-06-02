@@ -99,6 +99,8 @@ public record Artifact(String id, LineRange location, String type, String name, 
             Map.entry("ai", "AI Agent Services"),
             Map.entry("solace", "Solace Event Integration"),
             Map.entry("mssql", "CDC MSSQL Service"),
+            Map.entry("postgresql", "CDC PostgreSQL Service"),
+            Map.entry("mysql", "CDC MySQL Service"),
             Map.entry("shopify", "Shopify Event Integration")
     );
 
@@ -109,6 +111,8 @@ public record Artifact(String id, LineRange location, String type, String name, 
     private static final Map<String, String[]> moduleAnnotationFields = Map.of(
             "solace", new String[]{"queueName", "topicName"},
             "mssql", new String[]{"tables"},
+            "postgresql", new String[]{"tables"},
+            "mysql", new String[]{"tables"},
             "ftp", new String[]{"path"}
     );
 

@@ -27,20 +27,30 @@ import org.eclipse.lsp4j.TextEdit;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.servicemodelgenerator.extension.builder.service.PostgresqlCdcServiceBuilder.AFTER_ENTRY_FIELD;
-import static io.ballerina.servicemodelgenerator.extension.builder.service.PostgresqlCdcServiceBuilder.BEFORE_ENTRY_FIELD;
+import static io.ballerina.servicemodelgenerator.extension.builder.service.AbstractCdcServiceBuilder.AFTER_ENTRY_FIELD;
+import static io.ballerina.servicemodelgenerator.extension.builder.service.AbstractCdcServiceBuilder.BEFORE_ENTRY_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.POSTGRESQL;
 
 /**
- * Represents the PostgreSQL CDC function builder of the service model generator. Handles special-case logic for
- * onUpdate function which has two databinding parameters (beforeEntry and afterEntry) that must share the same type.
+ * Represents the CDC function builder of the service model generator. Shared across all CDC database variants
+ * (MySQL, MSSQL, PostgreSQL, etc.) — the database identifier is supplied via the constructor, since the only
+ * per-database difference is the value returned from {@link #kind()}.
+ * <p>
+ * Handles special-case logic for the {@code onUpdate} function which has two databinding parameters
+ * ({@code beforeEntry} and {@code afterEntry}) that must share the same type.
+ * </p>
  *
  * @since 1.6.0
  */
-public final class PostgresqlCdcFunctionBuilder extends AbstractFunctionBuilder {
+public final class CdcFunctionBuilder extends AbstractFunctionBuilder {
 
     private static final String ON_UPDATE_FUNCTION = "onUpdate";
+
+    private final String kind;
+
+    public CdcFunctionBuilder(String kind) {
+        this.kind = kind;
+    }
 
     @Override
     public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
@@ -48,8 +58,6 @@ public final class PostgresqlCdcFunctionBuilder extends AbstractFunctionBuilder 
         if (ON_UPDATE_FUNCTION.equals(function.getName().getValue())) {
             expandDatabindingParams(function);
         }
-
-        // Call parent which will generate code with expanded parameters
         return super.addModel(context);
     }
 
@@ -59,8 +67,6 @@ public final class PostgresqlCdcFunctionBuilder extends AbstractFunctionBuilder 
         if (ON_UPDATE_FUNCTION.equals(function.getName().getValue())) {
             expandDatabindingParams(function);
         }
-
-        // Call parent which will generate code with expanded parameters
         return super.updateModel(context);
     }
 
@@ -96,11 +102,10 @@ public final class PostgresqlCdcFunctionBuilder extends AbstractFunctionBuilder 
             beforeEntry.setEnabled(true);
             beforeEntry.getType().setValue(afterEntry.getType().getValue());
         }
-
     }
 
     @Override
     public String kind() {
-        return POSTGRESQL;
+        return kind;
     }
 }

@@ -41,7 +41,7 @@
             "pubsub"
         ],
         "ballerinaVersion": "2201.10.0",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.3.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.3.3.png",
         "ownerUUID": "b5a9e54d-8ade-47a1-8abc-6bc46e89069d",
         "createdDate": 1724153093000,
         "pullCount": 24,
