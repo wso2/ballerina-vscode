@@ -20,7 +20,8 @@ import React from "react";
 import fs from "fs";
 import path from "path";
 import { FileIntegrationForm } from "./index";
-import { renderWithRpc, propsFromFixture, FileIntegrationFixture } from "../../../../../test/test-utils";
+import { renderWithRpc } from "../../../../../test/test-utils";
+import { propsFromFixture, FileIntegrationFixture } from "./FileIntegrationForm.fixtures";
 import { buildSnapshot } from "../../../../../test/snapshot-utils";
 
 /**

@@ -19,7 +19,8 @@
 import React from "react";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { FileIntegrationForm } from "./index";
-import { renderWithRpc, propsFromFixture, createMockRpcClient, FileIntegrationFixture } from "../../../../../test/test-utils";
+import { renderWithRpc, createMockRpcClient } from "../../../../../test/test-utils";
+import { propsFromFixture, FileIntegrationFixture } from "./FileIntegrationForm.fixtures";
 
 import existingHandler from "./__fixtures__/existingHandler.json";
 import newHandler from "./__fixtures__/newHandler.json";
@@ -102,7 +103,7 @@ describe("FileIntegrationForm - behavioral", () => {
 
     it("renders the info banner from metadata.notice", () => {
         const fm = clone(existingHandler.functionModel);
-        fm.metadata.notice = "Heads up: configure carefully";
+        (fm.metadata as any).notice = "Heads up: configure carefully";
         renderForm(existingHandler, { functionModel: fm });
         expect(screen.getByText("Heads up: configure carefully")).toBeInTheDocument();
     });
