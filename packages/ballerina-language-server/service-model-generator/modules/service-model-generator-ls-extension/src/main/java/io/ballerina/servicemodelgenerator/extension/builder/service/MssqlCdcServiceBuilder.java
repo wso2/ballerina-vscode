@@ -114,7 +114,7 @@ public final class MssqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
                                 "The username for the Microsoft SQL Server connection", fieldValue));
                 case "password" -> config.put(KEY_PASSWORD,
                         ListenerUtil.buildReadOnlyTextValue("Password",
-                                "Thxe password for the Microsoft SQL Server connection", fieldValue));
+                                "The password for the Microsoft SQL Server connection", fieldValue));
                 case "databaseNames" -> {
                     List<String> items = extractListValues(field);
                     config.put(KEY_DATABASES,
