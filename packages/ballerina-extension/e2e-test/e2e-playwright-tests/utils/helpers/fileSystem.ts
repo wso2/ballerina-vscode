@@ -29,6 +29,10 @@ export namespace FileUtils {
         fs.writeFileSync(filePath, content);
     }
 
+    export function readProjectFile(fileName: FileType) {
+        return fs.readFileSync(path.join(newProjectPath, fileName), 'utf8');
+    }
+
     /**
      * Opens a project file in the VS Code editor via Quick Open.
      * This triggers `textDocument/didOpen` to the language server,

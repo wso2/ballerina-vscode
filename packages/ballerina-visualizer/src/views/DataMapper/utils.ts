@@ -68,7 +68,7 @@ export const createAddSubMappingRequest = (
     typeImports?: Imports
 ): AddSubMappingRequest => ({
     filePath,
-    codedata,
+    codedata: { ...codedata, isNew: true },
     index,
     targetField,
     flowNode: createFlowNode(subMappingName, type, codedata, defaultValue, typeImports),

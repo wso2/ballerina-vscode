@@ -519,6 +519,10 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                 fileName,
                 startLine !== undefined ? startLine : undefined
             );
+            
+            if (editorView.state.doc.textContent !== plainText) {
+                return;
+            }
 
             updateChipTokens(editorView, {
                 tokens,

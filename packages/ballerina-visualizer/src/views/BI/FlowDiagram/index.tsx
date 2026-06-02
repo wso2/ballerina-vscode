@@ -3218,7 +3218,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             breakpointInfo,
             readOnly: showProgressSpinner || showProgressIndicator || hasDraft || selectedNodeId !== undefined,
             overlay: {
-                visible: selectedNodeId !== undefined || topNodeRef.current !== undefined,
+                visible: selectedNodeId !== undefined || topNodeRef.current !== undefined || hasDraft,
                 onClickOverlay: handleOnCloseSidePanel,
             },
             isUserAuthenticated,

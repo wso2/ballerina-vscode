@@ -171,6 +171,8 @@ import {
     IWso2PlatformExtensionAPI,
     ICreateNewIntegrationCmdParams,
     ICreateNewIntegrationCmdIntegrations,
+    resolveIntegrationType,
+    AUTOMATION_WITH_LISTENER_WARNING,
 } from "@wso2/wso2-platform-core";
 import {
     ShellExecution,
@@ -1300,11 +1302,25 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             return undefined;
         }
 
-        if (integrationTypes.length === 1) {
-            return integrationTypes[0];
+        const resolution = resolveIntegrationType(integrationTypes);
+
+        if (resolution.kind === "autoPick") {
+            return resolution.scope as SCOPE;
         }
 
-        const selectedScope = await window.showQuickPick(integrationTypes, {
+        if (resolution.kind === "autoPickWithWarning") {
+            const choice = await window.showWarningMessage(
+                AUTOMATION_WITH_LISTENER_WARNING,
+                { modal: true },
+                "Continue",
+            );
+            if (choice !== "Continue") {
+                return undefined;
+            }
+            return resolution.scope as SCOPE;
+        }
+
+        const selectedScope = await window.showQuickPick(resolution.choices, {
             placeHolder: 'You have different types of artifacts within this integration. Select the artifact type to be deployed'
         });
 

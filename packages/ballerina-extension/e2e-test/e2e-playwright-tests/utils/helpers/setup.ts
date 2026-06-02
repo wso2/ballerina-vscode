@@ -31,6 +31,7 @@ export const dataFolder = path.join(__dirname, '..', '..', '..', 'data');
 /** Template package committed with tests (minimal Ballerina project to copy). */
 const emptyProjectPath = path.join(__dirname, '..', '..', 'data', 'empty_project');
 export const extensionsFolder = path.join(__dirname, '..', '..', '..', '..', 'vsix');
+const repoRootExtensionsFolder = path.join(__dirname, '..', '..', '..', '..', '..', '..', '..');
 const vscodeVersion = 'latest';
 const baseVsCodeProfileName = process.env.BI_E2E_PROFILE_NAME ?? `bi-test-profile-${process.pid}`;
 let vscodeLaunchAttempt = 0;
@@ -155,17 +156,29 @@ function getVsCodeProfileName(): string {
 }
 
 function resolveBallerinaVsixPath(): string {
-    const ballerinaVsixFiles = fs.readdirSync(extensionsFolder)
-        .filter((file) => /^ballerina-.*\.vsix$/i.test(file))
+    const candidateFolders = [extensionsFolder, repoRootExtensionsFolder];
+    const findVsixFiles = () => candidateFolders.filter((folder) => fs.existsSync(folder)).flatMap((folder) => fs.readdirSync(folder)
+        .filter((file) => /^ballerina-.*\.vsix$/i.test(file) && !/^ballerina-integrator-/i.test(file))
         .map((file) => ({
             file,
-            fullPath: path.join(extensionsFolder, file),
-            mtime: fs.statSync(path.join(extensionsFolder, file)).mtimeMs,
-        }))
+            fullPath: path.join(folder, file),
+            mtime: fs.statSync(path.join(folder, file)).mtimeMs,
+        })))
         .sort((a, b) => b.mtime - a.mtime);
 
+    let ballerinaVsixFiles = findVsixFiles();
     if (ballerinaVsixFiles.length === 0) {
-        throw new Error(`No ballerina VSIX found in: ${extensionsFolder}`);
+        console.log('No local Ballerina VSIX found; running "rush build -t ballerina"');
+        execSync('rush build -t ballerina', {
+            cwd: repoRootExtensionsFolder,
+            stdio: 'inherit',
+            timeout: 60 * 60 * 1000,
+        });
+        ballerinaVsixFiles = findVsixFiles();
+    }
+
+    if (ballerinaVsixFiles.length === 0) {
+        throw new Error(`No local Ballerina VSIX found in: ${candidateFolders.join(', ')} after running "rush build -t ballerina".`);
     }
 
     return ballerinaVsixFiles[0].fullPath;

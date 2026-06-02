@@ -27,6 +27,17 @@ export type BreadCrumbStep = {
     stepType?: string;
 }
 
+// Ballerina renders optionality either as a trailing `?` (e.g. `string?`,
+// `ChangeEventMetadata?`, `(A|B)?`) or as a union with nil written out
+// (e.g. `string|()`, `Foo | ( )`). Detect both forms.
+const NIL_UNION_RE = /\|\s*\(\s*\)$/;
+const isOptionalType = (t?: string) => {
+    if (!t) return false;
+    const s = t.trim();
+    return s.endsWith('?') || NIL_UNION_RE.test(s);
+};
+const joinSep = (prevStepType?: string) => (isOptionalType(prevStepType) ? '?.' : '.');
+
 export const useHelperPaneNavigation = (initialLabel: string) => {
     const [breadCrumbSteps, setBreadCrumbSteps] = useState<BreadCrumbStep[]>([{
         label: initialLabel,
@@ -34,7 +45,8 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
     }]);
 
     const navigateToNext = (value: string, currentValue: string, stepType?: string) => {
-        const separator = currentValue ? '.' : '';
+        const lastStep = breadCrumbSteps[breadCrumbSteps.length - 1];
+        const separator = currentValue ? joinSep(lastStep?.stepType) : '';
         const newBreadCrumSteps = [...breadCrumbSteps, {
             label: value,
             replaceText: currentValue + separator + value,
@@ -43,15 +55,17 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
         setBreadCrumbSteps(newBreadCrumSteps);
     };
 
-    const navigateToNextArray = (value: string, currentValue: string, index: number) => {
-        const separator = currentValue ? '.' : '';
+    const navigateToNextArray = (value: string, currentValue: string, index: number, stepType?: string) => {
+        const lastStep = breadCrumbSteps[breadCrumbSteps.length - 1];
+        const separator = currentValue ? joinSep(lastStep?.stepType) : '';
         const indexedValue = `${value}[${index}]`;
         const newBreadCrumSteps = [...breadCrumbSteps, {
             label: indexedValue,
             replaceText: currentValue + separator + indexedValue,
             isArrayAccess: true,
             arrayIndex: index,
-            fieldName: value
+            fieldName: value,
+            stepType
         }];
         setBreadCrumbSteps(newBreadCrumSteps);
     };
@@ -64,7 +78,7 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
 
         const parentStep = steps[steps.length - 2];
         const parentPath = parentStep.replaceText;
-        const separator = parentPath ? '.' : '';
+        const separator = parentPath ? joinSep(parentStep.stepType) : '';
         const newReplaceText = parentPath + separator + lastStep.fieldName + '[' + index + ']';
 
         steps[steps.length - 1] = {
@@ -91,6 +105,9 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
 
     const getCurrentNavigationPath = getCurrentPath;
 
+    const getLeafSeparator = () =>
+        joinSep(breadCrumbSteps[breadCrumbSteps.length - 1]?.stepType);
+
     return {
         breadCrumbSteps,
         navigateToNext,
@@ -99,6 +116,7 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
         navigateToBreadcrumb,
         isAtRoot,
         getCurrentPath,
-        getCurrentNavigationPath
+        getCurrentNavigationPath,
+        getLeafSeparator
     };
 };

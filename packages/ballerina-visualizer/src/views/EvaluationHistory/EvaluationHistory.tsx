@@ -198,20 +198,37 @@ export function EvaluationHistory() {
 
     useEffect(() => {
         const container = document.getElementById("webview-container");
-        const projectPath = container?.getAttribute("data-project-path") ?? "";
-        setProjectPath(projectPath);
+        const resolvedProjectPath = container?.getAttribute("data-project-path") ?? "";
+        setProjectPath(resolvedProjectPath);
 
-        rpcClient
-            .getTestManagerRpcClient()
-            .getEvaluationHistory({ projectPath })
-            .then((response) => {
-                setData(response.data);
-                setLoading(false);
-            })
-            .catch(() => {
-                setData({ tests: [], totalRunFiles: 0, projectNames: [] });
-                setLoading(false);
-            });
+        let cancelled = false;
+        let latestFetchId = 0;
+        const fetchHistory = (isInitial: boolean) => {
+            const fetchId = ++latestFetchId;
+            rpcClient
+                .getTestManagerRpcClient()
+                .getEvaluationHistory({ projectPath: resolvedProjectPath })
+                .then((response) => {
+                    if (cancelled || fetchId !== latestFetchId) { return; }
+                    setData(response.data);
+                    setLoading(false);
+                })
+                .catch(() => {
+                    if (cancelled || fetchId !== latestFetchId) { return; }
+                    if (isInitial) {
+                        setData({ tests: [], totalRunFiles: 0, projectNames: [] });
+                    }
+                    setLoading(false);
+                });
+        };
+
+        fetchHistory(true);
+        const unsubscribe = rpcClient.onEvaluationHistoryUpdated(() => fetchHistory(false));
+
+        return () => {
+            cancelled = true;
+            unsubscribe();
+        };
     }, []);
 
     if (loading) {

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { Button, Codicon, SidePanel, SidePanelBody, SidePanelTitleContainer, ThemeColors } from "@wso2/ui-toolkit";
 import { useDMQueryClausesStore } from "../../../../store/store";
@@ -43,6 +43,7 @@ export function ClauseForm(props: ClauseFormProps) {
     const [isSaving, setIsSaving] = React.useState<boolean>(false);
 
     const clauses = query?.intermediateClauses || [];
+    const initialClauseRef = useRef(clauseToAdd);
 
     const fillDefaults = async (clause: IntermediateClause) => {
         const clauseType = clause.type;
@@ -103,6 +104,7 @@ export function ClauseForm(props: ClauseFormProps) {
                 <ClauseEditor
                     index={clauses.length}
                     targetField={targetField}
+                    clause={initialClauseRef.current}
                     isSaving={isSaving}
                     onCancel={() => setIsQueryClauseFormOpen(false)}
                     onSubmit={setClauses}

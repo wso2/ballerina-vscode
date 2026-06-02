@@ -41,6 +41,10 @@ export interface TraceStatus {
     enabled: boolean;
 }
 
+export interface TraceStatusRequest {
+    projectPath?: string;
+}
+
 export interface TraceInput {
     message?: string;
     traceId?: string;

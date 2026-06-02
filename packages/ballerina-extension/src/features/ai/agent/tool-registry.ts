@@ -100,7 +100,7 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(
             eventHandler,
             tempProjectPath,
-            projects[0].projectName,
+            projects[0]?.projectName,
             modifiedFiles
         ),
         [CONFIG_COLLECTOR_TOOL]: createConfigCollectorTool(

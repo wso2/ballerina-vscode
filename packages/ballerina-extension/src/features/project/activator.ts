@@ -29,10 +29,14 @@ import { activateRenameCommand } from "./cmds/rename";
 import { activateExtractCommand } from "./cmds/extract";
 import { activateConfigRunCommand } from "./cmds/configRun";
 import { activateTryItCommand } from "../tryit/activator";
+import { activateIntegrationRunnerState } from "./integration-runner-state";
 
 export * from "./cmds/cmd-runner";
 
 export function activate() {
+    // track integration run terminal/debug-session lifecycle
+    activateIntegrationRunnerState();
+
     // activate ballerina test command
     activateTestRunner();
     
