@@ -1,0 +1,157 @@
+{
+  "filePath": "ftp_add/main.bal",
+  "description": "Add a new FTP onFileText handler to an FTP service",
+  "codedata": {
+    "lineRange": {
+      "startLine": {
+        "line": 15,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 16,
+        "offset": 1
+      }
+    }
+  },
+  "function": {
+    "metadata": {
+      "label": "onCreate",
+      "description": "Text file creation handler"
+    },
+    "kind": "REMOTE",
+    "name": {
+      "value": "onFileText",
+      "enabled": true,
+      "editable": false,
+      "optional": false,
+      "advanced": false
+    },
+    "documentation": {
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "parameters": [
+      {
+        "metadata": {
+          "label": "Content",
+          "description": "Text file content"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "value": "string",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "value": "content",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "File Metadata (fileInfo)",
+          "description": "Additional file properties"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "value": "ftp:FileInfo",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "value": "fileInfo",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      }
+    ],
+    "returnType": {
+      "hasError": false,
+      "isGraphqlId": false,
+      "value": "error?",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": true,
+    "editable": true,
+    "canAddParameters": false,
+    "codedata": {
+      "moduleName": "ftp"
+    },
+    "properties": {}
+  },
+  "output": {
+    "ftp_add/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 24
+          },
+          "end": {
+            "line": 15,
+            "character": 24
+          }
+        },
+        "newText": "\n\tremote function onFileText(string content, ftp:FileInfo fileInfo) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}"
+      }
+    ]
+  }
+}

@@ -1,0 +1,203 @@
+{
+  "filePath": "ftp_handlers/main.bal",
+  "description": "Enable the stream toggle on an FTP json handler so the content type is wrapped as stream<json, error?>",
+  "function": {
+    "metadata": {
+      "label": "onCreate",
+      "description": "JSON file creation handler"
+    },
+    "kind": "REMOTE",
+    "name": {
+      "value": "onFileJson",
+      "enabled": true,
+      "editable": false,
+      "optional": false,
+      "advanced": false
+    },
+    "documentation": {
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "parameters": [
+      {
+        "metadata": {
+          "label": "Content",
+          "description": "Parsed JSON file content"
+        },
+        "kind": "DATA_BINDING",
+        "type": {
+          "placeholder": "json",
+          "value": "stream<json, error?>",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "value": "content",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "File Metadata (fileInfo)",
+          "description": "Additional file properties"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "value": "ftp:FileInfo",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "value": "fileInfo",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "FTP Connection (caller)",
+          "description": "FTP connection for further operations"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "value": "ftp:Caller",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "value": "caller",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      }
+    ],
+    "returnType": {
+      "hasError": false,
+      "isGraphqlId": false,
+      "value": "error?",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": true,
+    "editable": true,
+    "canAddParameters": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 16,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 22,
+          "offset": 5
+        }
+      },
+      "moduleName": "ftp"
+    },
+    "properties": {
+      "canDataBind": {
+        "value": "true",
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    }
+  },
+  "output": {
+    "ftp_handlers/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 16,
+            "character": 30
+          },
+          "end": {
+            "line": 16,
+            "character": 82
+          }
+        },
+        "newText": "(stream<json, error?> content, ftp:FileInfo fileInfo) returns error? "
+      }
+    ]
+  }
+}

@@ -1,0 +1,221 @@
+{
+  "filePath": "ftp_handlers/main.bal",
+  "description": "Enable the move post-process action on success for an FTP xml handler (generates @ftp:FunctionConfig)",
+  "function": {
+    "metadata": {
+      "label": "onCreate",
+      "description": "XML file creation handler"
+    },
+    "kind": "REMOTE",
+    "name": {
+      "value": "onFileXml",
+      "enabled": true,
+      "editable": false,
+      "optional": false,
+      "advanced": false
+    },
+    "documentation": {
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "parameters": [
+      {
+        "metadata": {
+          "label": "Content",
+          "description": "Parsed XML file content"
+        },
+        "kind": "DATA_BINDING",
+        "type": {
+          "placeholder": "xml",
+          "value": "xml",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "value": "content",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "File Metadata (fileInfo)",
+          "description": "Additional file properties"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "value": "ftp:FileInfo",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "value": "fileInfo",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "FTP Connection (caller)",
+          "description": "FTP connection for further operations"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "value": "ftp:Caller",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "value": "caller",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      }
+    ],
+    "returnType": {
+      "hasError": false,
+      "isGraphqlId": false,
+      "value": "error?",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": true,
+    "editable": true,
+    "canAddParameters": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 24,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 30,
+          "offset": 5
+        }
+      },
+      "moduleName": "ftp"
+    },
+    "properties": {
+      "FunctionConfig": {
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "FunctionConfig",
+          "moduleName": "ftp"
+        },
+        "value": " {\n    afterProcess: {\n        moveTo: \"/processed\"\n    }\n}",
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      }
+    }
+  },
+  "output": {
+    "ftp_handlers/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 24,
+            "character": 4
+          },
+          "end": {
+            "line": 24,
+            "character": 4
+          }
+        },
+        "newText": "@ftp:FunctionConfig {\n    afterProcess: {\n        moveTo: \"/processed\"\n    }\n}\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 24,
+            "character": 29
+          },
+          "end": {
+            "line": 24,
+            "character": 99
+          }
+        },
+        "newText": "(xml content, ftp:FileInfo fileInfo, ftp:Caller caller) returns error? "
+      }
+    ]
+  }
+}
