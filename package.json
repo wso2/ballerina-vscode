@@ -1,0 +1,15 @@
+{
+  "name": "ballerina-vscode-monorepo",
+  "private": true,
+  "description": "Root scripts and dev tooling for the ballerina-vscode monorepo. Workspace projects are managed by rush — do not run npm/pnpm install here directly. See CONTRIBUTING.md.",
+  "scripts": {
+    "init-submodules": "git submodule update --init --recursive",
+    "build": "rush build",
+    "build:ballerina": "rush build --to ballerina",
+    "build:ls": "rush build --to ballerina-language-server",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "9.1.7"
+  }
+}

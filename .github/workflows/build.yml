@@ -54,7 +54,7 @@ jobs:
     outputs:
       runBalExtTests: ${{ steps.testMatrix.outputs.runBalExtTests }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 2
           submodules: recursive
@@ -113,7 +113,7 @@ jobs:
           APPINSIGHTS_INSTRUMENTATION_KEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATION_KEY }}
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.35.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -140,7 +140,7 @@ jobs:
     runs-on: ${{ inputs.runOnAWS && inputs.awsRunnerId || 'ubuntu-latest' }}
     steps:
       - name: Restore build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ExtBuild
           path: ./
@@ -151,7 +151,7 @@ jobs:
           rm build.zip
 
       - name: Setup Rush
-        uses: gigara/setup-rush@v1.2.0
+        uses: gigara/setup-rush@7ba3446572d15f5eacc85de383ad9679dfb7223c # v1.2.0
         with:
           pnpm: 10.10.0
           node: 22.x
@@ -187,7 +187,7 @@ jobs:
     runs-on: ${{ inputs.runOnAWS && inputs.awsRunnerId || 'ubuntu-latest' }}
     steps:
       - name: Restore build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ExtBuild
           path: ./
@@ -198,7 +198,7 @@ jobs:
           rm build.zip
 
       - name: Setup Rush
-        uses: gigara/setup-rush@v1.2.0
+        uses: gigara/setup-rush@7ba3446572d15f5eacc85de383ad9679dfb7223c # v1.2.0
         with:
           pnpm: 10.10.0
           node: 22.x
@@ -236,7 +236,7 @@ jobs:
     runs-on: ${{ inputs.runOnAWS && inputs.awsRunnerId || 'ubuntu-latest' }}
     steps:
       - name: Restore build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ExtBuild
           path: ./
@@ -247,14 +247,14 @@ jobs:
           rm build.zip
 
       - name: Setup Rush
-        uses: gigara/setup-rush@v1.2.0
+        uses: gigara/setup-rush@7ba3446572d15f5eacc85de383ad9679dfb7223c # v1.2.0
         with:
           pnpm: 10.10.0
           node: 22.x
           rush-install: true
 
       - name: Install Ballerina distribution
-        uses: ballerina-platform/setup-ballerina@v1
+        uses: ballerina-platform/setup-ballerina@8a64987be305edb95f32092f64916ff973f40824 # v1
         with:
           version: ${{ env.ballerina_version }}
 
@@ -268,7 +268,7 @@ jobs:
       - name: Download previous test results
         id: check-results
         if: github.run_attempt > 1
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         continue-on-error: true
         with:
           name: Ballerina-e2e-test-results-linux-${{ matrix.group }}-${{ env.PREVIOUS_ATTEMPT }}
@@ -303,7 +303,7 @@ jobs:
           xvfb-run --server-num 98.0 -s "-ac -screen 0 1920x1080x24" bash -c "ffmpeg -y -nostdin -f x11grab -r 30 -s 1920x1080 -i :98.0 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -movflags +faststart -hide_banner -loglevel error record.mp4 & pnpm exec playwright test -c e2e-test/playwright.config.js --grep ${{ matrix.group }} --last-failed"
 
       - name: Upload Ballerina e2e Test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: Ballerina-e2e-test-results-linux-${{ matrix.group }}-${{ github.run_attempt }}
@@ -312,7 +312,7 @@ jobs:
           include-hidden-files: true
 
       - name: Upload Ballerina e2e Test recordings
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: Ballerina-e2e-test-recording-linux-${{ matrix.group }}-${{ github.run_attempt }}
@@ -324,7 +324,7 @@ jobs:
           retention-days: 5
 
       - name: Upload Ballerina e2e Test project data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: Ballerina-e2e-test-project-linux-${{ matrix.group }}-${{ github.run_attempt }}
