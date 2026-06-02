@@ -17,6 +17,15 @@
 import * as fs from "fs";
 import * as path from "path";
 
+// Recoverable agent-input error — callers return it to the agent, not the user.
+export class PathValidationError extends Error {
+    readonly code = "INVALID_PATH";
+    constructor(message: string) {
+        super(message);
+        this.name = "PathValidationError";
+    }
+}
+
 /**
  * Safely resolve a relative path against a base directory, ensuring the
  * result remains contained within the base. Throws on absolute paths, null
@@ -25,7 +34,7 @@ import * as path from "path";
  */
 export function resolveContained(basePath: string, relativePath: string): string {
     if (path.isAbsolute(relativePath) || relativePath.includes("\0")) {
-        throw new Error(
+        throw new PathValidationError(
             `Invalid path "${relativePath}": must be a relative path within the project`
         );
     }
@@ -33,7 +42,7 @@ export function resolveContained(basePath: string, relativePath: string): string
     const resolved = path.resolve(baseResolved, relativePath);
     const rel = path.relative(baseResolved, resolved);
     if (rel === ".." || rel.startsWith(".." + path.sep) || path.isAbsolute(rel)) {
-        throw new Error(
+        throw new PathValidationError(
             `Invalid path "${relativePath}": escapes the project root`
         );
     }
@@ -73,7 +82,7 @@ export function resolvePackageBasePath(tempPath: string, packagePath?: string): 
     if (packagePath) {
         const resolved = resolveContained(tempPath, packagePath);
         if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
-            throw new Error(
+            throw new PathValidationError(
                 `Invalid packagePath: directory "${packagePath}" does not exist in the project`
             );
         }
@@ -81,7 +90,7 @@ export function resolvePackageBasePath(tempPath: string, packagePath?: string): 
     }
 
     if (isWorkspaceTempProject(tempPath)) {
-        throw new Error(
+        throw new PathValidationError(
             "packagePath is required for workspace projects. " +
             "Pass the relative package path (e.g., \"pkg1\") so the operation targets the correct package."
         );
