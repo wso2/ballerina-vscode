@@ -15,7 +15,7 @@
         "theme": "light"
     },
     "engines": {
-        "vscode": "1.100.0"
+        "vscode": "^1.100.0"
     },
     "categories": [
         "Programming Languages",
@@ -1421,7 +1421,7 @@
         "test-coverage": "cross-env COVER_CONFIG=html pnpm run test",
         "build-tm-grammar": "js-yaml grammar/ballerina-grammar/syntaxes/ballerina.tmLanguage.yaml > grammar/ballerina-grammar/syntaxes/ballerina.tmLanguage.json",
         "lint": "tslint --fix 'src/**/*{.ts,.tsx}'",
-        "package": "node ../../common-libs/scripts/package-vsix.js",
+        "package": "node ../../submodules/wso2-vscode-extensions/workspaces/common-libs/scripts/package-vsix.js",
         "copyFonts": "copyfiles -f ./node_modules/@wso2/font-wso2-vscode/dist/* ./resources/font-wso2-vscode/dist/",
         "copyVSIX": "copyfiles *.vsix ./vsix",
         "copyVSIXToRoot": "copyfiles -f ./vsix/*.vsix ../../..",
@@ -1459,9 +1459,9 @@
         "dotenv": "16.5.0",
         "file-uri-to-path": "2.0.0",
         "glob": "11.1.0",
-        "handlebars": "4.7.8",
+        "handlebars": "4.7.9",
         "jwt-decode": "4.0.0",
-        "lodash": "4.17.23",
+        "lodash": "4.18.1",
         "monaco-languageclient": "0.13.1-next.9",
         "zustand": "5.0.5",
         "node-fetch": "3.3.2",
@@ -1484,7 +1484,7 @@
         "xml-js": "1.6.11",
         "xstate": "4.38.3",
         "zod": "4.1.8",
-        "yaml": "2.8.0"
+        "yaml": "2.8.3"
     },
     "devDependencies": {
         "@sentry/webpack-plugin": "1.20.1",

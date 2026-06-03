@@ -89,7 +89,7 @@
      * Ppnpmdocumentation: https://pnpm.io/package_json#pnpmoverrides
      */
     "globalOverrides": {
-      "lodash": ">=4.18.0",
+      "lodash": "4.18.1",
       "brace-expansion@>=5.0.0 <6": "5.0.6",
       // Security overrides — keep in sync with trivy findings. Bump to the
       // first fix version listed for each CVE. If a bump breaks workspace
