@@ -123,11 +123,6 @@ Before calling this tool:
 - Analyze the user query to identify the relevant Ballerina libraries which can be utilized to fulfill the query
 - Select the minimal set of libraries that can fulfill the query based on their descriptions
 
-# Example
-**Query**: Write an integration to read GitHub issues, summarize them, and post the summary to a Slack channel.
-**Step 1**: Call LibrarySearchTool with keywords: ["GitHub", "Slack", "OpenAI"]
-**Step 2**: Call this tool with libraryNames: ["ballerinax/github", "ballerinax/slack", "ballerinax/azure.openai.chat"]
-
 Tool Response:
 Tool responds with the following information about the requested libraries:
 name, description, type definitions (records, objects, enums, type aliases), clients (if any), functions and services (if any).

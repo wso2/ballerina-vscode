@@ -35,13 +35,13 @@ const LibrarySearchToolSchema = jsonSchema<{
         keywords: {
             type: "array",
             items: { type: "string" },
-            description: `Array of search keywords to find relevant Ballerina libraries. Keywords are weighted by order - first keyword has highest weight, subsequent keywords have decreasing weight. Maximum ${MAX_SEARCH_KEYWORDS} keywords allowed. Examples: ["GitHub", "API", "integration"], ["Stripe", "payment", "gateway"], ["HTTP", "REST", "service"]`,
+            description: `Array of search keywords to find relevant Ballerina libraries. Keywords are weighted by order - first keyword has highest weight, subsequent keywords have decreasing weight. Maximum ${MAX_SEARCH_KEYWORDS} keywords allowed.`,
             minItems: 1,
             maxItems: MAX_SEARCH_KEYWORDS,
         },
         searchDescription: {
             type: "string",
-            description: "Optional user-friendly description of what libraries are being searched for (e.g., 'payment processing libraries', 'GitHub API connectors', 'email sending services'). This will be shown to the user during the search to provide context about what is being looked for.",
+            description: "Optional user-friendly description of what libraries are being searched for. This will be shown to the user during the search to provide context about what is being looked for.",
         },
     },
     required: ["keywords"],
@@ -138,16 +138,16 @@ export function getLibrarySearchTool(
 This tool discovers relevant Ballerina libraries using keyword-based search. It searches against library names, descriptions, and function names. Keywords are weighted by order - the first keyword has the highest weight, with decreasing weight for subsequent keywords.
 
 **Scope - ALL Ballerina Libraries:**
-- **ballerina/*** - Standard/core libraries (e.g., ballerina/http, ballerina/io, ballerina/sql)
-- **ballerinax/*** - Extended/connector packages (e.g., ballerinax/stripe, ballerinax/aws.s3, ballerinax/github)
-- **xlibb/*** - C library bindings (e.g., xlibb/docreader)
+- **ballerina/*** - Standard/core libraries maintained by the Ballerina team
+- **ballerinax/*** - Extended connector packages for third-party services
+- **xlibb/*** - C library bindings
 - Other organization packages available in Ballerina Central
 
 **Keyword Guidelines:**
 - Provide 1-${MAX_SEARCH_KEYWORDS} keywords ordered by importance
 - First keyword = most important (highest weight in search)
 - Subsequent keywords = less important (decreasing weight)
-- Use specific terms (e.g., "Stripe", "GitHub", "PostgreSQL") before generic ones (e.g., "payment", "API", "database")
+- Use specific terms (the service or technology name) before generic ones (the capability or category)
 - Include 'trigger' keyword to indicate webhook related libraries.
 
 **When to use this tool:**
@@ -162,41 +162,10 @@ This tool discovers relevant Ballerina libraries using keyword-based search. It 
 3. Select the most appropriate libraries (typically 1-5 libraries)
 4. Then, call ${LIBRARY_GET_TOOL} with the selected library names to get detailed API documentation (functions, types, clients, services, etc.)
 
-**Example Workflows:**
-
-Example 1 - Stripe Integration:
-User query: "I need to integrate with Stripe payment gateway"
-Keywords: ["Stripe", "payment", "gateway"]  // "Stripe" has highest weight
-Call ${LIBRARY_SEARCH_TOOL} with keywords: ["Stripe", "payment", "gateway"]
-→ Returns: [
-    { name: "ballerinax/stripe", description: "Connects to Stripe API for payment processing" }
-  ]
-Then call ${LIBRARY_GET_TOOL} with libraryNames: ["ballerinax/stripe"]
-
-Example 2 - GitHub API:
-User query: "Create a GitHub integration to list issues"
-Keywords: ["GitHub", "API", "issues"]  // "GitHub" has highest weight
-Call ${LIBRARY_SEARCH_TOOL} with keywords: ["GitHub", "API", "issues"]
-→ Returns: [
-    { name: "ballerinax/github", description: "GitHub API connector for repository management" }
-  ]
-Then call ${LIBRARY_GET_TOOL} with libraryNames: ["ballerinax/github"]
-
-Example 3 - HTTP Service:
-User query: "Create a REST API"
-Keywords: ["HTTP", "REST", "API"]  // "HTTP" has highest weight
-Call ${LIBRARY_SEARCH_TOOL} with keywords: ["HTTP", "REST", "API"]
-→ Returns: [
-    { name: "ballerina/http", description: "HTTP client and server implementation" }
-  ]
-Then call ${LIBRARY_GET_TOOL} with libraryNames: ["ballerina/http"]
-
 **Tool Response Format:**
-Returns an array of library objects, each containing name and description:
+Returns an array of library objects, each containing a name and description:
 [
-  { name: "ballerinax/stripe", description: "Stripe payment connector for processing payments..." },
-  { name: "ballerinax/aws.s3", description: "AWS S3 connector for object storage operations..." },
-  { name: "ballerina/http", description: "HTTP client and server implementation..." }
+  { name: "<organization>/<library>", description: "..." }
 ]
 `,
         inputSchema: LibrarySearchToolSchema,
