@@ -121,12 +121,14 @@ export interface DiagramContextState {
         org: string;
         path: string;
         getProjectPath?: (props: JoinProjectPathRequest) => Promise<JoinProjectPathResponse>;
+        getFunctionLocation?: (functionName: string) => Promise<VisualizerLocation | undefined>;
     };
     readOnly?: boolean;
     lockCanvas?: boolean;
     setLockCanvas?: (lock: boolean) => void;
     isUserAuthenticated?: boolean;
     expressionContext: ExpressionContextProps;
+    nodeComments?: Map<string, FlowNode>;
     entrypointContext?: {
         serviceName?: string;
         functionName?: string;
@@ -182,6 +184,7 @@ export const DiagramContext = React.createContext<DiagramContextState>({
         org: "",
         path: "",
         getProjectPath: () => Promise.resolve({ filePath: "", projectPath: "" }),
+        getFunctionLocation: () => Promise.resolve(undefined),
     },
     readOnly: false,
     lockCanvas: false,

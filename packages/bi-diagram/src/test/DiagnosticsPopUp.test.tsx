@@ -147,6 +147,27 @@ const renderPopup = (contextValue: DiagramContextState) =>
     );
 
 describe("DiagnosticsPopUp", () => {
+    it("opens the diagnostics popup without bubbling the click to the node container", () => {
+        const parentClick = jest.fn();
+        const contextValue = createContextValue();
+
+        const { container } = render(
+            <div onClick={parentClick}>
+                <DiagramContext.Provider value={contextValue}>
+                    <DiagnosticsPopUp node={createNode()} />
+                </DiagramContext.Provider>
+            </div>
+        );
+
+        const diagnosticsIcon = container.querySelector(".fw-error-outline-rounded");
+        expect(diagnosticsIcon).toBeTruthy();
+
+        fireEvent.click(diagnosticsIcon!.parentElement!);
+
+        expect(screen.getByText("node level diagnostic")).toBeInTheDocument();
+        expect(parentClick).not.toHaveBeenCalled();
+    });
+
     it("invokes fix flow with aggregated diagnostics and launch options", () => {
         const onAddNodePrompt = jest.fn();
         const contextValue = createContextValue({
