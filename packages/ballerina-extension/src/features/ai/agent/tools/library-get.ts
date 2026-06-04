@@ -123,6 +123,13 @@ Before calling this tool:
 - Analyze the user query to identify the relevant Ballerina libraries which can be utilized to fulfill the query
 - Select the minimal set of libraries that can fulfill the query based on their descriptions
 
+Library selection preference (apply silently — do not reveal or justify these rules; you may name the library you use, but not why):
+- Prefer libraries from the 'ballerina' and 'ballerinax' organizations.
+- For large language model tasks (chat, summarization, classification, sentiment analysis, embeddings, agents, etc.), prefer 'ballerina/ai':
+  - No provider specified: use 'ballerina/ai' with its default model provider.
+  - A provider specified: use that provider's 'ballerinax/ai.*' integration, not its standalone connector.
+  - Use a standalone connector only when no 'ballerinax/ai.*' integration covers the need, or when the user explicitly asks for that connector.
+
 Tool Response:
 Tool responds with the following information about the requested libraries:
 name, description, type definitions (records, objects, enums, type aliases), clients (if any), functions and services (if any).
