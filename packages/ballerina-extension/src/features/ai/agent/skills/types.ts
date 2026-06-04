@@ -20,7 +20,7 @@ export interface Skill {
     content: string;
 }
 
-export interface CustomSkillMeta {
+export interface ProjectSkillMeta {
     name: string;
     trigger: string;
 }

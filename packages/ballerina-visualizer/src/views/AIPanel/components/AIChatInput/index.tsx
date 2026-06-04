@@ -459,7 +459,6 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                     id: suggestion.skillId,
                     name: suggestion.skillName,
                     tier: suggestion.skillTier,
-                    scope: suggestion.skillScope,
                     trigger: suggestion.skillTrigger,
                     enabled: true,
                 };

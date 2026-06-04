@@ -70,7 +70,7 @@ Do NOT announce that you are saving — just call the tool immediately.`,
                 name,
                 trigger,
                 body,
-                tier: response.tier as SkillTier.USER | SkillTier.CUSTOM,
+                tier: response.tier as SkillTier.USER | SkillTier.PROJECT,
             });
             const result = { saved: true, tier: response.tier, message: `Skill "${name}" saved as a ${response.tier} skill.` };
             eventHandler({ type: "tool_result", toolName: SAVE_SKILL_TOOL_NAME, toolOutput: result, toolCallId });

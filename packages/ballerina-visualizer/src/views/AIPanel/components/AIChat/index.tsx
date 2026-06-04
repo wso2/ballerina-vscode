@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     SourceFile,
@@ -427,9 +427,13 @@ const AIChat: React.FC = () => {
 
     useEffect(() => { fetchUsage(); fetchLoginMethod(); }, []);
 
-    useEffect(function fetchSkills() {
+    const refreshSkills = useCallback(() => {
         rpcClient.getAiPanelRpcClient().getSkills().then(res => setSkills(res.skills));
-    }, []);
+    }, [rpcClient]);
+
+    useEffect(function fetchSkills() {
+        refreshSkills();
+    }, [refreshSkills]);
 
     useEffect(() => {
         rpcClient.getAiPanelRpcClient().getShowContextUsage().then(setShowContextUsage).catch(() => {});
@@ -874,6 +878,31 @@ const AIChat: React.FC = () => {
                     return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "skill_save" as const, data: skillSaveData } : item) };
                 });
                 if (!found) updated = appendToLastEntry(entries, { kind: "skill_save", data: skillSaveData });
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
+            });
+
+        } else if (type === "skill_enable_event") {
+            const evt = response as any;
+            const enableData = {
+                requestId: evt.requestId,
+                stage: evt.stage,
+                skillName: evt.skillName,
+                skillId: evt.skillId,
+            };
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
+                const entries = parseStream(last.content);
+                let found = false;
+                let updated = entries.map(entry => {
+                    const idx = entry.items.findIndex(item => item.kind === "skill_enable" && (item.data as any)?.requestId === enableData.requestId);
+                    if (idx === -1) return entry;
+                    found = true;
+                    return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "skill_enable" as const, data: enableData } : item) };
+                });
+                if (!found) updated = appendToLastEntry(entries, { kind: "skill_enable", data: enableData });
                 msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
@@ -2261,6 +2290,23 @@ const AIChat: React.FC = () => {
                                 />
                             );
                         }
+
+                        const activeSkillEnableItem = lastStreamItems.find(
+                            (item: StreamItem) => item.kind === "skill_enable" && (item as any).data?.stage === "prompting"
+                        ) as { kind: "skill_enable"; data: { requestId: string; skillName: string; skillId: string } } | undefined;
+
+                        if (activeSkillEnableItem) {
+                            const { requestId, skillName, skillId } = activeSkillEnableItem.data;
+                            return (
+                                <CommonApprovalFooter
+                                    type="skill_enable"
+                                    skillName={skillName}
+                                    onEnable={() => rpcClient.getAiPanelRpcClient().enableSkillFromChat({ requestId, skillId })}
+                                    onSkip={() => rpcClient.getAiPanelRpcClient().cancelSkillEnable({ requestId })}
+                                />
+                            );
+                        }
+
                         if (webToolApprovalRequest) {
                             return (
                                 <CommonApprovalFooter
@@ -2335,7 +2381,7 @@ const AIChat: React.FC = () => {
                 <SettingsPanel onClose={popPanel} onNavigate={pushPanel} mcpToolsEnabled={mcpToolsEnabled} mcpPreviewEnabled={mcpPreviewEnabled} />
             )}
             {activePanel === "mcp" && <McpManagerPanel onClose={popPanel} />}
-            {activePanel === "skills" && <SkillsManager onClose={popPanel} />}
+            {activePanel === "skills" && <SkillsManager onClose={popPanel} onSkillsChange={refreshSkills} />}
         </>
     );
 };

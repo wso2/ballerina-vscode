@@ -319,6 +319,10 @@ export function sendSkillSaveNotification(event: ChatNotify & { type: "skill_sav
     sendAIPanelNotification(event);
 }
 
+export function sendSkillEnableNotification(event: ChatNotify & { type: "skill_enable_event" }): void {
+    sendAIPanelNotification(event);
+}
+
 export function sendWebToolToggleNotification(active: boolean): void {
     RPCLayer._messenger.sendNotification(
         webToolToggle,

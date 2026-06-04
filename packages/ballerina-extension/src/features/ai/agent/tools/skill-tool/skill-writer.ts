@@ -79,18 +79,15 @@ export function writeUserSkill(name: string, trigger: string, body?: string): vo
     fs.writeFileSync(path.join(skillDir, 'SKILL.md'), buildSkillMd(name, trigger, body), 'utf-8');
 }
 
-export function writeCustomSkill(
+export function writeProjectSkill(
     projectRoot: string,
-    packagePath: string | null,
     name: string,
     trigger: string,
     body?: string
 ): void {
     validatePathSegment(name, 'skill name');
     const resolvedRoot = path.resolve(projectRoot);
-    const baseDir = packagePath
-        ? path.join(projectRoot, packagePath, 'skills', name)
-        : path.join(projectRoot, 'skills', name);
+    const baseDir = path.join(projectRoot, '.agents', 'skills', name);
     assertWithinRoot(path.resolve(baseDir), resolvedRoot);
     fs.mkdirSync(baseDir, { recursive: true });
     fs.writeFileSync(path.join(baseDir, 'SKILL.md'), buildSkillMd(name, trigger, body), 'utf-8');
@@ -105,16 +102,10 @@ export function deleteUserSkill(name: string): void {
     }
 }
 
-export function deleteCustomSkill(
-    projectRoot: string,
-    packagePath: string | null,
-    name: string
-): void {
+export function deleteProjectSkill(projectRoot: string, name: string): void {
     validatePathSegment(name, 'skill name');
     const resolvedRoot = path.resolve(projectRoot);
-    const skillDir = packagePath
-        ? path.join(projectRoot, packagePath, 'skills', name)
-        : path.join(projectRoot, 'skills', name);
+    const skillDir = path.join(projectRoot, '.agents', 'skills', name);
     assertWithinRoot(path.resolve(skillDir), resolvedRoot);
     if (fs.existsSync(skillDir)) {
         fs.rmSync(skillDir, { recursive: true, force: true });

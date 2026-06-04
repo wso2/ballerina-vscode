@@ -22,7 +22,7 @@ import { CommandTemplates } from "../../../commandTemplates/data/commandTemplate
 import { Tag } from "../../../commandTemplates/models/tag.model";
 import { matchCommandTemplate } from "../utils/utils"
 import { PlaceholderTagMap } from "../../../commandTemplates/data/placeholderTags.const";
-import { Command, SkillEntry, SkillScope, SkillTier, TemplateId } from "@wso2/ballerina-core";
+import { Command, SkillEntry, SkillTier, TemplateId } from "@wso2/ballerina-core";
 
 export enum SuggestionType {
     Command = "command",
@@ -33,29 +33,14 @@ export enum SuggestionType {
 
 const SKILL_TIER_ORDER: Record<string, number> = {
     [SkillTier.BUILTIN]: 0,
-    [`${SkillTier.CUSTOM}:${SkillScope.PROJECT}`]: 1,
-    [`${SkillTier.CUSTOM}:${SkillScope.INTEGRATION}`]: 2,
-    [SkillTier.USER]: 3,
+    [SkillTier.PROJECT]: 1,
+    [SkillTier.USER]: 2,
 };
 
 function skillTierSortKey(skill: SkillEntry): number {
-    if (skill.tier === SkillTier.CUSTOM) {
-        return SKILL_TIER_ORDER[`${SkillTier.CUSTOM}:${skill.scope ?? SkillScope.PROJECT}`] ?? 1;
-    }
     return SKILL_TIER_ORDER[skill.tier] ?? 99;
 }
 
-const SKILL_TIER_LABELS: Record<string, string> = {
-    [SkillTier.BUILTIN]: "Built-in skill",
-    [SkillTier.USER]: "User skill",
-};
-
-export function getSkillTierLabel(skill: SkillEntry): string {
-    if (skill.tier === SkillTier.CUSTOM) {
-        return skill.scope === SkillScope.INTEGRATION ? "Integration skill" : "Project skill";
-    }
-    return SKILL_TIER_LABELS[skill.tier] ?? "Skill";
-}
 
 const COMMAND_META: Record<string, { icon: string; description: string }> = {
     "/ask":                                { icon: "codicon-comment-discussion", description: "Ask questions from Ballerina documentation" },
@@ -93,7 +78,6 @@ export interface SkillSuggestion extends BaseSuggestion {
     skillId: string;
     skillName: string;
     skillTier: SkillTier;
-    skillScope?: SkillScope;
     skillTrigger: string;
 }
 
@@ -176,12 +160,11 @@ export function useCommands({ commandTemplate, skills }: UseCommandsParams) {
                 const skillSuggestions: SkillSuggestion[] = sortedSkills
                     .filter(s => s.enabled && ('/' + getShortName(s.name)).toLowerCase().startsWith(query))
                     .map(s => ({
-                        text: `Skill: /${getShortName(s.name)}`,
+                        text: `/${getShortName(s.name)}`,
                         type: SuggestionType.Skill,
                         skillId: s.id,
                         skillName: s.name,
                         skillTier: s.tier,
-                        skillScope: s.scope,
                         skillTrigger: s.trigger,
                     }));
                 filtered = [...filtered, ...skillSuggestions];

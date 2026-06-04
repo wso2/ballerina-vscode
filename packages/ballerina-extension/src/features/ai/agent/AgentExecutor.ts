@@ -27,9 +27,7 @@ import { getSystemPrompt, getUserPrompt } from './prompts';
 import { prepareAgentsMdForTurn } from './agents-md';
 import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
-import { scanCustomSkills, scanUserSkills } from './tools/skill-tool/skill-reader';
-import { getSkillsConfig, GLOBAL_SKILLS_CONFIG_PATH } from './tools/skill-tool/skill-writer';
-import { CustomSkillMeta } from './skills/types';
+import { loadSkillsContext } from './skills/context';
 
 import { getMcpClientManager } from './mcp';
 import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
@@ -279,24 +277,12 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
             const agentsMd = await prepareAgentsMdForTurn(workspaceId || '', threadId);
 
-            const globalDisabled = new Set(getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH).disabledSkills);
-            const projectConfigPath = projectRootPath
-                ? path.join(projectRootPath, '.copilot', 'skills.config.json')
-                : null;
-            const projectDisabled = projectConfigPath
-                ? new Set(getSkillsConfig(projectConfigPath).disabledSkills)
-                : new Set<string>();
-            const allDisabled = new Set([...globalDisabled, ...projectDisabled]);
+            const { allDisabled, projectSkills, userSkills, disabledSkillMetas } =
+                loadSkillsContext(projectRootPath || null);
 
-            const customSkills: CustomSkillMeta[] = (projectRootPath
-                ? scanCustomSkills(projectRootPath, projects)
-                : []
-            ).filter(s => !allDisabled.has(s.name));
-            const userSkills = scanUserSkills().filter(s => !allDisabled.has(s.name));
+            const userMessageContent = getUserPrompt(params, tempProjectPath, projects, projectSkills, agentsMd.text);
 
-            const userMessageContent = getUserPrompt(params, tempProjectPath, projects, customSkills, agentsMd.text);
-
-            const systemPromptText = getSystemPrompt(projects, params.operationType, userSkills, allDisabled);
+            const systemPromptText = getSystemPrompt(projects, params.operationType, userSkills, allDisabled, disabledSkillMetas);
             const floorTokens = estimateFloorTokens(systemPromptText, JSON.stringify(userMessageContent));
 
             const providerOptions = buildCompactionProviderOptions(loginMethod, floorTokens);
@@ -323,7 +309,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const allMessages: ModelMessage[] = [
                 {
                     role: "system",
-                    content: getSystemPrompt(projects, params.operationType, userSkills, allDisabled),
+                    content: getSystemPrompt(projects, params.operationType, userSkills, allDisabled, disabledSkillMetas),
                     providerOptions: cacheOptions,
                 },
                 ...historyMessages,

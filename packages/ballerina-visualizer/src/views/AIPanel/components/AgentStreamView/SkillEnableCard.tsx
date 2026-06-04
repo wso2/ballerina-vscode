@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -17,52 +17,46 @@
  */
 
 import React from "react";
-import { SkillSaveStage } from "@wso2/ballerina-core";
+import { SkillEnableStage } from "@wso2/ballerina-core";
 import {
     InlineCard,
     InlineCardHeader,
     InlineCardIcon,
     InlineCardTitle,
-    InlineCardSubtitle,
 } from "./styles";
 
-interface SkillSaveCardProps {
+interface SkillEnableCardProps {
     data: Record<string, any>;
 }
 
-const SkillSaveCard: React.FC<SkillSaveCardProps> = ({ data }) => {
-    const { stage, name, tier } = data;
+const SkillEnableCard: React.FC<SkillEnableCardProps> = ({ data }) => {
+    const { stage, skillName } = data;
 
-    if (stage === SkillSaveStage.PROMPTING) {
+    if (stage === SkillEnableStage.PROMPTING) {
         return null;
     }
 
-    if (stage === SkillSaveStage.SAVED) {
+    if (stage === SkillEnableStage.ENABLED) {
         return (
             <InlineCard status="done">
                 <InlineCardHeader>
                     <InlineCardIcon>
                         <span className="codicon codicon-pass" />
                     </InlineCardIcon>
-                    <InlineCardTitle>Skill &ldquo;{name}&rdquo; saved</InlineCardTitle>
-                    {tier && (
-                        <InlineCardSubtitle style={{ marginLeft: "auto" }}>
-                            {tier === "user" ? "User" : "Project"}
-                        </InlineCardSubtitle>
-                    )}
+                    <InlineCardTitle>Skill &ldquo;{skillName}&rdquo; enabled</InlineCardTitle>
                 </InlineCardHeader>
             </InlineCard>
         );
     }
 
-    if (stage === SkillSaveStage.CANCELLED) {
+    if (stage === SkillEnableStage.SKIPPED) {
         return (
             <InlineCard status="done">
                 <InlineCardHeader>
                     <InlineCardIcon>
                         <span className="codicon codicon-circle-slash" style={{ opacity: 0.5 }} />
                     </InlineCardIcon>
-                    <InlineCardTitle style={{ opacity: 0.6 }}>Skill save cancelled</InlineCardTitle>
+                    <InlineCardTitle style={{ opacity: 0.6 }}>Continued without skill</InlineCardTitle>
                 </InlineCardHeader>
             </InlineCard>
         );
@@ -71,4 +65,4 @@ const SkillSaveCard: React.FC<SkillSaveCardProps> = ({ data }) => {
     return null;
 };
 
-export default SkillSaveCard;
+export default SkillEnableCard;

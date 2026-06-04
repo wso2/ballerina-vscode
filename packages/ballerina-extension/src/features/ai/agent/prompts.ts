@@ -30,13 +30,13 @@ import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefi
 import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/ai-utils";
 import { BALLERINA_RUN_TOOL_NAME } from "./tools/ballerina-run";
 import { BALLERINA_STOP_TOOL_NAME } from "./tools/ballerina-stop";
-import { getBuiltInSkillsSection, getCustomSkillsSection, getUserSkillsSection, CustomSkillMeta } from "./skills";
+import { getBuiltInSkillsSection, getProjectSkillsSection, getUserSkillsSection, getDisabledSkillsSection, ProjectSkillMeta } from "./skills";
 import { WEB_SEARCH_TOOL_NAME, WEB_FETCH_TOOL_NAME } from "./tools/web-tools";
 
 /**
  * Generates the system prompt for the design agent
  */
-export function getSystemPrompt(projects: ProjectSource[], op: OperationType, userSkills: CustomSkillMeta[], disabledSkills?: Set<string>): string {
+export function getSystemPrompt(projects: ProjectSource[], op: OperationType, userSkills: ProjectSkillMeta[], disabledSkills?: Set<string>, disabledSkillMetas?: Array<{ name: string; trigger: string }>): string {
     return `You are WSO2 Integrator Copilot, an expert assistant specialized in Ballerina help with relavant integration usecases. You will be helping with designing a solution for user query in a step-by-step manner.
 
 Answer queries related to Ballerina and integrations. If a query is unrelated, politely decline.
@@ -229,6 +229,8 @@ ${getUserSkillsSection(userSkills)}
 
 ${getBuiltInSkillsSection(disabledSkills)}
 
+${getDisabledSkillsSection(disabledSkillMetas ?? [])}
+
 # Web Tools
 You have access to ${WEB_SEARCH_TOOL_NAME} and ${WEB_FETCH_TOOL_NAME} tools. Always check skill trigger conditions first — if an active skill references web search, follow the skill's instructions. Otherwise prefer domain-specific tools, and use web tools only when no suitable domain-specific tool can answer the query, or when the user provides a URL or asks for live/external information.
 
@@ -254,7 +256,7 @@ export function getUserPrompt(
     params: GenerateAgentCodeRequest,
     tempProjectPath: string,
     projects: ProjectSource[],
-    customSkills: CustomSkillMeta[],
+    projectSkills: ProjectSkillMeta[],
     agentsMdBlockText?: string,
 ) {
     const content = [];
@@ -320,11 +322,11 @@ ${queryParts.join('\n\n')}
         });
     }
 
-    const customSkillsSection = getCustomSkillsSection(customSkills);
-    if (customSkillsSection) {
+    const projectSkillsSection = getProjectSkillsSection(projectSkills);
+    if (projectSkillsSection) {
         content.push({
             type: 'text' as const,
-            text: customSkillsSection
+            text: projectSkillsSection
         });
     }
 

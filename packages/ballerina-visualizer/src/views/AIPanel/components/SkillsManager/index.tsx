@@ -22,11 +22,10 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon } from "@wso2/ui-toolkit";
 import {
     AddSkillRequest,
-    AvailableProject,
     DeleteSkillRequest,
     SkillEntry,
-    SkillScope,
     SkillTier,
+    ToggleSkillRequest,
 } from "@wso2/ballerina-core";
 import { AIChatView, PrimaryActionButton } from "../../styles";
 import SkillRow from "./SkillRow";
@@ -127,11 +126,6 @@ const SectionDivider = styled.div`
     align-self: center;
 `;
 
-const TierDescription = styled.div`
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-`;
-
 const EmptyMessage = styled.div`
     font-size: 12px;
     color: var(--vscode-descriptionForeground);
@@ -150,12 +144,12 @@ const LoadingMessage = styled.div`
 
 interface SkillsManagerProps {
     onClose: () => void;
+    onSkillsChange?: () => void;
 }
 
-const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
+const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose, onSkillsChange }) => {
     const { rpcClient } = useRpcContext();
     const [skills, setSkills] = useState<SkillEntry[]>([]);
-    const [availableProjects, setAvailableProjects] = useState<AvailableProject[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
     const [editModalSkill, setEditModalSkill] = useState<SkillEntry | undefined>(undefined);
@@ -166,7 +160,6 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
         try {
             const response = await rpcClient.getAiPanelRpcClient().getSkills();
             setSkills(response.skills);
-            setAvailableProjects(response.availableProjects);
         } catch (err) {
             console.error('[SkillsManager] Failed to load skills:', err);
         } finally {
@@ -182,6 +175,7 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
     const handleModalSubmit = async (req: AddSkillRequest) => {
         await rpcClient.getAiPanelRpcClient().addSkill(req);
         await loadSkills();
+        onSkillsChange?.();
     };
 
     const handleModalClose = () => {
@@ -194,10 +188,21 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
         setShowAddModal(true);
     };
 
+    const handleToggleClick = async (skill: SkillEntry, enabled: boolean) => {
+        const req: ToggleSkillRequest = { skillId: skill.id, tier: skill.tier, enabled };
+        try {
+            await rpcClient.getAiPanelRpcClient().toggleSkill(req);
+        } catch (err) {
+            console.error('[SkillsManager] toggleSkill failed:', err);
+        }
+        await loadSkills();
+        onSkillsChange?.();
+    };
+
     const handleDeleteClick = async (skill: SkillEntry) => {
         const req: DeleteSkillRequest = {
             skillId: skill.id,
-            tier: skill.tier as SkillTier.CUSTOM | SkillTier.USER,
+            tier: skill.tier as SkillTier.PROJECT | SkillTier.USER,
         };
         try {
             await rpcClient.getAiPanelRpcClient().deleteSkill(req);
@@ -205,6 +210,7 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
             console.error('[SkillsManager] deleteSkill failed:', err);
         }
         await loadSkills();
+        onSkillsChange?.();
     };
 
     const toggleSectionCollapsed = (key: string) => {
@@ -216,54 +222,18 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
     };
 
     const builtinSkills = skills.filter(s => s.tier === SkillTier.BUILTIN);
-    const projectSkills = skills.filter(s => s.tier === SkillTier.CUSTOM && s.scope === SkillScope.PROJECT);
-    const integrationSkills = skills.filter(s => s.tier === SkillTier.CUSTOM && s.scope === SkillScope.INTEGRATION);
+    const projectSkills = skills.filter(s => s.tier === SkillTier.PROJECT);
     const userSkills = skills.filter(s => s.tier === SkillTier.USER);
-
-    // Group integration skills by packagePath for per-integration collapsibles
-    const integrationGroupMap = integrationSkills.reduce((map, skill) => {
-        const key = skill.packagePath ?? '';
-        if (!map[key]) map[key] = [];
-        map[key].push(skill);
-        return map;
-    }, {} as Record<string, SkillEntry[]>);
-
-    const getIntegrationName = (packagePath: string) =>
-        availableProjects.find(p => p.packagePath === packagePath)?.name ?? packagePath;
 
     const renderSkillCard = (skill: SkillEntry) => (
         <SkillRow
             key={skill.id}
             skill={skill}
+            onToggle={handleToggleClick}
             onEdit={skill.tier !== SkillTier.BUILTIN ? handleEditClick : undefined}
             onDelete={skill.tier !== SkillTier.BUILTIN ? handleDeleteClick : undefined}
         />
     );
-
-    const renderCollapsibleSection = (key: string, label: string, items: SkillEntry[], count?: number) => {
-        const isCollapsed = collapsedSections.has(key);
-        const displayCount = count ?? items.length;
-        return (
-            <div key={key}>
-                <SectionHeader>
-                    <SectionTitleButton
-                        type="button"
-                        onClick={() => toggleSectionCollapsed(key)}
-                        title={isCollapsed ? "Expand section" : "Collapse section"}
-                    >
-                        <span className={`codicon codicon-${isCollapsed ? "chevron-right" : "chevron-down"}`} />
-                        {label} ({displayCount})
-                    </SectionTitleButton>
-                    <SectionDivider />
-                </SectionHeader>
-                {!isCollapsed && (
-                    items.length === 0
-                        ? <EmptyMessage>No {label.toLowerCase()} skills yet.</EmptyMessage>
-                        : items.map(renderSkillCard)
-                )}
-            </div>
-        );
-    };
 
     return (
         <AIChatView>
@@ -292,7 +262,7 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
                     <LoadingMessage>Loading skills…</LoadingMessage>
                 ) : (
                     <>
-                        {/* Built-in Skills */}
+                        {/* Built-in */}
                         <Section>
                             <SectionHeader>
                                 <SectionTitleButton
@@ -301,13 +271,12 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
                                     title={collapsedSections.has(SkillTier.BUILTIN) ? "Expand section" : "Collapse section"}
                                 >
                                     <span className={`codicon codicon-${collapsedSections.has(SkillTier.BUILTIN) ? "chevron-right" : "chevron-down"}`} />
-                                    Built-in Skills ({builtinSkills.length})
+                                    Built-in ({builtinSkills.length})
                                 </SectionTitleButton>
                                 <SectionDivider />
                             </SectionHeader>
                             {!collapsedSections.has(SkillTier.BUILTIN) && (
                                 <>
-                                    <TierDescription>Skills built into the assistant.</TierDescription>
                                     {builtinSkills.length === 0
                                         ? <EmptyMessage>No built-in skills.</EmptyMessage>
                                         : builtinSkills.map(renderSkillCard)
@@ -316,40 +285,30 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
                             )}
                         </Section>
 
-                        {/* Custom Skills — Project + per-Integration subsections */}
+                        {/* Project */}
                         <Section>
                             <SectionHeader>
                                 <SectionTitleButton
                                     type="button"
-                                    onClick={() => toggleSectionCollapsed(SkillTier.CUSTOM)}
-                                    title={collapsedSections.has(SkillTier.CUSTOM) ? "Expand section" : "Collapse section"}
+                                    onClick={() => toggleSectionCollapsed(SkillTier.PROJECT)}
+                                    title={collapsedSections.has(SkillTier.PROJECT) ? "Expand section" : "Collapse section"}
                                 >
-                                    <span className={`codicon codicon-${collapsedSections.has(SkillTier.CUSTOM) ? "chevron-right" : "chevron-down"}`} />
-                                    Custom Skills ({projectSkills.length + integrationSkills.length})
+                                    <span className={`codicon codicon-${collapsedSections.has(SkillTier.PROJECT) ? "chevron-right" : "chevron-down"}`} />
+                                    Project ({projectSkills.length})
                                 </SectionTitleButton>
                                 <SectionDivider />
                             </SectionHeader>
-                            {!collapsedSections.has(SkillTier.CUSTOM) && (
+                            {!collapsedSections.has(SkillTier.PROJECT) && (
                                 <>
-                                    <TierDescription>
-                                        Saved to your project or integration directory. Shared with your team.
-                                    </TierDescription>
-                                    {renderCollapsibleSection('custom-project', 'Project', projectSkills)}
-                                    {Object.entries(integrationGroupMap).map(([pkgPath, items]) =>
-                                        renderCollapsibleSection(
-                                            `custom-integration-${pkgPath}`,
-                                            getIntegrationName(pkgPath),
-                                            items,
-                                        )
-                                    )}
-                                    {Object.keys(integrationGroupMap).length === 0 && integrationSkills.length === 0 && (
-                                        <EmptyMessage>No integration skills yet.</EmptyMessage>
-                                    )}
+                                    {projectSkills.length === 0
+                                        ? <EmptyMessage>No project skills yet.</EmptyMessage>
+                                        : projectSkills.map(renderSkillCard)
+                                    }
                                 </>
                             )}
                         </Section>
 
-                        {/* User Skills */}
+                        {/* User */}
                         <Section>
                             <SectionHeader>
                                 <SectionTitleButton
@@ -358,15 +317,12 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
                                     title={collapsedSections.has(SkillTier.USER) ? "Expand section" : "Collapse section"}
                                 >
                                     <span className={`codicon codicon-${collapsedSections.has(SkillTier.USER) ? "chevron-right" : "chevron-down"}`} />
-                                    User Skills ({userSkills.length})
+                                    User ({userSkills.length})
                                 </SectionTitleButton>
                                 <SectionDivider />
                             </SectionHeader>
                             {!collapsedSections.has(SkillTier.USER) && (
                                 <>
-                                    <TierDescription>
-                                        Saved globally to ~/.ballerina/copilot/skills/. Apply across all projects.
-                                    </TierDescription>
                                     {userSkills.length === 0
                                         ? <EmptyMessage>No user skills yet.</EmptyMessage>
                                         : userSkills.map(renderSkillCard)
@@ -381,7 +337,7 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose }) => {
             <AddSkillModal
                 isOpen={showAddModal}
                 editSkill={editModalSkill}
-                availableProjects={availableProjects}
+                skills={skills}
                 onSubmit={handleModalSubmit}
                 onClose={handleModalClose}
             />

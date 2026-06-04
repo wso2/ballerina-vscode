@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { FooterContainer } from "./index";
 import { FooterBox, FooterDivider } from "./styles";
@@ -86,24 +86,6 @@ const TierButton = styled.button<{ selected: boolean }>`
     }
 `;
 
-const SelectInput = styled.select`
-    background: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
-    color: var(--vscode-input-foreground);
-    font-family: var(--vscode-font-family);
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 3px;
-    width: 100%;
-    margin-bottom: 10px;
-    outline: none;
-    cursor: pointer;
-
-    &:focus {
-        border-color: var(--vscode-focusBorder);
-    }
-`;
-
 const ActionRow = styled.div`
     display: flex;
     gap: 8px;
@@ -169,22 +151,8 @@ interface SkillSaveFooterProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const SkillSaveFooter: React.FC<SkillSaveFooterProps> = ({ requestId, name, trigger, rpcClient }) => {
-    const [tier, setTier] = useState<"user" | "project" | "integration">("user");
-    const [packagePath, setPackagePath] = useState<string>("");
-    const [availableProjects, setAvailableProjects] = useState<Array<{ name: string; packagePath: string }>>([]);
+    const [tier, setTier] = useState<"user" | "project">("user");
     const [isSaving, setIsSaving] = useState(false);
-
-    useEffect(() => {
-        if (tier === "integration") {
-            rpcClient?.getAiPanelRpcClient().getSkills().then((res: any) => {
-                const projects = res?.availableProjects ?? [];
-                setAvailableProjects(projects);
-                if (projects.length > 0 && !packagePath) {
-                    setPackagePath(projects[0].packagePath);
-                }
-            }).catch(() => {});
-        }
-    }, [tier]);
 
     const handleSave = async () => {
         if (isSaving) return;
@@ -192,9 +160,7 @@ const SkillSaveFooter: React.FC<SkillSaveFooterProps> = ({ requestId, name, trig
         try {
             await rpcClient?.getAiPanelRpcClient().saveSkillFromChat({
                 requestId,
-                tier: tier === "user" ? "user" : "custom",
-                scope: tier === "integration" ? "integration" : tier === "project" ? "project" : undefined,
-                packagePath: tier === "integration" ? packagePath : undefined,
+                tier: tier === "user" ? "user" : "project",
             });
         } catch (e) {
             console.error("[SkillSaveFooter] save error:", e);
@@ -224,43 +190,19 @@ const SkillSaveFooter: React.FC<SkillSaveFooterProps> = ({ requestId, name, trig
                 <SectionLabel>Save as</SectionLabel>
                 <TierRow>
                     <TierButton selected={tier === "user"} onClick={() => setTier("user")} disabled={isSaving}>
-                        User skill
+                        User
                     </TierButton>
                     <TierButton selected={tier === "project"} onClick={() => setTier("project")} disabled={isSaving}>
-                        Project skill
-                    </TierButton>
-                    <TierButton selected={tier === "integration"} onClick={() => setTier("integration")} disabled={isSaving}>
-                        Integration skill
+                        Project
                     </TierButton>
                 </TierRow>
-
-                {tier === "integration" && availableProjects.length > 0 && (
-                    <>
-                        <SectionLabel>Package</SectionLabel>
-                        <SelectInput
-                            value={packagePath}
-                            onChange={e => setPackagePath(e.target.value)}
-                            disabled={isSaving}
-                        >
-                            {availableProjects.map(p => (
-                                <option key={p.packagePath} value={p.packagePath}>{p.name}</option>
-                            ))}
-                        </SelectInput>
-                    </>
-                )}
-
-                {tier === "integration" && availableProjects.length === 0 && (
-                    <SkillTrigger style={{ marginBottom: "10px" }}>
-                        No packages found in this project.
-                    </SkillTrigger>
-                )}
 
                 <FooterDivider />
 
                 <ActionRow>
                     <SaveButton
                         onClick={handleSave}
-                        disabled={isSaving || (tier === "integration" && availableProjects.length === 0)}
+                        disabled={isSaving}
                     >
                         {isSaving
                             ? <><span className="codicon codicon-loading codicon-modifier-spin" style={{ fontSize: "11px" }} /> Saving...</>
