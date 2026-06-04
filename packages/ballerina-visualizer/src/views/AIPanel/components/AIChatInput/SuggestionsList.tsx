@@ -195,7 +195,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                                 aria-selected={isActive}
                             >
                                 <CommandIconBox active={isActive}>
-                                    <span className="codicon codicon-wand" />
+                                    <span className="codicon codicon-lightbulb-sparkle" />
                                 </CommandIconBox>
                                 <CommandTextGroup>
                                     <CommandName>{suggestion.text}</CommandName>
