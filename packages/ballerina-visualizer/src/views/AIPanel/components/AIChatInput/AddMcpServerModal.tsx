@@ -617,7 +617,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                             <FieldGroup>
                                 <Label>Headers from environment variables</Label>
                                 <KvEditor rows={envHeaderRows} onChange={setEnvHeaderRows} keyPlaceholder="Header-Name" valuePlaceholder="ENV_VAR_NAME" />
-                                <Hint>The value is read from the named environment variable at connect time, so secrets stay out of the config file. Use this for tokens — e.g. <code>Authorization</code> from <code>MCP_TOKEN</code>.</Hint>
+                                <Hint>Set the header name and an environment variable name. The value is read from that variable at runtime.</Hint>
                             </FieldGroup>
                         </>
                     )}
