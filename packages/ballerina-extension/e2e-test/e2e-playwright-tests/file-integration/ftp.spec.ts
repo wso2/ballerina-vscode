@@ -43,7 +43,7 @@ export default function createTests() {
             await form.submit('Create');
 
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `FTP Integration - /]);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `FTP Integration - /`]);
 
             const context = artifactWebView.locator(`text=${listenerName}`);
             await context.waitFor();
