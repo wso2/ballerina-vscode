@@ -17,12 +17,17 @@
 import * as fs from "fs";
 import * as path from "path";
 
-// Recoverable agent-input error — callers return it to the agent, not the user.
-export class PathValidationError extends Error {
-    readonly code = "INVALID_PATH";
-    constructor(message: string) {
+// Bad agent input the agent can fix and retry — returned to it, not shown to the user.
+export class RecoverableAgentError extends Error {
+    constructor(message: string, readonly code: string) {
         super(message);
-        this.name = "PathValidationError";
+        this.name = new.target.name;
+    }
+}
+
+export class PathValidationError extends RecoverableAgentError {
+    constructor(message: string) {
+        super(message, "INVALID_PATH");
     }
 }
 

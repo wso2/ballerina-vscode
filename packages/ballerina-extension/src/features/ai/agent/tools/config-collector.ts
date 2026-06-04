@@ -34,7 +34,7 @@ import {
     isPlaceholderValue,
     computeCollectStatus,
 } from "../../../../utils/toml-utils";
-import { PathValidationError, resolveContained, resolvePackageBasePath } from "./path-utils";
+import { RecoverableAgentError, resolveContained, resolvePackageBasePath } from "./path-utils";
 import { getOrgPackageName } from "../../../../utils/config";
 import { langClient } from "../../activator";
 
@@ -326,7 +326,7 @@ export async function ConfigCollectorTool(
                 return createErrorResult("INVALID_MODE", `Unknown mode: ${(input as any).mode}`);
         }
     } catch (error: any) {
-        if (error instanceof PathValidationError) {
+        if (error instanceof RecoverableAgentError) {
             return createErrorResult(error.code, error.message);
         }
         return handleError(error, requestId, eventHandler);
