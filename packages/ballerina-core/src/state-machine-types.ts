@@ -23,7 +23,7 @@ import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { SCOPE, ArtifactData, DataMapperMetadata } from "./interfaces/shared-types";
-import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment, SkillSaveStage, SkillTier } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment, SkillSaveStage, SkillTier, SkillEnableStage } from "./rpc-types/ai-panel/interfaces";
 
 export { SCOPE };
 export type { ArtifactData, DataMapperMetadata };
@@ -354,6 +354,7 @@ export type ChatNotify =
     | ConfigurationCollectionEvent
     | ClarifyEvent
     | SkillSaveEvent
+    | SkillEnableEvent
     | ChatComponentEvent
     | PlanUpdated
     | CompactionStartEvent
@@ -537,7 +538,15 @@ export interface SkillSaveEvent {
     name: string;
     trigger: string;
     body?: string;
-    tier?: SkillTier.USER | SkillTier.CUSTOM;
+    tier?: SkillTier.USER | SkillTier.PROJECT;
+}
+
+export interface SkillEnableEvent {
+    type: "skill_enable_event";
+    requestId: string;
+    stage: SkillEnableStage;
+    skillName: string;
+    skillId: string;
 }
 
 export interface ChatComponentEvent {

@@ -557,13 +557,8 @@ export interface RunServiceRequest {
 
 export enum SkillTier {
     BUILTIN = 'builtin',
-    CUSTOM = 'custom',
-    USER = 'user',
-}
-
-export enum SkillScope {
     PROJECT = 'project',
-    INTEGRATION = 'integration',
+    USER = 'user',
 }
 
 export enum SkillSaveStage {
@@ -579,32 +574,22 @@ export interface SkillEntry {
     body?: string;
     tier: SkillTier;
     enabled: boolean;
-    scope?: SkillScope;
-    packagePath?: string;
 }
 
 export interface DeleteSkillRequest {
     skillId: string;
-    tier: SkillTier.CUSTOM | SkillTier.USER;
-}
-
-export interface AvailableProject {
-    name: string;
-    packagePath: string;
+    tier: SkillTier.PROJECT | SkillTier.USER;
 }
 
 export interface GetSkillsResponse {
     skills: SkillEntry[];
-    availableProjects: AvailableProject[];
 }
 
 export interface AddSkillRequest {
-    tier: SkillTier.CUSTOM | SkillTier.USER;
+    tier: SkillTier.PROJECT | SkillTier.USER;
     name: string;
     trigger: string;
     body?: string;
-    scope?: SkillScope;
-    packagePath?: string;
 }
 
 export interface ToggleSkillRequest {
@@ -615,13 +600,38 @@ export interface ToggleSkillRequest {
 
 export interface SkillSaveRequest {
     requestId: string;
-    tier: SkillTier.USER | SkillTier.CUSTOM;
-    scope?: SkillScope;
-    packagePath?: string;
+    tier: SkillTier.USER | SkillTier.PROJECT;
 }
 
 export interface SkillSaveCancelRequest {
     requestId: string;
+}
+
+export enum SkillEnableStage {
+    PROMPTING = 'prompting',
+    ENABLED = 'enabled',
+    SKIPPED = 'skipped',
+}
+
+export interface SkillEnableRequest {
+    requestId: string;
+    skillId: string;
+}
+
+export interface SkillEnableCancelRequest {
+    requestId: string;
+}
+
+export interface ParseSkillFileRequest {
+    fileName: string;
+    fileContent: string;
+}
+
+export interface ParseSkillFileResponse {
+    name?: string;
+    trigger?: string;
+    body?: string;
+    error?: string;
 }
 
 // ==================================

@@ -14,18 +14,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Skill, CustomSkillMeta } from './types';
+import { Skill, ProjectSkillMeta } from './types';
 import { dataMapSkill } from './data-map';
 import { skillCreatorSkill } from './skill-creator';
 
-export type { Skill, CustomSkillMeta };
+export type { Skill, ProjectSkillMeta };
 
 export const REGISTERED_SKILLS: Skill[] = [
     dataMapSkill,
     skillCreatorSkill,
 ];
 
-function formatSkill(skill: Skill | CustomSkillMeta): string {
+function formatSkill(skill: Skill | ProjectSkillMeta): string {
     return `## Skill: ${skill.name}
 
 **Trigger**: ${skill.trigger}
@@ -52,20 +52,33 @@ ${SKILL_USAGE_RULES}
 ${activeSkills.map(formatSkill).join('\n\n')}`;
 }
 
-export function getCustomSkillsSection(customSkills: CustomSkillMeta[]): string {
-    if (customSkills.length === 0) { return ''; }
+export function getProjectSkillsSection(projectSkills: ProjectSkillMeta[]): string {
+    if (projectSkills.length === 0) { return ''; }
     return `# Project Skills
 
 These skills are defined by the project team. Skill names follow the format \`<projectName>/<skillName>\` for project-wide skills and \`<packageName>/<skillName>\` for package-specific skills — the prefix distinguishes them from built-in skills with the same base name. Call \`invoke_skill\` with the full prefixed name to load the rules, then apply them exactly.
 
-${customSkills.map(formatSkill).join('\n\n')}`;
+${projectSkills.map(formatSkill).join('\n\n')}`;
 }
 
-export function getUserSkillsSection(userSkills: CustomSkillMeta[]): string {
+export function getUserSkillsSection(userSkills: ProjectSkillMeta[]): string {
     if (userSkills.length === 0) { return ''; }
     return `# User Skills
 
 These skills are defined by you in \`~/.ballerina/copilot/skills/\` and apply across all projects. Skill names use the \`user/<skillName>\` prefix. Call \`invoke_skill\` with the full prefixed name to load the full rules.
 
 ${userSkills.map(formatSkill).join('\n\n')}`;
+}
+
+export function getDisabledBuiltIns(disabledSkills: Set<string>): Skill[] {
+    return REGISTERED_SKILLS.filter(s => disabledSkills.has(s.name));
+}
+
+export function getDisabledSkillsSection(disabled: Array<{ name: string; trigger: string }>): string {
+    if (disabled.length === 0) { return ''; }
+    return `# Disabled Skills
+
+The following skills are currently disabled by the user. When the user's request matches one of these skills, call \`invoke_skill\` as normal — do not announce or narrate skill usage in text. The system will automatically pause and ask the user to enable or skip the skill before continuing.
+
+${disabled.map(s => `- **${s.name}**: ${s.trigger}`).join('\n')}`;
 }

@@ -16,17 +16,17 @@
 
 import { tool } from 'ai';
 import { z } from 'zod';
-import { ProjectSource } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from '../../../utils/events';
 import { Skill } from '../../skills/types';
-import { readCustomSkillContent, readUserSkillContent } from './skill-reader';
+import { readProjectSkillContent, readUserSkillContent } from './skill-reader';
+import { buildAllDisabledSet } from '../../skills/context';
+import { approvalManager } from '../../../state/ApprovalManager';
 
 export const SKILL_TOOL_NAME = "invoke_skill";
 
 export function createSkillTool(
     builtInSkills: Skill[],
     projectRootPath: string,
-    projects: ProjectSource[],
     eventHandler: CopilotEventHandler,
 ) {
     return tool({
@@ -35,12 +35,12 @@ export function createSkillTool(
 
 Call this tool once per skill whenever a skill's trigger condition is met. Each call loads exactly one skill.
 - Built-in skills: plain name (e.g. "data-map").
-- Project / package skills: "<projectName>/<skillName>" or "<packageName>/<skillName>".
+- Project skills: "<projectName>/<skillName>".
 - User skills: "user/<skillName>".`,
         inputSchema: z.object({
             skillName: z.string().describe(
                 "Name of the skill to invoke. Case-insensitive. " +
-                "Plain name for built-in skills and full prefixed name for project/package or user skills."
+                "Plain name for built-in skills and full prefixed name for project or user skills."
             ),
         }),
         execute: async ({ skillName }, context?: { toolCallId?: string }) => {
@@ -52,14 +52,15 @@ Call this tool once per skill whenever a skill's trigger condition is met. Each 
                 toolCallId,
             } as any);
 
+            // Check disabled config before executing
+            const allDisabled = buildAllDisabledSet(projectRootPath || null);
+
             const lower = skillName.toLowerCase();
             const builtIn = builtInSkills.find(s => s.name.toLowerCase() === lower);
-            const custom = projectRootPath
-                ? readCustomSkillContent(projectRootPath, projects, skillName)
-                : null;
+            const projectSkill = projectRootPath ? readProjectSkillContent(projectRootPath, skillName) : null;
             const userSkill = readUserSkillContent(skillName);
 
-            const resolved = custom ?? userSkill ?? builtIn;
+            const resolved = projectSkill ?? userSkill ?? builtIn;
 
             if (!resolved) {
                 const result = {
@@ -68,6 +69,37 @@ Call this tool once per skill whenever a skill's trigger condition is met. Each 
                 };
                 eventHandler({ type: "tool_result", toolName: SKILL_TOOL_NAME, toolOutput: result, toolCallId } as any);
                 return result;
+            }
+
+            // Prefer the original invocation name (full prefixed, e.g. "user/foo") since that
+            // is what the config stores. Fall back to resolved.name for built-ins where both match.
+            const effectiveId = allDisabled.has(skillName.toLowerCase()) ? skillName.toLowerCase()
+                              : allDisabled.has(resolved.name) ? resolved.name
+                              : null;
+
+            if (effectiveId !== null) {
+                let enableResponse: { enabled: boolean };
+                try {
+                    enableResponse = await approvalManager.requestSkillEnable(
+                        toolCallId, resolved.name, effectiveId, eventHandler
+                    );
+                } catch {
+                    enableResponse = { enabled: false };
+                }
+
+                if (enableResponse.enabled) {
+                    // Re-read skill content now that it has been enabled
+                    const freshProject = projectRootPath ? readProjectSkillContent(projectRootPath, skillName) : null;
+                    const freshUser = readUserSkillContent(skillName);
+                    const fresh = freshProject ?? freshUser ?? builtIn;
+                    const result = { found: true, skillName: fresh?.name ?? resolved.name, content: fresh?.content ?? '' };
+                    eventHandler({ type: "tool_result", toolName: SKILL_TOOL_NAME, toolOutput: result, toolCallId } as any);
+                    return result;
+                } else {
+                    const result = { found: true, skipped: true, message: `Skill "${resolved.name}" was skipped by the user.` };
+                    eventHandler({ type: "tool_result", toolName: SKILL_TOOL_NAME, toolOutput: result, toolCallId } as any);
+                    return result;
+                }
             }
 
             const result = { found: true, skillName: resolved.name, content: resolved.content };

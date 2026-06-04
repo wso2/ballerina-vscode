@@ -17,7 +17,7 @@
  */
 
 import { Task, MACHINE_VIEW, ClarifyQuestion } from "@wso2/ballerina-core/lib/state-machine-types";
-import { SkillSaveStage } from "@wso2/ballerina-core";
+import { SkillSaveStage, SkillEnableStage } from "@wso2/ballerina-core";
 import { CopilotEventHandler } from "../utils/events";
 import { ConfigVariable } from "../../../utils/toml-utils";
 import { StateMachine } from "../../../stateMachine";
@@ -74,6 +74,10 @@ export interface SkillSaveResponse {
     tier?: string;
 }
 
+export interface SkillEnableResponse {
+    enabled: boolean;
+}
+
 /**
  * Configuration response containing actual values (converted to metadata before exposing to agent)
  */
@@ -119,6 +123,8 @@ export class ApprovalManager {
     private clarifyRequests = new Map<string, PromiseResolver<ClarifyResponse>>();
     private skillSaveRequests = new Map<string, PromiseResolver<SkillSaveResponse>>();
     private skillDrafts = new Map<string, SkillDraft>();
+    private skillEnableRequests = new Map<string, PromiseResolver<SkillEnableResponse>>();
+    private skillEnableIds = new Map<string, string>();
     private approvalQueue: ApprovalQueueItem[] = [];
     private approvalQueueActive = false;
     private notificationCounters = new Map<string, number>();
@@ -636,6 +642,46 @@ export class ApprovalManager {
         this.skillDrafts.delete(requestId);
     }
 
+    requestSkillEnable(
+        requestId: string,
+        skillName: string,
+        skillId: string,
+        eventHandler: CopilotEventHandler,
+    ): Promise<SkillEnableResponse> {
+        this.skillEnableIds.set(requestId, skillId);
+
+        eventHandler({
+            type: "skill_enable_event",
+            requestId,
+            stage: SkillEnableStage.PROMPTING,
+            skillName,
+            skillId,
+        } as any);
+
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                this.skillEnableRequests.delete(requestId);
+                this.skillEnableIds.delete(requestId);
+                reject(new Error(`Skill enable request timeout for request ${requestId}`));
+            }, this.DEFAULT_TIMEOUT_MS);
+
+            this.skillEnableRequests.set(requestId, { resolve, reject, timeoutId });
+        });
+    }
+
+    getSkillEnableId(requestId: string): string | undefined {
+        return this.skillEnableIds.get(requestId);
+    }
+
+    resolveSkillEnable(requestId: string, enabled: boolean): void {
+        const resolver = this.skillEnableRequests.get(requestId);
+        if (!resolver) { return; }
+        if (resolver.timeoutId) { clearTimeout(resolver.timeoutId); }
+        resolver.resolve({ enabled });
+        this.skillEnableRequests.delete(requestId);
+        this.skillEnableIds.delete(requestId);
+    }
+
     // ============================================
     // Notification Counter
     // ============================================
@@ -745,6 +791,13 @@ export class ApprovalManager {
         }
         this.skillSaveRequests.clear();
         this.skillDrafts.clear();
+
+        for (const [, resolver] of this.skillEnableRequests.entries()) {
+            if (resolver.timeoutId) { clearTimeout(resolver.timeoutId); }
+            resolver.resolve({ enabled: false });
+        }
+        this.skillEnableRequests.clear();
+        this.skillEnableIds.clear();
 
         // Reset all notification counters and fire handlers (e.g. turn off globe)
         for (const [type, count] of this.notificationCounters.entries()) {

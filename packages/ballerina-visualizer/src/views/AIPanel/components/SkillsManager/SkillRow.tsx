@@ -50,6 +50,23 @@ const CardName = styled.span`
     text-overflow: ellipsis;
 `;
 
+const CardDescription = styled.span`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    margin-top: 2px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
+
+const BuiltinRow = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+    margin-bottom: 4px;
+`;
+
 const ActionRow = styled.div`
     display: flex;
     align-items: center;
@@ -73,29 +90,93 @@ const ConfirmRow = styled.div`
 const ActionButton = SecondaryActionButton;
 const DeleteButton = DangerActionButton;
 
+const ToggleTrack = styled.button<{ enabled: boolean }>`
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    position: relative;
+    background: ${({ enabled }: { enabled: boolean }) =>
+        enabled ? 'var(--vscode-button-background)' : 'var(--vscode-button-secondaryBackground, #555)'};
+    transition: background 0.2s;
+    &:hover { opacity: 0.85; }
+`;
+
+const ToggleKnob = styled.span<{ enabled: boolean }>`
+    position: absolute;
+    top: 2px;
+    left: ${({ enabled }: { enabled: boolean }) => enabled ? '18px' : '2px'};
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--vscode-button-foreground, #fff);
+    transition: left 0.2s;
+`;
+
+const getShortName = (name: string) =>
+    name.includes('/') ? name.split('/').pop()! : name;
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 interface SkillRowProps {
     skill: SkillEntry;
+    onToggle?: (skill: SkillEntry, enabled: boolean) => void;
     onEdit?: (skill: SkillEntry) => void;
     onDelete?: (skill: SkillEntry) => void;
 }
 
-const SkillRow: React.FC<SkillRowProps> = ({ skill, onEdit, onDelete }) => {
-    const isEditable = skill.tier === SkillTier.CUSTOM || skill.tier === SkillTier.USER;
+const SkillRow: React.FC<SkillRowProps> = ({ skill, onToggle, onEdit, onDelete }) => {
+    const isEditable = skill.tier === SkillTier.PROJECT || skill.tier === SkillTier.USER;
     const [confirming, setConfirming] = useState(false);
+    const shortName = getShortName(skill.name);
+    const enabled = skill.enabled !== false;
+
+    if (skill.tier === SkillTier.BUILTIN) {
+        return (
+            <BuiltinRow>
+                <CardHeader>
+                    <CardName title={skill.name}>{shortName}</CardName>
+                    {onToggle && (
+                        <ToggleTrack
+                            type="button"
+                            enabled={enabled}
+                            title={enabled ? 'Disable skill' : 'Enable skill'}
+                            onClick={() => onToggle(skill, !enabled)}
+                        >
+                            <ToggleKnob enabled={enabled} />
+                        </ToggleTrack>
+                    )}
+                </CardHeader>
+                {skill.trigger && <CardDescription title={skill.trigger}>{skill.trigger}</CardDescription>}
+            </BuiltinRow>
+        );
+    }
 
     return (
         <Card>
             <CardHeader>
-                <CardName title={skill.name}>{skill.name}</CardName>
+                <CardName title={skill.name}>{shortName}</CardName>
+                {onToggle && (
+                    <ToggleTrack
+                        type="button"
+                        enabled={enabled}
+                        title={enabled ? 'Disable skill' : 'Enable skill'}
+                        onClick={() => onToggle(skill, !enabled)}
+                    >
+                        <ToggleKnob enabled={enabled} />
+                    </ToggleTrack>
+                )}
             </CardHeader>
+            {skill.trigger && <CardDescription title={skill.trigger}>{skill.trigger}</CardDescription>}
 
             {isEditable && (onEdit || onDelete) && (
                 <ActionRow>
                     {confirming ? (
                         <ConfirmRow>
-                            <span>Delete <strong>{skill.name}</strong>?</span>
+                            <span>Delete <strong>{shortName}</strong>?</span>
                             <Spacer />
                             <DeleteButton type="button" onClick={() => { setConfirming(false); onDelete?.(skill); }}>
                                 Yes, delete

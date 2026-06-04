@@ -61,12 +61,14 @@ import {
     DeleteSkillRequest,
     SkillSaveRequest,
     SkillSaveCancelRequest,
+    SkillEnableRequest,
+    SkillEnableCancelRequest,
+    SkillEnableStage,
     SetSkillsEnabledRequest,
     SkillEntry,
-    AvailableProject,
     SkillTier,
-    SkillScope,
-    ProjectSource,
+    ParseSkillFileRequest,
+    ParseSkillFileResponse,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
@@ -105,7 +107,7 @@ import { generateDocumentationForService } from "../../features/ai/documentation
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { BACKEND_URL } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-import { sendChatComponentNotification, sendSaveChatNotification } from "../../features/ai/utils/ai-utils";
+import { sendChatComponentNotification, sendSaveChatNotification, sendSkillEnableNotification } from "../../features/ai/utils/ai-utils";
 import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/feedback";
 import { sendGenerationDiscardTelemetry, sendGenerationKeptTelemetry } from "../../features/ai/utils/generation-response";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
@@ -122,14 +124,16 @@ import { addToIntegration, searchDocumentation } from "./utils";
 
 import { createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
 import { REGISTERED_SKILLS } from '../../features/ai/agent/skills/index';
-import { scanCustomSkills, scanUserSkills, readUserSkillContent, readCustomSkillContent } from '../../features/ai/agent/tools/skill-tool/skill-reader';
+import { buildProjectSkillsConfigPath } from '../../features/ai/agent/skills/context';
+import { scanProjectSkills, scanUserSkills, readUserSkillContent, readProjectSkillContent, parseSkillMd } from '../../features/ai/agent/tools/skill-tool/skill-reader';
+import * as unzipper from 'unzipper';
 import {
     getSkillsConfig,
     setSkillEnabled,
     writeUserSkill,
-    writeCustomSkill,
+    writeProjectSkill,
     deleteUserSkill,
-    deleteCustomSkill,
+    deleteProjectSkill,
     GLOBAL_SKILLS_CONFIG_PATH,
 } from '../../features/ai/agent/tools/skill-tool/skill-writer';
 import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExecutor';
@@ -930,68 +934,74 @@ User reverted the last made changes. The files have been restored to the state b
         return "";
     }
 
-    async getSkills(): Promise<GetSkillsResponse> {
-        const projectRootPath = resolveProjectRootPath();
-        const globalConfig = getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH);
-        const projectConfigPath = projectRootPath
-            ? path.join(projectRootPath, '.copilot', 'skills.config.json')
-            : null;
-        const projectConfig = projectConfigPath ? getSkillsConfig(projectConfigPath) : { disabledSkills: [] };
-        const allDisabled = new Set([...globalConfig.disabledSkills, ...projectConfig.disabledSkills]);
+    // ── Skills helpers ────────────────────────────────────────────────────────
 
-        const skills: SkillEntry[] = [];
-
-        // Built-in skills (body not editable, omit from entry)
-        for (const s of REGISTERED_SKILLS) {
-            skills.push({ id: s.name, name: s.name, trigger: s.trigger, tier: SkillTier.BUILTIN, enabled: !allDisabled.has(s.name) });
+    /** Returns the config file path for the given skill tier. */
+    private resolveSkillsConfigPath(tier: SkillTier, projectRootPath: string | null): string {
+        if (tier === SkillTier.PROJECT && projectRootPath) {
+            return buildProjectSkillsConfigPath(projectRootPath);
         }
+        return GLOBAL_SKILLS_CONFIG_PATH;
+    }
 
-        // Custom project/integration skills
-        const availableProjects: AvailableProject[] = [];
-        if (projectRootPath) {
-            const projectName = path.basename(projectRootPath);
-            const projectSources = this.scanPackages(projectRootPath);
-            availableProjects.push(...projectSources);
-            const projectMetas: ProjectSource[] = projectSources.map(p => ({
-                projectName: p.name,
-                packagePath: p.packagePath,
-                sourceFiles: [],
-                isActive: false,
-            }));
-            const customMetas = scanCustomSkills(projectRootPath, projectMetas);
-            for (const s of customMetas) {
-                const slash = s.name.indexOf('/');
-                const prefix = slash !== -1 ? s.name.slice(0, slash) : '';
-                const isProjectLevel = prefix === projectName;
-                const content = readCustomSkillContent(projectRootPath, projectMetas, s.name);
-                skills.push({
-                    id: s.name,
-                    name: s.name,
-                    trigger: s.trigger,
-                    body: content?.content !== content?.trigger ? content?.content : undefined,
-                    tier: SkillTier.CUSTOM,
-                    enabled: !allDisabled.has(s.name),
-                    scope: isProjectLevel ? SkillScope.PROJECT : SkillScope.INTEGRATION,
-                    packagePath: isProjectLevel ? undefined : prefix,
-                });
-            }
-        }
+    /** Extracts the bare skill name from a prefixed id such as "user/foo" → "foo". */
+    private extractBareSkillName(skillId: string): string {
+        const slash = skillId.indexOf('/');
+        return slash !== -1 ? skillId.slice(slash + 1) : skillId;
+    }
 
-        // User skills
-        const userMetas = scanUserSkills();
-        for (const s of userMetas) {
+    private buildBuiltinSkillEntries(allDisabled: Set<string>): SkillEntry[] {
+        return REGISTERED_SKILLS.map(s => ({
+            id: s.name,
+            name: s.name,
+            trigger: s.trigger,
+            tier: SkillTier.BUILTIN,
+            enabled: !allDisabled.has(s.name),
+        }));
+    }
+
+    private buildProjectSkillEntries(projectRootPath: string, allDisabled: Set<string>): SkillEntry[] {
+        return scanProjectSkills(projectRootPath).map(s => {
+            const content = readProjectSkillContent(projectRootPath, s.name);
+            return {
+                id: s.name,
+                name: s.name,
+                trigger: s.trigger,
+                body: content?.content !== content?.trigger ? content?.content : undefined,
+                tier: SkillTier.PROJECT,
+                enabled: !allDisabled.has(s.name),
+            };
+        });
+    }
+
+    private buildUserSkillEntries(allDisabled: Set<string>): SkillEntry[] {
+        return scanUserSkills().map(s => {
             const content = readUserSkillContent(s.name);
-            skills.push({
+            return {
                 id: s.name,
                 name: s.name,
                 trigger: s.trigger,
                 body: content?.content !== content?.trigger ? content?.content : undefined,
                 tier: SkillTier.USER,
                 enabled: !allDisabled.has(s.name),
-            });
-        }
+            };
+        });
+    }
 
-        return { skills, availableProjects };
+    async getSkills(): Promise<GetSkillsResponse> {
+        const projectRootPath = resolveProjectRootPath();
+        const globalConfig = getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH);
+        const projectConfigPath = projectRootPath ? buildProjectSkillsConfigPath(projectRootPath) : null;
+        const projectConfig = projectConfigPath ? getSkillsConfig(projectConfigPath) : { disabledSkills: [] };
+        const allDisabled = new Set([...globalConfig.disabledSkills, ...projectConfig.disabledSkills]);
+
+        return {
+            skills: [
+                ...this.buildBuiltinSkillEntries(allDisabled),
+                ...(projectRootPath ? this.buildProjectSkillEntries(projectRootPath, allDisabled) : []),
+                ...this.buildUserSkillEntries(allDisabled),
+            ],
+        };
     }
 
     async addSkill(params: AddSkillRequest): Promise<boolean> {
@@ -1001,12 +1011,7 @@ User reverted the last made changes. The files have been restored to the state b
             } else {
                 const projectRootPath = resolveProjectRootPath();
                 if (!projectRootPath) { return false; }
-                if (params.scope === SkillScope.INTEGRATION && !params.packagePath) {
-                    console.error('[Skills] addSkill: integration scope requires packagePath');
-                    return false;
-                }
-                const packagePath = params.scope === SkillScope.INTEGRATION ? params.packagePath! : null;
-                writeCustomSkill(projectRootPath, packagePath, params.name, params.trigger, params.body);
+                writeProjectSkill(projectRootPath, params.name, params.trigger, params.body);
             }
             return true;
         } catch (error) {
@@ -1017,12 +1022,7 @@ User reverted the last made changes. The files have been restored to the state b
 
     async toggleSkill(params: ToggleSkillRequest): Promise<boolean> {
         try {
-            const configPath = params.tier === SkillTier.CUSTOM
-                ? (() => {
-                    const root = resolveProjectRootPath();
-                    return root ? path.join(root, '.copilot', 'skills.config.json') : GLOBAL_SKILLS_CONFIG_PATH;
-                })()
-                : GLOBAL_SKILLS_CONFIG_PATH;
+            const configPath = this.resolveSkillsConfigPath(params.tier, resolveProjectRootPath());
             setSkillEnabled(configPath, params.skillId, params.enabled);
             return true;
         } catch (error) {
@@ -1033,19 +1033,13 @@ User reverted the last made changes. The files have been restored to the state b
 
     async deleteSkill(params: DeleteSkillRequest): Promise<boolean> {
         try {
+            const bareName = this.extractBareSkillName(params.skillId);
             if (params.tier === SkillTier.USER) {
-                const slash = params.skillId.indexOf('/');
-                const bareName = slash !== -1 ? params.skillId.slice(slash + 1) : params.skillId;
                 deleteUserSkill(bareName);
             } else {
                 const projectRootPath = resolveProjectRootPath();
                 if (!projectRootPath) { return false; }
-                const slash = params.skillId.indexOf('/');
-                const prefix = slash !== -1 ? params.skillId.slice(0, slash) : '';
-                const bareName = slash !== -1 ? params.skillId.slice(slash + 1) : params.skillId;
-                const projectName = path.basename(projectRootPath);
-                const packagePath = prefix === projectName ? null : prefix;
-                deleteCustomSkill(projectRootPath, packagePath, bareName);
+                deleteProjectSkill(projectRootPath, bareName);
             }
             return true;
         } catch (error) {
@@ -1070,13 +1064,7 @@ User reverted the last made changes. The files have been restored to the state b
                     approvalManager.resolveSkillSave(params.requestId, false);
                     return false;
                 }
-                if (params.scope === SkillScope.INTEGRATION && !params.packagePath) {
-                    console.error('[Skills] saveSkillFromChat: integration scope requires packagePath');
-                    approvalManager.resolveSkillSave(params.requestId, false);
-                    return false;
-                }
-                const packagePath = params.scope === SkillScope.INTEGRATION ? params.packagePath! : null;
-                writeCustomSkill(projectRootPath, packagePath, draft.name, draft.trigger, draft.body);
+                writeProjectSkill(projectRootPath, draft.name, draft.trigger, draft.body);
             }
             approvalManager.resolveSkillSave(params.requestId, true, params.tier);
             return true;
@@ -1091,19 +1079,62 @@ User reverted the last made changes. The files have been restored to the state b
         approvalManager.resolveSkillSave(params.requestId, false);
     }
 
-    private scanPackages(projectRootPath: string): AvailableProject[] {
-        const results: AvailableProject[] = [];
+    async enableSkillFromChat(params: SkillEnableRequest): Promise<boolean> {
         try {
-            const entries = fs.readdirSync(projectRootPath, { withFileTypes: true });
-            for (const entry of entries) {
-                if (!entry.isDirectory()) { continue; }
-                const tomlPath = path.join(projectRootPath, entry.name, 'Ballerina.toml');
-                if (fs.existsSync(tomlPath)) {
-                    results.push({ name: entry.name, packagePath: entry.name });
-                }
+            const projectRootPath = resolveProjectRootPath();
+            // Remove from global config and project config — allDisabled is their union,
+            // so the skill must be cleared from whichever config(s) it was disabled in.
+            setSkillEnabled(GLOBAL_SKILLS_CONFIG_PATH, params.skillId, true);
+            if (projectRootPath) {
+                setSkillEnabled(buildProjectSkillsConfigPath(projectRootPath), params.skillId, true);
             }
-        } catch { /* ignore */ }
-        return results;
+            sendSkillEnableNotification({ type: "skill_enable_event", requestId: params.requestId, stage: SkillEnableStage.ENABLED, skillName: params.skillId, skillId: params.skillId } as any);
+            approvalManager.resolveSkillEnable(params.requestId, true);
+            return true;
+        } catch (error) {
+            console.error('[Skills] enableSkillFromChat failed:', error);
+            approvalManager.resolveSkillEnable(params.requestId, false);
+            return false;
+        }
+    }
+
+    async cancelSkillEnable(params: SkillEnableCancelRequest): Promise<void> {
+        const skillId = approvalManager.getSkillEnableId(params.requestId) ?? '';
+        sendSkillEnableNotification({ type: "skill_enable_event", requestId: params.requestId, stage: SkillEnableStage.SKIPPED, skillName: skillId, skillId } as any);
+        approvalManager.resolveSkillEnable(params.requestId, false);
+    }
+
+    async parseSkillFile(params: ParseSkillFileRequest): Promise<ParseSkillFileResponse> {
+        try {
+            const ext = path.extname(params.fileName).toLowerCase();
+
+            if (ext === '.md') {
+                const { name, trigger, content } = parseSkillMd(params.fileContent);
+                if (!name || !trigger) {
+                    return { error: 'Missing name or description in YAML front matter.' };
+                }
+                return { name, trigger, body: content !== trigger ? content : undefined };
+            }
+
+            if (ext === '.zip' || ext === '.skill') {
+                const buf = Buffer.from(params.fileContent, 'base64');
+                const zip = await unzipper.Open.buffer(buf);
+                const entry = zip.files.find((f: any) => path.basename(f.path).toUpperCase() === 'SKILL.MD');
+                if (!entry) {
+                    return { error: 'No SKILL.md found inside the archive.' };
+                }
+                const raw = (await entry.buffer()).toString('utf-8');
+                const { name, trigger, content } = parseSkillMd(raw);
+                if (!name || !trigger) {
+                    return { error: 'Missing name or description in SKILL.md.' };
+                }
+                return { name, trigger, body: content !== trigger ? content : undefined };
+            }
+
+            return { error: 'Unsupported file type. Use .md, .zip, or .skill.' };
+        } catch (err: any) {
+            return { error: err?.message ?? 'Failed to parse skill file.' };
+        }
     }
 
     async listMcpServers(): Promise<McpServerStatusDTO[]> {

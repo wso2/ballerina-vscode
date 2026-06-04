@@ -64,6 +64,8 @@ import {
     DeleteSkillRequest,
     SkillSaveRequest,
     SkillSaveCancelRequest,
+    SkillEnableRequest,
+    SkillEnableCancelRequest,
     SetSkillsEnabledRequest,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
@@ -78,6 +80,8 @@ import {
     McpGroupStatesDTO,
     SetMcpGroupEnabledRequest,
     AgentsMdFileInfoDTO,
+    ParseSkillFileRequest,
+    ParseSkillFileResponse,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -150,6 +154,9 @@ export const getSkillsEnabled: RequestType<void, boolean> = { method: `${_preFix
 export const setSkillsEnabled: RequestType<SetSkillsEnabledRequest, void> = { method: `${_preFix}/setSkillsEnabled` };
 export const saveSkillFromChat: RequestType<SkillSaveRequest, boolean> = { method: `${_preFix}/saveSkillFromChat` };
 export const cancelSkillSave: RequestType<SkillSaveCancelRequest, void> = { method: `${_preFix}/cancelSkillSave` };
+export const enableSkillFromChat: RequestType<SkillEnableRequest, boolean> = { method: `${_preFix}/enableSkillFromChat` };
+export const cancelSkillEnable: RequestType<SkillEnableCancelRequest, void> = { method: `${_preFix}/cancelSkillEnable` };
+export const parseSkillFile: RequestType<ParseSkillFileRequest, ParseSkillFileResponse> = { method: `${_preFix}/parseSkillFile` };
 export const listMcpServers: RequestType<void, McpServerStatusDTO[]> = { method: `${_preFix}/listMcpServers` };
 export const setMcpServerEnabled: RequestType<SetMcpServerEnabledRequest, void> = { method: `${_preFix}/setMcpServerEnabled` };
 export const openMcpConfig: RequestType<OpenMcpConfigRequest, void> = { method: `${_preFix}/openMcpConfig` };

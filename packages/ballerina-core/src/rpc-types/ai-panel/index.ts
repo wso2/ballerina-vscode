@@ -62,9 +62,12 @@ import {
     DeleteSkillRequest,
     SkillSaveRequest,
     SkillSaveCancelRequest,
+    SkillEnableRequest,
+    SkillEnableCancelRequest,
     SetSkillsEnabledRequest,
+    ParseSkillFileRequest,
+    ParseSkillFileResponse,
     SkillTier,
-    SkillScope,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
@@ -172,6 +175,9 @@ export interface AIPanelAPI {
     deleteSkill: (params: DeleteSkillRequest) => Promise<boolean>;
     saveSkillFromChat: (params: SkillSaveRequest) => Promise<boolean>;
     cancelSkillSave: (params: SkillSaveCancelRequest) => Promise<void>;
+    enableSkillFromChat: (params: SkillEnableRequest) => Promise<boolean>;
+    cancelSkillEnable: (params: SkillEnableCancelRequest) => Promise<void>;
+    parseSkillFile: (params: ParseSkillFileRequest) => Promise<ParseSkillFileResponse>;
     getSkillsEnabled: () => Promise<boolean>;
     setSkillsEnabled: (params: SetSkillsEnabledRequest) => Promise<void>;
     // ==================================

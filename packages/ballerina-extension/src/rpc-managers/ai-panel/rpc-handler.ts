@@ -113,6 +113,9 @@ import {
     deleteSkill,
     saveSkillFromChat,
     cancelSkillSave,
+    enableSkillFromChat,
+    cancelSkillEnable,
+    parseSkillFile,
     getSkillsEnabled,
     setSkillsEnabled,
     AddSkillRequest,
@@ -120,6 +123,9 @@ import {
     DeleteSkillRequest,
     SkillSaveRequest,
     SkillSaveCancelRequest,
+    SkillEnableRequest,
+    SkillEnableCancelRequest,
+    ParseSkillFileRequest,
     SetSkillsEnabledRequest,
     listMcpServers,
     setMcpServerEnabled,
@@ -226,6 +232,9 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(deleteSkill, (args: DeleteSkillRequest) => rpcManger.deleteSkill(args));
     messenger.onRequest(saveSkillFromChat, (args: SkillSaveRequest) => rpcManger.saveSkillFromChat(args));
     messenger.onRequest(cancelSkillSave, (args: SkillSaveCancelRequest) => rpcManger.cancelSkillSave(args));
+    messenger.onRequest(enableSkillFromChat, (args: SkillEnableRequest) => rpcManger.enableSkillFromChat(args));
+    messenger.onRequest(cancelSkillEnable, (args: SkillEnableCancelRequest) => rpcManger.cancelSkillEnable(args));
+    messenger.onRequest(parseSkillFile, (args: ParseSkillFileRequest) => rpcManger.parseSkillFile(args));
     messenger.onRequest(getSkillsEnabled, () => rpcManger.getSkillsEnabled());
     messenger.onRequest(setSkillsEnabled, (args: SetSkillsEnabledRequest) => rpcManger.setSkillsEnabled(args));
     messenger.onRequest(listMcpServers, () => rpcManger.listMcpServers());

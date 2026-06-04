@@ -143,7 +143,7 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [WEB_SEARCH_TOOL_NAME]: createWebSearchTool(eventHandler, webSearchEnabled),
         [WEB_FETCH_TOOL_NAME]: createWebFetchTool(eventHandler, webSearchEnabled),
         [CLARIFY_TOOL]: createClarifyTool(eventHandler),
-        [SKILL_TOOL_NAME]: createSkillTool(REGISTERED_SKILLS, projectRootPath, projects, eventHandler),
+        [SKILL_TOOL_NAME]: createSkillTool(REGISTERED_SKILLS, projectRootPath, eventHandler),
         [SAVE_SKILL_TOOL_NAME]: createSaveSkillTool(eventHandler),
         ...mcpTools,
     };

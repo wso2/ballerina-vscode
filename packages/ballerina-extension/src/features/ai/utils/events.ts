@@ -40,6 +40,7 @@ import {
     sendAIPanelNotification,
     sendClarifyNotification,
     sendSkillSaveNotification,
+    sendSkillEnableNotification,
     sendChatComponentNotification,
     sendUsageMetricsNotification,
 } from "./ai-utils";
@@ -188,6 +189,10 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "skill_save_event":
                 sendSkillSaveNotification(event);
+                break;
+            // @ts-ignore -- SkillEnableEvent added to ChatNotify union
+            case "skill_enable_event":
+                sendSkillEnableNotification(event as any);
                 break;
             case "chat_component":
                 sendChatComponentNotification(event.componentType, event.data, event.id);

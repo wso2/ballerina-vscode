@@ -17,17 +17,16 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { ProjectSource } from '@wso2/ballerina-core';
-import { CustomSkillMeta } from '../../skills/types';
+import { ProjectSkillMeta } from '../../skills/types';
 
 const USER_SKILLS_DIR = path.join(os.homedir(), '.ballerina', 'copilot', 'skills');
 const USER_SKILL_PREFIX = 'user';
 
-export interface CustomSkillContent extends CustomSkillMeta {
+export interface ProjectSkillContent extends ProjectSkillMeta {
     content: string;
 }
 
-function parseSkillMd(raw: string): { name: string; trigger: string; content: string } {
+export function parseSkillMd(raw: string): { name: string; trigger: string; content: string } {
     if (raw.trimStart().startsWith('---')) {
         const start = raw.indexOf('---');
         const end = raw.indexOf('---', start + 3);
@@ -51,7 +50,7 @@ function parseSkillMd(raw: string): { name: string; trigger: string; content: st
     return { name, trigger, content: body || trigger };
 }
 
-function readSkillFromDir(skillsDir: string, skillNameLower: string): CustomSkillContent | null {
+function readSkillFromDir(skillsDir: string, skillNameLower: string): ProjectSkillContent | null {
     if (!fs.existsSync(skillsDir)) { return null; }
     let entries: fs.Dirent[];
     try { entries = fs.readdirSync(skillsDir, { withFileTypes: true }); } catch { return null; }
@@ -59,13 +58,13 @@ function readSkillFromDir(skillsDir: string, skillNameLower: string): CustomSkil
         if (!entry.isDirectory() || entry.name.toLowerCase() !== skillNameLower) { continue; }
         const mdPath = path.join(skillsDir, entry.name, 'SKILL.md');
         if (!fs.existsSync(mdPath)) { continue; }
-        try { return parseSkillMd(fs.readFileSync(mdPath, 'utf-8')) as CustomSkillContent; } catch { return null; }
+        try { return parseSkillMd(fs.readFileSync(mdPath, 'utf-8')) as ProjectSkillContent; } catch { return null; }
     }
     return null;
 }
 
-export function scanUserSkills(): CustomSkillMeta[] {
-    const results: CustomSkillMeta[] = [];
+export function scanUserSkills(): ProjectSkillMeta[] {
+    const results: ProjectSkillMeta[] = [];
     if (!fs.existsSync(USER_SKILLS_DIR)) { return results; }
     let entries: fs.Dirent[];
     try { entries = fs.readdirSync(USER_SKILLS_DIR, { withFileTypes: true }); } catch { return results; }
@@ -82,7 +81,7 @@ export function scanUserSkills(): CustomSkillMeta[] {
     return results;
 }
 
-export function readUserSkillContent(skillName: string): CustomSkillContent | null {
+export function readUserSkillContent(skillName: string): ProjectSkillContent | null {
     const slashIdx = skillName.indexOf('/');
     if (slashIdx === -1) { return null; }
     if (skillName.slice(0, slashIdx).toLowerCase() !== USER_SKILL_PREFIX) { return null; }
@@ -90,61 +89,34 @@ export function readUserSkillContent(skillName: string): CustomSkillContent | nu
     return readSkillFromDir(USER_SKILLS_DIR, bareSkillName);
 }
 
-export function scanCustomSkills(
-    projectRootPath: string,
-    projects: ProjectSource[]
-): CustomSkillMeta[] {
-    const results: CustomSkillMeta[] = [];
-    const scannedDirs = new Set<string>();
+export function scanProjectSkills(projectRootPath: string): ProjectSkillMeta[] {
+    const results: ProjectSkillMeta[] = [];
     const projectName = path.basename(projectRootPath);
+    const skillsDir = path.join(projectRootPath, '.agents', 'skills');
 
-    function scanDir(skillsDir: string, prefix: string) {
-        const resolved = path.resolve(skillsDir);
-        if (scannedDirs.has(resolved)) { return; }
-        scannedDirs.add(resolved);
-        if (!fs.existsSync(skillsDir)) { return; }
-        let entries: fs.Dirent[];
-        try { entries = fs.readdirSync(skillsDir, { withFileTypes: true }); } catch { return; }
-        for (const entry of entries) {
-            if (!entry.isDirectory()) { continue; }
-            const mdPath = path.join(skillsDir, entry.name, 'SKILL.md');
-            if (!fs.existsSync(mdPath)) { continue; }
-            try {
-                const raw = fs.readFileSync(mdPath, 'utf-8');
-                const { trigger } = parseSkillMd(raw);
-                results.push({ name: `${prefix}/${entry.name}`, trigger });
-            } catch { /* skip unreadable files */ }
-        }
+    if (!fs.existsSync(skillsDir)) { return results; }
+    let entries: fs.Dirent[];
+    try { entries = fs.readdirSync(skillsDir, { withFileTypes: true }); } catch { return results; }
+    for (const entry of entries) {
+        if (!entry.isDirectory()) { continue; }
+        const mdPath = path.join(skillsDir, entry.name, 'SKILL.md');
+        if (!fs.existsSync(mdPath)) { continue; }
+        try {
+            const raw = fs.readFileSync(mdPath, 'utf-8');
+            const { trigger } = parseSkillMd(raw);
+            results.push({ name: `${projectName}/${entry.name}`, trigger });
+        } catch { /* skip unreadable files */ }
     }
-
-    scanDir(path.join(projectRootPath, 'skills'), projectName);
-
-    for (const project of projects) {
-        if (!project.packagePath) { continue; }
-        const pkgName = path.basename(project.packagePath);
-        scanDir(path.join(projectRootPath, project.packagePath, 'skills'), pkgName);
-    }
-
     return results;
 }
 
-export function readCustomSkillContent(
+export function readProjectSkillContent(
     projectRootPath: string,
-    projects: ProjectSource[],
     skillName: string
-): CustomSkillContent | null {
+): ProjectSkillContent | null {
     const slashIdx = skillName.indexOf('/');
     if (slashIdx === -1) { return null; }
 
-    const prefix = skillName.slice(0, slashIdx).toLowerCase();
     const bareSkillName = skillName.slice(slashIdx + 1).toLowerCase();
-    const projectName = path.basename(projectRootPath).toLowerCase();
-
-    if (prefix === projectName) {
-        return readSkillFromDir(path.join(projectRootPath, 'skills'), bareSkillName);
-    }
-
-    const project = projects.find(p => p.packagePath && path.basename(p.packagePath).toLowerCase() === prefix);
-    if (!project) { return null; }
-    return readSkillFromDir(path.join(projectRootPath, project.packagePath, 'skills'), bareSkillName);
+    return readSkillFromDir(path.join(projectRootPath, '.agents', 'skills'), bareSkillName);
 }

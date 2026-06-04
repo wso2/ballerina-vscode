@@ -21,6 +21,7 @@ import MarkdownRenderer from "../MarkdownRenderer";
 import TodoSection from "../TodoSection";
 import AskCard from "./AskCard";
 import SkillSaveCard from "./SkillSaveCard";
+import SkillEnableCard from "./SkillEnableCard";
 import ConfigCard from "./ConfigCard";
 import ConnectorCard from "./ConnectorCard";
 import CommandOutputCard from "./CommandOutputCard";
@@ -260,6 +261,8 @@ function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcCli
             return <AskCard key={idx} data={item.data} rpcClient={rpcClient} />;
         case "skill_save":
             return <SkillSaveCard key={idx} data={item.data} />;
+        case "skill_enable":
+            return <SkillEnableCard key={idx} data={item.data} />;
         case "config":
             return <ConfigCard key={idx} data={item.data} rpcClient={rpcClient} />;
         case "connector":
