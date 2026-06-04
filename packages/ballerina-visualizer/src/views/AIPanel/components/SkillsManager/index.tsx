@@ -28,6 +28,7 @@ import {
     ToggleSkillRequest,
 } from "@wso2/ballerina-core";
 import { AIChatView, PrimaryActionButton } from "../../styles";
+import { Loader } from "../Loader";
 import SkillRow from "./SkillRow";
 import AddSkillModal from "./AddSkillModal";
 
@@ -126,18 +127,25 @@ const SectionDivider = styled.div`
     align-self: center;
 `;
 
+const SectionHelper = styled.div`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    margin: -2px 0 4px 16px;
+`;
+
+const RowsContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--vscode-editor-background);
+`;
+
 const EmptyMessage = styled.div`
     font-size: 12px;
     color: var(--vscode-descriptionForeground);
     padding: 6px 0;
-`;
-
-
-const LoadingMessage = styled.div`
-    font-size: 12px;
-    color: var(--vscode-descriptionForeground);
-    padding: 20px 0;
-    text-align: center;
 `;
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -235,6 +243,34 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose, onSkillsChange }
         />
     );
 
+    const renderSection = (tier: SkillTier, label: string, helper: string, items: SkillEntry[], emptyText: string) => {
+        const isCollapsed = collapsedSections.has(tier);
+        return (
+            <Section key={tier}>
+                <SectionHeader>
+                    <SectionTitleButton
+                        type="button"
+                        onClick={() => toggleSectionCollapsed(tier)}
+                        title={isCollapsed ? "Expand section" : "Collapse section"}
+                    >
+                        <span className={`codicon codicon-${isCollapsed ? "chevron-right" : "chevron-down"}`} />
+                        {label} ({items.length})
+                    </SectionTitleButton>
+                    <SectionDivider />
+                </SectionHeader>
+                {!isCollapsed && (
+                    <>
+                        <SectionHelper>{helper}</SectionHelper>
+                        {items.length === 0
+                            ? <EmptyMessage>{emptyText}</EmptyMessage>
+                            : <RowsContainer>{items.map(renderSkillCard)}</RowsContainer>
+                        }
+                    </>
+                )}
+            </Section>
+        );
+    };
+
     return (
         <AIChatView>
             <PanelHeader>
@@ -259,77 +295,12 @@ const SkillsManager: React.FC<SkillsManagerProps> = ({ onClose, onSkillsChange }
 
             <PanelContent>
                 {isLoading ? (
-                    <LoadingMessage>Loading skills…</LoadingMessage>
+                    <Loader label="Loading skills…" />
                 ) : (
                     <>
-                        {/* Built-in */}
-                        <Section>
-                            <SectionHeader>
-                                <SectionTitleButton
-                                    type="button"
-                                    onClick={() => toggleSectionCollapsed(SkillTier.BUILTIN)}
-                                    title={collapsedSections.has(SkillTier.BUILTIN) ? "Expand section" : "Collapse section"}
-                                >
-                                    <span className={`codicon codicon-${collapsedSections.has(SkillTier.BUILTIN) ? "chevron-right" : "chevron-down"}`} />
-                                    Built-in ({builtinSkills.length})
-                                </SectionTitleButton>
-                                <SectionDivider />
-                            </SectionHeader>
-                            {!collapsedSections.has(SkillTier.BUILTIN) && (
-                                <>
-                                    {builtinSkills.length === 0
-                                        ? <EmptyMessage>No built-in skills.</EmptyMessage>
-                                        : builtinSkills.map(renderSkillCard)
-                                    }
-                                </>
-                            )}
-                        </Section>
-
-                        {/* Project */}
-                        <Section>
-                            <SectionHeader>
-                                <SectionTitleButton
-                                    type="button"
-                                    onClick={() => toggleSectionCollapsed(SkillTier.PROJECT)}
-                                    title={collapsedSections.has(SkillTier.PROJECT) ? "Expand section" : "Collapse section"}
-                                >
-                                    <span className={`codicon codicon-${collapsedSections.has(SkillTier.PROJECT) ? "chevron-right" : "chevron-down"}`} />
-                                    Project ({projectSkills.length})
-                                </SectionTitleButton>
-                                <SectionDivider />
-                            </SectionHeader>
-                            {!collapsedSections.has(SkillTier.PROJECT) && (
-                                <>
-                                    {projectSkills.length === 0
-                                        ? <EmptyMessage>No project skills yet.</EmptyMessage>
-                                        : projectSkills.map(renderSkillCard)
-                                    }
-                                </>
-                            )}
-                        </Section>
-
-                        {/* User */}
-                        <Section>
-                            <SectionHeader>
-                                <SectionTitleButton
-                                    type="button"
-                                    onClick={() => toggleSectionCollapsed(SkillTier.USER)}
-                                    title={collapsedSections.has(SkillTier.USER) ? "Expand section" : "Collapse section"}
-                                >
-                                    <span className={`codicon codicon-${collapsedSections.has(SkillTier.USER) ? "chevron-right" : "chevron-down"}`} />
-                                    User ({userSkills.length})
-                                </SectionTitleButton>
-                                <SectionDivider />
-                            </SectionHeader>
-                            {!collapsedSections.has(SkillTier.USER) && (
-                                <>
-                                    {userSkills.length === 0
-                                        ? <EmptyMessage>No user skills yet.</EmptyMessage>
-                                        : userSkills.map(renderSkillCard)
-                                    }
-                                </>
-                            )}
-                        </Section>
+                        {renderSection(SkillTier.BUILTIN, "Built-in", "Skills shipped with the Copilot.", builtinSkills, "No built-in skills.")}
+                        {renderSection(SkillTier.PROJECT, "Project", "Saved to this project and shared with your team.", projectSkills, "No project skills yet.")}
+                        {renderSection(SkillTier.USER, "User", "Available across all your projects.", userSkills, "No user skills yet.")}
                     </>
                 )}
             </PanelContent>
