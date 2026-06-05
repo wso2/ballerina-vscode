@@ -21,7 +21,8 @@ import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
-import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, OperationType } from "../..";
+import { ComponentInfo, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, OperationType } from "../..";
+import { DataMapperMetadata } from "../../interfaces/shared-types";
 
 // ==================================
 // General Interfaces
