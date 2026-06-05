@@ -282,12 +282,12 @@ export function PackageListView(props: PackageListViewProps) {
         });
     }, [projectCollection]);
 
-    const handleItemClick = async (itemId: string, event: React.MouseEvent) => {
+    const handleItemClick = (itemId: string, event: React.MouseEvent) => {
         // Don't trigger if clicking on delete button
         if ((event.target as HTMLElement).closest('.delete-button')) {
             return;
         }
-        await rpcClient.getVisualizerRpcClient().openView({
+        rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 projectPath: integrationItems.find((item) => item.id === itemId)?.projectPath,
@@ -297,10 +297,10 @@ export function PackageListView(props: PackageListViewProps) {
         });
     };
 
-    const handleDeleteClick = async (projectPath: string, isLibrary: boolean, event: React.MouseEvent) => {
+    const handleDeleteClick = (projectPath: string, isLibrary: boolean, event: React.MouseEvent) => {
         event.stopPropagation();
         console.log(`Deleting ${isLibrary ? "library" : "integration"}: ${projectPath}`);
-        await rpcClient.getBIDiagramRpcClient().deleteProject({
+        rpcClient.getBIDiagramRpcClient().deleteProject({
             projectPath: projectPath
         });
     };
