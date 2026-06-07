@@ -1,0 +1,190 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test the generation of service model for a service with a single listener",
+  "start": {
+    "line": 8,
+    "offset": 0
+  },
+  "end": {
+    "line": 28,
+    "offset": 0
+  },
+  "response": {
+    "id": "0",
+    "name": "HTTP Service",
+    "type": "http",
+    "moduleName": "http",
+    "orgName": "ballerina",
+    "version": "2.14.0",
+    "packageName": "http",
+    "listenerProtocol": "http",
+    "icon": "http://localhost:8080/icons/http.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the service"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "properties": {
+      "listener": {
+        "metadata": {
+          "label": "Listeners",
+          "description": ""
+        },
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
+        "value": "httpListener",
+        "values": [],
+        "properties": {
+          "httpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 8,
+                  "offset": 21
+                },
+                "endLine": {
+                  "line": 8,
+                  "offset": 33
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT_LISTENER",
+            "options": [
+              {
+                "label": "httpListener",
+                "value": "httpListener"
+              },
+              {
+                "label": "githubListener",
+                "value": "githubListener"
+              },
+              {
+                "label": "(+) Create and use the default HTTP listener (port: 9090)",
+                "value": "(+) Create and use the default HTTP listener (port: 9090)"
+              }
+            ],
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      "basePath": {
+        "metadata": {
+          "label": "Base Path",
+          "description": ""
+        },
+        "codedata": {
+          "type": "SERVICE_BASEPATH"
+        },
+        "placeholder": "",
+        "value": "/api/test",
+        "types": [
+          {
+            "fieldType": "SERVICE_PATH",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "annotServiceConfig": {
+        "metadata": {
+          "label": "Service Configuration",
+          "description": "Define advanced configurations like service level security, etc."
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ServiceConfig"
+        },
+        "placeholder": "{}",
+        "value": "{\n    host: \"localhost\"\n}",
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "http:HttpServiceConfig",
+            "typeMembers": [
+              {
+                "type": "HttpServiceConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": true
+              }
+            ],
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "value": {
+          "Base Path": [
+            "/api/test"
+          ]
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 5,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 28,
+          "offset": 1
+        }
+      }
+    },
+    "functions": []
+  }
+}

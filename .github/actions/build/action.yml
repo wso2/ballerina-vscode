@@ -1,0 +1,177 @@
+name: "Build Ballerina VSIX"
+# Composite-action inputs only support description / required / default. The
+# 'type:' key is silently ignored by the Actions runtime — drop it. All input
+# values are passed as strings.
+inputs:
+  isPreRelease:
+    description: Whether this is a prerelease build
+    required: false
+    default: 'true'
+  ballerinaLsTag:
+    description: Override Ballerina LS download tag (latest, prerelease, v1.5.0). Overrides isPreRelease for LS download.
+    required: false
+    default: ''
+  enableCache:
+    description: Enable rush/pnpm install caches
+    required: false
+    default: 'true'
+  enableLSCache:
+    description: Enable cache for the Ballerina LS jar
+    required: false
+    default: 'false'
+  ballerina:
+    description: Update Ballerina extension version
+    required: false
+    default: 'false'
+  version:
+    description: Version bump kind (patch/minor/major) or N/A
+    required: false
+    default: 'N/A'
+  balVersion:
+    description: Ballerina distribution version
+    required: false
+    default: '2201.13.2'
+  token:
+    description: GitHub token for the LS download / publish steps
+    required: false
+  BALLERINA_AUTH_ORG:
+    required: false
+  BALLERINA_AUTH_CLIENT_ID:
+    required: false
+  BALLERINA_DEV_COPILOT_ROOT_URL:
+    required: false
+  BALLERINA_DEV_COPILOT_AUTH_ORG:
+    required: false
+  BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID:
+    required: false
+  BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL:
+    required: false
+  COPILOT_ROOT_URL:
+    required: false
+  COPILOT_DEV_ROOT_URL:
+    required: false
+  APPINSIGHTS_INSTRUMENTATION_KEY:
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Rush
+      uses: gigara/setup-rush@7ba3446572d15f5eacc85de383ad9679dfb7223c # v1.2.0
+      with:
+        pnpm: 10.11.0
+        node: 22.x
+        cache-rush: ${{ inputs.enableCache }}
+        cache-pnpm: ${{ inputs.enableCache }}
+        set-env: ${{ inputs.enableCache }}
+
+    # JDK + Gradle for the ballerina-language-server subproject. rush invokes
+    # './gradlew build pack -x test -x check' as part of the LS package's
+    # build script, so these must be present before 'rush build' runs.
+    - name: Set up JDK 21
+      uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+      with:
+        distribution: 'temurin'
+        java-version: 21.0.3
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+
+    - uses: ballerina-platform/setup-ballerina@8a64987be305edb95f32092f64916ff973f40824 # v1
+      name: Install Ballerina
+      with:
+        version: ${{ inputs.balVersion }}
+
+    - name: Cache Ballerina dependencies (LS gradle)
+      if: ${{ inputs.enableCache == 'true' }}
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: ~/.ballerina/repositories/
+        key: ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-${{ hashFiles('packages/ballerina-language-server/**/gradle.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-ballerina-${{ github.base_ref || github.ref_name }}-
+
+    - name: Update version - Ballerina
+      if: ${{ inputs.ballerina == 'true' }}
+      uses: ./.github/actions/updateVersion
+      with:
+        path: "ballerina-extension"
+        isPreRelease: ${{ inputs.isPreRelease }}
+        version: ${{ inputs.version }}
+
+    - name: Copy .env.example to .env
+      shell: bash
+      run: |
+        find . -path ./submodules -prune -o -type f -name ".env.example" -print | while read example; do
+          envfile="$(dirname "$example")/.env"
+          cp "$example" "$envfile"
+        done
+
+    - name: Resolve Ballerina LS version
+      id: resolve-ballerina-ls-version
+      if: ${{ inputs.enableLSCache == 'true' }}
+      shell: bash
+      run: node packages/ballerina-extension/scripts/download-ls.js --resolve-version
+      env:
+        BALLERINA_LS_TAG: ${{ inputs.ballerinaLsTag != '' && inputs.ballerinaLsTag || (inputs.isPreRelease == 'true' && 'prerelease' || 'latest') }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+
+    - name: Restore Ballerina LS from cache
+      id: ballerina-ls-cache
+      if: ${{ inputs.enableLSCache == 'true' }}
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: packages/ballerina-extension/ls
+        key: ballerina-ls-${{ steps.resolve-ballerina-ls-version.outputs.version }}
+
+    - name: Build repo
+      shell: bash
+      id: build
+      run: |
+        # Quick sanity log so missing-credential failures point at the right cause.
+        echo "::group::LS credential check"
+        echo "packageUser: ${packageUser:+<set>}${packageUser:-<empty>}"
+        echo "packagePAT:  ${packagePAT:+<set, length=${#packagePAT}>}${packagePAT:-<empty>}"
+        echo "::endgroup::"
+        node common/scripts/install-run-rush.js build --to ballerina --verbose
+      env:
+        isPreRelease: ${{ inputs.isPreRelease == 'true' }}
+        BALLERINA_LS_TAG: ${{ inputs.enableLSCache == 'true' && steps.resolve-ballerina-ls-version.outputs.version || (inputs.ballerinaLsTag != '' && inputs.ballerinaLsTag || (inputs.isPreRelease == 'true' && 'prerelease' || 'latest')) }}
+        # Credentials for the LS gradle build (maven.pkg.github.com/ballerina-platform/*)
+        packageUser: ${{ github.actor }}
+        packagePAT: ${{ inputs.token != '' && inputs.token || github.token }}
+        BALLERINA_AUTH_ORG: ${{ inputs.BALLERINA_AUTH_ORG }}
+        BALLERINA_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_AUTH_CLIENT_ID }}
+        BALLERINA_DEV_COPILOT_ROOT_URL: ${{ inputs.BALLERINA_DEV_COPILOT_ROOT_URL }}
+        BALLERINA_DEV_COPILOT_AUTH_ORG: ${{ inputs.BALLERINA_DEV_COPILOT_AUTH_ORG }}
+        BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID }}
+        BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL: ${{ inputs.BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL }}
+        COPILOT_ROOT_URL: ${{ inputs.COPILOT_ROOT_URL }}
+        COPILOT_DEV_ROOT_URL: ${{ inputs.COPILOT_DEV_ROOT_URL }}
+        APPINSIGHTS_INSTRUMENTATION_KEY: ${{ inputs.APPINSIGHTS_INSTRUMENTATION_KEY }}
+
+    - name: Compress build
+      shell: bash
+      run: |
+        zip -rq build.zip ./ -x 'common/temp*' -x '**/node_modules/*' -x 'submodules/wso2-vscode-extensions/.git/*'
+        # Resolve the exact VSIX from packages/ballerina-extension/vsix/. The 'vsix/'
+        # subdir (populated by the copyVSIX script) is one of the rush build-cache
+        # outputFolderNames, so it's present even when ballerina is restored from
+        # cache. The package-root 'ballerina-<version>.vsix' (vsce's direct output)
+        # is NOT cached and may be missing on cache-restore.
+        version=$(node -p "require('./packages/ballerina-extension/package.json').version")
+        zip -j VSIX.zip "packages/ballerina-extension/vsix/ballerina-${version}.vsix"
+
+    - name: Save build
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        path: build.zip
+        name: ExtBuild
+        retention-days: 1
+
+    - name: Save VSIX
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        path: VSIX.zip
+        name: VSIX
+        retention-days: 30

@@ -1,0 +1,143 @@
+{
+    "fileName": "/Users/gayanka/dev/wso2/test/test_24/functions.bal",
+    "nodes": [
+        {
+            "id": "33946",
+            "metadata": {
+                "label": "Start",
+                "data": {
+                    "kind": "Function",
+                    "label": "getName",
+                    "isServiceFunction": false,
+                    "return": "string?"
+                }
+            },
+            "codedata": {
+                "node": "EVENT_START",
+                "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                        "line": 1,
+                        "offset": 35
+                    },
+                    "endLine": {
+                        "line": 5,
+                        "offset": 1
+                    }
+                },
+                "sourceCode": "# get randon name form this function each time\nfunction getName() returns string? {\n    do {\n    } on fail error err {\n    }\n}"
+            },
+            "returning": false,
+            "flags": 0
+        },
+        {
+            "id": "33919",
+            "metadata": {
+                "label": "ErrorHandler",
+                "description": "Catch and handle errors"
+            },
+            "codedata": {
+                "node": "ERROR_HANDLER",
+                "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                        "line": 2,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 4,
+                        "offset": 5
+                    }
+                },
+                "sourceCode": "do {\n    } on fail error err {\n    }"
+            },
+            "returning": false,
+            "branches": [
+                {
+                    "label": "Body",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "BODY",
+                        "lineRange": {
+                            "fileName": "functions.bal",
+                            "startLine": {
+                                "line": 2,
+                                "offset": 7
+                            },
+                            "endLine": {
+                                "line": 3,
+                                "offset": 5
+                            }
+                        },
+                        "sourceCode": "{\n    }"
+                    },
+                    "repeatable": "ONE",
+                    "children": []
+                },
+                {
+                    "label": "On Failure",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "ON_FAILURE",
+                        "lineRange": {
+                            "fileName": "functions.bal",
+                            "startLine": {
+                                "line": 3,
+                                "offset": 24
+                            },
+                            "endLine": {
+                                "line": 4,
+                                "offset": 5
+                            }
+                        },
+                        "sourceCode": "{\n    }"
+                    },
+                    "repeatable": "ZERO_OR_ONE",
+                    "properties": {
+                        "ignore": {
+                            "metadata": {
+                                "label": "Ignore",
+                                "description": "Ignore the error value"
+                            },
+                            "valueType": "EXPRESSION",
+                            "value": "false",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "errorVariable": {
+                            "metadata": {
+                                "label": "Error Variable",
+                                "description": "Name of the error variable"
+                            },
+                            "valueType": "IDENTIFIER",
+                            "value": "err ",
+                            "placeholder": "err",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "errorType": {
+                            "metadata": {
+                                "label": "Error Type",
+                                "description": "Type of the error"
+                            },
+                            "valueType": "TYPE",
+                            "value": "error",
+                            "placeholder": "error",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    },
+                    "children": []
+                }
+            ],
+            "flags": 0
+        }
+    ],
+    "connections": []
+}

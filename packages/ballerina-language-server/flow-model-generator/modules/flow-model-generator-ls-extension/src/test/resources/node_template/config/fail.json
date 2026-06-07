@@ -1,0 +1,40 @@
+{
+  "source": "empty.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FAIL"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Fail",
+      "description": "Fail the execution"
+    },
+    "codedata": {
+      "node": "FAIL",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Fail value"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "error",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

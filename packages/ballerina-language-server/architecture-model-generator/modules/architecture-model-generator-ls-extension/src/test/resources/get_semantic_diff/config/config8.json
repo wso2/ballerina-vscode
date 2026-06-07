@@ -1,0 +1,30 @@
+{
+  "description": "Get diff related to connection addition",
+  "projectPath": "connection_addition",
+  "output": {
+    "loadDesignDiagrams": true,
+    "semanticDiffs": [
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 7,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 10,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/api",
+          "resourcePath": "data"
+        }
+      }
+    ]
+  }
+}

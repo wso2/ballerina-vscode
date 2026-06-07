@@ -1,0 +1,167 @@
+{
+  "start": {
+    "line": 2,
+    "offset": 0
+  },
+  "end": {
+    "line": 4,
+    "offset": 1
+  },
+  "source": "function_call2.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "function_call2.bal",
+    "nodes": [
+      {
+        "id": "34256",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "foo",
+            "isServiceFunction": false
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "function_call2.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 15
+            },
+            "endLine": {
+              "line": 4,
+              "offset": 1
+            }
+          },
+          "sourceCode": "function foo() {\n    io:println(message, received);\n}"
+        },
+        "returning": false,
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 0
+      },
+      {
+        "id": "34878",
+        "metadata": {
+          "label": "println",
+          "description": "Prints `any`, `error` or string templates(such as `The respective int value is ${val}`) value(s) to the STDOUT\nfollowed by a new line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+        },
+        "codedata": {
+          "node": "FUNCTION_CALL",
+          "org": "ballerina",
+          "module": "io",
+          "packageName": "io",
+          "symbol": "println",
+          "version": "1.8.0",
+          "lineRange": {
+            "fileName": "function_call2.bal",
+            "startLine": {
+              "line": 3,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 3,
+              "offset": 34
+            }
+          },
+          "sourceCode": "io:println(message, received);"
+        },
+        "returning": false,
+        "properties": {
+          "values": {
+            "metadata": {
+              "label": "values",
+              "description": "The value(s) to be printed"
+            },
+            "types": [
+              {
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "io:Printable",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "io:Printable",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
+              }
+            ],
+            "value": [
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "message",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false,
+                "diagnostics": {
+                  "hasDiagnostics": true,
+                  "diagnostics": [
+                    {
+                      "severity": "ERROR",
+                      "message": "undefined symbol 'message'"
+                    }
+                  ]
+                }
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "received",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false,
+                "diagnostics": {
+                  "hasDiagnostics": true,
+                  "diagnostics": [
+                    {
+                      "severity": "ERROR",
+                      "message": "undefined symbol 'received'"
+                    }
+                  ]
+                }
+              }
+            ],
+            "placeholder": "()",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REST_PARAMETER",
+              "originalName": "values"
+            }
+          }
+        },
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}

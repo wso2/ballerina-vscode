@@ -1,0 +1,322 @@
+{
+  "filePath": "np_functions",
+  "fileName": "functions.bal",
+  "functionName": "rateMovie",
+  "description": "Natural function with non-default model provider",
+  "output": {
+    "id": "47804",
+    "metadata": {
+      "label": "Natural Function",
+      "description": "Define a natural function"
+    },
+    "codedata": {
+      "node": "NP_FUNCTION_DEFINITION",
+      "org": "ballerina",
+      "module": "ai",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 16,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 22,
+          "offset": 2
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the function"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "scope": "Global",
+            "selected": true
+          }
+        ],
+        "value": "rateMovie",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 16,
+              "offset": 9
+            },
+            "endLine": {
+              "line": 16,
+              "offset": 18
+            }
+          }
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "int|error",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "parameters": {
+        "metadata": {
+          "label": "Parameters",
+          "description": "Function parameters"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
+              "metadata": {
+                "label": "Parameter",
+                "description": "Function parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
+                }
+              ],
+              "value": {
+                "type": {
+                  "metadata": {
+                    "label": "Type",
+                    "description": "Type of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "variable": {
+                  "metadata": {
+                    "label": "Name",
+                    "description": "Name of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "parameterDescription": {
+                  "metadata": {
+                    "label": "Description",
+                    "description": "Description of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "DOC_TEXT",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": true,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
+              },
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          }
+        ],
+        "value": {
+          "movieName": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
+              }
+            ],
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "selected": false
+                  }
+                ],
+                "value": "string",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "variable": {
+                "metadata": {
+                  "label": "Name",
+                  "description": "Name of the parameter"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
+                  }
+                ],
+                "value": "movieName",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false,
+                "codedata": {
+                  "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                      "line": 16,
+                      "offset": 26
+                    },
+                    "endLine": {
+                      "line": 16,
+                      "offset": 35
+                    }
+                  }
+                }
+              },
+              "parameterDescription": {
+                "metadata": {
+                  "label": "Description",
+                  "description": "Description of the parameter"
+                },
+                "types": [
+                  {
+                    "fieldType": "DOC_TEXT",
+                    "selected": false
+                  }
+                ],
+                "value": "",
+                "optional": true,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": true,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "prompt": {
+        "metadata": {
+          "label": "Prompt",
+          "description": "Prompt for the function"
+        },
+        "types": [
+          {
+            "fieldType": "RAW_TEMPLATE",
+            "selected": false
+          }
+        ],
+        "value": "    **Assumption**\n    Think yourself as a movie expert\n\n    **What to do**\n    Give rating for the movie ${movieName} out of 10 based on your opinion",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "REQUIRED",
+          "lineRange": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 17,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 22,
+              "offset": 0
+            }
+          }
+        }
+      },
+      "modelProvider": {
+        "metadata": {
+          "label": "Configure the model",
+          "description": "The large language model (LLM) to use",
+          "data": {
+            "type": "ModelProvider",
+            "module": "ai.openai"
+          }
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ModelProvider",
+            "selected": false
+          }
+        ],
+        "value": "_rateMovieModel",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
+      },
+      "modelProviderAsParameter": {
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": false
+          }
+        ],
+        "value": false,
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
+      }
+    },
+    "flags": 0
+  }
+}

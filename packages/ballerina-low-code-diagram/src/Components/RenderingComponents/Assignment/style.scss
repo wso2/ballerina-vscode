@@ -1,0 +1,29 @@
+$warning_color : #FF9D52;
+$error_color : #FE523C;
+
+.assignment-text-styles{
+    stroke-width: 0;
+    fill:$warning_color;
+    height: 12px;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    line-height: 12px;
+    text-align: center;
+}
+
+.assignment-expression {
+    .assignment-text {
+        &.assignment-text-default {
+            @extend .assignment-text-styles;
+        }
+        &.assignment-text-error {
+            @extend .assignment-text-styles;
+            fill:$error_color;
+            &:hover {
+                fill:$error_color;
+            }
+        }
+       
+    }
+}

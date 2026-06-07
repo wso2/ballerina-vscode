@@ -1,0 +1,408 @@
+{
+  "metadata": {
+    "label": "Graphql Query",
+    "description": "Graphql Query"
+  },
+  "qualifiers": [],
+  "kind": "QUERY",
+  "documentation": {
+    "metadata": {
+      "label": "Description",
+      "description": "The description of the field"
+    },
+    "types": [
+      {
+        "fieldType": "TEXT",
+        "selected": true
+      }
+    ],
+    "enabled": true,
+    "editable": true,
+    "isType": false,
+    "optional": true,
+    "advanced": false,
+    "addNewButton": false
+  },
+  "accessor": {
+    "metadata": {
+      "label": "Accessor",
+      "description": "The accessor of the function"
+    },
+    "enabled": false,
+    "editable": false,
+    "value": "get",
+    "types": [
+      {
+        "fieldType": "IDENTIFIER",
+        "selected": true
+      }
+    ],
+    "isType": false,
+    "optional": false,
+    "advanced": false,
+    "addNewButton": false
+  },
+  "name": {
+    "metadata": {
+      "label": "Field Name",
+      "description": "The name of the field"
+    },
+    "enabled": true,
+    "editable": true,
+    "value": "",
+    "types": [
+      {
+        "fieldType": "IDENTIFIER",
+        "selected": true
+      }
+    ],
+    "isType": false,
+    "optional": false,
+    "advanced": false,
+    "addNewButton": false
+  },
+  "parameters": [
+    {
+      "metadata": {
+        "label": "Context",
+        "description": "The Context object is used to pass meta-information of a request among the resolvers"
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": false,
+        "value": "graphql:Context",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "graphql:Context",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "string",
+        "optional": false,
+        "advanced": false,
+        "imports": {
+          "graphql": "ballerina/graphql:1.16.0"
+        }
+      },
+      "name": {
+        "enabled": true,
+        "editable": false,
+        "value": "context",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "context",
+        "optional": false,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": false,
+      "optional": false,
+      "advanced": true,
+      "hidden": true
+    },
+    {
+      "metadata": {
+        "label": "Field",
+        "description": "The Field object is used to access the meta-information of a field in a GraphQL document"
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": false,
+        "value": "graphql:Field",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "graphql:Field",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "string",
+        "optional": false,
+        "advanced": false,
+        "imports": {
+          "graphql": "ballerina/graphql:1.16.0"
+        }
+      },
+      "name": {
+        "enabled": true,
+        "editable": false,
+        "value": "'field",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "'field",
+        "optional": false,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": false,
+      "optional": false,
+      "advanced": true,
+      "hidden": true
+    }
+  ],
+  "schema": {
+    "parameter": {
+      "type": {
+        "metadata": {
+          "label": "Argument Type",
+          "description": "The type of the argument"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "ACTION_TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "optional": false,
+        "advanced": false,
+        "addNewButton": false
+      },
+      "name": {
+        "metadata": {
+          "label": "Argument Name",
+          "description": "The name of the argument"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "optional": false,
+        "advanced": false,
+        "addNewButton": false
+      },
+      "defaultValue": {
+        "metadata": {
+          "label": "Default Value",
+          "description": "The default value of the argument"
+        },
+        "enabled": true,
+        "editable": true,
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "optional": true,
+        "advanced": false,
+        "addNewButton": false
+      },
+      "documentation": {
+        "metadata": {
+          "label": "Description",
+          "description": "The description of the argument"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "isType": false,
+        "optional": true,
+        "advanced": false,
+        "addNewButton": false
+      },
+      "enabled": true,
+      "editable": false,
+      "optional": false,
+      "advanced": false
+    }
+  },
+  "returnType": {
+    "metadata": {
+      "label": "Field Type",
+      "description": "The type of the field"
+    },
+    "enabled": true,
+    "editable": true,
+    "value": "",
+    "types": [
+      {
+        "fieldType": "ACTION_TYPE",
+        "selected": true
+      }
+    ],
+    "isType": false,
+    "optional": false,
+    "advanced": false,
+    "addNewButton": false,
+    "properties": {
+      "nullableAction": {
+        "properties": {
+          "true": {
+            "metadata": {
+              "label": "Action Nullable True",
+              "description": "The field returns a nullable value"
+            },
+            "enabled": true,
+            "editable": true,
+            "value": "",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "selected": true
+              }
+            ],
+            "isType": false,
+            "optional": false,
+            "advanced": false,
+            "addNewButton": false
+          },
+          "false": {
+            "metadata": {
+              "label": "Action Nullable False",
+              "description": "The field returns a non-nullable value"
+            },
+            "enabled": true,
+            "editable": true,
+            "value": "Mark type as nullable",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "selected": true
+              }
+            ],
+            "isType": false,
+            "optional": false,
+            "advanced": false,
+            "addNewButton": false
+          }
+        }
+      }
+    }
+  },
+  "enabled": true,
+  "optional": false,
+  "editable": true,
+  "codedata": {
+    "orgName": "ballerina",
+    "moduleName": "graphql"
+  },
+  "properties": {
+    "annotResourceConfig": {
+      "metadata": {
+        "label": "Field Configuration",
+        "description": "Define configurations such as field level cache."
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "types": [
+        {
+          "fieldType": "RECORD_MAP_EXPRESSION",
+          "ballerinaType": "graphql:GraphqlResourceConfig",
+          "selected": true,
+          "typeMembers": [
+            {
+              "type": "GraphqlResourceConfig",
+              "packageInfo": "ballerina:graphql:1.16.0",
+              "packageName": "graphql",
+              "kind": "RECORD_TYPE",
+              "selected": true
+            }
+          ]
+        }
+      ],
+      "isType": false,
+      "placeholder": "{}",
+      "optional": true,
+      "advanced": true,
+      "codedata": {
+        "inListenerInit": false,
+        "isBasePath": false,
+        "inDisplayAnnotation": false,
+        "type": "ANNOTATION_ATTACHMENT",
+        "originalName": "ResourceConfig",
+        "orgName": "ballerina",
+        "moduleName": "graphql"
+      },
+      "addNewButton": false,
+      "imports": {
+        "graphql": "ballerina/graphql:1.16.0"
+      }
+    },
+    "paramContext": {
+      "metadata": {
+        "label": "Request Context",
+        "description": "The context is used to pass meta-information of a request among the graphql resolvers."
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "types": [
+        {
+          "fieldType": "FLAG",
+          "ballerinaType": "graphql:Field",
+          "selected": true
+        }
+      ],
+      "isType": false,
+      "placeholder": "{}",
+      "optional": true,
+      "advanced": true,
+      "codedata": {
+        "type": "PARAMETER",
+        "originalName": "Context",
+        "orgName": "ballerina",
+        "moduleName": "graphql"
+      },
+      "addNewButton": false
+    },
+    "paramField": {
+      "metadata": {
+        "label": "Field Metadata",
+        "description": "The field metadata is used to access the meta-information of a field in a GraphQL document."
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "types": [
+        {
+          "fieldType": "FLAG",
+          "ballerinaType": "graphql:Field",
+          "selected": true
+        }
+      ],
+      "isType": false,
+      "placeholder": "{}",
+      "optional": true,
+      "advanced": true,
+      "codedata": {
+        "type": "PARAMETER",
+        "originalName": "Field",
+        "orgName": "ballerina",
+        "moduleName": "graphql"
+      },
+      "addNewButton": false
+    }
+  }
+}

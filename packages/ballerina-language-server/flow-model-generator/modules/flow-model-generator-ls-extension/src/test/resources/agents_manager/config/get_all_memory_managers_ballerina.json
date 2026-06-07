@@ -1,0 +1,23 @@
+{
+  "source": "agent_1/agents.bal",
+  "orgName": "ballerina",
+  "agent": "FunctionCallAgent",
+  "models": [
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "object": "MessageWindowChatMemory",
+      "symbol": "init"
+    },
+    {
+      "node": "CLASS_INIT",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "object": "ShortTermMemory",
+      "symbol": "init"
+    }
+  ]
+}

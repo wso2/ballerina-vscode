@@ -1,0 +1,582 @@
+{
+  "start": {
+    "line": 74,
+    "offset": 0
+  },
+  "end": {
+    "line": 89,
+    "offset": 1
+  },
+  "source": "wait.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "wait.bal",
+    "nodes": [
+      {
+        "id": "107168",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "multipleWait",
+            "isServiceFunction": false,
+            "return": "map<string|error>"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "wait.bal",
+            "startLine": {
+              "line": 74,
+              "offset": 50
+            },
+            "endLine": {
+              "line": 89,
+              "offset": 1
+            }
+          },
+          "sourceCode": "function multipleWait() returns map<string|error> {\n    worker WA returns string|error {\n        return mockFetch(\"http://a.com\", 1);\n    }\n\n    worker WB returns string|error {\n        return mockFetch(\"http://b.com\", 2);\n    }\n\n    worker WC returns string|error {\n        return mockFetch(\"http://error.com\", 3);\n    }\n\n    map<string|error> mapResult = wait {WA, WB, WC};\n    return mapResult;\n}"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "106583",
+        "metadata": {
+          "label": "Parallel Flow",
+          "description": "Create parallel flows"
+        },
+        "codedata": {
+          "node": "PARALLEL_FLOW",
+          "lineRange": {
+            "fileName": "wait.bal",
+            "startLine": {
+              "line": 75,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 85,
+              "offset": 5
+            }
+          }
+        },
+        "returning": false,
+        "branches": [
+          {
+            "label": "WA",
+            "kind": "WORKER",
+            "codedata": {
+              "node": "WORKER",
+              "lineRange": {
+                "fileName": "wait.bal",
+                "startLine": {
+                  "line": 75,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 77,
+                  "offset": 5
+                }
+              },
+              "sourceCode": "worker WA returns string|error {\n        return mockFetch(\"http://a.com\", 1);\n    }"
+            },
+            "repeatable": "ONE_OR_MORE",
+            "properties": {
+              "variable": {
+                "metadata": {
+                  "label": "Worker Name",
+                  "description": "Name of the worker"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
+                  }
+                ],
+                "value": "WA",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false,
+                "codedata": {
+                  "lineRange": {
+                    "fileName": "wait.bal",
+                    "startLine": {
+                      "line": 75,
+                      "offset": 11
+                    },
+                    "endLine": {
+                      "line": 75,
+                      "offset": 13
+                    }
+                  }
+                }
+              },
+              "type": {
+                "metadata": {
+                  "label": "Return Type",
+                  "description": "Type of the return value"
+                },
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "selected": true
+                  }
+                ],
+                "value": "string|error",
+                "optional": true,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "children": [
+              {
+                "id": "107428",
+                "metadata": {
+                  "label": "Return",
+                  "description": "Value of 'mockFetch(\"http://a.com\", 1)'"
+                },
+                "codedata": {
+                  "node": "RETURN",
+                  "lineRange": {
+                    "fileName": "wait.bal",
+                    "startLine": {
+                      "line": 76,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 76,
+                      "offset": 44
+                    }
+                  },
+                  "sourceCode": "return mockFetch(\"http://a.com\", 1);"
+                },
+                "returning": true,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Return value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
+                      }
+                    ],
+                    "value": "mockFetch(\"http://a.com\", 1)",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          },
+          {
+            "label": "WB",
+            "kind": "WORKER",
+            "codedata": {
+              "node": "WORKER",
+              "lineRange": {
+                "fileName": "wait.bal",
+                "startLine": {
+                  "line": 79,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 81,
+                  "offset": 5
+                }
+              },
+              "sourceCode": "worker WB returns string|error {\n        return mockFetch(\"http://b.com\", 2);\n    }"
+            },
+            "repeatable": "ONE_OR_MORE",
+            "properties": {
+              "variable": {
+                "metadata": {
+                  "label": "Worker Name",
+                  "description": "Name of the worker"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
+                  }
+                ],
+                "value": "WB",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false,
+                "codedata": {
+                  "lineRange": {
+                    "fileName": "wait.bal",
+                    "startLine": {
+                      "line": 79,
+                      "offset": 11
+                    },
+                    "endLine": {
+                      "line": 79,
+                      "offset": 13
+                    }
+                  }
+                }
+              },
+              "type": {
+                "metadata": {
+                  "label": "Return Type",
+                  "description": "Type of the return value"
+                },
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "selected": true
+                  }
+                ],
+                "value": "string|error",
+                "optional": true,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "children": [
+              {
+                "id": "111396",
+                "metadata": {
+                  "label": "Return",
+                  "description": "Value of 'mockFetch(\"http://b.com\", 2)'"
+                },
+                "codedata": {
+                  "node": "RETURN",
+                  "lineRange": {
+                    "fileName": "wait.bal",
+                    "startLine": {
+                      "line": 80,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 80,
+                      "offset": 44
+                    }
+                  },
+                  "sourceCode": "return mockFetch(\"http://b.com\", 2);"
+                },
+                "returning": true,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Return value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
+                      }
+                    ],
+                    "value": "mockFetch(\"http://b.com\", 2)",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          },
+          {
+            "label": "WC",
+            "kind": "WORKER",
+            "codedata": {
+              "node": "WORKER",
+              "lineRange": {
+                "fileName": "wait.bal",
+                "startLine": {
+                  "line": 83,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 85,
+                  "offset": 5
+                }
+              },
+              "sourceCode": "worker WC returns string|error {\n        return mockFetch(\"http://error.com\", 3);\n    }"
+            },
+            "repeatable": "ONE_OR_MORE",
+            "properties": {
+              "variable": {
+                "metadata": {
+                  "label": "Worker Name",
+                  "description": "Name of the worker"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
+                  }
+                ],
+                "value": "WC",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false,
+                "codedata": {
+                  "lineRange": {
+                    "fileName": "wait.bal",
+                    "startLine": {
+                      "line": 83,
+                      "offset": 11
+                    },
+                    "endLine": {
+                      "line": 83,
+                      "offset": 13
+                    }
+                  }
+                }
+              },
+              "type": {
+                "metadata": {
+                  "label": "Return Type",
+                  "description": "Type of the return value"
+                },
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "selected": true
+                  }
+                ],
+                "value": "string|error",
+                "optional": true,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "children": [
+              {
+                "id": "115368",
+                "metadata": {
+                  "label": "Return",
+                  "description": "Value of 'mockFetch(\"http://error.com\", 3)'"
+                },
+                "codedata": {
+                  "node": "RETURN",
+                  "lineRange": {
+                    "fileName": "wait.bal",
+                    "startLine": {
+                      "line": 84,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 84,
+                      "offset": 48
+                    }
+                  },
+                  "sourceCode": "return mockFetch(\"http://error.com\", 3);"
+                },
+                "returning": true,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Return value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
+                      }
+                    ],
+                    "value": "mockFetch(\"http://error.com\", 3)",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          }
+        ],
+        "flags": 0
+      },
+      {
+        "id": "118224",
+        "metadata": {
+          "label": "Wait",
+          "description": "Wait for a set of futures to complete"
+        },
+        "codedata": {
+          "node": "WAIT",
+          "lineRange": {
+            "fileName": "wait.bal",
+            "startLine": {
+              "line": 87,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 87,
+              "offset": 52
+            }
+          },
+          "sourceCode": "map<string|error> mapResult = wait {WA, WB, WC};"
+        },
+        "returning": false,
+        "properties": {
+          "futures": {
+            "value": {
+              "WA": {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "future<any|error>",
+                    "selected": true
+                  }
+                ],
+                "value": "WA",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              "WB": {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "future<any|error>",
+                    "selected": true
+                  }
+                ],
+                "value": "WB",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              "WC": {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "future<any|error>",
+                    "selected": true
+                  }
+                ],
+                "value": "WC",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Variable Name",
+              "description": "Name of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "mapResult",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "wait.bal",
+                "startLine": {
+                  "line": 87,
+                  "offset": 22
+                },
+                "endLine": {
+                  "line": 87,
+                  "offset": 31
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Type of the variable",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "map<string|error>",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {}
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "119185",
+        "metadata": {
+          "label": "Return",
+          "description": "Value of 'mapResult'"
+        },
+        "codedata": {
+          "node": "RETURN",
+          "lineRange": {
+            "fileName": "wait.bal",
+            "startLine": {
+              "line": 88,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 88,
+              "offset": 21
+            }
+          },
+          "sourceCode": "return mapResult;"
+        },
+        "returning": true,
+        "properties": {
+          "expression": {
+            "metadata": {
+              "label": "Expression",
+              "description": "Return value"
+            },
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
+              }
+            ],
+            "value": "mapResult",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}

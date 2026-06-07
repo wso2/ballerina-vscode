@@ -1,0 +1,191 @@
+{
+  "description": "Test getting resource function model for objects",
+  "type": "object",
+  "functionName": "resource",
+  "response": {
+    "metadata": {
+      "label": "Resource Method",
+      "description": "Resource Method"
+    },
+    "qualifiers": [],
+    "kind": "RESOURCE",
+    "accessor": {
+      "metadata": {
+        "label": "Accessor",
+        "description": "The accessor of the function"
+      },
+      "value": "",
+      "types": [
+        {
+          "fieldType": "SINGLE_SELECT",
+          "options": [
+            {
+              "label": "GET",
+              "value": "GET"
+            },
+            {
+              "label": "POST",
+              "value": "POST"
+            },
+            {
+              "label": "PUT",
+              "value": "PUT"
+            },
+            {
+              "label": "DELETE",
+              "value": "DELETE"
+            },
+            {
+              "label": "PATCH",
+              "value": "PATCH"
+            },
+            {
+              "label": "OPTIONS",
+              "value": "OPTIONS"
+            },
+            {
+              "label": "HEAD",
+              "value": "HEAD"
+            }
+          ],
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "name": {
+      "metadata": {
+        "label": "Resource Path",
+        "description": "The resource path"
+      },
+      "placeholder": "",
+      "value": "",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the resource"
+      },
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "parameters": [],
+    "schema": {
+      "parameter": {
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      }
+    },
+    "returnType": {
+      "hasError": false,
+      "isGraphqlId": false,
+      "metadata": {
+        "label": "Return Type",
+        "description": "The return type of the resource"
+      },
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": false,
+    "editable": true,
+    "canAddParameters": false
+  }
+}

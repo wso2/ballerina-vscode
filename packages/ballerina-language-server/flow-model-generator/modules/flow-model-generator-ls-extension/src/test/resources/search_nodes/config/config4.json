@@ -1,0 +1,439 @@
+{
+  "source": "proj/connections.bal",
+  "description": "Combined filters - kind=NEW_CONNECTION AND exactMatch=grpcClient",
+  "queryMap": {
+    "kind": "NEW_CONNECTION",
+    "exactMatch": "grpcClient"
+  },
+  "output": [
+    {
+      "id": "35776",
+      "metadata": {
+        "label": "gRPC",
+        "description": "The base client used in the generated client code to provide the capability for initiating the contact and executing remote calls with a remote gRPC service.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.2.png"
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "grpc",
+        "object": "Client",
+        "symbol": "init",
+        "lineRange": {
+          "fileName": "connections.bal",
+          "startLine": {
+            "line": 4,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 4,
+            "offset": 64
+          }
+        },
+        "sourceCode": "final grpc:Client grpcClient = check new (\"http://example.com\");"
+      },
+      "returning": false,
+      "properties": {
+        "url": {
+          "metadata": {
+            "label": "Url",
+            "description": "The server URL"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "value": "\"http://example.com\"",
+          "placeholder": "\"\"",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {
+            "kind": "REQUIRED",
+            "originalName": "url"
+          }
+        },
+        "timeout": {
+          "metadata": {
+            "label": "Timeout",
+            "description": "The maximum time to wait(in seconds) for a response before closing the connection"
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
+              "selected": false
+            }
+          ],
+          "placeholder": "0.0d",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "timeout"
+          },
+          "defaultValue": "60"
+        },
+        "poolConfig": {
+          "metadata": {
+            "label": "Pool Config",
+            "description": "Connection pool configuration"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "grpc:PoolConfiguration",
+              "typeMembers": [
+                {
+                  "type": "PoolConfiguration",
+                  "packageInfo": "ballerina:grpc:1.14.2",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "grpc:PoolConfiguration?",
+              "selected": false
+            }
+          ],
+          "placeholder": "()",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "poolConfig"
+          },
+          "defaultValue": "()"
+        },
+        "secureSocket": {
+          "metadata": {
+            "label": "Secure Socket",
+            "description": "SSL/TLS related options"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "grpc:ClientSecureSocket",
+              "typeMembers": [
+                {
+                  "type": "ClientSecureSocket",
+                  "packageInfo": "ballerina:grpc:1.14.2",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "grpc:ClientSecureSocket?",
+              "selected": false
+            }
+          ],
+          "placeholder": "()",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "secureSocket"
+          },
+          "defaultValue": "()"
+        },
+        "compression": {
+          "metadata": {
+            "label": "Compression",
+            "description": "Specifies the way of handling compression (`accept-encoding`) header"
+          },
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                {
+                  "label": "AUTO",
+                  "value": "\"AUTO\""
+                },
+                {
+                  "label": "ALWAYS",
+                  "value": "\"ALWAYS\""
+                },
+                {
+                  "label": "NEVER",
+                  "value": "\"NEVER\""
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "grpc:Compression",
+              "selected": false
+            }
+          ],
+          "placeholder": "\"AUTO\"",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "compression"
+          },
+          "defaultValue": "COMPRESSION_AUTO"
+        },
+        "retryConfiguration": {
+          "metadata": {
+            "label": "Retry Configuration",
+            "description": "Configures the retry functionality"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "grpc:RetryConfiguration",
+              "typeMembers": [
+                {
+                  "type": "RetryConfiguration",
+                  "packageInfo": "ballerina:grpc:1.14.2",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "grpc:RetryConfiguration?",
+              "selected": false
+            }
+          ],
+          "placeholder": "()",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "retryConfiguration"
+          },
+          "defaultValue": "()"
+        },
+        "auth": {
+          "metadata": {
+            "label": "Auth",
+            "description": "Configurations related to client authentication"
+          },
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "grpc:CredentialsConfig|grpc:BearerTokenConfig|grpc:JwtIssuerConfig|grpc:OAuth2ClientCredentialsGrantConfig|grpc:OAuth2PasswordGrantConfig|grpc:OAuth2RefreshTokenGrantConfig|grpc:OAuth2JwtBearerGrantConfig",
+              "typeMembers": [
+                {
+                  "type": "CredentialsConfig",
+                  "packageInfo": "ballerina:grpc:1.14.2",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "BearerTokenConfig",
+                  "packageInfo": "ballerina:grpc:1.14.2",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "JwtIssuerConfig",
+                  "packageInfo": "ballerina:grpc:1.14.2",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "OAuth2ClientCredentialsGrantConfig",
+                  "packageInfo": "ballerina:grpc:1.14.2",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "OAuth2PasswordGrantConfig",
+                  "packageInfo": "ballerina:grpc:1.14.2",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "OAuth2RefreshTokenGrantConfig",
+                  "packageInfo": "ballerina:grpc:1.14.2",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                },
+                {
+                  "type": "OAuth2JwtBearerGrantConfig",
+                  "packageInfo": "ballerina:grpc:1.14.2",
+                  "packageName": "grpc",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "grpc:ClientAuthConfig?",
+              "selected": false
+            }
+          ],
+          "placeholder": "()",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "auth"
+          },
+          "defaultValue": "()"
+        },
+        "maxInboundMessageSize": {
+          "metadata": {
+            "label": "Max Inbound Message Size",
+            "description": "The maximum message size to be permitted for inbound messages. Default value is 4 MB"
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "INCLUDED_FIELD",
+            "originalName": "maxInboundMessageSize"
+          },
+          "defaultValue": "4194304"
+        },
+        "checkError": {
+          "metadata": {
+            "label": "Check Error",
+            "description": "Terminate on error"
+          },
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "selected": true
+            }
+          ],
+          "value": true,
+          "optional": false,
+          "editable": false,
+          "advanced": true,
+          "hidden": true
+        },
+        "scope": {
+          "metadata": {
+            "label": "Connection Scope",
+            "description": "Scope of the connection, Global or Local"
+          },
+          "types": [
+            {
+              "fieldType": "ENUM",
+              "selected": true
+            }
+          ],
+          "value": "Global",
+          "optional": false,
+          "editable": true,
+          "advanced": true,
+          "hidden": true
+        },
+        "variable": {
+          "metadata": {
+            "label": "Connection Name",
+            "description": "Name of the connection"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "value": "grpcClient",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {
+            "lineRange": {
+              "fileName": "connections.bal",
+              "startLine": {
+                "line": 4,
+                "offset": 18
+              },
+              "endLine": {
+                "line": 4,
+                "offset": 28
+              }
+            }
+          }
+        },
+        "type": {
+          "metadata": {
+            "label": "Connection Type",
+            "description": "Type of the variable"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "value": "grpc:Client",
+          "placeholder": "var",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": true,
+          "codedata": {}
+        }
+      },
+      "flags": 1
+    }
+  ]
+}

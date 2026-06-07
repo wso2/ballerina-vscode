@@ -1,0 +1,151 @@
+{
+  "filePath": "sample9/main.bal",
+  "description": "Get the http service model with a contract type",
+  "start": {
+    "line": 4,
+    "offset": 0
+  },
+  "end": {
+    "line": 40,
+    "offset": 0
+  },
+  "response": {
+    "id": "0",
+    "name": "HTTP Service",
+    "type": "http",
+    "moduleName": "http",
+    "orgName": "ballerina",
+    "version": "2.14.0",
+    "packageName": "http",
+    "listenerProtocol": "http",
+    "icon": "http://localhost:8080/icons/http.png",
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the service"
+      },
+      "codedata": {
+        "type": "DOCUMENTATION"
+      },
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "properties": {
+      "listener": {
+        "metadata": {
+          "label": "Listeners",
+          "description": ""
+        },
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
+        "value": "httpListener",
+        "values": [],
+        "properties": {
+          "httpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 4,
+                  "offset": 21
+                },
+                "endLine": {
+                  "line": 4,
+                  "offset": 33
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT_LISTENER",
+            "options": [
+              {
+                "label": "httpListener",
+                "value": "httpListener"
+              },
+              {
+                "label": "(+) Create and use the default HTTP listener (port: 9090)",
+                "value": "(+) Create and use the default HTTP listener (port: 9090)"
+              }
+            ],
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      "serviceTypeName": {
+        "metadata": {
+          "label": "Service Type Name",
+          "description": "The name of the service contract type generated from the OpenAPI specification"
+        },
+        "codedata": {
+          "type": "SERVICE_BASEPATH"
+        },
+        "placeholder": "",
+        "value": "PizzaShop",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "value": {
+          "Base Path": []
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 4,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 40,
+          "offset": 1
+        }
+      }
+    },
+    "functions": []
+  }
+}

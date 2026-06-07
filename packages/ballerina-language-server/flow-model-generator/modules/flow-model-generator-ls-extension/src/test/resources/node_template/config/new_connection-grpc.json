@@ -1,0 +1,112 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "NEW_CONNECTION",
+    "org": "ballerina",
+    "module": "grpc",
+    "packageName": "grpc",
+    "object": "StreamingClient",
+    "version": "1.13.2",
+    "symbol": "init"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "gRPC Streaming",
+      "description": "The base client used in the generated client code to provide the gRPC streaming client actions for\ninteracting  with the gRPC server.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.13.2.png"
+    },
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerina",
+      "module": "grpc",
+      "packageName": "grpc",
+      "object": "StreamingClient",
+      "symbol": "init",
+      "version": "1.13.2",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "grpc:StreamingClient",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {},
+        "imports": {
+          "grpc": "ballerina/grpc"
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Connection Name",
+          "description": "Name of the connection"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "grpcStreamingclient",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "types": [
+          {
+            "fieldType": "ENUM",
+            "selected": true
+          }
+        ],
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

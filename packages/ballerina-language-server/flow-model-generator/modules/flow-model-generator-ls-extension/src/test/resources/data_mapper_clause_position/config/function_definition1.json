@@ -1,0 +1,25 @@
+{
+  "source": "function_definition1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "function_definition1.bal",
+      "startLine": {
+        "line": 27,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 29,
+        "offset": 70
+      }
+    },
+    "sourceCode": ""
+  },
+  "targetField": "transform.0",
+  "index": 0,
+  "position": {
+    "line": 28,
+    "offset": 4
+  }
+}

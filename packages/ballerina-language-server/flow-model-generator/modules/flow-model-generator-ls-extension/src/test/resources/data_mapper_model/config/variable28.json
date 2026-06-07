@@ -1,0 +1,161 @@
+{
+  "source": "variable14_1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable14_1.bal",
+      "startLine": {
+        "line": 20,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 20,
+        "offset": 121
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 19,
+    "offset": 32
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "u1",
+        "displayName": "u1",
+        "typeName": "User",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "1373151159"
+      },
+      {
+        "fields": [],
+        "name": "user",
+        "displayName": "user",
+        "typeName": "User",
+        "kind": "record",
+        "category": "parameter",
+        "ref": "1373151159"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "u",
+      "displayName": "u",
+      "typeName": "Person",
+      "kind": "record",
+      "ref": "887620673"
+    },
+    "mappings": [
+      {
+        "output": "u.contacts",
+        "inputs": [],
+        "expression": "[user.phoneNumber[0] + user.phoneNumber[4], user.phoneNumber[1], user.phoneNumber[2]]",
+        "diagnostics": [],
+        "elements": [
+          {
+            "mappings": [
+              {
+                "output": "u.contacts.0",
+                "inputs": [
+                  "user.phoneNumber.0",
+                  "user.phoneNumber.4"
+                ],
+                "expression": "user.phoneNumber[0] + user.phoneNumber[4]",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "0",
+                  "4"
+                ]
+              }
+            ]
+          },
+          {
+            "mappings": [
+              {
+                "output": "u.contacts.1",
+                "inputs": [
+                  "user.phoneNumber.1"
+                ],
+                "expression": "user.phoneNumber[1]",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "1"
+                ]
+              }
+            ]
+          },
+          {
+            "mappings": [
+              {
+                "output": "u.contacts.2",
+                "inputs": [
+                  "user.phoneNumber.2"
+                ],
+                "expression": "user.phoneNumber[2]",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "2"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "refs": {
+      "887620673": {
+        "fields": [
+          {
+            "member": {
+              "name": "contacts",
+              "displayName": "<contactsItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "contacts",
+            "displayName": "contacts",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "1373151159": {
+        "fields": [
+          {
+            "member": {
+              "name": "phoneNumber",
+              "displayName": "<phoneNumberItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "phoneNumber",
+            "displayName": "phoneNumber",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "User",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

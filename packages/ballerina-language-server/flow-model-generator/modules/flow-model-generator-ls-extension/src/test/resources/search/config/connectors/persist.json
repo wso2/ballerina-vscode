@@ -1,0 +1,9 @@
+{
+  "description": "Sample flow model",
+  "kind": "CONNECTOR",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": "persist"
+  },
+  "categories": []
+}

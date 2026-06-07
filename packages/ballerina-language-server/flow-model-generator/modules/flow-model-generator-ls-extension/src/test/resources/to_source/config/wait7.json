@@ -1,0 +1,146 @@
+{
+  "source": "function_call/wait.bal",
+  "description": "Sample diagram node",
+  "diagram": {
+    "id": "178739",
+    "metadata": {
+      "label": "Wait",
+      "description": "Wait for a set of futures to complete"
+    },
+    "codedata": {
+      "node": "WAIT",
+      "lineRange": {
+        "fileName": "wait.bal",
+        "startLine": {
+          "line": 148,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 148,
+          "offset": 55
+        }
+      },
+      "sourceCode": "MixedResult mapResult = wait {a: WA, b: WB, c: WC};"
+    },
+    "returning": false,
+    "properties": {
+      "futures": {
+        "value": {
+          "a": {
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "future<any|error>",
+                "selected": true
+              }
+            ],
+            "value": "WA",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "b": {
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "future<any|error>",
+                "selected": true
+              }
+            ],
+            "value": "WB",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "c": {
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "future<any|error>",
+                "selected": true
+              }
+            ],
+            "value": "WC",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable Name",
+          "description": "Name of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "mapResult",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "wait.bal",
+            "startLine": {
+              "line": 148,
+              "offset": 16
+            },
+            "endLine": {
+              "line": 148,
+              "offset": 25
+            }
+          }
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Type of the variable",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "MixedResult",
+        "placeholder": "var",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "function_call/wait.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 148,
+            "character": 4
+          },
+          "end": {
+            "line": 148,
+            "character": 55
+          }
+        },
+        "newText": "MixedResult mapResult = wait {a: WA, b: WB, c: WC};"
+      }
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "position": {
+    "line": 2,
+    "character": 34
+  },
+  "source": "workspace_project/source/completion-workspace/pkg-consumer/config_test.bal",
+  "description": "Test cross-package record completions",
+  "items": [
+    {
+      "label": "readonly",
+      "kind": "Keyword",
+      "detail": "Keyword",
+      "sortText": "U",
+      "filterText": "readonly",
+      "insertText": "readonly ",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "Fill pkg_provider:Config Required Fields",
+      "kind": "Property",
+      "detail": "pkg_provider:Config",
+      "sortText": "R",
+      "filterText": "fill",
+      "insertText": "port: ${1:0},\nhost: ${2:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "...config",
+      "kind": "Variable",
+      "detail": "pkg_provider:Config",
+      "sortText": "AC",
+      "filterText": "config",
+      "insertText": "...config",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "host",
+      "kind": "Field",
+      "detail": "pkg_provider:Config.host",
+      "sortText": "K",
+      "insertText": "host: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "port",
+      "kind": "Field",
+      "detail": "pkg_provider:Config.port",
+      "sortText": "K",
+      "insertText": "port: ${1:0}",
+      "insertTextFormat": "Snippet"
+    }
+  ]
+}

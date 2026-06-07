@@ -1,0 +1,55 @@
+{
+  "position": {
+    "line": 4,
+    "character": 33
+  },
+  "source": "workspace/test-workspace/pkgA/main.bal",
+  "expected": {
+    "result": {
+      "signatures": [
+        {
+          "label": "processData(string data, int count)",
+          "documentation": {
+            "right": {
+              "kind": "markdown",
+              "value": "**Description**  \nA utility function that processes data"
+            }
+          },
+          "parameters": [
+            {
+              "label": {
+                "right": {
+                  "first": 19,
+                  "second": 23
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`string`data**: The input data string"
+                }
+              }
+            },
+            {
+              "label": {
+                "right": {
+                  "first": 29,
+                  "second": 34
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`int`count**: The number of times to repeat"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "activeSignature": 0,
+      "activeParameter": 0
+    },
+    "jsonrpc": "2.0"
+  }
+}

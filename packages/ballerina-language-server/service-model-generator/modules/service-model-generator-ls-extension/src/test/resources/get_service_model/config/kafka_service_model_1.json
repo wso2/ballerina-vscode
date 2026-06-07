@@ -1,0 +1,95 @@
+{
+  "description": "Test getting kafka service model when existing listener not used",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "kafka",
+  "moduleName": "kafka",
+  "response": {
+    "service": {
+      "id": "11",
+      "name": "Kafka Event Integration",
+      "type": "kafka",
+      "displayName": "Kafka Event Integration",
+      "moduleName": "kafka",
+      "orgName": "ballerinax",
+      "version": "4.5.0",
+      "packageName": "kafka",
+      "listenerProtocol": "kafka",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
+      "documentation": {
+        "metadata": {
+          "label": "Description",
+          "description": "The description of the class"
+        },
+        "codedata": {
+          "type": "DOCUMENTATION"
+        },
+        "valueType": "STRING",
+        "valueTypeConstraint": "string",
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "properties": {
+        "listener": {
+          "metadata": {
+            "label": "Listener",
+            "description": "The Listener to be bound with the service"
+          },
+          "codedata": {
+            "type": "LISTENER"
+          },
+          "placeholder": "",
+          "valueType": "SINGLE_SELECT_LISTENER",
+          "valueTypeConstraint": "kafka:Listener",
+          "value": "",
+          "values": [],
+          "items": [
+            "kafkaListener"
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "serviceType": {
+          "metadata": {
+            "label": "Service Type",
+            "description": "The name of the service contract type"
+          },
+          "codedata": {
+            "type": "SERVICE_TYPE"
+          },
+          "placeholder": "Service",
+          "valueType": "SINGLE_SELECT",
+          "valueTypeConstraint": "string",
+          "value": "Service",
+          "items": [
+            "",
+            "Service"
+          ],
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "readOnlyMetadata": {
+          "codedata": {
+            "type": "READONLY"
+          },
+          "placeholder": "false",
+          "valueType": "SINGLE_SELECT",
+          "value": {
+            "Topic(s)": []
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        }
+      },
+      "functions": []
+    }
+  }
+}

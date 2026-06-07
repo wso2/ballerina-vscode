@@ -1,0 +1,672 @@
+{
+  "source": "wait_data/functions.bal",
+  "description": "Test diagnostics with simple flow node",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "Wait for Data",
+      "description": "Wait for workflow data to be received"
+    },
+    "codedata": {
+      "node": "WAIT_DATA",
+      "isNew": true,
+      "lineRange": {
+        "startLine": {
+          "line": 4,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 0
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "dataWaits": {
+        "metadata": {
+          "label": "Data Waits",
+          "description": "Data to wait for (one or more)"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
+              "metadata": {
+                "label": "Data Waits",
+                "description": "Data to wait for (one or more)"
+              },
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
+                }
+              ],
+              "value": {
+                "variable": {
+                  "metadata": {
+                    "label": "Data Receive Variable Name",
+                    "description": "Variable name to receive the data"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "scope": "Local",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "dataType": {
+                  "metadata": {
+                    "label": "Data Type",
+                    "description": "Type of the data to be received on successful wait"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE",
+                      "ballerinaType": "anydata",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "dataName": {
+                  "metadata": {
+                    "label": "Data Name",
+                    "description": "Name of the data to reference when sending data to the workflow"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
+              },
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          }
+        ],
+        "value": {
+          "a": {
+            "metadata": {
+              "label": "Data Waits",
+              "description": "Data to wait for (one or more)"
+            },
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
+              }
+            ],
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Data Receive Variable Name",
+                  "description": "Variable name to receive the data"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "scope": "Local",
+                    "selected": false
+                  }
+                ],
+                "value": "a",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Data Type",
+                  "description": "Type of the data to be received on successful wait"
+                },
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "ballerinaType": "anydata",
+                    "selected": false
+                  }
+                ],
+                "value": "string",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Data Name",
+                  "description": "Name of the data to reference when sending data to the workflow"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
+                  }
+                ],
+                "value": "a",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "b": {
+            "metadata": {
+              "label": "Data Waits",
+              "description": "Data to wait for (one or more)"
+            },
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
+              }
+            ],
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Data Receive Variable Name",
+                  "description": "Variable name to receive the data"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "scope": "Local",
+                    "selected": false
+                  }
+                ],
+                "value": "b",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Data Type",
+                  "description": "Type of the data to be received on successful wait"
+                },
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "ballerinaType": "anydata",
+                    "selected": false
+                  }
+                ],
+                "value": "boolean",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Data Name",
+                  "description": "Name of the data to reference when sending data to the workflow"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
+                  }
+                ],
+                "value": "b",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "modified": true
+      },
+      "minCount": {
+        "metadata": {
+          "label": "Min Count",
+          "description": "Minimum completions required (default: all)"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Unsigned32",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int:Unsigned32",
+            "selected": false
+          }
+        ],
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "minCount"
+        },
+        "defaultValue": "<int:Unsigned32>futures.length()",
+        "modified": true,
+        "value": "1"
+      },
+      "timeout": {
+        "metadata": {
+          "label": "Timeout",
+          "description": "Maximum wait duration; returns error on timeout"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "time:Duration",
+            "typeMembers": [
+              {
+                "type": "Duration",
+                "packageInfo": "ballerina:time:2.8.0",
+                "packageName": "time",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "time:Duration?",
+            "selected": true
+          }
+        ],
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "timeout"
+        },
+        "imports": {
+          "time": "ballerina/time"
+        },
+        "defaultValue": "()",
+        "modified": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "id": "35788",
+    "metadata": {
+      "label": "Wait for Data",
+      "description": "Wait for workflow data to be received",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.4.0.png"
+    },
+    "codedata": {
+      "node": "WAIT_DATA",
+      "org": "ballerina",
+      "module": "workflow",
+      "packageName": "workflow",
+      "object": "Context",
+      "symbol": "await",
+      "version": "0.4.0",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 4,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 76
+        }
+      },
+      "sourceCode": "[string, boolean] [a, b] = check ctx->await([data.a, data.b], minCount = 1);"
+    },
+    "returning": false,
+    "properties": {
+      "minCount": {
+        "metadata": {
+          "label": "Min Count",
+          "description": "Minimum completions required (default: all)"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Unsigned32",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int:Unsigned32",
+            "selected": false
+          }
+        ],
+        "value": "1",
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "minCount"
+        },
+        "defaultValue": "<int:Unsigned32>futures.length()"
+      },
+      "timeout": {
+        "metadata": {
+          "label": "Timeout",
+          "description": "Maximum wait duration; returns error on timeout"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "time:Duration",
+            "typeMembers": [
+              {
+                "type": "Duration",
+                "packageInfo": "ballerina:time:2.8.0",
+                "packageName": "time",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "time:Duration?",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "timeout"
+        },
+        "imports": {
+          "time": "ballerina/time"
+        },
+        "defaultValue": "()"
+      },
+      "dataWaits": {
+        "metadata": {
+          "label": "Data Waits",
+          "description": "Data to wait for (one or more)"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
+              "metadata": {
+                "label": "Data Waits",
+                "description": "Data to wait for (one or more)"
+              },
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
+                }
+              ],
+              "value": {
+                "variable": {
+                  "metadata": {
+                    "label": "Data Receive Variable Name",
+                    "description": "Variable name to receive the data"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "scope": "Local",
+                      "selected": true
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "dataType": {
+                  "metadata": {
+                    "label": "Data Type",
+                    "description": "Type of the data to be received on successful wait"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE",
+                      "ballerinaType": "anydata",
+                      "selected": true
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "dataName": {
+                  "metadata": {
+                    "label": "Data Name",
+                    "description": "Name of the data to reference when sending data to the workflow"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "selected": true
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
+              },
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          }
+        ],
+        "value": {
+          "0": {
+            "metadata": {
+              "label": "Data Waits",
+              "description": "Data to wait for (one or more)"
+            },
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
+              }
+            ],
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Data Receive Variable Name",
+                  "description": "Variable name to receive the data"
+                },
+                "value": "a",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Data Type",
+                  "description": "Type of the data to be received on successful wait"
+                },
+                "value": "string",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false,
+                "diagnostics": {
+                  "hasDiagnostics": true,
+                  "diagnostics": [
+                    {
+                      "severity": "ERROR",
+                      "message": "Tuple member at position 0 must be nilable (e.g., string?) when minCount (1) is less than the number of futures (2). Not all futures are guaranteed to complete"
+                    }
+                  ]
+                }
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Data Name",
+                  "description": "Name of the data to reference when sending data to the workflow"
+                },
+                "value": "a",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "1": {
+            "metadata": {
+              "label": "Data Waits",
+              "description": "Data to wait for (one or more)"
+            },
+            "types": [
+              {
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
+              }
+            ],
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Data Receive Variable Name",
+                  "description": "Variable name to receive the data"
+                },
+                "value": "b",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Data Type",
+                  "description": "Type of the data to be received on successful wait"
+                },
+                "value": "boolean",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false,
+                "diagnostics": {
+                  "hasDiagnostics": true,
+                  "diagnostics": [
+                    {
+                      "severity": "ERROR",
+                      "message": "Tuple member at position 1 must be nilable (e.g., boolean?) when minCount (1) is less than the number of futures (2). Not all futures are guaranteed to complete"
+                    }
+                  ]
+                }
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Data Name",
+                  "description": "Name of the data to reference when sending data to the workflow"
+                },
+                "value": "b",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "optional": {
+        "metadata": {
+          "label": "Optional Data Types",
+          "description": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": false
+          }
+        ],
+        "value": false,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
+            }
+          ]
+        }
+      }
+    },
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 1
+  }
+}

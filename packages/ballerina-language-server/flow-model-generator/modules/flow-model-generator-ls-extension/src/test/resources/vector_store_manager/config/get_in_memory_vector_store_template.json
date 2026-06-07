@@ -1,0 +1,177 @@
+{
+  "source": "vector_store/store.bal",
+  "codedata": {
+    "node": "VECTOR_STORE",
+    "org": "ballerina",
+    "module": "ai",
+    "packageName": "ai",
+    "object": "InMemoryVectorStore",
+    "symbol": "init",
+    "version": "1.1.0"
+  },
+  "expectedTemplate": {
+    "flowNode": {
+      "id": "31",
+      "metadata": {
+        "label": "Vector Store",
+        "description": "Initializes a new in-memory vector store.\n",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
+      },
+      "codedata": {
+        "node": "VECTOR_STORE",
+        "org": "ballerina",
+        "module": "ai",
+        "packageName": "ai",
+        "object": "InMemoryVectorStore",
+        "version": "1.1.0",
+        "isNew": true
+      },
+      "returning": false,
+      "properties": {
+        "type": {
+          "metadata": {
+            "label": "Result Type",
+            "description": "Type of the variable"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "value": "ai:InMemoryVectorStore",
+          "placeholder": "var",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {},
+          "imports": {
+            "ai": "ballerina/ai"
+          }
+        },
+        "variable": {
+          "metadata": {
+            "label": "Vector Store Name",
+            "description": "Vector store instance name"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "value": "aiInmemoryvectorstore",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "topK": {
+          "metadata": {
+            "label": "Top K",
+            "description": "The maximum number of top similar vectors to return in query results"
+          },
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "placeholder": "0",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "DEFAULTABLE",
+            "originalName": "topK"
+          },
+          "defaultValue": "3"
+        },
+        "similarityMetric": {
+          "metadata": {
+            "label": "Similarity Metric",
+            "description": "The metric used for vector similarity"
+          },
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                {
+                  "label": "DOT_PRODUCT",
+                  "value": "\"DOT_PRODUCT\""
+                },
+                {
+                  "label": "EUCLIDEAN",
+                  "value": "\"EUCLIDEAN\""
+                },
+                {
+                  "label": "COSINE",
+                  "value": "\"COSINE\""
+                }
+              ],
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "ai:SimilarityMetric",
+              "selected": false
+            }
+          ],
+          "placeholder": "\"DOT_PRODUCT\"",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "codedata": {
+            "kind": "DEFAULTABLE",
+            "originalName": "similarityMetric"
+          },
+          "defaultValue": "COSINE"
+        },
+        "scope": {
+          "metadata": {
+            "label": "Connection Scope",
+            "description": "Scope of the connection, Global or Local"
+          },
+          "types": [
+            {
+              "fieldType": "ENUM",
+              "selected": true
+            }
+          ],
+          "value": "Global",
+          "optional": false,
+          "editable": true,
+          "advanced": true,
+          "hidden": true
+        },
+        "checkError": {
+          "metadata": {
+            "label": "Check Error",
+            "description": "Terminate on error"
+          },
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "selected": true
+            }
+          ],
+          "value": true,
+          "optional": false,
+          "editable": false,
+          "advanced": true,
+          "hidden": true
+        }
+      },
+      "flags": 0
+    }
+  }
+}

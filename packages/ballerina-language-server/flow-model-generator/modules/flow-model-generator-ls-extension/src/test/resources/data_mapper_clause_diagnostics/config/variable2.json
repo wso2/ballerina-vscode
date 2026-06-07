@@ -1,0 +1,62 @@
+{
+  "description": "",
+  "filePath": "variable1.bal",
+  "context": {
+    "expression": "s",
+    "startLine": {
+      "line": 28,
+      "offset": 12
+    },
+    "offset": 0,
+    "lineOffset": 0,
+    "codedata": {
+      "node": "VARIABLE",
+      "lineRange": {
+        "fileName": "variable1.bal",
+        "startLine": {
+          "line": 25,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 29,
+          "offset": 6
+        }
+      },
+      "sourceCode": ""
+    },
+    "property": {
+      "metadata": {
+        "label": "Variable",
+        "description": "Name of the variable/field"
+      },
+      "types": [
+        {
+          "fieldType": "CLAUSE_EXPRESSION"
+        }
+      ],
+      "value": "salesItem",
+      "optional": true,
+      "editable": true,
+      "advanced": false
+    }
+  },
+  "diagnostics": [
+    {
+      "range": {
+        "start": {
+          "line": 28,
+          "character": 41
+        },
+        "end": {
+          "line": 28,
+          "character": 42
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE2010"
+      },
+      "message": "undefined symbol 's'"
+    }
+  ]
+}

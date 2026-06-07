@@ -1,0 +1,43 @@
+{
+  "source": "variable4.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable4.bal",
+      "startLine": {
+        "line": 24,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 24,
+        "offset": 39
+      }
+    }
+  },
+  "mapping": {
+    "output": "student",
+    "inputs": [
+      "userInfo.username"
+    ],
+    "expression": "\"Alex\"",
+    "diagnostics": []
+  },
+  "output": {
+    "variable4.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 24,
+            "character": 30
+          },
+          "end": {
+            "line": 24,
+            "character": 38
+          }
+        },
+        "newText": "{}"
+      }
+    ]
+  }
+}

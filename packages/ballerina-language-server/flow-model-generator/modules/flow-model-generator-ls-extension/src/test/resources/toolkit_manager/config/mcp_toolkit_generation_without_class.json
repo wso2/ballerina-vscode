@@ -1,0 +1,150 @@
+{
+  "source": "ai_with_version",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "ai",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.4.png"
+    },
+    "codedata": {
+      "node": "MCP_TOOL_KIT",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "object": "McpToolKit",
+      "version": "1.5.4",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "serverUrl": {
+        "metadata": {
+          "label": "Server Url"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "string",
+        "value": "\"http://localhost:8080\"",
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "serverUrl"
+        },
+        "typeMembers": [
+          {
+            "type": "string",
+            "packageInfo": "",
+            "packageName": "",
+            "kind": "BASIC_TYPE",
+            "selected": false
+          }
+        ]
+      },
+      "info": {
+        "metadata": {
+          "label": "Info"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "mcp:Implementation",
+        "value": "{name: \"TestMCP\", version: \"1.0.0\"}",
+        "placeholder": "{name: \"\", version: \"\"}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "info"
+        },
+        "typeMembers": [
+          {
+            "type": "Implementation",
+            "packageInfo": "ballerina:mcp:1.0.0",
+            "packageName": "mcp",
+            "kind": "RECORD_TYPE",
+            "selected": false
+          }
+        ],
+        "imports": {
+          "mcp": "ballerina/mcp"
+        },
+        "defaultValue": "{name: \"\", version: \"\"}"
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "ai:McpToolKit",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {},
+        "valueType": "IDENTIFIER",
+        "value": "myMcpToolkit",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "expectedResponse": {
+    "textEdits": {
+      "connections.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "final ai:McpToolKit myMcpToolkit = check new (\"http://localhost:8080\", {name: \"TestMCP\", version: \"1.0.0\"});"
+        }
+      ],
+      "agents.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/ai;"
+        },
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/mcp;"
+        }
+      ]
+    }
+  }
+}

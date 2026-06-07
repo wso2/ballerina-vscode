@@ -1,0 +1,41 @@
+{
+  "source": "variable19.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable19.bal",
+      "startLine": {
+        "line": 10,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 12,
+        "offset": 1
+      }
+    },
+    "sourceCode": "p9uzffdjkk8mj8704wc"
+  },
+  "mapping": {
+    "output": "transform.name",
+    "expression": "p.name"
+  },
+  "targetField": "transform",
+  "output": {
+    "variable19.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 11,
+            "character": 12
+          },
+          "end": {
+            "line": 11,
+            "character": 12
+          }
+        },
+        "newText": ", name: p.name"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1 @@
+type MapArray map<string>[];

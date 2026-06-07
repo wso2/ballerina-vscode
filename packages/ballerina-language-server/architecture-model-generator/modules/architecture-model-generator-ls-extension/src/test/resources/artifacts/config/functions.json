@@ -1,0 +1,182 @@
+{
+  "description": "",
+  "source": "functions.bal",
+  "packageName": ".",
+  "output": {
+    "Functions": {
+      "add": {
+        "id": "add",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 14,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 16,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "add",
+        "scope": "Global",
+        "visibility": "public",
+        "children": {}
+      },
+      "calculateInterest": {
+        "id": "calculateInterest",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 26,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 28,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "calculateInterest",
+        "scope": "Global",
+        "visibility": "public",
+        "children": {}
+      },
+      "divide": {
+        "id": "divide",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 40,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 45,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "divide",
+        "scope": "Global",
+        "visibility": "public",
+        "children": {}
+      },
+      "divideAndRemainder": {
+        "id": "divideAndRemainder",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 19,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 23,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "divideAndRemainder",
+        "scope": "Global",
+        "visibility": "public",
+        "children": {}
+      },
+      "fn\\#with\\-Identifiers": {
+        "id": "fn\\#with\\-Identifiers",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 48,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 50,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "fn#with-Identifiers",
+        "scope": "Global",
+        "visibility": "module",
+        "children": {}
+      },
+      "greet": {
+        "id": "greet",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 9,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 11,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "greet",
+        "scope": "Global",
+        "visibility": "public",
+        "children": {}
+      },
+      "sayHello": {
+        "id": "sayHello",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 4,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 6,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "sayHello",
+        "scope": "Global",
+        "visibility": "public",
+        "children": {}
+      },
+      "sum": {
+        "id": "sum",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 31,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 37,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "sum",
+        "scope": "Global",
+        "visibility": "public",
+        "children": {}
+      }
+    },
+    "Entry Points": {
+      "automation": {
+        "id": "automation",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 53,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 72,
+            "offset": 1
+          }
+        },
+        "type": "AUTOMATION",
+        "name": "automation",
+        "scope": "Global",
+        "visibility": "public",
+        "children": {}
+      }
+    }
+  }
+}

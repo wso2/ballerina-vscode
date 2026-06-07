@@ -1,0 +1,124 @@
+{
+  "description": "",
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 16,
+    "offset": 0
+  },
+  "visibleTypes": [
+    {
+      "name": "Local Variables",
+      "types": [
+        {
+          "name": "address",
+          "type": {
+            "name": "Address",
+            "typeName": "record",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        },
+        {
+          "name": "w",
+          "type": {
+            "name": "boolean",
+            "typeName": "boolean",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        },
+        {
+          "name": "x",
+          "type": {
+            "name": "int",
+            "typeName": "int",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        },
+        {
+          "name": "z",
+          "type": {
+            "name": "string",
+            "typeName": "string",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Module Variables",
+      "types": [
+        {
+          "name": "moduleInput",
+          "type": {
+            "name": "Input",
+            "typeName": "record",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "Configurable Variables",
+      "types": [
+        {
+          "name": "configInput",
+          "type": {
+            "name": "Input & readonly",
+            "typeName": "intersection",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        },
+        {
+          "name": "configTable",
+          "type": {
+            "name": "table<Input> key(name) & readonly",
+            "typeName": "intersection",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        },
+        {
+          "name": "serviceName",
+          "type": {
+            "name": "string",
+            "typeName": "string",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        },
+        {
+          "name": "servicePort",
+          "type": {
+            "name": "int",
+            "typeName": "int",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          }
+        }
+      ]
+    }
+  ]
+}

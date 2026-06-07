@@ -1,0 +1,187 @@
+{
+  "description": "A simple example of a reference-based type",
+  "source": "RefTypeTest/BalProject1",
+  "typeSymbolName": "FinalNote",
+  "refType": {
+    "fields": [
+      {
+        "fieldName": "finalNote",
+        "type": {
+          "dependentTypeKeys": [],
+          "name": "string",
+          "typeName": "string"
+        },
+        "optional": false,
+        "defaultValue": ""
+      },
+      {
+        "fieldName": "progressNote",
+        "type": {
+          "dependentTypeKeys": [],
+          "hashCode": "112376780",
+          "key": "-293660967",
+          "name": "ProgressNote",
+          "typeName": "record",
+          "moduleInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "health.ccda.r1",
+            "packageName": "health.ccda.r1",
+            "version": "0.1.0",
+            "modulePrefix": "r1"
+          }
+        },
+        "optional": false,
+        "defaultValue": ""
+      }
+    ],
+    "dependentTypeKeys": [
+      "-293660967",
+      "-941197899",
+      "441557406"
+    ],
+    "hashCode": "-647093861",
+    "key": "-1852042834",
+    "name": "FinalNote",
+    "typeName": "record",
+    "dependentTypes": {
+      "-293660967": {
+        "fields": [
+          {
+            "fieldName": "note",
+            "type": {
+              "dependentTypeKeys": [],
+              "name": "string",
+              "typeName": "string"
+            },
+            "optional": false,
+            "defaultValue": ""
+          },
+          {
+            "fieldName": "sampleRecord",
+            "type": {
+              "dependentTypeKeys": [],
+              "hashCode": "-1709258083",
+              "key": "-941197899",
+              "name": "SampleRecord",
+              "typeName": "record",
+              "moduleInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
+            },
+            "optional": false,
+            "defaultValue": ""
+          }
+        ],
+        "dependentTypeKeys": [
+          "-941197899",
+          "441557406"
+        ],
+        "hashCode": "112376780",
+        "key": "-293660967",
+        "name": "ProgressNote",
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
+      },
+      "-941197899": {
+        "fields": [
+          {
+            "fieldName": "sampleRecordName",
+            "type": {
+              "dependentTypeKeys": [],
+              "name": "string",
+              "typeName": "string"
+            },
+            "optional": false,
+            "defaultValue": ""
+          },
+          {
+            "fieldName": "recordType",
+            "type": {
+              "dependentTypeKeys": [],
+              "hashCode": "695203170",
+              "key": "441557406",
+              "name": "SampleType",
+              "typeName": "record",
+              "moduleInfo": {
+                "orgName": "ballerinax",
+                "moduleName": "health.ccda.r1",
+                "packageName": "health.ccda.r1",
+                "version": "0.1.0",
+                "modulePrefix": "r1"
+              }
+            },
+            "optional": false,
+            "defaultValue": ""
+          }
+        ],
+        "dependentTypeKeys": [
+          "441557406"
+        ],
+        "hashCode": "-1709258083",
+        "key": "-941197899",
+        "name": "SampleRecord",
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
+      },
+      "441557406": {
+        "fields": [
+          {
+            "fieldName": "sampleTypeName",
+            "type": {
+              "dependentTypeKeys": [],
+              "name": "string",
+              "typeName": "string"
+            },
+            "optional": false,
+            "defaultValue": ""
+          },
+          {
+            "fieldName": "sampleTypeCode",
+            "type": {
+              "dependentTypeKeys": [],
+              "name": "int",
+              "typeName": "int"
+            },
+            "optional": false,
+            "defaultValue": ""
+          }
+        ],
+        "dependentTypeKeys": [],
+        "hashCode": "695203170",
+        "key": "441557406",
+        "name": "SampleType",
+        "typeName": "record",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "health.ccda.r1",
+          "packageName": "health.ccda.r1",
+          "version": "0.1.0",
+          "modulePrefix": "r1"
+        }
+      }
+    },
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "health.ccda.r1",
+      "packageName": "health.ccda.r1",
+      "version": "0.1.0",
+      "modulePrefix": "r1"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 37,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 39,
+        "offset": 2
+      }
+    },
+    "isNew": true,
+    "sourceCode": ""
+  },
+  "typeName": "UserInfo",
+  "parentTypeName": "json",
+  "variableName": "user",
+  "isInput": true,
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 44
+          },
+          "end": {
+            "line": 37,
+            "character": 44
+          }
+        },
+        "newText": " returns error?"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/data.jsondata;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 48
+          },
+          "end": {
+            "line": 39,
+            "character": 1
+          }
+        },
+        "newText": "let UserInfo userConverted = check jsondata:parseAsType(user) in {\n\n}"
+      }
+    ]
+  }
+}

@@ -1,0 +1,307 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "RESOURCE_ACTION_CALL",
+    "org": "ballerina",
+    "module": "http",
+    "packageName": "http",
+    "object": "Client",
+    "symbol": "get",
+    "version": "2.12.0",
+    "parentSymbol": "httpClient",
+    "resourcePath": "/path/to/subdirectory"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "get",
+      "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.12.0.png"
+    },
+    "codedata": {
+      "node": "RESOURCE_ACTION_CALL",
+      "org": "ballerina",
+      "module": "http",
+      "packageName": "http",
+      "object": "Client",
+      "symbol": "get",
+      "isNew": true,
+      "inferredReturnType": "targetType"
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:Client",
+            "selected": false
+          }
+        ],
+        "value": "httpClient",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "resourcePath": {
+        "metadata": {
+          "label": "Resource Path",
+          "description": "Resource Path"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_PATH",
+            "selected": false
+          }
+        ],
+        "value": "/path/to/subdirectory",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "originalName": "/path/to/subdirectory"
+        }
+      },
+      "headers": {
+        "metadata": {
+          "label": "Headers",
+          "description": "The entity headers"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_MAP",
+            "ballerinaType": "map<string|string[]>",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "REPEATABLE_LIST",
+                  "ballerinaType": "string[]",
+                  "template": {
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "ballerinaType": "string",
+                        "selected": false
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": false
+                      }
+                    ],
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string|string[]",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<string|string[]>?",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "headers"
+        },
+        "defaultValue": "()"
+      },
+      "targetType": {
+        "metadata": {
+          "label": "Target Type",
+          "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "selected": false
+          }
+        ],
+        "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "targetType"
+        },
+        "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+      },
+      "additionalValues": {
+        "metadata": {
+          "label": "Additional Values",
+          "description": "Capture key value pairs"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_MAP",
+            "ballerinaType": "http:QueryParamType",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "REPEATABLE_LIST",
+                  "ballerinaType": "http:SimpleQueryParamType[]",
+                  "template": {
+                    "types": [
+                      {
+                        "fieldType": "FLAG",
+                        "ballerinaType": "boolean",
+                        "selected": false
+                      },
+                      {
+                        "fieldType": "NUMBER",
+                        "ballerinaType": "int|float|decimal",
+                        "selected": false
+                      },
+                      {
+                        "fieldType": "TEXT",
+                        "ballerinaType": "string",
+                        "selected": false
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "http:SimpleQueryParamType",
+                        "selected": false
+                      }
+                    ],
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "selected": false
+                },
+                {
+                  "fieldType": "FLAG",
+                  "ballerinaType": "boolean",
+                  "selected": false
+                },
+                {
+                  "fieldType": "NUMBER",
+                  "ballerinaType": "int|float|decimal",
+                  "selected": false
+                },
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "http:QueryParamType",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": true
+          }
+        ],
+        "placeholder": "[]",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_RECORD_REST",
+          "originalName": "Additional Values"
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "targetType",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "var2",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

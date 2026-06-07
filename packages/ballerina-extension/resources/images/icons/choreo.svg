@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ~ Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ ~
+ ~ WSO2 LLC. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied. See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+-->
+<svg width="14px" height="14px" viewBox="0 0 14 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>34C8FFC0-DBC9-43A4-B0BD-54DE1B049C1D</title>
+    <g id="Home" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="VSC-icons" transform="translate(-245.000000, -293.000000)" fill="#000000" fill-rule="nonzero">
+            <path d="M256,293 C257.656854,293 259,294.343146 259,296 L259,304 C259,305.656854 257.656854,307 256,307 L248,307 C246.343146,307 245,305.656854 245,304 L245,296 C245,294.343146 246.343146,293 248,293 L256,293 Z M256,294 L248,294 C246.945638,294 246.081835,294.815878 246.005486,295.850738 L246,296 L246,304 C246,305.054362 246.815878,305.918165 247.850738,305.994514 L248,306 L256,306 C257.054362,306 257.918165,305.184122 257.994514,304.149262 L258,304 L258,296 C258,294.945638 257.184122,294.081835 256.149262,294.005486 L256,294 Z M254.683799,297.083615 L254.828427,297.22132 L254.12132,297.928427 C252.949747,296.756854 251.050253,296.756854 249.87868,297.928427 C248.707107,299.1 248.707107,300.999495 249.87868,302.171068 C251.008411,303.300799 252.814998,303.341146 253.993076,302.29211 L254.12132,302.171068 L254.828427,302.878175 C253.26633,304.440272 250.73367,304.440272 249.171573,302.878175 C247.609476,301.316077 247.609476,298.783418 249.171573,297.22132 C250.686334,295.706559 253.113727,295.660658 254.683799,297.083615 Z" id="Choreo"></path>
+        </g>
+    </g>
+</svg>

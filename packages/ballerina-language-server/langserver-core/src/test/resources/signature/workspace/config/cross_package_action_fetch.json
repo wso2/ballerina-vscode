@@ -1,0 +1,55 @@
+{
+  "position": {
+    "line": 18,
+    "character": 33
+  },
+  "source": "workspace/test-workspace/pkgA/main.bal",
+  "expected": {
+    "result": {
+      "signatures": [
+        {
+          "label": "fetch(int id, boolean includeMetadata)",
+          "documentation": {
+            "right": {
+              "kind": "markdown",
+              "value": "**Description**  \nFetch data from the API"
+            }
+          },
+          "parameters": [
+            {
+              "label": {
+                "right": {
+                  "first": 10,
+                  "second": 12
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`int`id**: The resource ID"
+                }
+              }
+            },
+            {
+              "label": {
+                "right": {
+                  "first": 22,
+                  "second": 37
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`boolean`includeMetadata**: Whether to include metadata"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "activeSignature": 0,
+      "activeParameter": 0
+    },
+    "jsonrpc": "2.0"
+  }
+}

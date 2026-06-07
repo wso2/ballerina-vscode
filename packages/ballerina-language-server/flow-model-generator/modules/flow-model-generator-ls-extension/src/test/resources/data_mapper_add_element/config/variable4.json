@@ -1,0 +1,39 @@
+{
+  "source": "variable3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable3.bal",
+      "startLine": {
+        "line": 24,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 24,
+        "offset": 141
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "targetField": "department",
+  "outputId": "department.students.0.address",
+  "output": {
+    "variable3.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 24,
+            "character": 136
+          },
+          "end": {
+            "line": 24,
+            "character": 136
+          }
+        },
+        "newText": ", {street: \"\", city: \"\"}"
+      }
+    ]
+  }
+}

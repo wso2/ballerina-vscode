@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	  xmlns:spring="http://www.springframework.org/schema/beans" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="httpConfig" host="0.0.0.0" port="8081" basePath="/" doc:name="HTTP Listener Configuration"/>
+	<flow name="muleprojectdemoFlow">
+		<http:listener config-ref="httpConfig" path="/" allowedMethods="get" doc:name="HTTP"/>
+		<flow-ref name="mainconfigSub_Flow" doc:name="Flow Reference"/>
+		<flow-ref name="commonConfig1Flow" doc:name="Flow Reference"/>
+		<flow-ref name="commonConfig2Sub_Flow" doc:name="Flow Reference"/>
+		<dw:transform-message>
+			<dw:input-payload mimeType="application/json"/>
+			<dw:set-variable variableName="scriptVar" resource="mule/v4/projects/demo_project_classic/src/main/resources/dwlFiles/values.dwl"/>
+			<dw:set-variable variableName="inlineVar"><![CDATA[%dw 1.0
+%output application/json
+%input payload application/json
+%var conversionRate=13.15
+---
+{s: "Hello World", n: 1.23, b: true, a:[1,2,3], o:{ name:  "Anne" }}]]></dw:set-variable>
+			<dw:set-payload resource="mule/v4/projects/demo_project_classic/src/main/resources/dwlFiles/values_unsupport.dwl"/>
+		</dw:transform-message>
+		<logger message="xxx: end of the logger reached" level="INFO" doc:name="Logger"/>
+	</flow>
+</mule>

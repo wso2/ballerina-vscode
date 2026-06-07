@@ -1,0 +1,327 @@
+{
+  "source": "function3.bal",
+  "description": "Test diagnostics with simple flow node",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "processNames2",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/pasindufernando_null_0.1.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "symbol": "processNames2",
+      "version": "0.1.0",
+      "isNew": true,
+      "lineRange": {
+        "startLine": {
+          "line": 3,
+          "offset": 16
+        },
+        "endLine": {
+          "line": 3,
+          "offset": 16
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "names": {
+        "metadata": {
+          "label": "Names"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_MAP",
+            "ballerinaType": "map<string>",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": true
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<string>",
+            "selected": false
+          }
+        ],
+        "placeholder": "{}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "names"
+        },
+        "modified": true,
+        "value": {
+          "aKey": {
+            "key": "mp-val-a0ce07ed-2e23-47b3-9d20-b7c5497e31b3",
+            "label": "Value",
+            "type": "TEXT",
+            "optional": false,
+            "editable": true,
+            "documentation": "",
+            "value": "string `aValue`",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
+              }
+            ],
+            "enabled": true
+          },
+          "bKey": {
+            "key": "mp-val-04661c0b-3efc-470f-afe9-349c3ffda017",
+            "label": "Value",
+            "type": "TEXT",
+            "optional": false,
+            "editable": true,
+            "documentation": "",
+            "value": "bValue",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
+              }
+            ],
+            "enabled": true
+          },
+          "cKey": {
+            "key": "mp-val-fe578f75-a701-4b36-92fc-4274ec202183",
+            "label": "Value",
+            "type": "TEXT",
+            "optional": false,
+            "editable": true,
+            "documentation": "",
+            "value": "cValue",
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
+              }
+            ],
+            "enabled": true
+          }
+        }
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "id": "35292",
+    "metadata": {
+      "label": "processNames2",
+      "description": ""
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "$anon",
+      "module": ".",
+      "packageName": ".",
+      "symbol": "processNames2",
+      "version": "0.0.0",
+      "lineRange": {
+        "fileName": "function3.bal",
+        "startLine": {
+          "line": 3,
+          "offset": 16
+        },
+        "endLine": {
+          "line": 3,
+          "offset": 76
+        }
+      },
+      "sourceCode": "processNames2({aKey: \"aValue\", bKey: bValue, cKey: cValue});"
+    },
+    "returning": false,
+    "properties": {
+      "view": {
+        "metadata": {
+          "label": "View",
+          "description": "Function definition location"
+        },
+        "types": [
+          {
+            "fieldType": "VIEW",
+            "selected": true
+          }
+        ],
+        "value": {
+          "fileName": "function3.bal",
+          "startLine": {
+            "line": 7,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 8,
+            "offset": 1
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "names": {
+        "metadata": {
+          "label": "Names"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_MAP",
+            "ballerinaType": "map<string>",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<string>",
+            "selected": false
+          }
+        ],
+        "value": {
+          "aKey": {
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
+              }
+            ],
+            "value": "\"aValue\"",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "bKey": {
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
+              }
+            ],
+            "value": "bValue",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "undefined symbol 'bValue'"
+                }
+              ]
+            }
+          },
+          "cKey": {
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
+              }
+            ],
+            "value": "cValue",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "undefined symbol 'cValue'"
+                }
+              ]
+            }
+          }
+        },
+        "placeholder": "{}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "names"
+        }
+      }
+    },
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 0
+  }
+}

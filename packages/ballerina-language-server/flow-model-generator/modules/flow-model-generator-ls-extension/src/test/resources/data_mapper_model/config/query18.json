@@ -1,0 +1,145 @@
+{
+  "source": "query9.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query9.bal",
+      "startLine": {
+        "line": 6,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 8,
+        "offset": 42
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 6,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "arr4.0.0",
+  "model": {
+    "inputs": [
+      {
+        "member": {
+          "member": {
+            "fields": [],
+            "name": "arr3",
+            "displayName": "<arr3ItemItem>",
+            "typeName": "RecType",
+            "kind": "record",
+            "ref": "-788289410"
+          },
+          "name": "arr3",
+          "displayName": "<arr3Item>",
+          "typeName": "RecType[]",
+          "kind": "array",
+          "ref": "-1897494121"
+        },
+        "name": "arr3",
+        "displayName": "arr3",
+        "typeName": "RecType[][]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "-1897494121"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "arr3Item",
+          "displayName": "<arr3ItemItem>",
+          "typeName": "RecType",
+          "kind": "record",
+          "ref": "-788289410"
+        },
+        "name": "arr3Item",
+        "displayName": "arr3Item",
+        "typeName": "RecType[]",
+        "kind": "array",
+        "category": "local-variable",
+        "focusExpression": "arr3",
+        "ref": "-1897494121"
+      },
+      {
+        "fields": [],
+        "name": "arr3ItemItem",
+        "displayName": "arr3ItemItem",
+        "typeName": "RecType",
+        "kind": "record",
+        "category": "local-variable",
+        "focusExpression": "arr3Item",
+        "ref": "-788289410",
+        "isIterationVariable": true
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "arr4",
+        "displayName": "<arr4Item>",
+        "typeName": "RecType",
+        "kind": "record",
+        "ref": "-788289410"
+      },
+      "name": "arr4",
+      "displayName": "arr4",
+      "typeName": "RecType[]",
+      "kind": "array",
+      "ref": "-1897494121"
+    },
+    "mappings": [
+      {
+        "output": "arr4.i",
+        "inputs": [],
+        "expression": "0",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "arr4",
+      "inputs": [
+        "arr3Item"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "arr3ItemItem",
+          "type": "RecType",
+          "expression": "arr3Item",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{i: 0}",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "-788289410": {
+        "fields": [
+          {
+            "name": "i",
+            "displayName": "i",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "RecType",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "org": "ballerina",
+    "module": "time",
+    "packageName": "time",
+    "symbol": "utcFromCivil",
+    "version": "2.5.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "utcFromCivil",
+      "description": "Converts a given `Civil` value to an `Utc` timestamp.\n```ballerina\ntime:Civil civil = time:utcToCivil(time:utcNow());\ntime:Utc utc = time:utcFromCivil(civil);\n```",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.5.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "time",
+      "packageName": "time",
+      "symbol": "utcFromCivil",
+      "version": "2.5.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "civilTime": {
+        "metadata": {
+          "label": "Civil Time",
+          "description": "`time:Civil` time"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "time:Civil",
+            "typeMembers": [
+              {
+                "type": "Civil",
+                "packageInfo": "ballerina:time:2.5.0",
+                "packageName": "time",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "time:Civil",
+            "selected": false
+          }
+        ],
+        "placeholder": "{year: 0, month: 0, day: 0, hour: 0, minute: 0}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "civilTime"
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "time:Utc",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "timeUtc",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

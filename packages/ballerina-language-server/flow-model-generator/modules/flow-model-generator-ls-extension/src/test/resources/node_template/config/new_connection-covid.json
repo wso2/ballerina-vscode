@@ -1,0 +1,176 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "",
+  "codedata": {
+    "node": "NEW_CONNECTION",
+    "org": "ballerinax",
+    "module": "covid19",
+    "packageName": "covid19",
+    "object": "Client",
+    "symbol": "init"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Covid19",
+      "description": "This is a generated connector from [Novel COVID-19 API version 3.0.0](https://disease.sh/docs/) OpenAPI Specification.\nBallerina connector for COVID-19 provides easy access to latest COVID-19 related data across the world. Please refer to [API documentation](https://disease.sh) for more detail.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_covid19_1.5.1.png"
+    },
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "covid19",
+      "packageName": "covid19",
+      "object": "Client",
+      "symbol": "init",
+      "version": "1.5.1",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "config": {
+        "metadata": {
+          "label": "Config",
+          "description": "The configurations to be used when initializing the `connector` "
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "covid19:ConnectionConfig",
+            "typeMembers": [
+              {
+                "type": "ConnectionConfig",
+                "packageInfo": "ballerinax:covid19:1.5.1",
+                "packageName": "covid19",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "covid19:ConnectionConfig",
+            "selected": false
+          }
+        ],
+        "placeholder": "{}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "config"
+        },
+        "defaultValue": "{}"
+      },
+      "serviceUrl": {
+        "metadata": {
+          "label": "Service Url",
+          "description": "URL of the target service "
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "serviceUrl"
+        },
+        "defaultValue": "\"https://disease.sh\""
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "covid19:Client",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {},
+        "imports": {
+          "covid19": "ballerinax/covid19"
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Connection Name",
+          "description": "Name of the connection"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "covid19Client",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "types": [
+          {
+            "fieldType": "ENUM",
+            "selected": true
+          }
+        ],
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

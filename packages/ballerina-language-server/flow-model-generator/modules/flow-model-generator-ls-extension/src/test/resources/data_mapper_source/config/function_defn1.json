@@ -1,0 +1,52 @@
+{
+  "source": "function_defn1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_defn1.bal",
+      "startLine": {
+        "line": 17,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 18,
+        "offset": 2
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 17,
+    "offset": 52
+  },
+  "mapping": {
+    "output": "transform.fullName",
+    "inputs": [
+      "input.user.firstName"
+    ],
+    "expression": "input?.user?.firstName\n",
+    "diagnostics": [],
+    "elements": [],
+    "isQueryExpression": false,
+    "isFunctionCall": false
+  },
+  "output": {
+    "function_defn1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 18,
+            "character": 0
+          },
+          "end": {
+            "line": 18,
+            "character": 0
+          }
+        },
+        "newText": "fullName: input?.user?.firstName\n"
+      }
+    ]
+  }
+}

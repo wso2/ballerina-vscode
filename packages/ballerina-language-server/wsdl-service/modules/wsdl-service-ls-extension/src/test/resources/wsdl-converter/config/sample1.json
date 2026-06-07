@@ -1,0 +1,38 @@
+{
+  "wsdlFilePath": "calculator.wsdl",
+  "description": "Test calculator service type generation from WSDL",
+  "testProjectFolder": "sample1",
+  "module": "wsdl_client",
+  "output": {
+    "sample1/generated/wsdl_client/client.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/data.xmldata;\nimport ballerina/soap;\nimport ballerina/soap.soap11;\n\npublic isolated client class Client {\n    final soap11:Client clientEp;\n\n    public isolated function init(string serviceUrl = \"http://www.example.org/calculator/soap\", *soap:ClientConfig config) returns error? {\n        self.clientEp = check new (serviceUrl, config);\n    }\n\n    remote isolated function add(AddSoapRequest envelope) returns AddSoapResponse|error {\n        xml result = check self.clientEp->sendReceive(check xmldata:toXml(envelope), \"http://www.example.org/calculator/Add\");\n        return xmldata:parseAsType(result);\n    }\n}\n\n@xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\npublic type AddHeader record {\n};\n\npublic type AddResponseBody record {\n    AddResponse AddResponse?;\n};\n\n@xmldata:Name {value: \"Envelope\"}\npublic type AddSoapResponse record {\n    AddResponseBody Body;\n};\n\n@xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\npublic type AddRequestBody record {\n    AddRequest AddRequest?;\n};\n\n@xmldata:Name {value: \"Envelope\"}\n@xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\npublic type AddSoapRequest record {\n    @xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\n    AddHeader Header?;\n    @xmldata:Namespace {prefix: \"soap\", uri: \"http://schemas.xmlsoap.org/soap/envelope/\"}\n    AddRequestBody Body;\n};\n"
+      }
+    ],
+    "sample1/generated/wsdl_client/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/data.xmldata;\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type AddRequest record {|\n    @xmldata:Sequence {minOccurs: 1, maxOccurs: 1}\n    SequenceGroup sequenceGroup;\n|};\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type AddResponse record {|\n    @xmldata:Sequence {minOccurs: 1, maxOccurs: 1}\n    SequenceGroup1 sequenceGroup1;\n|};\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type SequenceGroup record {|\n    @xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\n    @xmldata:SequenceOrder {value: 1}\n    int intA;\n    @xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\n    @xmldata:SequenceOrder {value: 2}\n    int intB;\n|};\n\n@xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\npublic type SequenceGroup1 record {|\n    @xmldata:Namespace {uri: \"http://www.example.org/calculator/\"}\n    @xmldata:SequenceOrder {value: 1}\n    int result;\n|};\n"
+      }
+    ]
+  }
+}

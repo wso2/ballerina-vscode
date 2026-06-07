@@ -1,0 +1,825 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import { useEffect, useRef, useState } from "react";
+import { FunctionNode, LineRange, NodeKind, NodeProperties, NodePropertyKey, Property, DIRECTORY_MAP, EVENT_TYPE, getPrimaryInputType, isTemplateType, RecordTypeField } from "@wso2/ballerina-core";
+import { Button, Codicon, Typography, View, ViewContent } from "@wso2/ui-toolkit";
+import styled from "@emotion/styled";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
+import ArtifactForm from "../Forms/ArtifactForm";
+import { TitleBar } from "../../../components/TitleBar";
+import { TopNavigationBar } from "../../../components/TopNavigationBar";
+import { FormHeader } from "../../../components/FormHeader";
+import { convertConfig, convertNodePropertyToFormField, getImportsForProperty } from "../../../utils/bi";
+import { fetchOAuthConfigProperties } from "../AIChatAgent/utils";
+import { BodyText, LoadingContainer, TopBar } from "../../styles";
+import { LoadingRing } from "../../../components/Loader";
+
+
+const FormContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    gap: 20px;
+`;
+
+const Container = styled.div`
+    display: "flex";
+    flex-direction: "column";
+    gap: 10;
+`;
+
+const SectionHeader = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 20px;
+    margin-top: -4px;
+    border-top: 1px solid var(--vscode-editorWidget-border);
+`;
+
+const SectionDescription = styled.span`
+    color: var(--vscode-list-deemphasizedForeground);
+`;
+
+/**
+ * Parse auth values from a Ballerina @ai:AgentTool annotation string.
+ * Expected format within the annotation:
+ *   auth: { baseAuthUrl: string `val`, scopes: [string `a`, string `b`], isPkceEnabled: true,
+ *           secureSocket: { enable: false } }
+ */
+interface ParsedConfigValue {
+    value: string;
+    isExpression: boolean;
+}
+
+// Match `re` (which must end with `{`) and extend to its balanced `}`.
+// Returns the full span and the inner body (without outer braces), or null.
+function matchBraced(str: string, re: RegExp): { start: number; end: number; body: string } | null {
+    const m = re.exec(str);
+    if (!m) return null;
+    const open = m.index + m[0].length - 1;
+    let depth = 0;
+    for (let i = open; i < str.length; i++) {
+        if (str[i] === "{") depth++;
+        else if (str[i] === "}" && --depth === 0) {
+            return { start: m.index, end: i + 1, body: str.substring(open + 1, i) };
+        }
+    }
+    return null;
+}
+
+function parseAuth(annotationValue: string, oauthKeys: string[]): Record<string, ParsedConfigValue> {
+    const result: Record<string, ParsedConfigValue> = {};
+    const auth = matchBraced(annotationValue, /auth\s*:\s*\{/);
+    if (!auth) return result;
+    const configBlock = auth.body;
+
+    for (const key of oauthKeys) {
+        if (key === "scopes") {
+            const scopesMatch = configBlock.match(/scopes\s*:\s*\[([^\]]*)\]/);
+            if (scopesMatch) {
+                const items = scopesMatch[1].split(",").map((s) => s.trim()).filter(Boolean);
+                const unwrapped = items.map((item) => {
+                    const strTemplate = item.match(/^string\s*`([^`]*)`$/);
+                    if (strTemplate) return { val: strTemplate[1], isLiteral: true };
+                    const quoted = item.match(/^"([^"]*)"$/);
+                    if (quoted) return { val: quoted[1], isLiteral: true };
+                    return { val: item, isLiteral: false };
+                });
+                const allLiteral = unwrapped.every((u) => u.isLiteral);
+                result.scopes = {
+                    value: JSON.stringify(unwrapped.map((u) => u.val)),
+                    isExpression: !allLiteral,
+                };
+            }
+            continue;
+        }
+        if (key === "isPkceEnabled") {
+            const boolMatch = configBlock.match(/isPkceEnabled\s*:\s*(true|false)/);
+            if (boolMatch) {
+                result.isPkceEnabled = { value: boolMatch[1], isExpression: false };
+            }
+            continue;
+        }
+        // Record value: key: { ... } with balanced-brace matching
+        const rec = matchBraced(configBlock, new RegExp(`(?:^|,)\\s*${key}\\s*:\\s*\\{`));
+        if (rec) {
+            result[key] = { value: `{${rec.body}}`, isExpression: false };
+            continue;
+        }
+        const valueMatch = configBlock.match(new RegExp(`${key}\\s*:\\s*(.+?)\\s*(?:,|$)`, "m"));
+        if (!valueMatch) continue;
+        const raw = valueMatch[1].trim();
+        const strTemplate = raw.match(/^string\s*`([^`]*)`$/);
+        if (strTemplate) {
+            result[key] = { value: strTemplate[1], isExpression: false };
+            continue;
+        }
+        const quoted = raw.match(/^"([^"]*)"$/);
+        if (quoted) {
+            result[key] = { value: quoted[1], isExpression: false };
+            continue;
+        }
+        result[key] = { value: raw, isExpression: true };
+    }
+    return result;
+}
+
+/**
+ * Build the auth annotation fragment from OAuth config values.
+ * Returns empty string if no config values are present.
+ */
+function buildAuthAnnotation(config: Record<string, string>, expressionKeys: Set<string>): string {
+    const entries = Object.entries(config);
+    if (entries.length === 0) {
+        return "";
+    }
+    const parts = entries.map(([key, value]) => {
+        if (key === "isPkceEnabled") {
+            return `${key}: ${value}`;
+        }
+        if (key === "scopes") {
+            try {
+                const arr = JSON.parse(value) as string[];
+                return `scopes: [${arr.join(", ")}]`;
+            } catch {
+                return `scopes: [${value}]`;
+            }
+        }
+        if (expressionKeys.has(key)) {
+            return `${key}: ${value}`;
+        }
+        // Don't double-wrap if already quoted, a string template, or a record literal
+        if (
+            /^".*"$/.test(value) ||
+            /^string\s*`.*`$/.test(value) ||
+            /^\{[\s\S]*\}$/.test(value)
+        ) {
+            return `${key}: ${value}`;
+        }
+        return `${key}: "${value}"`;
+    });
+    return `auth: {\n        ${parts.join(",\n        ")}\n    }`;
+}
+
+interface FunctionFormProps {
+    filePath: string;
+    projectPath: string;
+    functionName: string;
+    isDataMapper?: boolean;
+    isNpFunction?: boolean;
+    isAutomation?: boolean;
+    isAgentTool?: boolean;
+    isPopup?: boolean;
+}
+
+export function FunctionForm(props: FunctionFormProps) {
+    const { rpcClient } = useRpcContext();
+    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation, isAgentTool, isPopup } = props;
+
+    const [functionFields, setFunctionFields] = useState<FormField[]>([]);
+    const [functionNode, setFunctionNode] = useState<FunctionNode>(undefined);
+    const [targetLineRange, setTargetLineRange] = useState<LineRange>();
+    const [titleSubtitle, setTitleSubtitle] = useState<string>("");
+    const [formSubtitle, setFormSubtitle] = useState<string>("");
+    const [saving, setSaving] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [showOAuthConfig, setShowOAuthConfig] = useState<boolean>(false);
+    const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
+
+    const fileName = filePath.split(/[\\/]/).pop();
+    const formType = useRef("Function");
+    const isMountedRef = useRef(true);
+    const functionNodeRef = useRef<FunctionNode>();
+    const oauthConfigPropertiesRef = useRef<{ key: string; property: Property }[]>([]);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        functionNodeRef.current = functionNode;
+    }, [functionNode]);
+
+    useEffect(() => {
+        let nodeKind: NodeKind;
+        if (isAutomation || functionName === "main") {
+            nodeKind = 'AUTOMATION';
+            formType.current = "Automation";
+            setTitleSubtitle('An automation that can be invoked periodically or manually');
+            setFormSubtitle('Periodic invocation should be scheduled in an external system such as cronjob, k8s, or WSO2 Cloud');
+        } else if (isDataMapper) {
+            nodeKind = 'DATA_MAPPER_DEFINITION';
+            formType.current = 'Data Mapper';
+            setTitleSubtitle('Transform data between different data types');
+            setFormSubtitle('Create mappings on how to convert the inputs into a single output');
+        } else if (isNpFunction) {
+            nodeKind = 'NP_FUNCTION_DEFINITION';
+            formType.current = 'Natural Function';
+            setTitleSubtitle('Build a flow using a natural language description');
+            setFormSubtitle('Describe what you need in a prompt and let AI handle the implementation');
+        } else if (isAgentTool) {
+            nodeKind = 'FUNCTION_DEFINITION';
+            formType.current = 'Agent Tool';
+            setTitleSubtitle('Build a tool that can be invoked by AI agents');
+            setFormSubtitle('Define the inputs and outputs the agent will use to call this tool');
+        } else {
+            nodeKind = 'FUNCTION_DEFINITION';
+            formType.current = 'Function';
+            setTitleSubtitle('Build reusable custom flows');
+            setFormSubtitle('Define a flow that can be used within your integration');
+        }
+        if (functionName) {
+            getExistingFunctionNode();
+        } else {
+            getFunctionNode(nodeKind);
+        }
+    }, [isDataMapper, isNpFunction, isAutomation, isAgentTool, functionName]);
+
+    useEffect(() => {
+        let cancelled = false;
+        const updateFields = async () => {
+            let fields = functionNode ? convertConfig(functionNode.properties) : [];
+
+            // TODO: Remove this once the hidden flag is implemented
+            if (isAutomation || functionName === "main") {
+                formType.current = "Automation";
+                const automationFields = fields.filter(field => field.key !== "functionName" && field.key !== "type");
+                fields = automationFields;
+            }
+
+            const annotations = functionNode?.properties?.annotations?.value;
+            const isExistingAgentTool = typeof annotations === "string" && annotations.includes("@ai:AgentTool");
+            if (isExistingAgentTool) {
+                formType.current = "Agent Tool";
+                setTitleSubtitle('Build a tool that can be used by AI agents');
+                setFormSubtitle('Define the inputs and outputs of the tool');
+            }
+
+            // Apply agent tool field overrides in edit mode (isAgentTool is not passed when editing)
+            if (isExistingAgentTool) {
+                fields.forEach((field) => {
+                    if (field.key === "isIsolated" || field.key === "annotations" || field.key === "isPublic") {
+                        field.hidden = true;
+                        field.editable = false;
+                    }
+                    if (field.key === "functionName") {
+                        field.documentation = "Name of the agent tool.";
+                    }
+                    if (field.key === "functionNameDescription") {
+                        field.documentation = "Description of the agent tool. This will help AI agents understand when to use this tool and how to use it.";
+                    }
+                    if (field.key === "parameters") {
+                        field.documentation = "Define the inputs for the agent tool. These are the parameters that AI agents will use when calling this tool.";
+                    }
+                });
+            }
+
+            // update description fields as "TEXTAREA"
+            fields.forEach((field) => {
+                const primaryInputType = getPrimaryInputType(field.types)
+                if (field.key === "functionNameDescription" || field.key === "typeDescription") {
+                    field.type = "DOC_TEXT";
+                }
+                if (field.key === "parameters" && primaryInputType && isTemplateType(primaryInputType)) {
+                    if ((primaryInputType.template as any).value.parameterDescription) {
+                        (primaryInputType.template as any).value.parameterDescription.type = "TEXTAREA";
+                    }
+                }
+            });
+
+            // Add OAuth client configuration fields for agent tools
+            let oauthSupported = false;
+            if (isAgentTool || isExistingAgentTool) {
+                let oauthProperties: Awaited<ReturnType<typeof fetchOAuthConfigProperties>> = [];
+                setIsLoading(true);
+                try {
+                    oauthProperties = await fetchOAuthConfigProperties(rpcClient, filePath);
+                } catch (error) {
+                    console.error("Failed to fetch OAuth config properties:", error);
+                } finally {
+                    if (!cancelled) setIsLoading(false);
+                }
+                if (cancelled) return;
+                oauthConfigPropertiesRef.current = oauthProperties;
+                const oauthKeys = oauthProperties.map(({ key }) => key);
+                const existingConfig = isExistingAgentTool
+                    ? parseAuth(annotations as string, oauthKeys)
+                    : {};
+                const oauthFields = oauthProperties.map(({ key, property }) => {
+                    const field = convertNodePropertyToFormField(key, property);
+                    const parsed = existingConfig[key];
+                    if (parsed !== undefined) {
+                        field.value = parsed.value;
+                        // Toggle selected type based on whether value is an expression
+                        if (field.types) {
+                            field.types = field.types.map((t) => ({
+                                ...t,
+                                selected: parsed.isExpression
+                                    ? t.fieldType === "EXPRESSION"
+                                    : t.fieldType !== "EXPRESSION",
+                            }));
+                        }
+                        if (parsed.isExpression) {
+                            field.type = "EXPRESSION";
+                        }
+                    }
+                    return field;
+                });
+                fields.push(...oauthFields);
+                oauthSupported = oauthFields.length > 0;
+            } else if (!cancelled) {
+                setIsLoading(false);
+            }
+
+            if (!cancelled) {
+                // Extract record type fields from OAuth properties for record editor modal support
+                const oauthRecordTypeFields = oauthConfigPropertiesRef.current
+                    .filter(({ property }) => {
+                        const primaryInputType = getPrimaryInputType(property?.types);
+                        return primaryInputType?.typeMembers &&
+                            primaryInputType?.typeMembers.some(member => member.kind === "RECORD_TYPE");
+                    })
+                    .map(({ key, property }) => ({
+                        key,
+                        property,
+                        recordTypeMembers: getPrimaryInputType(property?.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                    }));
+                setRecordTypeFields(oauthRecordTypeFields);
+
+                setFunctionFields(fields);
+                setShowOAuthConfig(oauthSupported);
+            }
+        };
+        updateFields();
+        return () => { cancelled = true; };
+    }, [functionNode]);
+
+    useEffect(() => {
+        const subscription = rpcClient.onIdentifierUpdated(async (response) => {
+            if (!isMountedRef.current || !response?.length) return;
+            console.log("Identifier Updated: ", response);
+
+            const artifact = response.length > 1
+                ? response.find(res => res.name === functionName || res.context === functionName)
+                : response[0];
+            if (!artifact?.name) return;
+
+            const changedFunctionNode = await rpcClient
+                .getBIDiagramRpcClient()
+                .getFunctionNode({
+                    functionName: artifact.name,
+                    fileName,
+                    projectPath
+                });
+            if (!isMountedRef.current) return;
+
+            const flowNode = changedFunctionNode.functionDefinition;
+            const currentFunctionNode = functionNodeRef.current;
+            if (!currentFunctionNode?.codedata?.lineRange || !flowNode?.codedata?.lineRange) return;
+
+            setFunctionNode({
+                ...currentFunctionNode,
+                codedata: {
+                    ...currentFunctionNode.codedata,
+                    lineRange: {
+                        ...flowNode.codedata.lineRange
+                    }
+                }
+            });
+        });
+
+        return () => {
+            subscription?.();
+        };
+    }, [rpcClient, functionName, fileName, projectPath]);
+
+    const getFunctionNode = async (kind: NodeKind) => {
+        setIsLoading(true);
+        const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
+
+        const res = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position: { line: 0, offset: 0 },
+            filePath: filePath,
+            id: { node: kind },
+        });
+        let flowNode = res.flowNode;
+        if (isNpFunction) {
+            /* 
+            * TODO: Remove this once the LS is updated
+            * HACK: Add the advanced fields under parameters.advanceProperties
+            */
+            // Get all the advanced fields
+            let properties = flowNode.properties as NodeProperties;
+            const advancedProperties = Object.fromEntries(
+                Object.entries(properties).filter(([_, property]) => property.advanced)
+            );
+            // Remove the advanced fields from properties
+            properties = Object.fromEntries(
+                Object.entries(properties).filter(([_, property]) => !property.advanced)
+            );
+            flowNode.properties = properties;
+
+            // Add the all the advanced fields to advanceProperties
+            flowNode.properties.parameters = {
+                ...flowNode.properties.parameters,
+                advanceProperties: advancedProperties
+            }
+        }
+
+        // Set properties needed for new agent tools
+        if (isAgentTool) {
+            flowNode.properties.isIsolated = {
+                value: "true",
+                optional: true,
+                metadata: undefined,
+                editable: false,
+                hidden: true,
+            };
+
+            flowNode.properties.annotations = {
+                "metadata": undefined,
+                "value": "@ai:AgentTool\n",
+                "optional": false,
+                "editable": false,
+                "hidden": true
+            };
+
+            if (flowNode.properties?.isPublic) {
+                flowNode.properties.isPublic.hidden = true;
+            }
+
+            flowNode.properties.functionName.value = "";
+            flowNode.properties.functionName.metadata.description = "Name of the agent tool.";
+            flowNode.properties.functionNameDescription.metadata.description = "Description of the agent tool. This will help AI agents understand when to use this tool and how to use it.";
+            flowNode.properties.parameters.metadata.description = "Define the inputs for the agent tool. These are the parameters that AI agents will use when calling this tool.";
+        }
+
+        setFunctionNode(flowNode);
+        setIsLoading(false);
+        console.log("Function Node: ", flowNode);
+    }
+
+    const getExistingFunctionNode = async () => {
+        setIsLoading(true);
+        const res = await rpcClient
+            .getBIDiagramRpcClient()
+            .getFunctionNode({
+                functionName,
+                fileName,
+                projectPath
+            });
+        let flowNode = res.functionDefinition;
+        if (isNpFunction) {
+            /* 
+            * TODO: Remove this once the LS is updated
+            * HACK: Add the advanced fields under parameters.advanceProperties
+            */
+            // Get all the advanced fields
+            let properties = flowNode.properties as NodeProperties;
+            const advancedProperties = Object.fromEntries(
+                Object.entries(properties).filter(([_, property]) => property.advanced)
+            );
+            // Remove the advanced fields from properties
+            properties = Object.fromEntries(
+                Object.entries(properties).filter(([_, property]) => !property.advanced)
+            );
+            flowNode.properties = properties;
+
+            // Add the all the advanced fields to advanceProperties
+            flowNode.properties.parameters = {
+                ...flowNode.properties.parameters,
+                advanceProperties: advancedProperties
+            }
+        }
+
+        setFunctionNode(flowNode);
+        setIsLoading(false);
+        console.log("Existing Function Node: ", flowNode);
+    }
+
+    const onSubmit = async (data: FormValues, formImports?: FormImports) => {
+        console.log("Function Form Data: ", data);
+        const functionNodeCopy = { ...functionNode };
+
+        /**
+         * TODO: Remove this once the LS is updated
+         * HACK: Add the advanced fields under parameters.advanceProperties back to properties
+         */
+        if (isNpFunction) {
+            // Add values back to properties
+            const properties = functionNodeCopy.properties;
+            functionNodeCopy.properties = {
+                ...properties,
+                ...properties.parameters.advanceProperties,
+            }
+
+            // Remove the advanceProperties from parameters
+            delete properties.parameters.advanceProperties;
+        }
+
+        if (isNpFunction) {
+            // Handle advance properties
+            const enrichFlowNodeForAdvanceProperties = (data: FormValues) => {
+                for (const value of Object.values(data)) {
+                    if (!value) continue;
+                    const nestedData = value.advanceProperties;
+                    if (nestedData) {
+                        for (const [advanceKey, advanceValue] of Object.entries(nestedData)) {
+                            functionNodeCopy.properties[advanceKey as NodePropertyKey].value = advanceValue;
+                        }
+
+                        delete value.advanceProperties;
+                    }
+                }
+            }
+
+            enrichFlowNodeForAdvanceProperties(data);
+        }
+
+        for (const [dataKey, dataValue] of Object.entries(data)) {
+            const properties = functionNodeCopy.properties as NodeProperties;
+            for (const [key, property] of Object.entries(properties)) {
+                if (dataKey === key) {
+                    const primaryType = getPrimaryInputType(property.types);
+                    if (primaryType?.fieldType === "REPEATABLE_PROPERTY" && isTemplateType(primaryType)) {
+                        const template = primaryType?.template;
+                        property.value = {};
+                        // Go through the parameters array
+                        for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {
+                            // Create a deep copy for each iteration
+                            const valueConstraint = JSON.parse(JSON.stringify(template));
+                            // Fill the values of the parameter constraint
+                            for (const [paramKey, param] of Object.entries((valueConstraint as any).value as NodeProperties)) {
+                                param.value = (repeatValue as any).formValues[paramKey] || "";
+                            }
+                            (property.value as any)[(repeatValue as any).key] = valueConstraint;
+                        }
+                    } else {
+                        property.value = dataValue;
+                    }
+                    const imports = getImportsForProperty(key, formImports);
+                    property.imports = imports;
+                }
+            }
+        }
+
+        // Inject OAuth client config into codedata.data.auth
+        const oauthConfig: Record<string, string> = {};
+        const expressionKeys = new Set<string>();
+        if (showOAuthConfig) {
+            for (const { key } of oauthConfigPropertiesRef.current) {
+                if (key in data && data[key] !== undefined && data[key] !== "") {
+                    oauthConfig[key] = String(data[key]);
+                    // Check if the field is in expression mode
+                    const field = functionFields.find(f => f.key === key);
+                    const selectedType = field?.types?.find(t => t.selected);
+                    if (selectedType?.fieldType === "EXPRESSION") {
+                        expressionKeys.add(key);
+                    }
+                }
+            }
+        }
+        if (Object.keys(oauthConfig).length > 0) {
+            functionNodeCopy.codedata.data = {
+                ...functionNodeCopy.codedata.data,
+                auth: JSON.stringify(oauthConfig),
+            };
+        } else if (showOAuthConfig && functionNodeCopy.codedata?.data) {
+            delete functionNodeCopy.codedata.data.auth;
+        }
+
+        // Update annotations.value with the auth block (only if OAuth fields were loaded)
+        if (showOAuthConfig && functionNodeCopy.properties?.annotations) {
+            let annotationStr = functionNodeCopy.properties.annotations.value as string;
+            if (annotationStr.includes("@ai:AgentTool")) {
+                const configBlock = buildAuthAnnotation(oauthConfig, expressionKeys);
+                const auth = matchBraced(annotationStr, /auth\s*:\s*\{/);
+                if (auth) {
+                    let { start: s, end: e } = auth;
+                    if (configBlock) {
+                        annotationStr = annotationStr.slice(0, s) + configBlock + annotationStr.slice(e);
+                    } else {
+                        // Also consume a leading or trailing comma so siblings don't dangle
+                        const lead = annotationStr.slice(0, s).match(/,\s*$/);
+                        const trail = annotationStr.slice(e).match(/^\s*,/);
+                        if (lead) s -= lead[0].length;
+                        else if (trail) e += trail[0].length;
+                        annotationStr = annotationStr.slice(0, s) + annotationStr.slice(e);
+                        annotationStr = annotationStr.replace(/@ai:AgentTool\s*\{\s*\}/, "@ai:AgentTool");
+                    }
+                    functionNodeCopy.properties.annotations.value = annotationStr;
+                } else if (configBlock) {
+                    // Insert auth into existing @ai:AgentTool { ... }
+                    if (annotationStr.match(/@ai:AgentTool\s*\{/)) {
+                        functionNodeCopy.properties.annotations.value = annotationStr.replace(
+                            /@ai:AgentTool\s*\{/,
+                            `@ai:AgentTool {\n    ${configBlock},`
+                        );
+                    } else {
+                        functionNodeCopy.properties.annotations.value = annotationStr.replace(
+                            /@ai:AgentTool/,
+                            `@ai:AgentTool {\n    ${configBlock}\n}`
+                        );
+                    }
+                }
+                // Trim trailing whitespace to avoid gaps between annotation and function
+                functionNodeCopy.properties.annotations.value =
+                    (functionNodeCopy.properties.annotations.value as string).replace(/\s+$/, "\n");
+            }
+        }
+
+        console.log("Updated function node: ", functionNodeCopy);
+        const sourceCode = await rpcClient
+            .getBIDiagramRpcClient()
+            .getSourceCode({ filePath, flowNode: functionNodeCopy, isFunctionNodeUpdate: true });
+
+        if (sourceCode.artifacts.length === 0) {
+            setSaving(false);
+            showErrorNotification();
+        } else {
+            const newArtifact = sourceCode.artifacts.find(res => res.isNew);
+            if (newArtifact) {
+                if (isPopup) {
+                    handleClosePopup(functionNodeCopy.properties.functionName.value as string);
+                    return;
+                }
+                rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: newArtifact.path, position: newArtifact.position } });
+                return;
+            }
+            const updatedArtifact = sourceCode.artifacts.find(res => !res.isNew && (res.name === functionName || res.context === functionName || res.name === data?.functionName));
+            if (updatedArtifact) {
+                rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: updatedArtifact.path, position: updatedArtifact.position } });
+                return;
+            }
+        }
+    };
+
+    const handleFormSubmit = async (data: FormValues, formImports?: FormImports) => {
+        setSaving(true);
+        // HACK: Remove new lines from function description fields
+        const descriptionFields = ["functionNameDescription", "typeDescription"];
+        for (const field of descriptionFields) {
+            if (data[field]) {
+                data[field] = data[field]?.replace(/\n/g, " ");
+            }
+        }
+        // HACK: Remove new lines from parameter description
+        if (data.parameters) {
+            for (const parameter of data.parameters) {
+                if (parameter && parameter.formValues?.parameterDescription) {
+                    parameter.formValues.parameterDescription = parameter.formValues.parameterDescription.replace(/\n/g, " ");
+                }
+            }
+        }
+
+        try {
+            await onSubmit(data, formImports);
+        } catch (error) {
+            console.error("Error submitting form: ", error);
+            showErrorNotification();
+        }
+    };
+
+    const showErrorNotification = async () => {
+        const functionType = getFunctionType();
+        await rpcClient
+            .getCommonRpcClient()
+            .showErrorMessage({
+                message: `${functionName ? `Failed to update the ${functionType}` : `Failed to create the ${functionType}`}. `
+            });
+    }
+
+    const getFunctionType = () => {
+        if (isDataMapper) {
+            return "Data Mapper";
+        } else if (isNpFunction) {
+            return "Natural Function";
+        } else if (isAutomation || functionName === "main") {
+            return "Automation";
+        }
+        return "Function";
+    };
+
+    const handleClosePopup = (functionName?: string) => {
+        rpcClient
+            .getVisualizerRpcClient()
+            .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: functionName, artifactType: isAgentTool ? DIRECTORY_MAP.AGENT_TOOL : DIRECTORY_MAP.FUNCTION }, isPopup: true });
+    }
+
+    useEffect(() => {
+        if (filePath && rpcClient) {
+            rpcClient
+                .getBIDiagramRpcClient()
+                .getEndOfFile({ filePath })
+                .then((res) => {
+                    setTargetLineRange({
+                        startLine: res,
+                        endLine: res,
+                    });
+                });
+        }
+    }, [filePath, rpcClient]);
+
+    //HACK: Hide is isolated field form function form
+    functionFields.forEach((field) => {
+        if (field.key === "isIsolated") {
+            field.hidden = true;
+        }
+    });
+
+    return (
+        <View>
+            {!isPopup &&
+                <>
+                    <TopNavigationBar projectPath={projectPath} />
+                    <TitleBar
+                        title={formType.current}
+                        subtitle={titleSubtitle}
+                    />
+                </>
+            }
+            <ViewContent padding>
+                <Container>
+                    {isPopup && (
+                        <>
+                            <TopBar>
+                                <Typography variant="h2">Create New {formType.current}</Typography>
+                                <Button appearance="icon" onClick={() => handleClosePopup()}>
+                                    <Codicon name="close" />
+                                </Button>
+                            </TopBar>
+                            <BodyText>
+                                {isAgentTool
+                                    ? "Create a new agent tool that can be invoked by AI agents."
+                                    : "Create a new function to define reusable logic."}
+                            </BodyText>
+                        </>
+                    )}
+                    <FormHeader
+                        title={`${functionName ? 'Edit' : 'Create New'} ${formType.current}`}
+                        subtitle={formSubtitle}
+                    />
+                    {isLoading && (
+                        <LoadingContainer>
+                            <LoadingRing />
+                        </LoadingContainer>
+                    )}
+                    <FormContainer>
+                        {filePath && targetLineRange && functionFields.length > 0 &&
+                            <ArtifactForm
+                                fileName={filePath}
+                                nestedForm={true}
+                                targetLineRange={targetLineRange}
+                                fields={functionFields}
+                                recordTypeFields={recordTypeFields}
+                                isSaving={saving}
+                                onSubmit={handleFormSubmit}
+                                submitText={saving ? (functionName ? "Saving..." : "Creating...") : (functionName ? "Save" : "Create")}
+                                selectedNode={functionNode?.codedata?.node}
+                                preserveFieldOrder={true}
+                                injectedComponents={
+                                    showOAuthConfig && oauthConfigPropertiesRef.current.length > 0
+                                        ? [
+                                            {
+                                                component: (
+                                                    <SectionHeader>
+                                                        <p style={{ margin: "0px", fontWeight: "bold" }}>OAuth Client Configuration</p>
+                                                        <SectionDescription>Represents the OAuth 2.0 client configuration required to interact with an external Authorization Server and validate issued access tokens.</SectionDescription>
+                                                    </SectionHeader>
+                                                ),
+                                                index: functionFields.filter((f) => f.advanced && !f.hidden).length - oauthConfigPropertiesRef.current.length,
+                                                advanced: true,
+                                            },
+                                        ]
+                                        : undefined
+                                }
+                            />
+                        }
+                    </FormContainer>
+                </Container>
+            </ViewContent>
+        </View>
+    );
+}

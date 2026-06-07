@@ -1,0 +1,131 @@
+{
+  "source": "generated_chunker/connections.bal",
+  "expectedChunkers": {
+    "categories": [
+      {
+        "metadata": {
+          "label": "Chunkers",
+          "description": "Document chunkers available in the integration"
+        },
+        "items": [
+          {
+            "metadata": {
+              "label": "devantChunker",
+              "data": {
+                "connectorType": "Default"
+              }
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "chunk",
+                  "description": "Chunks the provided document.",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.devant_1.0.0.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerinax",
+                  "module": "ai.devant",
+                  "packageName": "ai.devant",
+                  "object": "Chunker",
+                  "symbol": "chunk",
+                  "version": "1.0.0",
+                  "parentSymbol": "devantChunker",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "label": "genericChunker",
+              "data": {
+                "connectorType": "Default"
+              }
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "chunk",
+                  "description": "Chunks the provided document.",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "GenericRecursiveChunker",
+                  "symbol": "chunk",
+                  "version": "1.5.0",
+                  "parentSymbol": "genericChunker",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "label": "htmlChunker",
+              "data": {
+                "connectorType": "Default"
+              }
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "chunk",
+                  "description": "Chunks the provided document.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "HtmlChunker",
+                  "symbol": "chunk",
+                  "version": "1.5.0",
+                  "parentSymbol": "htmlChunker",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          },
+          {
+            "metadata": {
+              "label": "mdChunker",
+              "data": {
+                "connectorType": "Default"
+              }
+            },
+            "items": [
+              {
+                "metadata": {
+                  "label": "chunk",
+                  "description": "Chunks the provided document.",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
+                },
+                "codedata": {
+                  "node": "METHOD_CALL",
+                  "org": "ballerina",
+                  "module": "ai",
+                  "packageName": "ai",
+                  "object": "MarkdownChunker",
+                  "symbol": "chunk",
+                  "version": "1.5.0",
+                  "parentSymbol": "mdChunker",
+                  "resourcePath": ""
+                },
+                "enabled": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

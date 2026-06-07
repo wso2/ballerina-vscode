@@ -1,0 +1,13 @@
+.expanded-block {
+    .collapse-button {
+        .collapse-button-border {
+            stroke: #A6B3FF;
+        }
+
+        :hover {
+            .collapse-button-border {
+                stroke: #5567D5;
+            }
+        }
+    }
+}

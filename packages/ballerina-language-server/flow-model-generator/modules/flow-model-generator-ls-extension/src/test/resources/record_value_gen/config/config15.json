@@ -1,0 +1,101 @@
+{
+  "description": "Record with array of records field",
+  "filePath": "proj",
+  "type": {
+    "fields": [
+      {
+        "name": "people",
+        "typeName": "array",
+        "optional": false,
+        "defaultable": false,
+        "isRestType": false,
+        "selected": true,
+        "memberType": {
+          "typeName": "record",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false,
+          "fields": [
+            {
+              "name": "name",
+              "typeName": "string",
+              "optional": false,
+              "defaultable": false,
+              "isRestType": false
+            },
+            {
+              "name": "age",
+              "typeName": "int",
+              "optional": false,
+              "defaultable": false,
+              "isRestType": false
+            }
+          ]
+        },
+        "elements": [
+          {
+            "typeName": "record",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": true,
+            "fields": [
+              {
+                "name": "name",
+                "typeName": "string",
+                "optional": false,
+                "defaultable": false,
+                "isRestType": false,
+                "value": "\"Alice\"",
+                "selected": true
+              },
+              {
+                "name": "age",
+                "typeName": "int",
+                "optional": false,
+                "defaultable": false,
+                "isRestType": false,
+                "value": "30",
+                "selected": true
+              }
+            ]
+          },
+          {
+            "typeName": "record",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": true,
+            "fields": [
+              {
+                "name": "name",
+                "typeName": "string",
+                "optional": false,
+                "defaultable": false,
+                "isRestType": false,
+                "value": "\"Bob\"",
+                "selected": true
+              },
+              {
+                "name": "age",
+                "typeName": "int",
+                "optional": false,
+                "defaultable": false,
+                "isRestType": false,
+                "value": "25",
+                "selected": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "hasRestType": false,
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": true
+  },
+  "output": "{\n    people: [\n        {\n            name: \"Alice\",\n            age: 30\n        },\n        {\n            name: \"Bob\",\n            age: 25\n        }\n    ]\n}"
+}

@@ -1,0 +1,153 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test listener model getting from source",
+  "start": {
+    "line": 4,
+    "offset": 0
+  },
+  "end": {
+    "line": 4,
+    "offset": 49
+  },
+  "response": {
+    "listener": {
+      "name": "Http Listener",
+      "type": "http",
+      "displayName": "Http",
+      "description": "Gets invoked during module initialization to initialize the listener.\n",
+      "moduleName": "http",
+      "orgName": "ballerina",
+      "version": "2.16.3",
+      "packageName": "http",
+      "listenerProtocol": "http",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png",
+      "properties": {
+        "variableNameKey": {
+          "metadata": {
+            "label": "Name",
+            "description": "The name of the listener"
+          },
+          "codedata": {
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 4,
+                "offset": 23
+              },
+              "endLine": {
+                "line": 4,
+                "offset": 32
+              }
+            }
+          },
+          "value": "listener3",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerType": {
+          "metadata": {
+            "label": "Listener Type",
+            "description": "The type of the listener"
+          },
+          "value": "Listener",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "port": {
+          "metadata": {
+            "label": "Port",
+            "description": "Listening port of the HTTP service listener"
+          },
+          "codedata": {
+            "type": "LISTENER_INIT_PARAM",
+            "originalName": "port"
+          },
+          "placeholder": "0",
+          "value": "9090",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "config": {
+          "metadata": {
+            "label": "Config",
+            "description": "Configurations for the HTTP service listener"
+          },
+          "codedata": {
+            "type": "LISTENER_INIT_PARAM",
+            "originalName": "config"
+          },
+          "placeholder": "{}",
+          "value": "{}",
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ListenerConfiguration",
+              "typeMembers": [
+                {
+                  "type": "ListenerConfiguration",
+                  "packageInfo": "ballerina:http:2.16.3",
+                  "packageName": "http",
+                  "kind": "RECORD_TYPE",
+                  "selected": true
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ListenerConfiguration",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        }
+      },
+      "codedata": {
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 4,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 4,
+            "offset": 50
+          }
+        }
+      }
+    }
+  }
+}

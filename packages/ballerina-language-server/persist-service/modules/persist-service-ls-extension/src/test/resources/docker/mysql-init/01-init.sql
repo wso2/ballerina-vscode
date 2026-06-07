@@ -1,0 +1,59 @@
+-- MySQL test database initialization
+CREATE DATABASE IF NOT EXISTS testdb;
+USE testdb;
+
+-- Create employees table
+CREATE TABLE IF NOT EXISTS employees (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    department VARCHAR(100),
+    salary DECIMAL(10, 2),
+    hire_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create departments table
+CREATE TABLE IF NOT EXISTS departments (
+    dept_id INT AUTO_INCREMENT PRIMARY KEY,
+    dept_name VARCHAR(100) NOT NULL UNIQUE,
+    location VARCHAR(100),
+    budget DECIMAL(12, 2)
+);
+
+-- Create projects table
+CREATE TABLE IF NOT EXISTS projects (
+    project_id INT AUTO_INCREMENT PRIMARY KEY,
+    project_name VARCHAR(200) NOT NULL,
+    start_date DATE,
+    end_date DATE,
+    status VARCHAR(50),
+    department_id INT,
+    FOREIGN KEY (department_id) REFERENCES departments(dept_id)
+);
+
+-- Insert sample data
+INSERT INTO departments (dept_name, location, budget) VALUES
+('Engineering', 'New York', 500000.00),
+('Marketing', 'Los Angeles', 250000.00),
+('Sales', 'Chicago', 300000.00);
+
+INSERT INTO employees (first_name, last_name, email, department, salary, hire_date) VALUES
+('John', 'Doe', 'john.doe@example.com', 'Engineering', 75000.00, '2020-01-15'),
+('Jane', 'Smith', 'jane.smith@example.com', 'Marketing', 65000.00, '2021-03-20'),
+('Bob', 'Johnson', 'bob.johnson@example.com', 'Sales', 70000.00, '2019-11-10');
+
+INSERT INTO projects (project_name, start_date, end_date, status, department_id) VALUES
+('Project Alpha', '2024-01-01', '2024-12-31', 'In Progress', 1),
+('Project Beta', '2024-06-01', '2025-06-30', 'Planning', 2);
+
+-- Create empty database for testing empty database scenario
+CREATE DATABASE IF NOT EXISTS emptydb;
+
+-- Create database with table without primary key for negative testing
+USE testdb;
+CREATE TABLE IF NOT EXISTS no_pk_table (
+    name VARCHAR(100),
+    value VARCHAR(255)
+);

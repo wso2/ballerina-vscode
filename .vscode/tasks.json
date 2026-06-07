@@ -1,0 +1,130 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "watch-ballerina",
+            "type": "npm",
+            "script": "watch-ballerina",
+            "path": "packages/ballerina-extension",
+            "problemMatcher": {
+                "owner": "typescript",
+                "source": "ts",
+                "applyTo": "closedDocuments",
+                "fileLocation": "absolute",
+                "severity": "error",
+                "pattern": [
+                    {
+                        "regexp": "\\[tsl\\] ERROR in (.*)?\\((\\d+),(\\d+)\\)",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3
+                    },
+                    {
+                        "regexp": "\\s*TS\\d+:\\s*(.*)",
+                        "message": 1
+                    }
+                ],
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": {
+                        "regexp": "webpack --mode (.*?) --watch"
+                    },
+                    "endsPattern": {
+                        "regexp": "webpack (.*?) compiled (.*?)"
+                    }
+                }
+            },
+            "isBackground": true,
+            "presentation": {
+                "reveal": "never"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build:ballerina-extension",
+            "type": "npm",
+            "path": "packages/ballerina-extension",
+            "script": "compile"
+        },
+        {
+            "label": "build:ballerina-extension-full",
+            "type": "shell",
+            "command": "rush",
+            "args": ["build", "--to", "ballerina"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": ["$tsc"]
+        },
+        {
+            "label": "clean:ballerina-test-output",
+            "type": "shell",
+            "command": "rm",
+            "args": ["-rf", "out"],
+            "options": {
+                "cwd": "${workspaceFolder}/packages/ballerina-extension"
+            }
+        },
+        {
+            "label": "compile:ballerina-tests",
+            "type": "npm",
+            "path": "packages/ballerina-extension",
+            "script": "test-compile"
+        },
+        {
+            "label": "clean-and-compile:ballerina-tests",
+            "dependsOn": [
+                "clean:ballerina-test-output",
+                "build:ballerina-extension",
+                "compile:ballerina-tests"
+            ],
+            "dependsOrder": "sequence"
+        },
+        {
+            "label": "copy-ls:local",
+            "type": "npm",
+            "path": "packages/ballerina-extension",
+            "script": "copyLS",
+            "problemMatcher": []
+        },
+        {
+            "label": "copy-ls:download",
+            "type": "npm",
+            "path": "packages/ballerina-extension",
+            "script": "download-ls",
+            "problemMatcher": []
+        },
+        {
+            "label": "build:ballerina-language-server",
+            "type": "shell",
+            "command": "./gradlew",
+            "args": ["build", "pack", "-x", "test", "-x", "check"],
+            "options": {
+                "cwd": "${workspaceFolder}/packages/ballerina-language-server"
+            },
+            "problemMatcher": ["$gradle"]
+        },
+        {
+            "label": "build:ballerina-language-server (with debug agent)",
+            "detail": "Builds the LS and starts the daemon ready to be attached on port 5005. Use 'Attach to Ballerina Language Server' to debug.",
+            "type": "shell",
+            "command": "./gradlew",
+            "args": [
+                "build",
+                "pack",
+                "-x",
+                "test",
+                "-x",
+                "check",
+                "-Dorg.gradle.jvmargs=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/packages/ballerina-language-server"
+            },
+            "problemMatcher": ["$gradle"]
+        }
+    ]
+}

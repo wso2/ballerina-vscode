@@ -1,0 +1,71 @@
+{
+  "source": "recursive1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "recursive1.bal",
+      "startLine": {
+        "line": 7,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 7,
+        "offset": 23
+      }
+    },
+    "sourceCode": "Person person = {};"
+  },
+  "position": {
+    "line": 7,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "person",
+  "model": {
+    "inputs": [],
+    "output": {
+      "fields": [],
+      "name": "person",
+      "displayName": "person",
+      "typeName": "Person",
+      "kind": "record",
+      "ref": "887620673"
+    },
+    "mappings": [],
+    "refs": {
+      "887620673": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "father",
+            "displayName": "father",
+            "typeName": "Person",
+            "kind": "record",
+            "optional": false,
+            "ref": "887620673"
+          },
+          {
+            "fields": [],
+            "name": "mother",
+            "displayName": "mother",
+            "typeName": "Person",
+            "kind": "record",
+            "optional": false,
+            "ref": "887620673"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

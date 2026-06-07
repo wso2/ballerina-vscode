@@ -1,0 +1,230 @@
+{
+  "start": {
+    "line": 12,
+    "offset": 0
+  },
+  "end": {
+    "line": 15,
+    "offset": 1
+  },
+  "source": "new_data.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "new_data.bal",
+    "nodes": [
+      {
+        "id": "44641",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "testNewDataString",
+            "isServiceFunction": false
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "new_data.bal",
+            "startLine": {
+              "line": 12,
+              "offset": 29
+            },
+            "endLine": {
+              "line": 15,
+              "offset": 1
+            }
+          },
+          "sourceCode": "function testNewDataString() {\n    string str1 = \"Hello world\";\n    string str2 = string `${str1} ${str1}`;\n}"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "44796",
+        "metadata": {
+          "label": "Declare Variable",
+          "description": "Create a new variable"
+        },
+        "codedata": {
+          "node": "VARIABLE",
+          "lineRange": {
+            "fileName": "new_data.bal",
+            "startLine": {
+              "line": 13,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 13,
+              "offset": 32
+            }
+          },
+          "sourceCode": "string str1 = \"Hello world\";"
+        },
+        "returning": false,
+        "properties": {
+          "expression": {
+            "metadata": {
+              "label": "Expression",
+              "description": "Initialize with value"
+            },
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
+              }
+            ],
+            "value": "\"Hello world\"",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Name",
+              "description": "Name of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "str1",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "new_data.bal",
+                "startLine": {
+                  "line": 13,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 13,
+                  "offset": 15
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "string",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "45799",
+        "metadata": {
+          "label": "Declare Variable",
+          "description": "Create a new variable"
+        },
+        "codedata": {
+          "node": "VARIABLE",
+          "lineRange": {
+            "fileName": "new_data.bal",
+            "startLine": {
+              "line": 14,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 14,
+              "offset": 43
+            }
+          },
+          "sourceCode": "string str2 = string `${str1} ${str1}`;"
+        },
+        "returning": false,
+        "properties": {
+          "expression": {
+            "metadata": {
+              "label": "Expression",
+              "description": "Initialize with value"
+            },
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
+              }
+            ],
+            "value": "string `${str1} ${str1}`",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Name",
+              "description": "Name of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "str2",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "new_data.bal",
+                "startLine": {
+                  "line": 14,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 14,
+                  "offset": 15
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "string",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 27,
+        "offset": 42
+      }
+    },
+    "sourceCode": ""
+  },
+  "typeName": "UserInfo",
+  "variableName": "transform3",
+  "isInput": false,
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 27,
+            "character": 4
+          },
+          "end": {
+            "line": 27,
+            "character": 11
+          }
+        },
+        "newText": "UserInfo"
+      }
+    ]
+  }
+}

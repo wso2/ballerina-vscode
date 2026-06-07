@@ -1,0 +1,143 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Ballerina Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/ballerina-extension"
+            ],
+            "env": {
+                "LS_EXTENSIONS_PATH": "",
+                "LSDEBUG": "false",
+                "WEB_VIEW_WATCH_MODE": "true",
+                "WEB_VIEW_DEV_HOST": "http://localhost:9000",
+                "BALLERINA_STAGE_CENTRAL": "false",
+                "TRACE_WEB_VIEW_DEV_HOST": "http://localhost:9001"
+            },
+            "outFiles": [
+                "${workspaceFolder}/packages/ballerina-extension/dist/**/*.js"
+            ],
+            "preLaunchTask": "watch-ballerina",
+            "envFile": "${workspaceFolder}/packages/ballerina-extension/.env"
+        },
+        {
+            "name": "Ballerina Extension (no watch)",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/ballerina-extension"
+            ],
+            "env": {
+                "LS_EXTENSIONS_PATH": "",
+                "LSDEBUG": "false",
+                "BALLERINA_STAGE_CENTRAL": "false"
+            },
+            "outFiles": [
+                "${workspaceFolder}/packages/ballerina-extension/dist/**/*.js"
+            ],
+            "envFile": "${workspaceFolder}/packages/ballerina-extension/.env"
+        },
+        {
+            "name": "Ballerina Extension Tests",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "env": {
+                "LS_EXTENSIONS_PATH": "",
+                "LSDEBUG": "false",
+                "WEB_VIEW_WATCH_MODE": "true"
+            },
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/ballerina-extension",
+                "--extensionTestsPath=${workspaceFolder}/packages/ballerina-extension/out/test"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/packages/ballerina-extension/out/test/**/*.js"
+            ],
+            "preLaunchTask": "clean-and-compile:ballerina-tests"
+        },
+        {
+            "name": "Ballerina Extension AI Tests",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/ballerina-extension",
+                "--extensionTestsPath=${workspaceFolder}/packages/ballerina-extension/out/test",
+                "${workspaceFolder}/packages/ballerina-extension/test/data/bi_empty_project",
+                "${workspaceFolder}/packages/ballerina-extension/test/data/bi_init",
+                "${workspaceFolder}/packages/ballerina-extension/test/data/simple_order_management_system",
+                "${workspaceFolder}/packages/ballerina-extension/test/data/ai_datamapper"
+            ],
+            "env": {
+                "LS_EXTENSIONS_PATH": "",
+                "LSDEBUG": "false",
+                "WEB_VIEW_WATCH_MODE": "false",
+                "AI_TEST_ENV": "true"
+            },
+            "outFiles": [
+                "${workspaceFolder}/packages/ballerina-extension/out/test/**/*.js"
+            ],
+            "preLaunchTask": "clean-and-compile:ballerina-tests",
+            "envFile": "${workspaceFolder}/packages/ballerina-extension/.env"
+        },
+        {
+            "name": "Ballerina Extension AI Integration Tests - Libs",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/ballerina-extension",
+                "--extensionTestsPath=${workspaceFolder}/packages/ballerina-extension/out/test/ai/integration_tests/libs",
+                "${workspaceFolder}/packages/ballerina-extension/test/data/bi_empty"
+            ],
+            "env": {
+                "LS_EXTENSIONS_PATH": "",
+                "LSDEBUG": "false",
+                "WEB_VIEW_WATCH_MODE": "false",
+                "AI_TEST_ENV": "true"
+            },
+            "outFiles": [
+                "${workspaceFolder}/packages/ballerina-extension/out/test/**/*.js"
+            ],
+            "preLaunchTask": "clean-and-compile:ballerina-tests",
+            "envFile": "${workspaceFolder}/packages/ballerina-extension/.env"
+        },
+        {
+            "name": "Debug Ballerina UI Tests",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/packages/ballerina-extension/node_modules/vscode-extension-tester/out/cli.js",
+            "args": [
+                "run-tests",
+                "${workspaceFolder}/packages/ballerina-extension/out/ui-test/*.js",
+                "--mocha_config",
+                "${workspaceFolder}/packages/ballerina-extension/ui-test/.mocharc.js",
+                "-o",
+                "${workspaceFolder}/packages/ballerina-extension/ui-test/settings.json"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "preLaunchTask": "compile:ballerina-tests",
+            "env": {
+                "WEB_VIEW_WATCH_MODE": "false",
+                "WEB_VIEW_DEV_HOST": "http://localhost:9000"
+            }
+        },
+        {
+            "name": "Attach to Ballerina Language Server",
+            "type": "java",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 5005,
+            "projectName": "ballerina-language-server"
+        }
+    ]
+}

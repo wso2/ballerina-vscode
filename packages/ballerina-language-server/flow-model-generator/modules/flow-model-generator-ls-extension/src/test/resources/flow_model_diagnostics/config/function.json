@@ -1,0 +1,151 @@
+{
+  "source": "function.bal",
+  "description": "Test diagnostics with simple function",
+  "flowNode": {
+    "id": "34871",
+    "metadata": {
+      "label": "Update Variable",
+      "description": "Update the value of an existing variable"
+    },
+    "codedata": {
+      "node": "ASSIGN",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 3,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 3,
+          "offset": 27
+        }
+      },
+      "sourceCode": "lastEventId = event.id;"
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Update value"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_OR_EXPRESSION",
+            "selected": false
+          }
+        ],
+        "value": "event.id",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "modified": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable/field"
+        },
+        "types": [
+          {
+            "fieldType": "LV_EXPRESSION",
+            "selected": false
+          }
+        ],
+        "value": "lastEventId",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "modified": false
+      }
+    },
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 0,
+    "viewState": {
+      "x": -140,
+      "y": 286.6,
+      "lw": 140,
+      "rw": 140,
+      "h": 73.6,
+      "clw": 140,
+      "crw": 140,
+      "ch": 73.6
+    }
+  },
+  "output": {
+    "id": "34871",
+    "metadata": {
+      "label": "Update Variable",
+      "description": "Update the value of an existing variable"
+    },
+    "codedata": {
+      "node": "ASSIGN",
+      "lineRange": {
+        "fileName": "function.bal",
+        "startLine": {
+          "line": 3,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 3,
+          "offset": 27
+        }
+      },
+      "sourceCode": "lastEventId = event.id;"
+    },
+    "returning": false,
+    "properties": {
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Update value"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_OR_EXPRESSION",
+            "selected": true
+          }
+        ],
+        "value": "event.id",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable",
+          "description": "Name of the variable/field"
+        },
+        "types": [
+          {
+            "fieldType": "LV_EXPRESSION",
+            "selected": false
+          }
+        ],
+        "value": "lastEventId",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "cannot assign a value to function argument 'lastEventId'"
+            }
+          ]
+        }
+      }
+    },
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 0
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "source": "workflow_function/functions.bal",
+  "description": "Edit an existing ctx+input workflow - clear the input type, leaving only the context parameter",
+  "diagram": {
+    "metadata": {
+      "label": "Workflow Process Function",
+      "description": "Define a workflow process function"
+    },
+    "codedata": {
+      "isNew": false,
+      "node": "WORKFLOW",
+      "org": "ballerina",
+      "module": "workflow",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 13,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 15,
+          "offset": 82
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the function"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "orderWorkflow",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "functionNameDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the function"
+        },
+        "valueType": "TEXT",
+        "value": "Process an order workflow",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "inputType": {
+        "metadata": {
+          "label": "Input Type",
+          "description": "Type of the input data to the workflow"
+        },
+        "valueType": "TYPE",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "valueType": "TYPE",
+        "value": "error?",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "typeDescription": {
+        "metadata": {
+          "label": "Return Description",
+          "description": "Description of the return value"
+        },
+        "valueType": "TEXT",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "workflow_function/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 13,
+            "character": 0
+          },
+          "end": {
+            "line": 15,
+            "character": 82
+          }
+        },
+        "newText": "# Process an order workflow\n@workflow:Workflow\nfunction orderWorkflow( workflow:Context context) returns error?"
+      }
+    ]
+  }
+}

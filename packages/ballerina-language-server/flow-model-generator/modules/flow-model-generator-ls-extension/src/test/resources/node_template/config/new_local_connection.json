@@ -1,0 +1,381 @@
+{
+  "source": "local_connector/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "NEW_CONNECTION",
+    "org": "nipunaf",
+    "module": "mod",
+    "packageName": "new_connection1",
+    "object": "Client",
+    "symbol": "init",
+    "version": "0.1.0",
+    "isGenerated": true
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Mod",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/nipunaf_new_connection1_0.1.0.png"
+    },
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "nipunaf",
+      "module": "mod",
+      "packageName": "new_connection1",
+      "object": "Client",
+      "symbol": "init",
+      "version": "0.1.0",
+      "isNew": true,
+      "isGenerated": true
+    },
+    "returning": false,
+    "properties": {
+      "serviceUrl": {
+        "metadata": {
+          "label": "Service Url"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "serviceUrl"
+        },
+        "defaultValue": "\"\""
+      },
+      "allowHeaders": {
+        "metadata": {
+          "label": "Allow Headers",
+          "description": "The array of allowed headers by the service"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "string[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string[]",
+            "selected": false
+          }
+        ],
+        "placeholder": "[]",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "allowHeaders"
+        },
+        "defaultValue": "[]"
+      },
+      "allowMethods": {
+        "metadata": {
+          "label": "Allow Methods",
+          "description": "The array of allowed methods by the service"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "string[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string[]",
+            "selected": false
+          }
+        ],
+        "placeholder": "[]",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "allowMethods"
+        },
+        "defaultValue": "[]"
+      },
+      "allowOrigins": {
+        "metadata": {
+          "label": "Allow Origins",
+          "description": "The array of origins with which the response is shared by the service"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "string[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string[]",
+            "selected": false
+          }
+        ],
+        "placeholder": "[]",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "allowOrigins"
+        },
+        "defaultValue": "[]"
+      },
+      "exposeHeaders": {
+        "metadata": {
+          "label": "Expose Headers",
+          "description": "The allowlisted headers, which clients are allowed to access"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "string[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string[]",
+            "selected": false
+          }
+        ],
+        "placeholder": "[]",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "exposeHeaders"
+        },
+        "defaultValue": "[]"
+      },
+      "allowCredentials": {
+        "metadata": {
+          "label": "Allow Credentials",
+          "description": "Specifies whether credentials are required to access the service"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean",
+            "selected": false
+          }
+        ],
+        "placeholder": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "allowCredentials"
+        },
+        "defaultValue": "false"
+      },
+      "maxAge": {
+        "metadata": {
+          "label": "Max Age",
+          "description": "The maximum duration to cache the preflight from client side"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal",
+            "selected": false
+          }
+        ],
+        "placeholder": "0.0d",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "maxAge"
+        },
+        "defaultValue": "0.0d"
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "mod:Client",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {},
+        "imports": {
+          "mod": "nipunaf/new_connection1.mod"
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Connection Name",
+          "description": "Name of the connection"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "modClient",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "types": [
+          {
+            "fieldType": "ENUM",
+            "selected": true
+          }
+        ],
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

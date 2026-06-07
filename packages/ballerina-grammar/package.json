@@ -1,0 +1,38 @@
+{
+  "name": "ballerina-grammar",
+  "version": "0.972.1",
+  "description": "Grammar files for ballerina",
+  "main": "index.js",
+  "scripts": {
+    "build-tm": "node build-tm",
+    "build": "npm run build-tm",
+    "test": "mocha -r ts-node/register 'test/unit-test.ts'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ballerina-platform/ballerina-grammar.git"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/ballerina-platform/ballerina-grammar/issues"
+  },
+  "homepage": "https://github.com/ballerina-platform/ballerina-grammar#readme",
+  "devDependencies": {
+    "@types/mocha": "9.0.0",
+    "js-yaml": "4.1.1",
+    "mocha": "11.7.5",
+    "plist": "3.0.5",
+    "ts-node": "10.2.0"
+  },
+  "dependencies": {
+    "vscode-tmgrammar-test": "0.0.11"
+  },
+  "overrides": {
+    "diff": "8.0.3",
+    "brace-expansion": "1.1.13",
+    "vscode-tmgrammar-test": {
+      "minimatch": "3.1.4"
+    }
+  }
+}

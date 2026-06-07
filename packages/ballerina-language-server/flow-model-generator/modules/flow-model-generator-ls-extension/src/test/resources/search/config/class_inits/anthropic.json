@@ -1,0 +1,32 @@
+{
+  "description": "Anthropic provider search test",
+  "kind": "CLASS_INIT",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": "anthropic"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Class Initializers"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Anthropic Provider",
+            "description": "Initializes the Anthropic LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "AnthropicProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "description": "Logical expressions with AND and OR",
+  "filePath": "main.bal",
+  "expression": "a && b || c",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 1,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 5,
+      "length": 1,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 10,
+      "length": 1,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

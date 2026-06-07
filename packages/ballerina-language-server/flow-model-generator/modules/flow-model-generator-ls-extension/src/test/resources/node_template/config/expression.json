@@ -1,0 +1,39 @@
+{
+  "source": "empty.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "EXPRESSION"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Custom Expression",
+      "description": "Represents a custom Ballerina expression"
+    },
+    "codedata": {
+      "node": "EXPRESSION",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "statement": {
+        "metadata": {
+          "label": "Statement",
+          "description": "Ballerina statement"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

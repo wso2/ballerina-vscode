@@ -1,0 +1,21 @@
+{
+  "position": {
+    "line": 4,
+    "character": 32
+  },
+  "source": {
+    "file": "workspace/pkgA/main.bal"
+  },
+  "expected": {
+    "result": {
+      "contents": {
+        "kind": "markdown",
+        "value": "A calculator function with multiple parameters\n  \n  \n---  \n  \n### Parameters  \n  \n`float` ***x*** : First operand  \n`float` ***y*** : Second operand  \n`string` ***operation*** : The operation to perform  \n  \n---  \n  \n### Return  \n`float` : The calculation result  \n  \n---  \n  \n[View API Docs](https://lib.ballerina.io/test/pkgB/0.1.0#calculate)"
+      }
+    },
+    "id": {
+      "left": "324"
+    },
+    "jsonrpc": "2.0"
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "",
+  "codedata": {
+    "node": "NEW_CONNECTION",
+    "org": "ballerinax",
+    "module": "azure.datalake",
+    "packageName": "azure.datalake",
+    "object": "Client",
+    "symbol": "init",
+    "isGenerated": false
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Datalake",
+      "description": "This is a generated connector for [Azure DataLake Storage (Gen2) API version 2019-10-31](https://azure.microsoft.com/en-us/solutions/data-lake/) OpenAPI specification.\nAzure Data Lake Storage provides storage for Hadoop and other big data workloads.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.datalake_1.5.1.png"
+    },
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "azure.datalake",
+      "packageName": "azure.datalake",
+      "object": "Client",
+      "symbol": "init",
+      "version": "1.5.1",
+      "isNew": true,
+      "isGenerated": false
+    },
+    "returning": false,
+    "properties": {
+      "config": {
+        "metadata": {
+          "label": "Config",
+          "description": "The configurations to be used when initializing the `connector` "
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "datalake:ConnectionConfig",
+            "typeMembers": [
+              {
+                "type": "ConnectionConfig",
+                "packageInfo": "ballerinax:azure.datalake:1.5.1",
+                "packageName": "azure.datalake",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "datalake:ConnectionConfig",
+            "selected": false
+          }
+        ],
+        "placeholder": "{auth: {token: \"\"}}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "config"
+        }
+      },
+      "serviceUrl": {
+        "metadata": {
+          "label": "Service Url",
+          "description": "URL of the target service "
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "serviceUrl"
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "datalake:Client",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {},
+        "imports": {
+          "datalake": "ballerinax/azure.datalake"
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Connection Name",
+          "description": "Name of the connection"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "datalakeClient",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "types": [
+          {
+            "fieldType": "ENUM",
+            "selected": true
+          }
+        ],
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "description": "List constructor with variables",
+  "filePath": "main.bal",
+  "expression": "[var1, var2, var3]",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 1,
+      "length": 4,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 7,
+      "length": 4,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 13,
+      "length": 4,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

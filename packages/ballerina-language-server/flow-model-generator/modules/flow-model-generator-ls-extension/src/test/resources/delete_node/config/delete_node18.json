@@ -1,0 +1,52 @@
+{
+  "description": "Delete ctx->await([data.b]) from workflow function with multi-field data record",
+  "functionStart": {
+    "line": 8,
+    "offset": 0
+  },
+  "functionEnd": {
+    "line": 12,
+    "offset": 1
+  },
+  "nodeStart": {
+    "line": 10,
+    "offset": 4
+  },
+  "nodeEnd": {
+    "line": 10,
+    "offset": 46
+  },
+  "source": "delete_node_wait_data/functions.bal",
+  "output": {
+    "delete_node_wait_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 11,
+            "character": 4
+          },
+          "end": {
+            "line": 11,
+            "character": 21
+          }
+        },
+        "newText": ""
+      }
+    ],
+    "delete_node_wait_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 10,
+            "character": 4
+          },
+          "end": {
+            "line": 10,
+            "character": 46
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}

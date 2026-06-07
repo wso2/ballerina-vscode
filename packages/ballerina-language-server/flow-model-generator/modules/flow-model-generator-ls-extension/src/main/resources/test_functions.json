@@ -1,0 +1,140 @@
+{
+  "items": [
+    {
+      "metadata": {
+        "label": "Test"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "assertTrue",
+            "description": "Asserts whether the given condition is true. If it is not, a AssertError is thrown with the given errorMessage.\\n\\n### Example\\n```ballerina\\nimport ballerina/test;\\n @test:Config {}\\n function testAssertTrue() {\\n     boolean value = false;\\n     test:assertTrue(value, msg = \\\"AssertTrue failed\\\");\\n }\\n```\\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_test_0.0.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "module": "test",
+            "packageName": "test",
+            "symbol": "assertTrue",
+            "org": "ballerina",
+            "version": "0.0.0",
+            "flags": 1
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "assertFalse",
+            "description": "Asserts whether the given condition is false. If it is not, a AssertError is thrown with the given errorMessage.\n\n### Example\n```ballerina\nimport ballerina/test;\n @test:Config {}\n function testAssertFalse() {\n     boolean value = false;\n     test:assertFalse(value, msg = \"AssertFalse failed\");\n }\n```\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_test_0.0.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "test",
+            "packageName": "test",
+            "symbol": "assertFalse",
+            "version": "0.0.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "assertEquals",
+            "description": "Asserts whether the given values are equal. If it is not, an AssertError is thrown with the given errorMessage.\n\n### Example\n```ballerina\nimport ballerina/test;\n@test:Config {}\n function testAssertIntEquals() {\n     int answer = intAdd(5, 3);\n     test:assertEquals(answer, 8, msg = \"IntAdd function failed\");\n }\n function intAdd(int a, int b) returns (int) {\n     return (a + b);\n }\n```\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_test_0.0.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "test",
+            "packageName": "test",
+            "symbol": "assertEquals",
+            "version": "0.0.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "assertNotEquals",
+            "description": "Asserts whether the given values are not equal. If it is equal, an AssertError is thrown with the given errorMessage.\n\n### Example\n```ballerina\nimport ballerina/test;\n @test:Config {}\n function testAssertIntEquals() {\n     int answer = intAdd(5, 3);\n     test:assertNotEquals(answer, 8, msg = \"Matches\");\n }\n function intAdd(int a, int b) returns (int) {\n     return (a + b);\n }\n```\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_test_0.0.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "test",
+            "packageName": "test",
+            "symbol": "assertNotEquals",
+            "version": "0.0.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "assertExactEquals",
+            "description": "Asserts whether the given values are exactly equal. If it is not, an AssertError is thrown with the given errorMessage.\n\n### Example\n```ballerina\nimport ballerina/test;\n class Person {\n     public string name = \"\";\n     public int age = 0;\n     public Person? parent = ();\n     private string email = \"default@abc.com\";\n     string address = \"No 20, Palm grove\";\n }\n @test:Config {}\n function testAssertExactEqualsObject() {\n     Person p1 = new;\n     Person p2 = p1;\n     test:assertExactEquals(p1, p2, msg = \"Objects are not exactly equal\");\n }\n```\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_test_0.0.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "test",
+            "packageName": "test",
+            "symbol": "assertExactEquals",
+            "version": "0.0.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "assertNotExactEquals",
+            "description": "Asserts whether the given values are not exactly equal. If it is equal, an AssertError is thrown with the given errorMessage.\n\n### Example\n```ballerina\nimport ballerina/test;\nclass Person {\n     public string name = \"\";\n     public int age = 0;\n     public Person? parent = ();\n     private string email = \"default@abc.com\";\n     string address = \"No 20, Palm grove\";\n }\n @test:Config {}\n function testAssertNotExactEqualsObject() {\n     Person p1 = new;\n     Person p2 = new ();\n     test:assertNotExactEquals(p1, p2, msg = \"Objects are exactly equal\");\n }\n```\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_test_0.0.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "test",
+            "packageName": "test",
+            "symbol": "assertNotExactEquals",
+            "version": "0.0.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "assertFail",
+            "description": "Assert failure is triggered based on your discretion. AssertError is thrown with the given errorMessage.\n\n### Example\n```ballerina\nimport ballerina/test;\n @test:Config {}\n function foo() {\n     error? e = trap bar(); // Expecting `bar()` to panic\n     if e is error {\n         test:assertEquals(e.message().toString(), \"Invalid Operation\", msg = \"Invalid error reason\");\n     } else {\n         test:assertFail(msg = \"Expected an error\");\n     }\n }\n function bar() {\n     panic error(\"Invalid Operation\");\n }\n```\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_test_0.0.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "test",
+            "packageName": "test",
+            "symbol": "assertFail",
+            "version": "0.0.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "mock",
+            "description": "Creates a mock object of provided type description.\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_test_0.0.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "test",
+            "packageName": "test",
+            "symbol": "mock",
+            "version": "0.0.0"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "position": {
+    "line": 3,
+    "character": 22
+  },
+  "source": "record-test-workspace-multi/consumer/main.bal",
+  "description": "Fill record defined in another workspace package",
+  "expected": [
+    {
+      "title": "Fill 'types:Config' required fields",
+      "kind": "quickfix",
+      "edits": [
+        {
+          "range": {
+            "start": {
+              "line": 3,
+              "character": 22
+            },
+            "end": {
+              "line": 3,
+              "character": 22
+            }
+          },
+          "newText": "port: 0, host: \"\""
+        }
+      ],
+      "resolvable": false
+    }
+  ]
+}

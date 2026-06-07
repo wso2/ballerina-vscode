@@ -1,0 +1,69 @@
+{
+  "description": "Test getting tcp service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "tcp",
+  "moduleName": "tcp",
+  "response": {
+    "serviceInitModel": {
+      "id": "3",
+      "displayName": "TCP Service",
+      "description": "Create TCP service to handle TCP client connections",
+      "orgName": "ballerina",
+      "packageName": "tcp",
+      "moduleName": "tcp",
+      "version": "1.13.0",
+      "type": "tcp",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.0.png",
+      "properties": {
+        "localPort": {
+          "metadata": {
+            "label": "TCP Port",
+            "description": "The port on which the TCP service listens"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_REQUIRED"
+          },
+          "placeholder": "80",
+          "value": "80",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerVarName": {
+          "metadata": {
+            "label": "Listener Name",
+            "description": "Provide a name for the listener being created"
+          },
+          "codedata": {
+            "type": "LISTENER_VAR_NAME"
+          },
+          "value": "tcpListener",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        }
+      }
+    }
+  }
+}

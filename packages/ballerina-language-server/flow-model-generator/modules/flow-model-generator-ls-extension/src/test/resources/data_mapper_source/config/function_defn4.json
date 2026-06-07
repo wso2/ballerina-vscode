@@ -1,0 +1,48 @@
+{
+  "source": "function_def3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_def3.bal",
+      "startLine": {
+        "line": 10,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 12,
+        "offset": 74
+      }
+    },
+    "sourceCode": ""
+  },
+  "mapping": {
+    "output": "transform3.password",
+    "inputs": [
+      "userConverted.password"
+    ],
+    "expression": "userConverted.password",
+    "diagnostics": [],
+    "elements": [],
+    "isQueryExpression": false,
+    "isFunctionCall": false
+  },
+  "targetField": "transform3",
+  "output": {
+    "function_def3.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 12,
+            "character": 58
+          },
+          "end": {
+            "line": 12,
+            "character": 58
+          }
+        },
+        "newText": ", password: userConverted.password"
+      }
+    ]
+  }
+}

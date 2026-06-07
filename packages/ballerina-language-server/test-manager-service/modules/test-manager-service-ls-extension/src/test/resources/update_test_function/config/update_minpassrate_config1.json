@@ -1,0 +1,127 @@
+{
+  "filePath": "sample_update_minpassrate/tests/test1.bal",
+  "description": "Test to update minPassRate in an existing test function",
+  "function": {
+    "metadata": {
+      "label": "Test Function",
+      "description": "Test Function"
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "tests/test1.bal",
+        "startLine": {
+          "line": 2,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 1
+        }
+      }
+    },
+    "functionName": {
+      "metadata": {
+        "label": "Test Function",
+        "description": "Test function"
+      },
+      "valueType": "IDENTIFIER",
+      "value": "testWithMinPassRate",
+      "optional": false,
+      "editable": true,
+      "advanced": false
+    },
+    "returnType": {
+      "metadata": {
+        "label": "Return Type",
+        "description": "Return type of the function"
+      },
+      "valueType": "TYPE",
+      "optional": true,
+      "editable": true,
+      "advanced": true
+    },
+    "parameters": [],
+    "annotations": [
+      {
+        "metadata": {
+          "label": "Config",
+          "description": "Test Function Configurations"
+        },
+        "org": "ballerina",
+        "module": "test",
+        "name": "Config",
+        "fields": [
+          {
+            "metadata": {
+              "label": "Groups",
+              "description": "Groups to run"
+            },
+            "valueType": "EXPRESSION_SET",
+            "originalName": "groups",
+            "value": [
+              "\"stability\""
+            ],
+            "optional": true,
+            "editable": true,
+            "advanced": false
+          },
+          {
+            "metadata": {
+              "label": "Runs",
+              "description": "Number of times to execute this test"
+            },
+            "valueType": "EXPRESSION",
+            "originalName": "runs",
+            "value": "20",
+            "optional": true,
+            "editable": true,
+            "advanced": false
+          },
+          {
+            "metadata": {
+              "label": "Minimum Pass Rate (%)",
+              "description": "Minimum percentage of runs that must pass (0-100)"
+            },
+            "valueType": "SLIDER",
+            "originalName": "minPassRate",
+            "value": "90",
+            "optional": true,
+            "editable": true,
+            "advanced": false
+          }
+        ]
+      }
+    ],
+    "editable": true
+  },
+  "output": {
+    "sample_update_minpassrate/tests/test1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 28
+          },
+          "end": {
+            "line": 3,
+            "character": 30
+          }
+        },
+        "newText": "() returns error?"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 63
+          }
+        },
+        "newText": "@test:Config{\ngroups: [\"stability\"],\nruns: 20,\nminPassRate: 90\n}"
+      }
+    ]
+  }
+}

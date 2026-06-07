@@ -1,0 +1,8 @@
+[package]
+org = "wso2"
+name = "resource_function_cases"
+version = "0.1.0"
+title = "resource function cases"
+
+[build-options]
+sticky = true

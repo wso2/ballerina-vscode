@@ -1,0 +1,11 @@
+{
+  "name": "ballerina-language-server",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Ballerina Language Server (Gradle build wrapped for rush).",
+  "scripts": {
+    "build": "./gradlew build pack -x test -x check",
+    "clean": "./gradlew clean",
+    "test": "./gradlew test"
+  }
+}

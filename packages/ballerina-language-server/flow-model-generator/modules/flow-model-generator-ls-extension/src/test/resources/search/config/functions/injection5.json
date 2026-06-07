@@ -1,0 +1,71 @@
+{
+  "description": "Sample flow model",
+  "kind": "FUNCTION",
+  "source": "empty.bal",
+  "position": {
+    "startLine": {
+      "line": 1,
+      "offset": 1
+    },
+    "endLine": {
+      "line": 1,
+      "offset": 1
+    }
+  },
+  "queryMap": {
+    "q": "* OR rowid < 0;--",
+    "limit": "12",
+    "offset": "0"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Agent Tools",
+        "description": "Functions used as agent tools",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Imported Functions",
+        "description": "Functions imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": []
+    }
+  ]
+}

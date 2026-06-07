@@ -1,0 +1,65 @@
+{
+  "description": "Delete wait data.a from workflow function with single param",
+  "functionStart": {
+    "line": 19,
+    "offset": 0
+  },
+  "functionEnd": {
+    "line": 22,
+    "offset": 1
+  },
+  "nodeStart": {
+    "line": 21,
+    "offset": 4
+  },
+  "nodeEnd": {
+    "line": 21,
+    "offset": 34
+  },
+  "source": "delete_node_wait_data/functions.bal",
+  "output": {
+    "delete_node_wait_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 14,
+            "character": 0
+          },
+          "end": {
+            "line": 16,
+            "character": 3
+          }
+        },
+        "newText": ""
+      }
+    ],
+    "delete_node_wait_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 21,
+            "character": 4
+          },
+          "end": {
+            "line": 21,
+            "character": 34
+          }
+        },
+        "newText": ""
+      },
+      {
+        "range": {
+          "start": {
+            "line": 20,
+            "character": 31
+          },
+          "end": {
+            "line": 20,
+            "character": 43
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,64 @@
+name: 'Failure Notification'
+description: 'Send a failure notification to chat'
+inputs:
+  title:
+    description: 'Notification title'
+    required: true
+  run_id:
+    description: 'GitHub workflow run ID'
+    required: true
+  chat_api:
+    description: 'Chat API endpoint'
+    required: true
+  repository:
+    description: 'Repository name'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        body=$(cat << EOF
+        {
+          "cards": [
+            {
+              "header": {
+                  "title": "${{ inputs.title }}",
+              },
+              "sections": [
+                {
+                  "widgets": [
+                    {
+                      "textParagraph": {
+                          "text": "<b>&#x274C; Repository: <font color=\"#ff0000\">${{ inputs.repository }}</font></b>"
+                      }
+                    },
+                    {
+                      "keyValue": {
+                        "topLabel": "Workflow run ID",
+                        "content": "${{ inputs.run_id }}",
+                        "button": {
+                          "textButton": {
+                            "text": "View Workflow",
+                            "onClick": {
+                              "openLink": {
+                                "url": "https://github.com/${{ inputs.repository }}/actions/runs/${{ inputs.run_id }}"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+        EOF
+        )
+        curl \
+          -X POST \
+          -H 'Content-Type: application/json' \
+          "${{ inputs.chat_api }}" \
+          -d "$body" 

@@ -1,0 +1,16 @@
+{
+  "filePath": "source3.bal",
+  "position": {
+    "line": 13,
+    "offset": 86
+  },
+  "expression": "person2",
+  "description": "Get a record type data",
+  "type": {
+    "name": "redis:Options|jsondata:Error",
+    "imports": {
+      "jsondata": "ballerina/data.jsondata",
+      "redis": "ballerinax/redis"
+    }
+  }
+}

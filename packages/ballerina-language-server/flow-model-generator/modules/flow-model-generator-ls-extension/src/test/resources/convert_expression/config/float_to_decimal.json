@@ -1,0 +1,8 @@
+{
+  "description": "Convert float to decimal using type cast",
+  "output": "output.decimalField",
+  "outputType": "decimal",
+  "expression": "input.floatField",
+  "expressionType": "float",
+  "convertedExpression": "<decimal>input.floatField"
+}

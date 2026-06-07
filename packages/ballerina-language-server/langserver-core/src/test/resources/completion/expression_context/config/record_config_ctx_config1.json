@@ -1,0 +1,72 @@
+{
+  "position": {
+    "line": 14,
+    "character": 24
+  },
+  "source": "expression_context/source/record_config_ctx_source1.bal",
+  "description": "completions for record mapping constructor",
+  "items": [
+    {
+      "label": "readonly",
+      "kind": "Keyword",
+      "detail": "Keyword",
+      "sortText": "U",
+      "filterText": "readonly",
+      "insertText": "readonly ",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "Fill ConfigRecord Required Fields",
+      "kind": "Property",
+      "detail": "ConfigRecord",
+      "sortText": "R",
+      "filterText": "fill",
+      "insertText": "httpClient: new (${1:\"\"}, ${2:{}}),\nconfigStr: ${3:\"\"},\nnestedRecord: {id: ${4:0}, name: ${5:\"\"}}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "...rec",
+      "kind": "Variable",
+      "detail": "ConfigRecord",
+      "sortText": "AC",
+      "filterText": "rec",
+      "insertText": "...rec",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "httpClient",
+      "labelDetails": {
+        "detail": " ConfigRecord.httpClient",
+        "description": "Client"
+      },
+      "kind": "Field",
+      "detail": "ConfigRecord.httpClient",
+      "sortText": "K",
+      "insertText": "httpClient: new (${1:\"\"}, ${2:{}})",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "nestedRecord",
+      "labelDetails": {
+        "detail": " ConfigRecord.nestedRecord",
+        "description": "Record"
+      },
+      "kind": "Field",
+      "detail": "ConfigRecord.nestedRecord",
+      "sortText": "K",
+      "insertText": "nestedRecord: {id: ${1:0}, name: ${2:\"\"}}",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "configStr",
+      "labelDetails": {
+        "detail": " ConfigRecord.configStr"
+      },
+      "kind": "Field",
+      "detail": "ConfigRecord.configStr",
+      "sortText": "K",
+      "insertText": "configStr: ${1:\"\"}",
+      "insertTextFormat": "Snippet"
+    }
+  ]
+}

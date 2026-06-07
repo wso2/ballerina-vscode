@@ -1,0 +1,106 @@
+{
+  "description": "A simple example of a reference-based type",
+  "source": "RefTypeTest/BalProject7",
+  "typeSymbolName": "Person2",
+  "refType": {
+    "fields": [
+      {
+        "fieldName": "name",
+        "type": {
+          "dependentTypeKeys": [],
+          "name": "string",
+          "typeName": "string"
+        },
+        "optional": false,
+        "defaultValue": ""
+      },
+      {
+        "fieldName": "age",
+        "type": {
+          "dependentTypeKeys": [],
+          "name": "int",
+          "typeName": "int"
+        },
+        "optional": false,
+        "defaultValue": ""
+      },
+      {
+        "fieldName": "favoriteColor",
+        "type": {
+          "members": [
+            {
+              "dependentTypeKeys": [],
+              "name": "BLUE"
+            },
+            {
+              "dependentTypeKeys": [],
+              "name": "GREEN"
+            },
+            {
+              "dependentTypeKeys": [],
+              "name": "RED"
+            }
+          ],
+          "dependentTypeKeys": [],
+          "hashCode": "1321203991",
+          "key": "-955095486",
+          "name": "Color",
+          "typeName": "enum",
+          "moduleInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "test.streams",
+            "packageName": "test.streams",
+            "version": "0.1.0",
+            "modulePrefix": "streams"
+          }
+        },
+        "optional": false,
+        "defaultValue": ""
+      }
+    ],
+    "dependentTypeKeys": [
+      "-955095486"
+    ],
+    "hashCode": "1975722613",
+    "key": "-351745380",
+    "name": "Person2",
+    "typeName": "record",
+    "dependentTypes": {
+      "-955095486": {
+        "members": [
+          {
+            "dependentTypeKeys": [],
+            "name": "BLUE"
+          },
+          {
+            "dependentTypeKeys": [],
+            "name": "GREEN"
+          },
+          {
+            "dependentTypeKeys": [],
+            "name": "RED"
+          }
+        ],
+        "dependentTypeKeys": [],
+        "hashCode": "1321203991",
+        "key": "-955095486",
+        "name": "Color",
+        "typeName": "enum",
+        "moduleInfo": {
+          "orgName": "ballerinax",
+          "moduleName": "test.streams",
+          "packageName": "test.streams",
+          "version": "0.1.0",
+          "modulePrefix": "streams"
+        }
+      }
+    },
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "test.streams",
+      "packageName": "test.streams",
+      "version": "0.1.0",
+      "modulePrefix": "streams"
+    }
+  }
+}

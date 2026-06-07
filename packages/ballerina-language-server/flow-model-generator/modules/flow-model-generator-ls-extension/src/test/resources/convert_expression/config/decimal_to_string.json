@@ -1,0 +1,8 @@
+{
+  "description": "Convert decimal to string using toString()",
+  "output": "output.stringField",
+  "outputType": "string",
+  "expression": "decimal.decimalField",
+  "expressionType": "decimal",
+  "convertedExpression": "decimal.decimalField.toString()"
+}

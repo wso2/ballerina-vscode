@@ -1,0 +1,83 @@
+/*
+ * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+plugins {
+    id "com.gradle.enterprise" version "3.13.2"
+}
+
+rootProject.name = 'ballerina-language-server'
+
+include(':checkstyle')
+include(':model-generator-commons')
+include(':launcher')
+include(':architecture-model-generator:architecture-model-generator-core')
+include(':architecture-model-generator:architecture-model-generator-plugin')
+include(':architecture-model-generator:architecture-model-generator-ls-extension')
+include(':sequence-model-generator:sequence-model-generator-core')
+include(':sequence-model-generator:sequence-model-generator-ls-extension')
+include(':flow-model-generator:flow-model-generator-core')
+include(':flow-model-generator:flow-model-generator-ls-extension')
+include(':flow-model-generator:flow-model-index-generator')
+include(':flow-model-generator:flow-model-central-client')
+include(':service-model-generator:service-model-generator-ls-extension')
+include(':service-model-generator:service-model-index-generator')
+include(':test-manager-service:test-manager-service-ls-extension')
+include(':openapi-service:openapi-service-ls-extension')
+include(':xsd-service:xsd-service-ls-extension')
+include(':wsdl-service:wsdl-service-ls-extension')
+include(':edi-service:edi-service-ls-extension')
+include(':persist-service:persist-service-ls-extension')
+include(":langserver-commons")
+include(":langserver-core")
+include(":langserver-stdlib")
+include(':diagram-util')
+include(':bal-shell-service')
+include (':service-template-generator')
+
+project(':checkstyle').projectDir = file("build-config${File.separator}checkstyle")
+project(':model-generator-commons').projectDir = file('model-generator-commons')
+project(':launcher').projectDir = file('launcher')
+project(':architecture-model-generator:architecture-model-generator-core').projectDir = file('architecture-model-generator/modules/architecture-model-generator-core')
+project(':architecture-model-generator:architecture-model-generator-plugin').projectDir = file('architecture-model-generator/modules/architecture-model-generator-plugin')
+project(':architecture-model-generator:architecture-model-generator-ls-extension').projectDir = file('architecture-model-generator/modules/architecture-model-generator-ls-extension')
+project(':sequence-model-generator:sequence-model-generator-core').projectDir = file('sequence-model-generator/modules/sequence-model-generator-core')
+project(':sequence-model-generator:sequence-model-generator-ls-extension').projectDir = file('sequence-model-generator/modules/sequence-model-generator-ls-extension')
+project(':flow-model-generator:flow-model-generator-core').projectDir = file('flow-model-generator/modules/flow-model-generator-core')
+project(':flow-model-generator:flow-model-generator-ls-extension').projectDir = file('flow-model-generator/modules/flow-model-generator-ls-extension')
+project(':flow-model-generator:flow-model-index-generator').projectDir = file('flow-model-generator/modules/flow-model-index-generator')
+project(':flow-model-generator:flow-model-central-client').projectDir = file('flow-model-generator/modules/flow-model-central-client')
+project(':service-model-generator:service-model-generator-ls-extension').projectDir = file('service-model-generator/modules/service-model-generator-ls-extension')
+project(':service-model-generator:service-model-index-generator').projectDir = file('service-model-generator/modules/service-model-index-generator')
+project(':test-manager-service:test-manager-service-ls-extension').projectDir = file('test-manager-service/modules/test-manager-service-ls-extension')
+project(':openapi-service:openapi-service-ls-extension').projectDir = file('openapi-service/modules/openapi-service-ls-extension')
+project(':xsd-service:xsd-service-ls-extension').projectDir = file('xsd-service/modules/xsd-service-ls-extension')
+project(':wsdl-service:wsdl-service-ls-extension').projectDir = file('wsdl-service/modules/wsdl-service-ls-extension')
+project(':edi-service:edi-service-ls-extension').projectDir = file('edi-service/modules/edi-service-ls-extension')
+project(':persist-service:persist-service-ls-extension').projectDir = file('persist-service/modules/persist-service-ls-extension')
+project(":langserver-commons").projectDir = file("langserver-commons")
+project(":langserver-core").projectDir = file("langserver-core")
+project(":langserver-stdlib").projectDir = file("langserver-stdlib")
+project(':diagram-util').projectDir = file('misc/diagram-util')
+project(':bal-shell-service').projectDir = file('misc/ls-extensions/modules/bal-shell-service')
+project(':service-template-generator').projectDir = file('service-template-generator')
+
+gradleEnterprise {
+    buildScan {
+        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+        termsOfServiceAgree = 'yes'
+    }
+}

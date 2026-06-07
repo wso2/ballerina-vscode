@@ -1,0 +1,156 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "RESOURCE_ACTION_CALL",
+    "org": "ballerinax",
+    "module": "github",
+    "packageName": "github",
+    "object": "Client",
+    "symbol": "post",
+    "parentSymbol": "githubClient",
+    "resourcePath": "/app\\-manifests/[code]/conversions"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "post",
+      "description": "Create a GitHub App from a manifest\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+    },
+    "codedata": {
+      "node": "RESOURCE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "github",
+      "packageName": "github",
+      "object": "Client",
+      "symbol": "post",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "github:Client",
+            "selected": false
+          }
+        ],
+        "value": "githubClient",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "resourcePath": {
+        "metadata": {
+          "label": "Resource Path",
+          "description": "Resource Path"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_PATH",
+            "selected": false
+          }
+        ],
+        "value": "/app-manifests/[code]/conversions",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "originalName": "/app\\-manifests/[code]/conversions"
+        }
+      },
+      "code": {
+        "metadata": {
+          "label": "code"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PATH_PARAM",
+          "originalName": "code"
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "github:ManifestConversions",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "githubManifestconversions",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

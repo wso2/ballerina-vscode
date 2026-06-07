@@ -1,3 +1,37 @@
+# Rush / monorepo
+common/temp/
+common/deploy/
+.rush/
+node_modules/
+
+# Build outputs (Node/TS)
+dist/
+build/
+build-app/
+lib/
+out/
+# Don't let the broad build/ pattern above hide the composite action
+!.github/actions/build/
+!.github/actions/build/**
+*.vsix
+**/vsix
+**/resources/jslibs
+!resources/jslibs/font/DroidSansMono.ttf
+**/resources/font-wso2-vscode
+# Grammar copy populated by ballerina-extension's prebuild step
+packages/ballerina-extension/grammar/ballerina-grammar/
+coverage/
+.vscode-test/
+test-resources/
+extractedDistribution/
+.npmrc
+.env
+.hintrc
+
+# Gradle (LS)
+.gradle/
+!gradle-wrapper.jar
+
 # Compiled class file
 *.class
 
@@ -10,7 +44,7 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -19,5 +53,6 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# JVM crash logs
 hs_err_pid*
+.DS_Store

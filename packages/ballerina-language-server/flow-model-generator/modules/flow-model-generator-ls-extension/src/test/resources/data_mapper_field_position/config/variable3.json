@@ -1,0 +1,34 @@
+{
+  "source": "variable3.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 24,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 24,
+        "offset": 39
+      }
+    },
+    "sourceCode": ""
+  },
+  "targetField": "department",
+  "fieldId": "department.students.address.street",
+  "property": {
+    "types": [
+      {
+        "fieldType": "EXPRESSION",
+        "ballerinaType": "string",
+        "selected": false
+      }
+    ],
+    "optional": false,
+    "editable": false,
+    "advanced": false,
+    "hidden": false
+  }
+}

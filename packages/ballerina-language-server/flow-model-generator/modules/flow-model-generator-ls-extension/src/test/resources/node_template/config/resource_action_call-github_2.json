@@ -1,0 +1,334 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "RESOURCE_ACTION_CALL",
+    "org": "ballerinax",
+    "module": "github",
+    "packageName": "github",
+    "object": "Client",
+    "symbol": "get",
+    "parentSymbol": "githubClient",
+    "resourcePath": "/orgs/[org]/repos"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "get",
+      "description": "List organization repositories\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+    },
+    "codedata": {
+      "node": "RESOURCE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "github",
+      "packageName": "github",
+      "object": "Client",
+      "symbol": "get",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "github:Client",
+            "selected": false
+          }
+        ],
+        "value": "githubClient",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "resourcePath": {
+        "metadata": {
+          "label": "Resource Path",
+          "description": "Resource Path"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_PATH",
+            "selected": false
+          }
+        ],
+        "value": "/orgs/[org]/repos",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "originalName": "/orgs/[org]/repos"
+        }
+      },
+      "org": {
+        "metadata": {
+          "label": "org",
+          "description": "The organization name. The name is not case sensitive."
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PATH_PARAM",
+          "originalName": "org"
+        }
+      },
+      "$type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Specifies the types of repositories you want returned."
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              {
+                "label": "all",
+                "value": "\"all\""
+              },
+              {
+                "label": "public",
+                "value": "\"public\""
+              },
+              {
+                "label": "private",
+                "value": "\"private\""
+              },
+              {
+                "label": "forks",
+                "value": "\"forks\""
+              },
+              {
+                "label": "sources",
+                "value": "\"sources\""
+              },
+              {
+                "label": "member",
+                "value": "\"member\""
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "\"all\"|\"public\"|\"private\"|\"forks\"|\"sources\"|\"member\"",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"all\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "'type"
+        },
+        "defaultValue": "\"all\""
+      },
+      "sort": {
+        "metadata": {
+          "label": "Sort",
+          "description": "The property to sort the results by."
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              {
+                "label": "created",
+                "value": "\"created\""
+              },
+              {
+                "label": "updated",
+                "value": "\"updated\""
+              },
+              {
+                "label": "pushed",
+                "value": "\"pushed\""
+              },
+              {
+                "label": "full_name",
+                "value": "\"full_name\""
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "\"created\"|\"updated\"|\"pushed\"|\"full_name\"",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"created\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "sort"
+        },
+        "defaultValue": "\"created\""
+      },
+      "direction": {
+        "metadata": {
+          "label": "Direction",
+          "description": "The order to sort by. Default: `asc` when using `full_name`, otherwise `desc`."
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "\"desc\"?|\"asc\"",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "direction"
+        },
+        "defaultValue": "()"
+      },
+      "per_page": {
+        "metadata": {
+          "label": "Per Page",
+          "description": "The number of results per page (max 100)."
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int",
+            "selected": false
+          }
+        ],
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "per_page"
+        },
+        "defaultValue": "30"
+      },
+      "page": {
+        "metadata": {
+          "label": "Page",
+          "description": "Page number of the results to fetch."
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int",
+            "selected": false
+          }
+        ],
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "page"
+        },
+        "defaultValue": "1"
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "github:MinimalRepository[]",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "githubMinimalrepository",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

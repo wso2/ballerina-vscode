@@ -1,0 +1,65 @@
+{
+  "description": "Duplicate worker names",
+  "filePath": "worker.bal",
+  "context": {
+    "expression": "worker1",
+    "startLine": {
+      "line": 4,
+      "offset": 8
+    },
+    "offset": 0,
+    "lineOffset": 0,
+    "property": {
+      "metadata": {
+        "label": "Worker Name",
+        "description": "Name of the worker"
+      },
+      "value": "worker2",
+      "optional": false,
+      "editable": false,
+      "advanced": false,
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
+      "codedata": {
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 4,
+            "offset": 15
+          },
+          "endLine": {
+            "line": 4,
+            "offset": 22
+          }
+        }
+      },
+      "diagnostics": {
+        "hasDiagnostics": false,
+        "diagnostics": []
+      }
+    }
+  },
+  "diagnostics": [
+    {
+      "range": {
+        "start": {
+          "line": 4,
+          "character": 8
+        },
+        "end": {
+          "line": 4,
+          "character": 15
+        }
+      },
+      "severity": "Error",
+      "code": {
+        "left": "BCE2008"
+      },
+      "message": "redeclared symbol 'worker1'"
+    }
+  ]
+}

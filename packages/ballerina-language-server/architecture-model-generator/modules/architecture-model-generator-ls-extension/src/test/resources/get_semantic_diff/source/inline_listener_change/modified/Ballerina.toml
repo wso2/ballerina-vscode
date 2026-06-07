@@ -1,0 +1,8 @@
+[package]
+org = "wso2"
+name = "inline_listener_change"
+version = "0.1.0"
+title = "inline listener change"
+
+[build-options]
+sticky = true

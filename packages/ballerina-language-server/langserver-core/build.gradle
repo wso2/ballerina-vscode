@@ -1,0 +1,102 @@
+/*
+ *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
+apply from: "$rootDir/gradle/javaProject.gradle"
+apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: "java"
+
+configurations.all {
+    resolutionStrategy.preferProjectModules()
+}
+
+configurations {
+    balTools
+    dist {
+        transitive true
+    }
+}
+
+dependencies {
+    implementation project(":langserver-commons")
+
+    implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:ballerina-runtime:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:central-client:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:diagram-util:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:syntax-api-calls-gen:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:toml-parser:${ballerinaLangVersion}"
+
+    implementation "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonDataformatYamlVersion}"
+    implementation "io.netty:netty-buffer:${nettyBufferVersion}"
+    implementation "org.slf4j:slf4j-jdk14:${slf4jJdk14Version}"
+    implementation "com.google.code.findbugs:jsr305:${findbugsJsr305Version}"
+    implementation "org.apache.commons:commons-lang3:${apacheCommonsLang3Version}"
+    implementation "commons-io:commons-io:${commonsIoVersion}"
+    implementation "com.google.guava:guava:${guavaVersion}"
+    implementation "com.moandjiezana.toml:toml4j:${moandjiezanaToml4jVersion}"
+
+    testImplementation "org.testng:testng:${testngVersion}"
+    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+    testImplementation "org.awaitility:awaitility:${awaitilityVersion}"
+}
+
+ext.moduleName = 'io.ballerina.language-server-commons.extension'
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn configurations.dist
+    from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
+        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    }
+}
+
+tasks.register('copyRuntime') {
+    dependsOn configurations.dist
+    doFirst {
+        configurations.dist.each { artifact ->
+            copy {
+                from artifact.getPath()
+                into "$buildDir/bre/lib"
+            }
+        }
+    }
+}
+
+rootProject.configureBallerinaDistribution(project)
+
+test {
+    dependsOn copyRuntime
+
+    useTestNG() {
+        suites "src/test/resources/testng.xml"
+    }
+}
+
+compileJava {
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath,
+        ]
+        classpath = files()
+    }
+}
+

@@ -1,0 +1,216 @@
+{
+  "filePath": "test_pack1/types.bal",
+  "position": {
+    "line": 126,
+    "offset": 15
+  },
+  "description": "Get a class type of a readonly class",
+  "type": {
+    "name": "User3",
+    "editable": true,
+    "metadata": {
+      "label": "User3",
+      "description": "Readonly class"
+    },
+    "codedata": {
+      "node": "CLASS",
+      "lineRange": {
+        "fileName": "types.bal",
+        "startLine": {
+          "line": 126,
+          "offset": 15
+        },
+        "endLine": {
+          "line": 126,
+          "offset": 20
+        }
+      }
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "User3",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "qualifiers": {
+        "metadata": {
+          "label": "Type Qualifiers",
+          "description": "Qualifiers of the type"
+        },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT",
+            "selected": true
+          }
+        ],
+        "value": [
+          "readonly",
+          "isolated"
+        ],
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Make visible across the project"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isDistinct": {
+        "metadata": {
+          "label": "distinct",
+          "description": "Is this distinct"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isIsolated": {
+        "metadata": {
+          "label": "isolated",
+          "description": "Is this isolated"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "true",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isReadOnly": {
+        "metadata": {
+          "label": "readonly",
+          "description": "Is this readonly"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "true",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "networkQualifier": {
+        "metadata": {
+          "label": "Network Qualifier",
+          "description": "Network qualifier"
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              {
+                "label": "service",
+                "value": "service"
+              },
+              {
+                "label": "client",
+                "value": "client"
+              }
+            ],
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "members": [
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "int",
+        "typeName": "int",
+        "name": "uuid",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": "",
+        "selected": false
+      }
+    ],
+    "includes": [],
+    "functions": [],
+    "allowAdditionalFields": false
+  },
+  "refs": []
+}

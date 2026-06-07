@@ -1,0 +1,156 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "org": "ballerina",
+    "module": "lang.table",
+    "packageName": "lang.table",
+    "symbol": "reduce",
+    "version": "0.0.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "reduce",
+      "description": "Combines the members of a table using a combining function.\n\nThe combining function takes the combined value so far and a member of the table,\nand returns a new combined value.\n\n```ballerina\ntable<record {int id; int salary;}> employees = table [\n    {id: 1, salary: 1200},\n    {id: 2, salary: 1100},\n    {id: 3, salary: 800}\n];\nemployees.reduce(isolated function (int total, record {int id; int salary;} next) returns int => total + next.salary, 0) ⇒ 3100\n```\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.table_0.0.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "lang.table",
+      "packageName": "lang.table",
+      "symbol": "reduce",
+      "version": "0.0.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "t": {
+        "metadata": {
+          "label": "T",
+          "description": "the table"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "table<map<any|error>>",
+            "selected": false
+          }
+        ],
+        "placeholder": "table []",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "t"
+        }
+      },
+      "func": {
+        "metadata": {
+          "label": "Func",
+          "description": "combining function"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "function ((any|error) accum, map<any|error> val) returns (any|error)",
+            "selected": false
+          }
+        ],
+        "placeholder": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "func"
+        }
+      },
+      "initial": {
+        "metadata": {
+          "label": "Initial",
+          "description": "initial value for the first argument of combining parameter `func`"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "(any|error)",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "initial"
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "(any|error)",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "tableType",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

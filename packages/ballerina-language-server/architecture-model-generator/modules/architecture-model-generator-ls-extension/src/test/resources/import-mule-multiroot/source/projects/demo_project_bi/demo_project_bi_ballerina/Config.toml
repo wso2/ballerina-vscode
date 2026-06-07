@@ -1,0 +1,7 @@
+# Properties from mule-app.properties
+http_port = "9090"
+db_port = "3306"
+db_user = "root"
+db_pwd = "admin123"
+db_database = "test_db"
+

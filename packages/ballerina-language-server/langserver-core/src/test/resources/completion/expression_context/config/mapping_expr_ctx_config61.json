@@ -1,0 +1,41 @@
+{
+  "position": {
+    "line": 10,
+    "character": 22
+  },
+  "source": "expression_context/source/mapping_expr_ctx_source61.bal",
+  "description": "",
+  "items": [
+    {
+      "label": "readonly",
+      "kind": "Keyword",
+      "detail": "Keyword",
+      "sortText": "U",
+      "filterText": "readonly",
+      "insertText": "readonly ",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "pets",
+      "labelDetails": {
+        "detail": " Pet[]"
+      },
+      "kind": "Variable",
+      "detail": "Pet[]",
+      "sortText": "AB",
+      "insertText": "pets",
+      "insertTextFormat": "Snippet"
+    },
+    {
+      "label": "petStore",
+      "labelDetails": {
+        "detail": " PetStore"
+      },
+      "kind": "Variable",
+      "detail": "PetStore",
+      "sortText": "F",
+      "insertText": "petStore",
+      "insertTextFormat": "Snippet"
+    }
+  ]
+}

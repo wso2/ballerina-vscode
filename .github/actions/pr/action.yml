@@ -1,0 +1,132 @@
+name: 'Create PR and send notification'
+inputs:
+  version:
+    description: 'Publish version'
+    required: true
+  isPreRelease:
+    default: true
+    type: boolean
+  chatAPI:
+    description: 'Google chat API'
+    required: true
+  bot_username:
+    description: 'Ballerina bot username'
+    required: true
+  bot_email:
+    description: 'Ballerina bot email'
+    required: true
+  bot_token:
+    description: 'Ballerina bot token'
+    required: true
+  ref_name:
+    description: 'Branch name'
+    required: true
+  ballerina:
+    description: 'Is Ballerina'
+    type: boolean
+    default: false
+    required: true
+  commonLibs:
+    description: 'Is Common Lib'
+    type: boolean
+    default: false
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+      - name: Config git
+        shell: bash
+        run: |
+          git config --global user.name ${{ inputs.bot_username }}
+          git config --global user.email ${{ inputs.bot_email }}
+
+      - name: Add Ballerina git changes
+        if: ${{ inputs.ballerina == 'true' }}
+        shell: bash
+        run: git add packages/*/package.json
+
+      - name: Add common lib git changes
+        if: ${{ inputs.commonLibs == 'true' }}
+        shell: bash
+        run: git add submodules/wso2-vscode-extensions/workspaces/common-libs/*/package.json
+
+      - name: Commit version
+        shell: bash
+        id: commit
+        run: |
+          mv .git/config .git/config-old
+          git remote add origin https://${{ inputs.bot_token }}@github.com/${{ github.repository }}.git
+          git diff --staged --quiet || git commit -m "Update version to ${{ inputs.version }}"
+        env:
+          GH_TOKEN: ${{ inputs.bot_token }}
+
+      - name: Create tag
+        shell: bash
+        id: create_tag
+        run: |
+          git tag ${{ inputs.version }}
+          git push origin "refs/tags/${{ inputs.version }}"
+
+      - name: Create release branch
+        shell: bash
+        if: ${{ inputs.isPreRelease == 'false' }}
+        id: create_branch
+        run: |
+          git checkout -b "${{ inputs.version }}"
+          git push origin "refs/heads/${{ inputs.version }}"
+
+      - name: Create Pull Request
+        shell: bash
+        if: ${{ inputs.isPreRelease == 'false' }}
+        id: pr
+        run: |
+          baseBranch="stable/ballerina"
+          pr=$(gh pr create -B "$baseBranch" -H "${{ inputs.version }}" --title "Merge \"${{ inputs.version }}\" into \"$baseBranch\"" --body '$subject')
+          echo "prURL=$pr" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ inputs.bot_token }}
+
+      - name: "PR Notification"
+        if: ${{ inputs.isPreRelease == 'false' }}
+        shell: bash
+        run: |
+          body=$(cat << EOF
+          {
+            "cards": [
+              {
+                "header": {
+                    "title": "New Release PR"
+                },
+                "sections": [
+                  {
+                    "widgets": [
+                      {
+                        "keyValue": {
+                          "topLabel": "Pull Request",
+                          "content": "${{ steps.pr.outputs.prURL }}",
+                          "button": {
+                            "textButton": {
+                              "text": "Merge",
+                              "onClick": {
+                                "openLink": {
+                                  "url": "${{ steps.pr.outputs.prURL }}"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+          EOF
+          )
+          curl \
+            -X POST \
+            -H 'Content-Type: application/json' \
+            "${{ inputs.chatAPI }}" \
+            -d "$body"

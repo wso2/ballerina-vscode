@@ -1,0 +1,3331 @@
+{
+  "start": {
+    "line": 15,
+    "offset": 4
+  },
+  "end": {
+    "line": 56,
+    "offset": 5
+  },
+  "source": "currency_converter/main.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "main.bal",
+    "nodes": [
+      {
+        "id": "51465",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Resource",
+            "label": "converter",
+            "isServiceFunction": true,
+            "accessor": "get",
+            "parameters": [
+              "string 'from",
+              "string to",
+              "decimal amount"
+            ],
+            "return": "json|http:InternalServerError"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 15,
+              "offset": 115
+            },
+            "endLine": {
+              "line": 56,
+              "offset": 5
+            }
+          },
+          "sourceCode": "// http api event\n    resource function get converter(string 'from, string to, decimal amount) returns json|http:InternalServerError {\n        // error handler\n        do {\n            // new data\n            string key = 'from + \"-\" + to;\n            // action call - redis get call\n            string? cacheValue = check redisClient->get(key);\n\n            // if node\n            if cacheValue is string {\n                // new data\n                json newData = {\n                    value: check calculate(amount, cacheValue)\n                };\n                // return\n                return newData;\n            } else {\n                // action call - http get call\n                json response = check currencyClient->get(\"/latest?base=\" + 'from + \"&to=\" + to);\n\n                // new data\n                decimal value = check response.value;\n                // function call\n                decimal convertedAmount = check calculate(amount, value.toString());\n\n                // action call - redis set call\n                _ = check redisClient->set(key, convertedAmount.toString());\n\n                // new data\n                json newData = {\n                    value\n                };\n                // return\n                return newData;\n            }\n        } on fail error e {\n            // library call - log error\n            log:printError(\"error occured\", e);\n            // return \n            return http:INTERNAL_SERVER_ERROR;\n        }\n    }"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "47640",
+        "metadata": {
+          "label": "Comment",
+          "description": "error handler"
+        },
+        "codedata": {
+          "node": "COMMENT",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 16,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 16,
+              "offset": 24
+            }
+          },
+          "sourceCode": "error handler"
+        },
+        "returning": false,
+        "properties": {
+          "comment": {
+            "metadata": {
+              "label": "Comment",
+              "description": "Comment to describe the flow"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "selected": true
+              }
+            ],
+            "value": "error handler",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "50043",
+        "metadata": {
+          "label": "ErrorHandler",
+          "description": "Catch and handle errors"
+        },
+        "codedata": {
+          "node": "ERROR_HANDLER",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 17,
+              "offset": 8
+            },
+            "endLine": {
+              "line": 55,
+              "offset": 9
+            }
+          },
+          "sourceCode": "// error handler\n        do {\n            // new data\n            string key = 'from + \"-\" + to;\n            // action call - redis get call\n            string? cacheValue = check redisClient->get(key);\n\n            // if node\n            if cacheValue is string {\n                // new data\n                json newData = {\n                    value: check calculate(amount, cacheValue)\n                };\n                // return\n                return newData;\n            } else {\n                // action call - http get call\n                json response = check currencyClient->get(\"/latest?base=\" + 'from + \"&to=\" + to);\n\n                // new data\n                decimal value = check response.value;\n                // function call\n                decimal convertedAmount = check calculate(amount, value.toString());\n\n                // action call - redis set call\n                _ = check redisClient->set(key, convertedAmount.toString());\n\n                // new data\n                json newData = {\n                    value\n                };\n                // return\n                return newData;\n            }\n        } on fail error e {\n            // library call - log error\n            log:printError(\"error occured\", e);\n            // return \n            return http:INTERNAL_SERVER_ERROR;\n        }"
+        },
+        "returning": false,
+        "branches": [
+          {
+            "label": "Body",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "BODY",
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 17,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 50,
+                  "offset": 9
+                }
+              },
+              "sourceCode": "{\n            // new data\n            string key = 'from + \"-\" + to;\n            // action call - redis get call\n            string? cacheValue = check redisClient->get(key);\n\n            // if node\n            if cacheValue is string {\n                // new data\n                json newData = {\n                    value: check calculate(amount, cacheValue)\n                };\n                // return\n                return newData;\n            } else {\n                // action call - http get call\n                json response = check currencyClient->get(\"/latest?base=\" + 'from + \"&to=\" + to);\n\n                // new data\n                decimal value = check response.value;\n                // function call\n                decimal convertedAmount = check calculate(amount, value.toString());\n\n                // action call - redis set call\n                _ = check redisClient->set(key, convertedAmount.toString());\n\n                // new data\n                json newData = {\n                    value\n                };\n                // return\n                return newData;\n            }\n        }"
+            },
+            "repeatable": "ONE",
+            "children": [
+              {
+                "id": "49623",
+                "metadata": {
+                  "label": "Comment",
+                  "description": "new data"
+                },
+                "codedata": {
+                  "node": "COMMENT",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 18,
+                      "offset": 0
+                    },
+                    "endLine": {
+                      "line": 18,
+                      "offset": 23
+                    }
+                  },
+                  "sourceCode": "new data"
+                },
+                "returning": false,
+                "properties": {
+                  "comment": {
+                    "metadata": {
+                      "label": "Comment",
+                      "description": "Comment to describe the flow"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "new data",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "51006",
+                "metadata": {
+                  "label": "Declare Variable",
+                  "description": "Create a new variable"
+                },
+                "codedata": {
+                  "node": "VARIABLE",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 19,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 19,
+                      "offset": 42
+                    }
+                  },
+                  "sourceCode": "// new data\n            string key = 'from + \"-\" + to;"
+                },
+                "returning": false,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Initialize with value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
+                      }
+                    ],
+                    "value": "'from + \"-\" + to",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "variable": {
+                    "metadata": {
+                      "label": "Name",
+                      "description": "Name of the variable"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
+                      }
+                    ],
+                    "value": "key",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "lineRange": {
+                        "fileName": "main.bal",
+                        "startLine": {
+                          "line": 19,
+                          "offset": 19
+                        },
+                        "endLine": {
+                          "line": 19,
+                          "offset": 22
+                        }
+                      }
+                    }
+                  },
+                  "type": {
+                    "metadata": {
+                      "label": "Type",
+                      "description": "Type of the variable"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TYPE",
+                        "selected": true
+                      }
+                    ],
+                    "value": "string",
+                    "placeholder": "var",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {}
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "51627",
+                "metadata": {
+                  "label": "Comment",
+                  "description": "action call - redis get call"
+                },
+                "codedata": {
+                  "node": "COMMENT",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 20,
+                      "offset": 0
+                    },
+                    "endLine": {
+                      "line": 20,
+                      "offset": 43
+                    }
+                  },
+                  "sourceCode": "action call - redis get call"
+                },
+                "returning": false,
+                "properties": {
+                  "comment": {
+                    "metadata": {
+                      "label": "Comment",
+                      "description": "Comment to describe the flow"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "action call - redis get call",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "53009",
+                "metadata": {
+                  "label": "get",
+                  "description": "Get value of key.\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+                },
+                "codedata": {
+                  "node": "REMOTE_ACTION_CALL",
+                  "org": "ballerinax",
+                  "module": "redis",
+                  "packageName": "redis",
+                  "object": "Client",
+                  "symbol": "get",
+                  "version": "3.1.0",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 21,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 21,
+                      "offset": 61
+                    }
+                  },
+                  "sourceCode": "// action call - redis get call\n            string? cacheValue = check redisClient->get(key);"
+                },
+                "returning": false,
+                "properties": {
+                  "connection": {
+                    "metadata": {
+                      "label": "Connection",
+                      "description": "Connection to use",
+                      "data": {
+                        "connectorType": "Database"
+                      }
+                    },
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "selected": true
+                      }
+                    ],
+                    "value": "redisClient",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": true
+                  },
+                  "key": {
+                    "metadata": {
+                      "label": "Key",
+                      "description": "Key referring to a value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "ballerinaType": "string",
+                        "selected": false
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": true
+                      }
+                    ],
+                    "value": "key",
+                    "placeholder": "\"\"",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "REQUIRED",
+                      "originalName": "key"
+                    }
+                  },
+                  "checkError": {
+                    "metadata": {
+                      "label": "Check Error",
+                      "description": "Trigger error flow"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "FLAG",
+                        "selected": true
+                      }
+                    ],
+                    "value": true,
+                    "optional": false,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": true
+                  },
+                  "variable": {
+                    "metadata": {
+                      "label": "Result",
+                      "description": "Name of the result variable"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
+                      }
+                    ],
+                    "value": "cacheValue",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "lineRange": {
+                        "fileName": "main.bal",
+                        "startLine": {
+                          "line": 21,
+                          "offset": 20
+                        },
+                        "endLine": {
+                          "line": 21,
+                          "offset": 30
+                        }
+                      }
+                    }
+                  },
+                  "type": {
+                    "metadata": {
+                      "label": "Result Type",
+                      "description": "Type of the variable"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TYPE",
+                        "selected": true
+                      }
+                    ],
+                    "value": "string|()",
+                    "placeholder": "var",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": true,
+                    "codedata": {}
+                  }
+                },
+                "flags": 1
+              },
+              {
+                "id": "53621",
+                "metadata": {
+                  "label": "Comment",
+                  "description": "if node"
+                },
+                "codedata": {
+                  "node": "COMMENT",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 22,
+                      "offset": 0
+                    },
+                    "endLine": {
+                      "line": 23,
+                      "offset": 22
+                    }
+                  },
+                  "sourceCode": "if node"
+                },
+                "returning": false,
+                "properties": {
+                  "comment": {
+                    "metadata": {
+                      "label": "Comment",
+                      "description": "Comment to describe the flow"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "if node",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "56712",
+                "metadata": {
+                  "label": "If",
+                  "description": "Add conditional branch to the integration flow."
+                },
+                "codedata": {
+                  "node": "IF",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 24,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 49,
+                      "offset": 13
+                    }
+                  },
+                  "sourceCode": "// if node\n            if cacheValue is string {\n                // new data\n                json newData = {\n                    value: check calculate(amount, cacheValue)\n                };\n                // return\n                return newData;\n            } else {\n                // action call - http get call\n                json response = check currencyClient->get(\"/latest?base=\" + 'from + \"&to=\" + to);\n\n                // new data\n                decimal value = check response.value;\n                // function call\n                decimal convertedAmount = check calculate(amount, value.toString());\n\n                // action call - redis set call\n                _ = check redisClient->set(key, convertedAmount.toString());\n\n                // new data\n                json newData = {\n                    value\n                };\n                // return\n                return newData;\n            }"
+                },
+                "returning": false,
+                "branches": [
+                  {
+                    "label": "Then",
+                    "kind": "BLOCK",
+                    "codedata": {
+                      "node": "CONDITIONAL",
+                      "lineRange": {
+                        "fileName": "main.bal",
+                        "startLine": {
+                          "line": 24,
+                          "offset": 36
+                        },
+                        "endLine": {
+                          "line": 31,
+                          "offset": 13
+                        }
+                      },
+                      "sourceCode": "{\n                // new data\n                json newData = {\n                    value: check calculate(amount, cacheValue)\n                };\n                // return\n                return newData;\n            }"
+                    },
+                    "repeatable": "ONE_OR_MORE",
+                    "properties": {
+                      "condition": {
+                        "metadata": {
+                          "label": "Condition",
+                          "description": "Boolean Condition"
+                        },
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "boolean",
+                            "selected": true
+                          }
+                        ],
+                        "value": "cacheValue is string ",
+                        "placeholder": "true",
+                        "optional": false,
+                        "editable": true,
+                        "advanced": false,
+                        "hidden": false
+                      }
+                    },
+                    "children": [
+                      {
+                        "id": "56571",
+                        "metadata": {
+                          "label": "Comment",
+                          "description": "new data"
+                        },
+                        "codedata": {
+                          "node": "COMMENT",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 25,
+                              "offset": 0
+                            },
+                            "endLine": {
+                              "line": 25,
+                              "offset": 27
+                            }
+                          },
+                          "sourceCode": "new data"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "comment": {
+                            "metadata": {
+                              "label": "Comment",
+                              "description": "Comment to describe the flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "selected": true
+                              }
+                            ],
+                            "value": "new data",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "58112",
+                        "metadata": {
+                          "label": "Declare Variable",
+                          "description": "Create a new variable"
+                        },
+                        "codedata": {
+                          "node": "VARIABLE",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 26,
+                              "offset": 16
+                            },
+                            "endLine": {
+                              "line": 28,
+                              "offset": 18
+                            }
+                          },
+                          "sourceCode": "// new data\n                json newData = {\n                    value: check calculate(amount, cacheValue)\n                };"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "expression": {
+                            "metadata": {
+                              "label": "Expression",
+                              "description": "Initialize with value"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
+                              }
+                            ],
+                            "value": "{\n                    value: check calculate(amount, cacheValue)\n                }",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          },
+                          "variable": {
+                            "metadata": {
+                              "label": "Name",
+                              "description": "Name of the variable"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
+                              }
+                            ],
+                            "value": "newData",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "lineRange": {
+                                "fileName": "main.bal",
+                                "startLine": {
+                                  "line": 26,
+                                  "offset": 21
+                                },
+                                "endLine": {
+                                  "line": 26,
+                                  "offset": 28
+                                }
+                              }
+                            }
+                          },
+                          "type": {
+                            "metadata": {
+                              "label": "Type",
+                              "description": "Type of the variable"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TYPE",
+                                "selected": true
+                              }
+                            ],
+                            "value": "json",
+                            "placeholder": "var",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {}
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "60537",
+                        "metadata": {
+                          "label": "Comment",
+                          "description": "return"
+                        },
+                        "codedata": {
+                          "node": "COMMENT",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 29,
+                              "offset": 0
+                            },
+                            "endLine": {
+                              "line": 29,
+                              "offset": 25
+                            }
+                          },
+                          "sourceCode": "return"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "comment": {
+                            "metadata": {
+                              "label": "Comment",
+                              "description": "Comment to describe the flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "selected": true
+                              }
+                            ],
+                            "value": "return",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "62031",
+                        "metadata": {
+                          "label": "Return",
+                          "description": "Value of 'newData'"
+                        },
+                        "codedata": {
+                          "node": "RETURN",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 30,
+                              "offset": 16
+                            },
+                            "endLine": {
+                              "line": 30,
+                              "offset": 31
+                            }
+                          },
+                          "sourceCode": "// return\n                return newData;"
+                        },
+                        "returning": true,
+                        "properties": {
+                          "expression": {
+                            "metadata": {
+                              "label": "Expression",
+                              "description": "Return value"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
+                              }
+                            ],
+                            "value": "newData",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "flags": 0
+                      }
+                    ]
+                  },
+                  {
+                    "label": "Else",
+                    "kind": "BLOCK",
+                    "codedata": {
+                      "node": "ELSE",
+                      "lineRange": {
+                        "fileName": "main.bal",
+                        "startLine": {
+                          "line": 31,
+                          "offset": 19
+                        },
+                        "endLine": {
+                          "line": 49,
+                          "offset": 13
+                        }
+                      },
+                      "sourceCode": "{\n                // action call - http get call\n                json response = check currencyClient->get(\"/latest?base=\" + 'from + \"&to=\" + to);\n\n                // new data\n                decimal value = check response.value;\n                // function call\n                decimal convertedAmount = check calculate(amount, value.toString());\n\n                // action call - redis set call\n                _ = check redisClient->set(key, convertedAmount.toString());\n\n                // new data\n                json newData = {\n                    value\n                };\n                // return\n                return newData;\n            }"
+                    },
+                    "repeatable": "ZERO_OR_ONE",
+                    "children": [
+                      {
+                        "id": "63534",
+                        "metadata": {
+                          "label": "Comment",
+                          "description": "action call - http get call"
+                        },
+                        "codedata": {
+                          "node": "COMMENT",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 32,
+                              "offset": 0
+                            },
+                            "endLine": {
+                              "line": 32,
+                              "offset": 46
+                            }
+                          },
+                          "sourceCode": "action call - http get call"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "comment": {
+                            "metadata": {
+                              "label": "Comment",
+                              "description": "Comment to describe the flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "selected": true
+                              }
+                            ],
+                            "value": "action call - http get call",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "65073",
+                        "metadata": {
+                          "label": "get",
+                          "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
+                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
+                        },
+                        "codedata": {
+                          "node": "REMOTE_ACTION_CALL",
+                          "org": "ballerina",
+                          "module": "http",
+                          "packageName": "http",
+                          "object": "Client",
+                          "symbol": "get",
+                          "version": "2.16.3",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 33,
+                              "offset": 16
+                            },
+                            "endLine": {
+                              "line": 33,
+                              "offset": 97
+                            }
+                          },
+                          "sourceCode": "// action call - http get call\n                json response = check currencyClient->get(\"/latest?base=\" + 'from + \"&to=\" + to);",
+                          "inferredReturnType": "targetType"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "connection": {
+                            "metadata": {
+                              "label": "Connection",
+                              "description": "Connection to use",
+                              "data": {
+                                "connectorType": "Network"
+                              }
+                            },
+                            "types": [
+                              {
+                                "fieldType": "EXPRESSION",
+                                "selected": true
+                              }
+                            ],
+                            "value": "currencyClient",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": true
+                          },
+                          "targetType": {
+                            "metadata": {
+                              "label": "Target Type",
+                              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TYPE",
+                                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                                "selected": false
+                              }
+                            ],
+                            "value": "json",
+                            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "PARAM_FOR_TYPE_INFER",
+                              "originalName": "targetType"
+                            },
+                            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+                          },
+                          "path": {
+                            "metadata": {
+                              "label": "Path",
+                              "description": "Request path"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "ballerinaType": "string",
+                                "selected": false
+                              },
+                              {
+                                "fieldType": "EXPRESSION",
+                                "ballerinaType": "string",
+                                "selected": true
+                              }
+                            ],
+                            "value": "\"/latest?base=\" + 'from + \"&to=\" + to",
+                            "placeholder": "\"\"",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "REQUIRED",
+                              "originalName": "path"
+                            }
+                          },
+                          "headers": {
+                            "metadata": {
+                              "label": "Headers",
+                              "description": "The entity headers"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "REPEATABLE_MAP",
+                                "ballerinaType": "map<string|string[]>",
+                                "template": {
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    },
+                                    {
+                                      "fieldType": "REPEATABLE_LIST",
+                                      "ballerinaType": "string[]",
+                                      "template": {
+                                        "types": [
+                                          {
+                                            "fieldType": "TEXT",
+                                            "ballerinaType": "string",
+                                            "selected": false
+                                          },
+                                          {
+                                            "fieldType": "EXPRESSION",
+                                            "ballerinaType": "string",
+                                            "selected": false
+                                          }
+                                        ],
+                                        "optional": false,
+                                        "editable": false,
+                                        "advanced": false,
+                                        "hidden": false
+                                      },
+                                      "selected": false
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string|string[]",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "optional": false,
+                                  "editable": false,
+                                  "advanced": false,
+                                  "hidden": false
+                                },
+                                "selected": false
+                              },
+                              {
+                                "fieldType": "EXPRESSION",
+                                "ballerinaType": "map<string|string[]>?",
+                                "selected": false
+                              }
+                            ],
+                            "placeholder": "()",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": true,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "DEFAULTABLE",
+                              "originalName": "headers"
+                            },
+                            "defaultValue": "()"
+                          },
+                          "checkError": {
+                            "metadata": {
+                              "label": "Check Error",
+                              "description": "Trigger error flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "FLAG",
+                                "selected": true
+                              }
+                            ],
+                            "value": true,
+                            "optional": false,
+                            "editable": true,
+                            "advanced": true,
+                            "hidden": true
+                          },
+                          "variable": {
+                            "metadata": {
+                              "label": "Result",
+                              "description": "Name of the result variable"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
+                              }
+                            ],
+                            "value": "response",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "lineRange": {
+                                "fileName": "main.bal",
+                                "startLine": {
+                                  "line": 33,
+                                  "offset": 21
+                                },
+                                "endLine": {
+                                  "line": 33,
+                                  "offset": 29
+                                }
+                              }
+                            }
+                          },
+                          "type": {
+                            "metadata": {
+                              "label": "Result Type",
+                              "description": "Type of the variable"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TYPE",
+                                "selected": true
+                              }
+                            ],
+                            "value": "json",
+                            "placeholder": "var",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": true,
+                            "codedata": {}
+                          }
+                        },
+                        "flags": 1
+                      },
+                      {
+                        "id": "65530",
+                        "metadata": {
+                          "label": "Comment",
+                          "description": "new data"
+                        },
+                        "codedata": {
+                          "node": "COMMENT",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 34,
+                              "offset": 0
+                            },
+                            "endLine": {
+                              "line": 35,
+                              "offset": 27
+                            }
+                          },
+                          "sourceCode": "new data"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "comment": {
+                            "metadata": {
+                              "label": "Comment",
+                              "description": "Comment to describe the flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "selected": true
+                              }
+                            ],
+                            "value": "new data",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "68005",
+                        "metadata": {
+                          "label": "Declare Variable",
+                          "description": "Create a new variable"
+                        },
+                        "codedata": {
+                          "node": "VARIABLE",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 36,
+                              "offset": 16
+                            },
+                            "endLine": {
+                              "line": 36,
+                              "offset": 53
+                            }
+                          },
+                          "sourceCode": "// new data\n                decimal value = check response.value;"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "expression": {
+                            "metadata": {
+                              "label": "Expression",
+                              "description": "Initialize with value"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
+                              }
+                            ],
+                            "value": "check response.value",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          },
+                          "variable": {
+                            "metadata": {
+                              "label": "Name",
+                              "description": "Name of the variable"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
+                              }
+                            ],
+                            "value": "value",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "lineRange": {
+                                "fileName": "main.bal",
+                                "startLine": {
+                                  "line": 36,
+                                  "offset": 24
+                                },
+                                "endLine": {
+                                  "line": 36,
+                                  "offset": 29
+                                }
+                              }
+                            }
+                          },
+                          "type": {
+                            "metadata": {
+                              "label": "Type",
+                              "description": "Type of the variable"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TYPE",
+                                "selected": true
+                              }
+                            ],
+                            "value": "decimal",
+                            "placeholder": "var",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {}
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "68480",
+                        "metadata": {
+                          "label": "Comment",
+                          "description": "function call"
+                        },
+                        "codedata": {
+                          "node": "COMMENT",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 37,
+                              "offset": 0
+                            },
+                            "endLine": {
+                              "line": 37,
+                              "offset": 32
+                            }
+                          },
+                          "sourceCode": "function call"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "comment": {
+                            "metadata": {
+                              "label": "Comment",
+                              "description": "Comment to describe the flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "selected": true
+                              }
+                            ],
+                            "value": "function call",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "70020",
+                        "metadata": {
+                          "label": "calculate",
+                          "description": ""
+                        },
+                        "codedata": {
+                          "node": "FUNCTION_CALL",
+                          "org": "nipunaf",
+                          "module": "currency_converter",
+                          "packageName": "currency_converter",
+                          "symbol": "calculate",
+                          "version": "0.1.0",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 38,
+                              "offset": 16
+                            },
+                            "endLine": {
+                              "line": 38,
+                              "offset": 84
+                            }
+                          },
+                          "sourceCode": "// function call\n                decimal convertedAmount = check calculate(amount, value.toString());"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "view": {
+                            "metadata": {
+                              "label": "View",
+                              "description": "Function definition location"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "VIEW",
+                                "selected": true
+                              }
+                            ],
+                            "value": {
+                              "fileName": "main.bal",
+                              "startLine": {
+                                "line": 63,
+                                "offset": 0
+                              },
+                              "endLine": {
+                                "line": 64,
+                                "offset": 53
+                              }
+                            },
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false
+                          },
+                          "amount": {
+                            "metadata": {
+                              "label": "Amount"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "NUMBER",
+                                "ballerinaType": "decimal",
+                                "selected": false
+                              },
+                              {
+                                "fieldType": "EXPRESSION",
+                                "ballerinaType": "decimal",
+                                "selected": true
+                              }
+                            ],
+                            "value": "amount",
+                            "placeholder": "0.0d",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "REQUIRED",
+                              "originalName": "amount"
+                            }
+                          },
+                          "cacheValue": {
+                            "metadata": {
+                              "label": "Cache Value"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "ballerinaType": "string",
+                                "selected": false
+                              },
+                              {
+                                "fieldType": "EXPRESSION",
+                                "ballerinaType": "string",
+                                "selected": true
+                              }
+                            ],
+                            "value": "value.toString()",
+                            "placeholder": "\"\"",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "REQUIRED",
+                              "originalName": "cacheValue"
+                            }
+                          },
+                          "checkError": {
+                            "metadata": {
+                              "label": "Check Error",
+                              "description": "Trigger error flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "FLAG",
+                                "selected": true
+                              }
+                            ],
+                            "value": true,
+                            "optional": false,
+                            "editable": true,
+                            "advanced": true,
+                            "hidden": true
+                          },
+                          "variable": {
+                            "metadata": {
+                              "label": "Result",
+                              "description": "Name of the result variable"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
+                              }
+                            ],
+                            "value": "convertedAmount",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "lineRange": {
+                                "fileName": "main.bal",
+                                "startLine": {
+                                  "line": 38,
+                                  "offset": 24
+                                },
+                                "endLine": {
+                                  "line": 38,
+                                  "offset": 39
+                                }
+                              }
+                            }
+                          },
+                          "type": {
+                            "metadata": {
+                              "label": "Result Type",
+                              "description": "Type of the variable"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TYPE",
+                                "selected": true
+                              }
+                            ],
+                            "value": "decimal",
+                            "placeholder": "var",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {}
+                          }
+                        },
+                        "flags": 1
+                      },
+                      {
+                        "id": "70510",
+                        "metadata": {
+                          "label": "Comment",
+                          "description": "action call - redis set call"
+                        },
+                        "codedata": {
+                          "node": "COMMENT",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 39,
+                              "offset": 0
+                            },
+                            "endLine": {
+                              "line": 40,
+                              "offset": 47
+                            }
+                          },
+                          "sourceCode": "action call - redis set call"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "comment": {
+                            "metadata": {
+                              "label": "Comment",
+                              "description": "Comment to describe the flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "selected": true
+                              }
+                            ],
+                            "value": "action call - redis set call",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "72988",
+                        "metadata": {
+                          "label": "set",
+                          "description": "Set the value of a key.\n",
+                          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+                        },
+                        "codedata": {
+                          "node": "REMOTE_ACTION_CALL",
+                          "org": "ballerinax",
+                          "module": "redis",
+                          "packageName": "redis",
+                          "object": "Client",
+                          "symbol": "set",
+                          "version": "3.1.0",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 41,
+                              "offset": 16
+                            },
+                            "endLine": {
+                              "line": 41,
+                              "offset": 76
+                            }
+                          },
+                          "sourceCode": "// action call - redis set call\n                _ = check redisClient->set(key, convertedAmount.toString());"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "connection": {
+                            "metadata": {
+                              "label": "Connection",
+                              "description": "Connection to use",
+                              "data": {
+                                "connectorType": "Database"
+                              }
+                            },
+                            "types": [
+                              {
+                                "fieldType": "EXPRESSION",
+                                "selected": true
+                              }
+                            ],
+                            "value": "redisClient",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": true
+                          },
+                          "key": {
+                            "metadata": {
+                              "label": "Key",
+                              "description": "Key referring to a value"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "ballerinaType": "string",
+                                "selected": false
+                              },
+                              {
+                                "fieldType": "EXPRESSION",
+                                "ballerinaType": "string",
+                                "selected": true
+                              }
+                            ],
+                            "value": "key",
+                            "placeholder": "\"\"",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "REQUIRED",
+                              "originalName": "key"
+                            }
+                          },
+                          "value": {
+                            "metadata": {
+                              "label": "Value",
+                              "description": "Values"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "ballerinaType": "string",
+                                "selected": false
+                              },
+                              {
+                                "fieldType": "EXPRESSION",
+                                "ballerinaType": "string",
+                                "selected": true
+                              }
+                            ],
+                            "value": "convertedAmount.toString()",
+                            "placeholder": "\"\"",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "kind": "REQUIRED",
+                              "originalName": "value"
+                            }
+                          },
+                          "checkError": {
+                            "metadata": {
+                              "label": "Check Error",
+                              "description": "Trigger error flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "FLAG",
+                                "selected": true
+                              }
+                            ],
+                            "value": true,
+                            "optional": false,
+                            "editable": true,
+                            "advanced": true,
+                            "hidden": true
+                          }
+                        },
+                        "flags": 1
+                      },
+                      {
+                        "id": "73466",
+                        "metadata": {
+                          "label": "Comment",
+                          "description": "new data"
+                        },
+                        "codedata": {
+                          "node": "COMMENT",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 42,
+                              "offset": 0
+                            },
+                            "endLine": {
+                              "line": 43,
+                              "offset": 27
+                            }
+                          },
+                          "sourceCode": "new data"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "comment": {
+                            "metadata": {
+                              "label": "Comment",
+                              "description": "Comment to describe the flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "selected": true
+                              }
+                            ],
+                            "value": "new data",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "75968",
+                        "metadata": {
+                          "label": "Declare Variable",
+                          "description": "Create a new variable"
+                        },
+                        "codedata": {
+                          "node": "VARIABLE",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 44,
+                              "offset": 16
+                            },
+                            "endLine": {
+                              "line": 46,
+                              "offset": 18
+                            }
+                          },
+                          "sourceCode": "// new data\n                json newData = {\n                    value\n                };"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "expression": {
+                            "metadata": {
+                              "label": "Expression",
+                              "description": "Initialize with value"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
+                              }
+                            ],
+                            "value": "{\n                    value\n                }",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          },
+                          "variable": {
+                            "metadata": {
+                              "label": "Name",
+                              "description": "Name of the variable"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
+                              }
+                            ],
+                            "value": "newData",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {
+                              "lineRange": {
+                                "fileName": "main.bal",
+                                "startLine": {
+                                  "line": 44,
+                                  "offset": 21
+                                },
+                                "endLine": {
+                                  "line": 44,
+                                  "offset": 28
+                                }
+                              }
+                            }
+                          },
+                          "type": {
+                            "metadata": {
+                              "label": "Type",
+                              "description": "Type of the variable"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TYPE",
+                                "selected": true
+                              }
+                            ],
+                            "value": "json",
+                            "placeholder": "var",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false,
+                            "codedata": {}
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "78393",
+                        "metadata": {
+                          "label": "Comment",
+                          "description": "return"
+                        },
+                        "codedata": {
+                          "node": "COMMENT",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 47,
+                              "offset": 0
+                            },
+                            "endLine": {
+                              "line": 47,
+                              "offset": 25
+                            }
+                          },
+                          "sourceCode": "return"
+                        },
+                        "returning": false,
+                        "properties": {
+                          "comment": {
+                            "metadata": {
+                              "label": "Comment",
+                              "description": "Comment to describe the flow"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "selected": true
+                              }
+                            ],
+                            "value": "return",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "flags": 0
+                      },
+                      {
+                        "id": "79887",
+                        "metadata": {
+                          "label": "Return",
+                          "description": "Value of 'newData'"
+                        },
+                        "codedata": {
+                          "node": "RETURN",
+                          "lineRange": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                              "line": 48,
+                              "offset": 16
+                            },
+                            "endLine": {
+                              "line": 48,
+                              "offset": 31
+                            }
+                          },
+                          "sourceCode": "// return\n                return newData;"
+                        },
+                        "returning": true,
+                        "properties": {
+                          "expression": {
+                            "metadata": {
+                              "label": "Expression",
+                              "description": "Return value"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
+                              }
+                            ],
+                            "value": "newData",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "flags": 0
+                      }
+                    ]
+                  }
+                ],
+                "flags": 0
+              }
+            ]
+          },
+          {
+            "label": "On Failure",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "ON_FAILURE",
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 50,
+                  "offset": 26
+                },
+                "endLine": {
+                  "line": 55,
+                  "offset": 9
+                }
+              },
+              "sourceCode": "{\n            // library call - log error\n            log:printError(\"error occured\", e);\n            // return \n            return http:INTERNAL_SERVER_ERROR;\n        }"
+            },
+            "repeatable": "ZERO_OR_ONE",
+            "properties": {
+              "ignore": {
+                "metadata": {
+                  "label": "Ignore",
+                  "description": "Ignore the error value"
+                },
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "selected": true
+                  }
+                ],
+                "value": "false",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "errorVariable": {
+                "metadata": {
+                  "label": "Error Variable",
+                  "description": "Name of the error variable"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
+                  }
+                ],
+                "value": "e ",
+                "placeholder": "err",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "errorType": {
+                "metadata": {
+                  "label": "Error Type",
+                  "description": "Type of the error"
+                },
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "selected": true
+                  }
+                ],
+                "value": "redis:error|error|http:error|error",
+                "placeholder": "error",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "children": [
+              {
+                "id": "82375",
+                "metadata": {
+                  "label": "Comment",
+                  "description": "library call - log error"
+                },
+                "codedata": {
+                  "node": "COMMENT",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 51,
+                      "offset": 0
+                    },
+                    "endLine": {
+                      "line": 51,
+                      "offset": 39
+                    }
+                  },
+                  "sourceCode": "library call - log error"
+                },
+                "returning": false,
+                "properties": {
+                  "comment": {
+                    "metadata": {
+                      "label": "Comment",
+                      "description": "Comment to describe the flow"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "library call - log error",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "83747",
+                "metadata": {
+                  "label": "printError",
+                  "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.17.0.png"
+                },
+                "codedata": {
+                  "node": "FUNCTION_CALL",
+                  "org": "ballerina",
+                  "module": "log",
+                  "packageName": "log",
+                  "symbol": "printError",
+                  "version": "2.17.0",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 52,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 52,
+                      "offset": 47
+                    }
+                  },
+                  "sourceCode": "// library call - log error\n            log:printError(\"error occured\", e);"
+                },
+                "returning": false,
+                "properties": {
+                  "msg": {
+                    "metadata": {
+                      "label": "Msg",
+                      "description": "The message to be logged"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "ballerinaType": "string",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string|log:PrintableRawTemplate",
+                        "selected": false
+                      }
+                    ],
+                    "value": "\"error occured\"",
+                    "placeholder": "\"\"",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "REQUIRED",
+                      "originalName": "msg"
+                    }
+                  },
+                  "error": {
+                    "metadata": {
+                      "label": "Error",
+                      "description": "The error struct to be logged"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error?",
+                        "selected": true
+                      }
+                    ],
+                    "value": "e",
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "DEFAULTABLE",
+                      "originalName": "'error"
+                    },
+                    "defaultValue": "()"
+                  },
+                  "stackTrace": {
+                    "metadata": {
+                      "label": "Stack Trace",
+                      "description": "The error stack trace to be logged"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "error:StackFrame[]",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "error:StackFrame",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": false
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error:StackFrame[]?",
+                        "selected": false
+                      }
+                    ],
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "DEFAULTABLE",
+                      "originalName": "stackTrace"
+                    },
+                    "defaultValue": "()"
+                  },
+                  "additionalValues": {
+                    "metadata": {
+                      "label": "Additional Values",
+                      "description": "Capture key value pairs"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "REPEATABLE_MAP",
+                        "ballerinaType": "log:Value",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "log:Value",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
+                      }
+                    ],
+                    "value": {},
+                    "placeholder": "{}",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "INCLUDED_RECORD_REST",
+                      "originalName": "Additional Values"
+                    }
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "84342",
+                "metadata": {
+                  "label": "Comment",
+                  "description": "return "
+                },
+                "codedata": {
+                  "node": "COMMENT",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 53,
+                      "offset": 0
+                    },
+                    "endLine": {
+                      "line": 53,
+                      "offset": 22
+                    }
+                  },
+                  "sourceCode": "return "
+                },
+                "returning": false,
+                "properties": {
+                  "comment": {
+                    "metadata": {
+                      "label": "Comment",
+                      "description": "Comment to describe the flow"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "return ",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "85730",
+                "metadata": {
+                  "label": "Return",
+                  "description": "Value of 'http:INTERNAL_SERVER_ERROR'"
+                },
+                "codedata": {
+                  "node": "RETURN",
+                  "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                      "line": 54,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 54,
+                      "offset": 46
+                    }
+                  },
+                  "sourceCode": "// return \n            return http:INTERNAL_SERVER_ERROR;"
+                },
+                "returning": true,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Return value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
+                      }
+                    ],
+                    "value": "http:INTERNAL_SERVER_ERROR",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          }
+        ],
+        "flags": 0
+      }
+    ],
+    "connections": [
+      {
+        "id": "42750",
+        "metadata": {
+          "label": "HTTP",
+          "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
+        },
+        "codedata": {
+          "node": "NEW_CONNECTION",
+          "org": "ballerina",
+          "module": "http",
+          "object": "Client",
+          "symbol": "init",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 11,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 11,
+              "offset": 94
+            }
+          },
+          "sourceCode": "// new connection\nfinal http:Client currencyClient = check new (url = \"https://api.exchangeratesapi.io/latest\");"
+        },
+        "returning": false,
+        "properties": {
+          "url": {
+            "metadata": {
+              "label": "Url",
+              "description": "URL of the target service"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": false
+              }
+            ],
+            "value": "\"https://api.exchangeratesapi.io/latest\"",
+            "placeholder": "\"\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "url"
+            }
+          },
+          "httpVersion": {
+            "metadata": {
+              "label": "HTTP Version",
+              "description": "HTTP protocol version supported by the client"
+            },
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "options": [
+                  {
+                    "label": "2.0",
+                    "value": "\"2.0\""
+                  },
+                  {
+                    "label": "1.1",
+                    "value": "\"1.1\""
+                  },
+                  {
+                    "label": "1.0",
+                    "value": "\"1.0\""
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:HttpVersion",
+                "selected": false
+              }
+            ],
+            "placeholder": "\"2.0\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "httpVersion"
+            },
+            "defaultValue": "\"2.0\""
+          },
+          "http1Settings": {
+            "metadata": {
+              "label": "HTTP1 Settings",
+              "description": "HTTP/1.x specific settings"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientHttp1Settings",
+                "typeMembers": [
+                  {
+                    "type": "ClientHttp1Settings",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientHttp1Settings",
+                "selected": false
+              }
+            ],
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "http1Settings"
+            },
+            "defaultValue": "{}"
+          },
+          "http2Settings": {
+            "metadata": {
+              "label": "HTTP2 Settings",
+              "description": "HTTP/2 specific settings"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientHttp2Settings",
+                "typeMembers": [
+                  {
+                    "type": "ClientHttp2Settings",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientHttp2Settings",
+                "selected": false
+              }
+            ],
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "http2Settings"
+            },
+            "defaultValue": "{}"
+          },
+          "timeout": {
+            "metadata": {
+              "label": "Timeout",
+              "description": "Maximum time(in seconds) to wait for a response before the request times out"
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal",
+                "selected": false
+              }
+            ],
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "timeout"
+            },
+            "defaultValue": "0.0d"
+          },
+          "forwarded": {
+            "metadata": {
+              "label": "Forwarded",
+              "description": "The choice of setting `Forwarded`/`X-Forwarded-For` header, when acting as a proxy"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": false
+              }
+            ],
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "forwarded"
+            },
+            "defaultValue": "\"\""
+          },
+          "followRedirects": {
+            "metadata": {
+              "label": "Follow Redirects",
+              "description": "HTTP redirect handling configurations (with 3xx status codes)"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:FollowRedirects",
+                "typeMembers": [
+                  {
+                    "type": "FollowRedirects",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:FollowRedirects?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "followRedirects"
+            },
+            "defaultValue": "()"
+          },
+          "poolConfig": {
+            "metadata": {
+              "label": "Pool Config",
+              "description": "Configurations associated with the request connection pool"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:PoolConfiguration",
+                "typeMembers": [
+                  {
+                    "type": "PoolConfiguration",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:PoolConfiguration?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "poolConfig"
+            },
+            "defaultValue": "()"
+          },
+          "cache": {
+            "metadata": {
+              "label": "Cache",
+              "description": "HTTP response caching related configurations"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CacheConfig",
+                "typeMembers": [
+                  {
+                    "type": "CacheConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:CacheConfig",
+                "selected": false
+              }
+            ],
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "cache"
+            },
+            "defaultValue": "{}"
+          },
+          "compression": {
+            "metadata": {
+              "label": "Compression",
+              "description": "Enable request/response compression (using `accept-encoding` header)"
+            },
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "options": [
+                  {
+                    "label": "AUTO",
+                    "value": "\"AUTO\""
+                  },
+                  {
+                    "label": "ALWAYS",
+                    "value": "\"ALWAYS\""
+                  },
+                  {
+                    "label": "NEVER",
+                    "value": "\"NEVER\""
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:Compression",
+                "selected": false
+              }
+            ],
+            "placeholder": "\"AUTO\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "compression"
+            },
+            "defaultValue": "\"AUTO\""
+          },
+          "auth": {
+            "metadata": {
+              "label": "Auth",
+              "description": "Client authentication options (Basic, Bearer token, OAuth, etc.)"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CredentialsConfig|http:BearerTokenConfig|http:JwtIssuerConfig|http:OAuth2ClientCredentialsGrantConfig|http:OAuth2PasswordGrantConfig|http:OAuth2RefreshTokenGrantConfig|http:OAuth2JwtBearerGrantConfig",
+                "typeMembers": [
+                  {
+                    "type": "CredentialsConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "BearerTokenConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "JwtIssuerConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2ClientCredentialsGrantConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2PasswordGrantConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2RefreshTokenGrantConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  },
+                  {
+                    "type": "OAuth2JwtBearerGrantConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientAuthConfig?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "auth"
+            },
+            "defaultValue": "()"
+          },
+          "circuitBreaker": {
+            "metadata": {
+              "label": "Circuit Breaker",
+              "description": "Circuit breaker configurations to prevent cascading failures"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CircuitBreakerConfig",
+                "typeMembers": [
+                  {
+                    "type": "CircuitBreakerConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:CircuitBreakerConfig?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "circuitBreaker"
+            },
+            "defaultValue": "()"
+          },
+          "retryConfig": {
+            "metadata": {
+              "label": "Retry Config",
+              "description": "Automatic retry settings for failed requests"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:RetryConfig",
+                "typeMembers": [
+                  {
+                    "type": "RetryConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:RetryConfig?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryConfig"
+            },
+            "defaultValue": "()"
+          },
+          "cookieConfig": {
+            "metadata": {
+              "label": "Cookie Config",
+              "description": "Cookie handling settings for session management"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:CookieConfig",
+                "typeMembers": [
+                  {
+                    "type": "CookieConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:CookieConfig?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "cookieConfig"
+            },
+            "defaultValue": "()"
+          },
+          "responseLimits": {
+            "metadata": {
+              "label": "Response Limits",
+              "description": "Limits for response size and headers (to prevent memory issues)"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ResponseLimitConfigs",
+                "typeMembers": [
+                  {
+                    "type": "ResponseLimitConfigs",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ResponseLimitConfigs",
+                "selected": false
+              }
+            ],
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "responseLimits"
+            },
+            "defaultValue": "{}"
+          },
+          "proxy": {
+            "metadata": {
+              "label": "Proxy",
+              "description": "Proxy server settings if requests need to go through a proxy"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ProxyConfig",
+                "typeMembers": [
+                  {
+                    "type": "ProxyConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ProxyConfig?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "proxy"
+            },
+            "defaultValue": "()"
+          },
+          "validation": {
+            "metadata": {
+              "label": "Validation",
+              "description": "Enable automatic payload validation for request/response data against constraints"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean",
+                "selected": false
+              }
+            ],
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "validation"
+            },
+            "defaultValue": "false"
+          },
+          "socketConfig": {
+            "metadata": {
+              "label": "Socket Config",
+              "description": "Low-level socket settings (timeouts, buffer sizes, etc.)"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientSocketConfig",
+                "typeMembers": [
+                  {
+                    "type": "ClientSocketConfig",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientSocketConfig",
+                "selected": false
+              }
+            ],
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "socketConfig"
+            },
+            "defaultValue": "{}"
+          },
+          "laxDataBinding": {
+            "metadata": {
+              "label": "Lax Data Binding",
+              "description": "Enable relaxed data binding on the client side.\nWhen enabled:\n- `null` values in JSON are allowed to be mapped to optional fields\n- missing fields in JSON are allowed to be mapped as `null` values"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean",
+                "selected": false
+              }
+            ],
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "laxDataBinding"
+            },
+            "defaultValue": "false"
+          },
+          "secureSocket": {
+            "metadata": {
+              "label": "Secure Socket",
+              "description": "SSL/TLS security settings for HTTPS connections"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientSecureSocket",
+                "typeMembers": [
+                  {
+                    "type": "ClientSecureSocket",
+                    "packageInfo": "ballerina:http:2.16.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "http:ClientSecureSocket?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "secureSocket"
+            },
+            "defaultValue": "()"
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Terminate on error"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": true,
+            "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "types": [
+              {
+                "fieldType": "ENUM",
+                "selected": true
+              }
+            ],
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Connection Name",
+              "description": "Name of the connection"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "currencyClient",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 11,
+                  "offset": 18
+                },
+                "endLine": {
+                  "line": 11,
+                  "offset": 32
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "http:Client",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {}
+          }
+        },
+        "flags": 1
+      },
+      {
+        "id": "36800",
+        "metadata": {
+          "label": "Redis",
+          "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+        },
+        "codedata": {
+          "node": "NEW_CONNECTION",
+          "org": "ballerinax",
+          "module": "redis",
+          "object": "Client",
+          "symbol": "init",
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 5,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 8,
+              "offset": 3
+            }
+          },
+          "sourceCode": "// new connection\nfinal redis:Client redisClient = check new (connection = {\n    host: \"localhost\",\n    port: 6379\n});"
+        },
+        "returning": false,
+        "properties": {
+          "$connection": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "redis:ConnectionUri",
+                "selected": false
+              },
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "redis:ConnectionParams",
+                "typeMembers": [
+                  {
+                    "type": "ConnectionParams",
+                    "packageInfo": "ballerinax:redis:3.1.0",
+                    "packageName": "redis",
+                    "kind": "RECORD_TYPE",
+                    "selected": true
+                  }
+                ],
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "redis:ConnectionUri|redis:ConnectionParams",
+                "selected": false
+              }
+            ],
+            "value": "{\n    host: \"localhost\",\n    port: 6379\n}",
+            "placeholder": "\"\"",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "connection"
+            },
+            "defaultValue": "\"redis://localhost:6379\""
+          },
+          "connectionPooling": {
+            "metadata": {
+              "label": "Connection Pooling Enabled",
+              "description": "Flag to indicate whether connection pooling is enabled"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean",
+                "selected": false
+              }
+            ],
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "connectionPooling"
+            },
+            "defaultValue": "false"
+          },
+          "isClusterConnection": {
+            "metadata": {
+              "label": "Cluster Mode Enabled",
+              "description": "Flag to indicate whether the connection is a cluster connection"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean",
+                "selected": false
+              }
+            ],
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "isClusterConnection"
+            },
+            "defaultValue": "false"
+          },
+          "secureSocket": {
+            "metadata": {
+              "label": "Secure Socket Configurations",
+              "description": "Configurations related to SSL/TLS encryption"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "redis:SecureSocket",
+                "typeMembers": [
+                  {
+                    "type": "SecureSocket",
+                    "packageInfo": "ballerinax:redis:3.1.0",
+                    "packageName": "redis",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "redis:SecureSocket",
+                "selected": false
+              }
+            ],
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "secureSocket"
+            },
+            "defaultValue": "{}"
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Terminate on error"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": true,
+            "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "types": [
+              {
+                "fieldType": "ENUM",
+                "selected": true
+              }
+            ],
+            "value": "Global",
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Connection Name",
+              "description": "Name of the connection"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "redisClient",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 5,
+                  "offset": 19
+                },
+                "endLine": {
+                  "line": 5,
+                  "offset": 30
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Connection Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "redis:Client",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true,
+            "codedata": {}
+          }
+        },
+        "flags": 1
+      }
+    ]
+  }
+}

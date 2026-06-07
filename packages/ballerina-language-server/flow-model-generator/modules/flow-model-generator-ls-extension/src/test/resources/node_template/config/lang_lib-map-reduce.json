@@ -1,0 +1,174 @@
+{
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "org": "ballerina",
+    "module": "lang.map",
+    "packageName": "lang.map",
+    "symbol": "reduce",
+    "version": "0.0.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "reduce",
+      "description": "Combines the members of a map using a combining function.\n\nThe combining function takes the combined value so far and a member of the map,\nand returns a new combined value.\n\n```ballerina\nmap<int> marks = {\"Carl\": 85, \"Bob\": 50, \"Max\": 60};\nmarks.reduce(isolated function (int total, int next) returns int => total + next, 0) ⇒ 195\n```\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.map_0.0.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "lang.map",
+      "packageName": "lang.map",
+      "symbol": "reduce",
+      "version": "0.0.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "m": {
+        "metadata": {
+          "label": "M",
+          "description": "the map"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_MAP",
+            "ballerinaType": "map<map<any|error>>",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "map<any|error>",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<map<any|error>>",
+            "selected": false
+          }
+        ],
+        "placeholder": "{}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "m"
+        }
+      },
+      "func": {
+        "metadata": {
+          "label": "Func",
+          "description": "combining function"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "function (map<any|error> accum, map<any|error> val) returns map<any|error>",
+            "selected": false
+          }
+        ],
+        "placeholder": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "func"
+        }
+      },
+      "initial": {
+        "metadata": {
+          "label": "Initial",
+          "description": "initial value for the first argument of combining parameter `func`"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<any|error>",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "initial"
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "map<any|error>",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "mapType1",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

@@ -1,0 +1,37 @@
+{
+    "compilerOptions": {
+        "outDir": "./lib",
+        "rootDir": "./src",
+        "skipLibCheck": true,
+        "module": "esnext",
+        "target": "es6",
+        "lib": [
+            "esnext",
+            "dom",
+            "dom.iterable"
+        ],
+        "sourceMap": true,
+        "allowJs": false,
+        "jsx": "react",
+        "declaration": true,
+        "declarationDir": "lib",
+        "experimentalDecorators": true,
+        "moduleResolution": "node",
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": false,
+        "noImplicitAny": true,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+    },
+    "include": [
+        "src",
+        "src/custom.d.ts"   
+    ],
+    "exclude": [
+        "node_modules",
+        "lib"
+    ]
+}

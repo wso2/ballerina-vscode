@@ -1,0 +1,64 @@
+{
+  "source": "function_call/wait.bal",
+  "description": "Sample diagram node",
+  "diagram": {
+    "id": "31",
+    "returning": false,
+    "metadata": {
+      "label": "Custom Expression",
+      "description": "Represents a custom Ballerina expression"
+    },
+    "codedata": {
+      "node": "EXPRESSION",
+      "lineRange": {
+        "fileName": "wait.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 0,
+          "offset": 0
+        }
+      },
+      "sourceCode": "wait ;"
+    },
+    "properties": {
+      "statement": {
+        "metadata": {
+          "label": "Statement",
+          "description": "Ballerina statement"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "wait",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "function_call/wait.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "wait"
+      }
+    ]
+  }
+}

@@ -1,0 +1,745 @@
+{
+  "filePath": "http_service/advance_parameters.bal",
+  "description": "",
+  "codedata": {
+    "lineRange": {
+      "fileName": "advance_parameters.bal",
+      "startLine": {
+        "line": 12,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 22,
+        "offset": 5
+      }
+    }
+  },
+  "response": {
+    "kind": "RESOURCE",
+    "accessor": {
+      "metadata": {
+        "label": "Resource Accessor",
+        "description": "The resource accessor"
+      },
+      "placeholder": "GET",
+      "value": "get",
+      "types": [
+        {
+          "fieldType": "SINGLE_SELECT",
+          "options": [
+            {
+              "label": "GET",
+              "value": "GET"
+            },
+            {
+              "label": "POST",
+              "value": "POST"
+            },
+            {
+              "label": "PUT",
+              "value": "PUT"
+            },
+            {
+              "label": "DELETE",
+              "value": "DELETE"
+            },
+            {
+              "label": "PATCH",
+              "value": "PATCH"
+            },
+            {
+              "label": "OPTIONS",
+              "value": "OPTIONS"
+            },
+            {
+              "label": "HEAD",
+              "value": "HEAD"
+            },
+            {
+              "label": "DEFAULT",
+              "value": "DEFAULT"
+            }
+          ],
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "name": {
+      "metadata": {
+        "label": "Resource Path",
+        "description": "The resource path"
+      },
+      "placeholder": "",
+      "value": "caller",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "parameters": [
+      {
+        "metadata": {
+          "label": "Request",
+          "description": "The HTTP Request"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "value": "http:Request",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "request",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "Caller",
+          "description": "The HTTP Caller"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "value": "http:Caller",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "caller",
+          "value": "caller",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "Headers",
+          "description": "The HTTP Headers"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "value": "http:Headers",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "headers",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": true,
+        "advanced": true,
+        "hidden": false,
+        "isGraphqlId": false
+      }
+    ],
+    "schema": {
+      "query": {
+        "metadata": {
+          "label": "Query",
+          "description": "The Query Parameter"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "",
+          "value": "string",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value"
+          },
+          "placeholder": "",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "QUERY"
+      },
+      "header": {
+        "metadata": {
+          "label": "Header",
+          "description": "The Header Parameter"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "string",
+          "value": "string",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "name",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value"
+          },
+          "placeholder": "",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "enabled": false,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "headerName": {
+          "placeholder": "",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "HEADER"
+      },
+      "payload": {
+        "metadata": {
+          "label": "Payload",
+          "description": "The Payload Parameter"
+        },
+        "kind": "REQUIRED",
+        "type": {
+          "placeholder": "",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "placeholder": "",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "PAYLOAD"
+      }
+    },
+    "returnType": {
+      "responses": [
+        {
+          "statusCode": {
+            "imports": {},
+            "value": "200",
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "imports": {},
+            "value": "()",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "mediaType": {
+            "imports": {},
+            "value": "application/json",
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "name": {
+            "imports": {},
+            "value": "",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "type": {
+            "imports": {},
+            "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "headers": {
+            "imports": {},
+            "value": "",
+            "types": [
+              {
+                "fieldType": "HEADER_SET",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "advanced": false
+        },
+        {
+          "statusCode": {
+            "imports": {},
+            "value": "500",
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "imports": {},
+            "value": "error",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "name": {
+            "imports": {},
+            "value": "",
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "type": {
+            "imports": {},
+            "value": "error",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "headers": {
+            "imports": {},
+            "value": "",
+            "types": [
+              {
+                "fieldType": "HEADER_SET",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "advanced": false
+        }
+      ],
+      "schema": {
+        "statusCodeResponse": {
+          "statusCode": {
+            "metadata": {
+              "label": "Status Code",
+              "description": "HTTP status code for the response"
+            },
+            "placeholder": "",
+            "value": "",
+            "items": [],
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "metadata": {
+              "label": "Response Body Schema",
+              "description": "Schema of the response body or data type of the response body"
+            },
+            "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "mediaType": {
+            "metadata": {
+              "label": "Content Type",
+              "description": "Value for the Content-Type header in the response"
+            },
+            "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "name": {
+            "metadata": {
+              "label": "Response Definition Name",
+              "description": "Define a name for the response definition"
+            },
+            "value": "",
+            "types": [
+              {
+                "fieldType": "OPTIONAL_IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "type": {
+            "metadata": {
+              "label": "Response Type",
+              "description": "Select a response type"
+            },
+            "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "headers": {
+            "metadata": {
+              "label": "Headers",
+              "description": "Add mandatory or optional headers to the response"
+            },
+            "value": "",
+            "types": [
+              {
+                "fieldType": "HEADER_SET",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "enabled": true,
+          "editable": true,
+          "advanced": false
+        }
+      },
+      "hasError": false,
+      "isGraphqlId": false,
+      "metadata": {
+        "label": "Return type",
+        "description": "Return type of the function"
+      },
+      "placeholder": "",
+      "value": "error?",
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": true,
+    "editable": true,
+    "canAddParameters": true,
+    "codedata": {
+      "lineRange": {
+        "fileName": "advance_parameters.bal",
+        "startLine": {
+          "line": 12,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 22,
+          "offset": 5
+        }
+      },
+      "orgName": "ballerina",
+      "packageName": "http",
+      "moduleName": "http"
+    },
+    "properties": {
+      "annotResourceConfig": {
+        "metadata": {
+          "label": "Resource Configuration",
+          "description": "Define advanced configurations like resource level media types, security, etc."
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ResourceConfig",
+          "orgName": "ballerina",
+          "moduleName": "http"
+        },
+        "placeholder": "{}",
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "http:HttpResourceConfig",
+            "typeMembers": [
+              {
+                "type": "HttpResourceConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      }
+    }
+  }
+}

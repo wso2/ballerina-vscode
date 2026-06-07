@@ -1,0 +1,52 @@
+{
+  "description": "Delete simple wait data.a from workflow function with multi-field data record",
+  "functionStart": {
+    "line": 2,
+    "offset": 0
+  },
+  "functionEnd": {
+    "line": 6,
+    "offset": 1
+  },
+  "nodeStart": {
+    "line": 4,
+    "offset": 4
+  },
+  "nodeEnd": {
+    "line": 4,
+    "offset": 34
+  },
+  "source": "delete_node_wait_data/functions.bal",
+  "output": {
+    "delete_node_wait_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 4
+          },
+          "end": {
+            "line": 5,
+            "character": 22
+          }
+        },
+        "newText": ""
+      }
+    ],
+    "delete_node_wait_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 4
+          },
+          "end": {
+            "line": 4,
+            "character": 34
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}
