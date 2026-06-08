@@ -13,13 +13,26 @@ inputs:
   repository:
     description: 'Repository name'
     required: true
+  thread_key:
+    description: 'Google Chat thread key for grouping notifications'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
     - shell: bash
       run: |
+        THREAD_KEY="${{ inputs.thread_key }}"
+        if [ -n "${THREAD_KEY}" ]; then
+          THREAD_FIELD='"thread": {"threadKey": "'"${THREAD_KEY}"'"},'
+          URL_SUFFIX="&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD"
+        else
+          THREAD_FIELD=""
+          URL_SUFFIX=""
+        fi
         body=$(cat << EOF
         {
+          ${THREAD_FIELD}
           "cards": [
             {
               "header": {
@@ -60,5 +73,5 @@ runs:
         curl \
           -X POST \
           -H 'Content-Type: application/json' \
-          "${{ inputs.chat_api }}" \
-          -d "$body" 
+          "${{ inputs.chat_api }}${URL_SUFFIX}" \
+          -d "$body"

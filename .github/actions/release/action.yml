@@ -8,13 +8,14 @@ inputs:
     required: true
   token:
     description: 'Publish token'
-    required: true 
+    required: true
   chatAPI:
     description: 'Google chat API'
     required: true
-  threadId:
-    description: 'Google chat thread ID'
-    required: true   
+  threadKey:
+    description: 'Google Chat thread key for grouping release notifications'
+    required: false
+    default: ''
 
 runs:
   using: "composite"
@@ -47,12 +48,21 @@ runs:
     - name: "Release Notification"
       shell: bash
       run: |
+        THREAD_KEY="${{ inputs.threadKey }}"
+        if [ -n "${THREAD_KEY}" ]; then
+          THREAD_FIELD='"thread": {"threadKey": "'"${THREAD_KEY}"'"},'
+          URL_SUFFIX="&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD"
+        else
+          THREAD_FIELD=""
+          URL_SUFFIX=""
+        fi
         body=$(cat << EOF
         {
+          ${THREAD_FIELD}
           "cards": [
-            { 
+            {
               "header": {
-                  "title": "New Release - ${{ inputs.name }}"
+                  "title": "VSIX Published - ${{ inputs.name }}"
               },
               "sections": [
                 {
@@ -90,5 +100,5 @@ runs:
         curl \
           -X POST \
           -H 'Content-Type: application/json' \
-          "${{ inputs.chatAPI }}" \
+          "${{ inputs.chatAPI }}${URL_SUFFIX}" \
           -d "$body"

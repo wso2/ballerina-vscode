@@ -21,6 +21,10 @@ inputs:
   ref_name:
     description: 'Branch name'
     required: true
+  threadKey:
+    description: 'Google Chat thread key for grouping release notifications'
+    required: false
+    default: ''
   ballerina:
     description: 'Is Ballerina'
     type: boolean
@@ -91,8 +95,17 @@ runs:
         if: ${{ inputs.isPreRelease == 'false' }}
         shell: bash
         run: |
+          THREAD_KEY="${{ inputs.threadKey }}"
+          if [ -n "${THREAD_KEY}" ]; then
+            THREAD_FIELD='"thread": {"threadKey": "'"${THREAD_KEY}"'"},'
+            URL_SUFFIX="&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD"
+          else
+            THREAD_FIELD=""
+            URL_SUFFIX=""
+          fi
           body=$(cat << EOF
           {
+            ${THREAD_FIELD}
             "cards": [
               {
                 "header": {
@@ -128,5 +141,5 @@ runs:
           curl \
             -X POST \
             -H 'Content-Type: application/json' \
-            "${{ inputs.chatAPI }}" \
+            "${{ inputs.chatAPI }}${URL_SUFFIX}" \
             -d "$body"
