@@ -138,10 +138,13 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     useEffect(() => {
         let cancelled = false;
         const api = rpcClient.getAiPanelRpcClient();
-        api.getMcpToolsEnabled().then(v => !cancelled && setMcpEnabled(v)).catch(() => { /* noop */ });
-        if (props.mcpToolsEnabled) {
-            api.listMcpServers().then(list => !cancelled && setMcpServers(list)).catch(() => { /* noop */ });
-        }
+        api.getMcpToolsEnabled().then(v => {
+            if (cancelled) return;
+            setMcpEnabled(v);
+            if (v) {
+                api.listMcpServers().then(list => !cancelled && setMcpServers(list)).catch(() => { /* noop */ });
+            }
+        }).catch(() => { /* noop */ });
         const dispose = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
             if (!cancelled) setMcpServers(list);
         });
