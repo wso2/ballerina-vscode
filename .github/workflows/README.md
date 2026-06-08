@@ -32,7 +32,7 @@ Each has `defaults.run.working-directory: packages/ballerina-language-server` in
 
 ## Required GitHub secrets
 
-- `BALLERINA_BOT_USERNAME` / `BALLERINA_BOT_TOKEN` — LS publish workflow (write to `ballerina-platform` packages + releases)
+- `BALLERINA_BOT_USERNAME` / `BALLERINA_BOT_EMAIL` / `BALLERINA_BOT_TOKEN` — LS publish workflow (git identity + write to `ballerina-platform` packages + releases)
 - `BALLERINA_CENTRAL_ACCESS_TOKEN` — LS publish to Ballerina Central
 - `VSCE_TOKEN` — publish-vsix → VSCode Marketplace
 - `OPENVSX_TOKEN` — publish-vsix → OpenVSX

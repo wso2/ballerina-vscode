@@ -232,8 +232,13 @@ jobs:
   # Language server — Trivy vulnerability scan
   # ─────────────────────────────────────────────────────────────────────────
   ls-trivy:
-    name: LS Trivy scan
+    name: LS Trivy scan (${{ matrix.branch }})
+    needs: ls-prepare-matrix
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.ls-prepare-matrix.outputs.targets) }}
     defaults:
       run:
         working-directory: packages/ballerina-language-server
@@ -241,6 +246,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
+          ref: ${{ matrix.branch }}
           persist-credentials: false
 
       - name: Set up JDK 21

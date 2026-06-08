@@ -4,8 +4,7 @@ inputs:
     description: 'Publish version'
     required: true
   isPreRelease:
-    default: true
-    type: boolean
+    default: 'true'
   chatAPI:
     description: 'Google chat API'
     required: true
@@ -18,13 +17,11 @@ inputs:
     default: ''
   ballerina:
     description: 'Is Ballerina'
-    type: boolean
-    default: false
+    default: 'false'
     required: true
   commonLibs:
     description: 'Is Common Lib'
-    type: boolean
-    default: false
+    default: 'false'
     required: true
 
 runs:

@@ -87,7 +87,7 @@ jobs:
 
       - name: Initiate release thread
         run: |
-          RELEASE_TYPE=${{ inputs.isPreRelease == true && '"Pre-release"' || '"Release"' }}
+          RELEASE_TYPE=${{ inputs.isPreRelease == true && 'Pre-release' || 'Release' }}
           body=$(cat << EOF
           {
             "thread": {"threadKey": "ballerina-release-${{ github.run_id }}"},

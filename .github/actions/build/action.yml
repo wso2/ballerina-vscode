@@ -100,6 +100,17 @@ runs:
         isPreRelease: ${{ inputs.isPreRelease }}
         version: ${{ inputs.version }}
 
+    - name: Validate lsSource
+      shell: bash
+      run: |
+        case "${{ inputs.lsSource }}" in
+          local|download) ;;
+          *)
+            echo "::error::Invalid lsSource '${{ inputs.lsSource }}'. Must be 'local' or 'download'."
+            exit 1
+            ;;
+        esac
+
     - name: Copy .env.example to .env
       shell: bash
       run: |

@@ -1,4 +1,5 @@
 name: 'Release vsix to github and notify'
+description: 'Creates a GitHub release with the VSIX asset and sends a Google Chat notification'
 inputs:
   repo:
     description: 'Github repository name'
