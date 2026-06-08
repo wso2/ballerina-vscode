@@ -17,7 +17,7 @@
  */
 
 import { test } from '@playwright/test';
-import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from '../utils/helpers';
+import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, getWebview, initTest, page } from '../utils/helpers';
 import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
 
 export default function createTests() {
@@ -29,25 +29,29 @@ export default function createTests() {
             const testAttempt = testInfo.retry + 1;
             console.log('Creating test function in test attempt: ', testAttempt);
 
-            // 1. Execute command to add test function
+            // 1. Wait for the BI webview to be ready so StateMachine has the project path set
+            console.log('Waiting for BI webview to initialize...');
+            await getWebview(BI_INTEGRATOR_LABEL, page);
+
+            // 2. Execute command to add test function
             console.log('Executing command to add test function...');
             await page.executePaletteCommand('BI.test.add.function');
 
-            // 2. Get the webview after command execution
+            // 3. Get the webview after command execution
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
             if (!artifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
 
-            // 3. Verify the "Create New Test Case" form is displayed
+            // 4. Verify the "Create New Test Case" form is displayed
             const createForm = artifactWebView.getByRole('heading', { name: /Create New Test Case/i });
-            await createForm.waitFor({ timeout: 10000 });
+            await createForm.waitFor({ timeout: 20000 });
 
-            // 4. Verify the form subtitle shows "Create a new test for your integration"
+            // 5. Verify the form subtitle shows "Create a new test for your integration"
             const subtitle = artifactWebView.getByText(/Create a new test for your integration/i);
             await subtitle.waitFor();
 
-            // 5. Fill the Test Function name field
+            // 6. Fill the Test Function name field
             const functionName = `testFunction${testAttempt}`;
             console.log(`Filling test function name: ${functionName}`);
 

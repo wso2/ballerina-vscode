@@ -154,8 +154,8 @@ export default function createTests() {
                 values: {
                     'msg': {
                         type: 'cmEditor',
-                        value: 'Equal',
-                        additionalProps: { switchMode: 'primary-mode', clickLabel: true, window: global.window }
+                        value: '"Equal"',
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
@@ -177,8 +177,8 @@ export default function createTests() {
                 values: {
                     'msg': {
                         type: 'cmEditor',
-                        value: 'Not Equal',
-                        additionalProps: { switchMode: 'primary-mode', clickLabel: true, window: global.window }
+                        value: '"Not Equal"',
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });

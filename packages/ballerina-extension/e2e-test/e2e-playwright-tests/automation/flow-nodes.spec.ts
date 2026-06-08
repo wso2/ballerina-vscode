@@ -172,8 +172,8 @@ export default function createTests() {
                 values: {
                     'msg': {
                         type: 'cmEditor',
-                        value: 'flow started',
-                        additionalProps: { switchMode: 'primary-mode', clickLabel: true, window: global.window }
+                        value: '"flow started"',
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
@@ -214,7 +214,7 @@ export default function createTests() {
                     'msg': {
                         type: 'cmEditor',
                         value: 'string `initial ${count} ${msg}`',
-                        additionalProps: { switchMode: 'primary-mode', clickLabel: true, window: global.window }
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
@@ -245,8 +245,8 @@ export default function createTests() {
                 values: {
                     'msg': {
                         type: 'cmEditor',
-                        value: 'sample error log',
-                        additionalProps: { switchMode: 'primary-mode', clickLabel: true, window: global.window }
+                        value: '"sample error log"',
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
@@ -260,8 +260,8 @@ export default function createTests() {
                 values: {
                     'msg': {
                         type: 'cmEditor',
-                        value: 'sample warn log',
-                        additionalProps: { switchMode: 'primary-mode', clickLabel: true, window: global.window }
+                        value: '"sample warn log"',
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });

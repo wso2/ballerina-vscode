@@ -44,13 +44,13 @@ export default function createTests() {
                 values: {
                     'connectionString': {
                         type: 'cmEditor',
-                        value: 'Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test',
-                        additionalProps: { clickLabel: true, switchMode: 'primary-mode', window: global.window }
+                        value: '"Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test"',
+                        additionalProps: { clickLabel: true }
                     },
                     'entityConfig': {
                         type: 'cmEditor',
                         value: `{ queueName: "testQueue" }`,
-                        additionalProps: { clickLabel: true, switchMode: 'expression-mode', window: global.window }
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
@@ -83,13 +83,13 @@ export default function createTests() {
                 values: {
                     'connectionString': {
                         type: 'cmEditor',
-                        value: 'Endpoint=sb://test.updated.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test',
-                        additionalProps: { clickLabel: true, switchMode: 'primary-mode', window: global.window }
+                        value: '"Endpoint=sb://test.updated.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test"',
+                        additionalProps: { clickLabel: true }
                     },
                     'entityConfig': {
                         type: 'cmEditor',
                         value: `{ queueName: "updated-queue-name" }`,
-                        additionalProps: { clickLabel: true, switchMode: 'expression-mode', window: global.window }
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
