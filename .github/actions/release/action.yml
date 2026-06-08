@@ -6,9 +6,6 @@ inputs:
   name:
     description: 'File name'
     required: true
-  token:
-    description: 'Publish token'
-    required: true
   chatAPI:
     description: 'Google chat API'
     required: true
@@ -37,11 +34,11 @@ runs:
       shell: bash
       run: |
         createResponse=`curl -X POST  -H "Accept: application/vnd.github.v3+json" \
-        -H "Authorization:token ${{ inputs.token }}" -d '{"tag_name":"v${{ steps.vsix.outputs.version }}", \
+        -H "Authorization:token ${{ github.token }}" -d '{"tag_name":"v${{ steps.vsix.outputs.version }}", \
         "draft":false, "name": "Release v${{ steps.vsix.outputs.version }}", "prerelease":true}' \
         https://api.github.com/repos/${{ inputs.repo }}/releases` \
           && id=`echo "$createResponse" | sed -n -e 's/"id":\ \([0-9]\+\),/\1/p' | head -n 1 | sed 's/[[:blank:]]//g'` && \
-          uploadResponse=`curl -X POST -H "Authorization:token ${{ inputs.token }}" -H "Content-Type:application/octet-stream" \
+          uploadResponse=`curl -X POST -H "Authorization:token ${{ github.token }}" -H "Content-Type:application/octet-stream" \
           --data-binary @${{ steps.vsix.outputs.vsixName }} \
           https://uploads.github.com/repos/${{ inputs.repo }}/releases/$id/assets?name=${{ steps.vsix.outputs.vsixName }}`
 

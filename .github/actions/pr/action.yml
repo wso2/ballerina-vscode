@@ -9,15 +9,6 @@ inputs:
   chatAPI:
     description: 'Google chat API'
     required: true
-  bot_username:
-    description: 'Ballerina bot username'
-    required: true
-  bot_email:
-    description: 'Ballerina bot email'
-    required: true
-  bot_token:
-    description: 'Ballerina bot token'
-    required: true
   ref_name:
     description: 'Branch name'
     required: true
@@ -42,8 +33,8 @@ runs:
       - name: Config git
         shell: bash
         run: |
-          git config --global user.name ${{ inputs.bot_username }}
-          git config --global user.email ${{ inputs.bot_email }}
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Add Ballerina git changes
         if: ${{ inputs.ballerina == 'true' }}
@@ -59,11 +50,10 @@ runs:
         shell: bash
         id: commit
         run: |
-          mv .git/config .git/config-old
-          git remote add origin https://${{ inputs.bot_token }}@github.com/${{ github.repository }}.git
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
           git diff --staged --quiet || git commit -m "Update version to ${{ inputs.version }}"
         env:
-          GH_TOKEN: ${{ inputs.bot_token }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: Create tag
         shell: bash
@@ -89,7 +79,7 @@ runs:
           pr=$(gh pr create -B "$baseBranch" -H "${{ inputs.version }}" --title "Merge \"${{ inputs.version }}\" into \"$baseBranch\"" --body '$subject')
           echo "prURL=$pr" >> $GITHUB_OUTPUT
         env:
-          GH_TOKEN: ${{ inputs.bot_token }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: "PR Notification"
         if: ${{ inputs.isPreRelease == 'false' }}

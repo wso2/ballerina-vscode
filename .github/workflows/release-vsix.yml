@@ -50,6 +50,9 @@ jobs:
     name: Release VSIX
     needs: Build
     timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: codebuild-ballerina-vscode-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Restore build
@@ -131,7 +134,6 @@ jobs:
         with:
           repo: wso2/ballerina-vscode
           name: ballerina
-          token: ${{ secrets.CHOREO_BOT_TOKEN }}
           chatAPI: ${{ secrets.EDITOR_TEAM_CHAT_API }}
           threadKey: ballerina-release-${{ github.run_id }}
 
@@ -182,9 +184,6 @@ jobs:
         with:
           version: ${{ steps.vsix.outputs.version }}
           isPreRelease: ${{ github.event.inputs.isPreRelease }}
-          bot_username: ${{ secrets.CHOREO_BOT_USERNAME }}
-          bot_email: ${{ secrets.CHOREO_BOT_EMAIL }}
-          bot_token: ${{ secrets.CHOREO_BOT_TOKEN }}
           ref_name: ${{ github.ref_name }}
           ballerina: true
           chatAPI: ${{ secrets.EDITOR_TEAM_CHAT_API }}
