@@ -32,10 +32,9 @@ Each has `defaults.run.working-directory: packages/ballerina-language-server` in
 
 ## Required GitHub secrets
 
-- `packageUser` / `packagePAT` — LS Gradle (GitHub Packages, `read:packages` scope)
-- `BALLERINA_BOT_USERNAME` / `BALLERINA_BOT_TOKEN` — LS publish workflow
+- `BALLERINA_BOT_USERNAME` / `BALLERINA_BOT_TOKEN` — LS publish workflow (write to `ballerina-platform` packages + releases)
 - `BALLERINA_CENTRAL_ACCESS_TOKEN` — LS publish to Ballerina Central
-- `CHOREO_BOT_TOKEN` / `CHOREO_BOT_EMAIL` / `CHOREO_BOT_USERNAME` — release-vsix, sync-main
+- `CHOREO_BOT_TOKEN` / `CHOREO_BOT_EMAIL` / `CHOREO_BOT_USERNAME` — release-vsix (GitHub release, version-bump PR), sync-main, cache-cleanup
 - `VSCE_TOKEN` — publish-vsix → VSCode Marketplace
 - `OPENVSX_TOKEN` — publish-vsix → OpenVSX
 - `BI_TEAM_CHAT_API` — daily build success + release announcements (pre-release and final)

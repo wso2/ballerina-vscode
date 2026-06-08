@@ -35,9 +35,6 @@ inputs:
     description: Ballerina distribution version
     required: false
     default: '2201.13.2'
-  token:
-    description: GitHub token for the LS download / publish steps
-    required: false
   BALLERINA_AUTH_ORG:
     required: false
   BALLERINA_AUTH_CLIENT_ID:
@@ -118,7 +115,7 @@ runs:
       run: node packages/ballerina-extension/scripts/download-ls.js --resolve-version
       env:
         BALLERINA_LS_TAG: ${{ inputs.ballerinaLsTag != '' && inputs.ballerinaLsTag || (inputs.isPreRelease == 'true' && 'prerelease' || 'latest') }}
-        GITHUB_TOKEN: ${{ inputs.token }}
+        GITHUB_TOKEN: ${{ github.token }}
 
     - name: Restore Ballerina LS from cache
       id: ballerina-ls-cache
@@ -144,7 +141,7 @@ runs:
         BALLERINA_LS_TAG: ${{ inputs.lsSource == 'download' && (inputs.enableLSCache == 'true' && steps.resolve-ballerina-ls-version.outputs.version || (inputs.ballerinaLsTag != '' && inputs.ballerinaLsTag || (inputs.isPreRelease == 'true' && 'prerelease' || 'latest'))) || '' }}
         # Credentials for the LS gradle build (maven.pkg.github.com/ballerina-platform/*)
         packageUser: ${{ github.actor }}
-        packagePAT: ${{ inputs.token != '' && inputs.token || github.token }}
+        packagePAT: ${{ github.token }}
         BALLERINA_AUTH_ORG: ${{ inputs.BALLERINA_AUTH_ORG }}
         BALLERINA_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_AUTH_CLIENT_ID }}
         BALLERINA_DEV_COPILOT_ROOT_URL: ${{ inputs.BALLERINA_DEV_COPILOT_ROOT_URL }}
