@@ -327,6 +327,18 @@ function rowsToRecord(rows: KvRow[]): Record<string, string> {
     return out;
 }
 
+/** Like rowsToRecord but trims values too — for env-var references that are looked up verbatim at runtime. */
+function rowsToEnvRefRecord(rows: KvRow[]): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const row of rows) {
+        const k = row.key.trim();
+        const v = row.value.trim();
+        if (!k || !v) continue;
+        out[k] = v;
+    }
+    return out;
+}
+
 interface KvEditorProps {
     rows: KvRow[];
     onChange: (rows: KvRow[]) => void;
@@ -487,7 +499,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             };
         } else {
             const headers = rowsToRecord(headerRows);
-            const headersFromEnv = rowsToRecord(envHeaderRows);
+            const headersFromEnv = rowsToEnvRefRecord(envHeaderRows);
             config = {
                 type: "http",
                 url: url.trim(),
