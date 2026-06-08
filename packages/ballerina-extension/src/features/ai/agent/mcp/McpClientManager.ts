@@ -214,9 +214,7 @@ export class McpClientManager {
 
     /**
      * Synthesize entries for every shipped built-in MCP server, so they flow
-     * through the same connect/disconnect path as on-disk entries. Built-ins
-     * are independent of user/workspace and never get shadowed — they share
-     * no namespace.
+     * through the same connect/disconnect path as on-disk entries.
      */
     private builtInEntries(): { scope: McpScope; name: string; config: McpServerConfig }[] {
         return BUILT_IN_MCP_SERVERS.map(b => ({
@@ -228,7 +226,10 @@ export class McpClientManager {
 
     private async doRefresh(): Promise<void> {
         const { entries: diskEntries, errors } = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
-        const entries = [...diskEntries, ...this.builtInEntries()];
+        // A same-named user/workspace server overrides a built-in — they'd otherwise collide on the mcp__<name>__ namespace.
+        const diskNames = new Set(diskEntries.map(e => e.name));
+        const builtIns = this.builtInEntries().filter(b => !diskNames.has(b.name));
+        const entries = [...diskEntries, ...builtIns];
         this.lastErrors = errors;
         const desiredKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
 
