@@ -136,7 +136,6 @@ jobs:
           threadKey: ballerina-release-${{ github.run_id }}
 
       - name: BI Team Release Announcement
-        if: ${{ inputs.isPreRelease == false }}
         run: |
           body=$(cat << EOF
           {
