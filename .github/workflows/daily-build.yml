@@ -329,5 +329,5 @@ jobs:
         with:
           title: "Daily Build Failed"
           run_id: ${{ github.run_id }}
-          chat_api: ${{ secrets.TOOLING_TEAM_CHAT_API }}
+          chat_api: ${{ secrets.EDITOR_TEAM_CHAT_API }}
           repository: ${{ github.repository }}

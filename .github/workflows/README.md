@@ -38,8 +38,8 @@ Each has `defaults.run.working-directory: packages/ballerina-language-server` in
 - `CHOREO_BOT_TOKEN` / `CHOREO_BOT_EMAIL` / `CHOREO_BOT_USERNAME` — release-vsix, sync-main
 - `VSCE_TOKEN` — publish-vsix → VSCode Marketplace
 - `OPENVSX_TOKEN` — publish-vsix → OpenVSX
-- `BI_TEAM_CHAT_API` — release/daily notifications
-- `TOOLING_TEAM_CHAT_API` — failure notifications
+- `BI_TEAM_CHAT_API` — daily build success + final (non-pre) release announcement
+- `EDITOR_TEAM_CHAT_API` — threaded release progress, build/sync failures
 - `CLOUD_EDITOR_BUILDER_REPO` / `CLOUD_EDITOR_BUILDER_REPO_TOKEN` — optional cloud-editor dispatch on stable release
 - `BALLERINA_AUTH_*` / `BALLERINA_DEV_COPLIOT_*` / `COPILOT_*` / `APPINSIGHTS_INSTRUMENTATION_KEY` — passed through to the build composite action
 

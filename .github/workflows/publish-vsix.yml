@@ -188,7 +188,7 @@ jobs:
           curl \
             -X POST \
             -H 'Content-Type: application/json' \
-            "${{ secrets.BI_TEAM_CHAT_API }}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD" \
+            "${{ secrets.EDITOR_TEAM_CHAT_API }}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD" \
             -d "$body"
 
   Notify:
@@ -205,6 +205,6 @@ jobs:
         with:
           title: "Publish Extension Failed"
           run_id: ${{ github.run_id }}
-          chat_api: ${{ secrets.BI_TEAM_CHAT_API }}
+          chat_api: ${{ secrets.EDITOR_TEAM_CHAT_API }}
           repository: ${{ github.repository }}
           thread_key: ballerina-release-${{ github.event.inputs.workflowRunId }}
