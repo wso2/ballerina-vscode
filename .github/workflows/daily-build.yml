@@ -50,7 +50,7 @@ jobs:
           for branch in ${branches}; do
             git fetch --depth=1 origin "${branch}:refs/remotes/origin/${branch}"
 
-            branch_version=$(git show "origin/${branch}:gradle.properties" | awk -F= '$1 == "version" { gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); gsub(/\r/, "", $2); print $2; exit }')
+            branch_version=$(git show "origin/${branch}:packages/ballerina-language-server/gradle.properties" | awk -F= '$1 == "version" { gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); gsub(/\r/, "", $2); print $2; exit }')
             if [ -z "${branch_version}" ]; then
               echo "Unable to resolve version from gradle.properties for ${branch}" >&2
               exit 1
