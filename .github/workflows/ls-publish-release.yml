@@ -1,4 +1,4 @@
-name: Publish LS Release
+name: Release LS
 
 on:
   workflow_dispatch:
