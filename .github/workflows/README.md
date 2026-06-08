@@ -39,7 +39,7 @@ Each has `defaults.run.working-directory: packages/ballerina-language-server` in
 - `BI_TEAM_CHAT_API` — daily build success + release announcements (pre-release and final)
 - `EDITOR_TEAM_CHAT_API` — threaded release progress, build/sync failures
 - `CLOUD_EDITOR_BUILDER_REPO` / `CLOUD_EDITOR_BUILDER_REPO_TOKEN` — optional cross-repo dispatch on stable release (publish-vsix)
-- `BALLERINA_AUTH_*` / `BALLERINA_DEV_COPLIOT_*` / `COPILOT_*` / `APPINSIGHTS_INSTRUMENTATION_KEY` — passed through to the build composite action
+- `COPILOT_ROOT_URL` / `COPILOT_DEV_ROOT_URL` / `APPINSIGHTS_INSTRUMENTATION_KEY` — passed through to the build composite action
 
 Configure these in the new repo's settings before triggering anything.
 
