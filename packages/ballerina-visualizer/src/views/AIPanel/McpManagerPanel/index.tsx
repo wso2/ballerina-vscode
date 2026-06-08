@@ -20,7 +20,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { Button, Codicon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { McpLoadErrorsDTO, McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { McpLoadErrorsDTO, McpMutableScope, McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
 
 import { AIChatView, DangerActionButton, PrimaryActionButton, SecondaryActionButton } from "../styles";
 import AddMcpServerModal from "../components/AIChatInput/AddMcpServerModal";
@@ -503,7 +503,7 @@ const Spacer = styled.div`
 
 interface EditTarget {
     name: string;
-    scope: McpScope;
+    scope: McpMutableScope;
     config: McpServerConfigDTO;
 }
 
@@ -639,13 +639,14 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
 
     const hasErrors = !!loadErrors.user || !!loadErrors.workspace;
 
+    // Edit/Delete are only rendered for user/workspace rows, never built-ins.
     const handleEdit = (s: McpServerStatusDTO) => {
-        setEditTarget({ name: s.name, scope: s.scope, config: s.config });
+        setEditTarget({ name: s.name, scope: s.scope as McpMutableScope, config: s.config });
     };
 
     const handleDelete = async (s: McpServerStatusDTO) => {
         try {
-            const res = await rpcClient.getAiPanelRpcClient().deleteMcpServer({ name: s.name, scope: s.scope });
+            const res = await rpcClient.getAiPanelRpcClient().deleteMcpServer({ name: s.name, scope: s.scope as McpMutableScope });
             if (!res.success && res.error) {
                 console.warn("[mcp] delete failed:", res.error);
             }

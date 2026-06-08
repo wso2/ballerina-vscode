@@ -18,7 +18,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { McpMutableScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 const NAME_REGEX = /^[a-zA-Z0-9_.-]{1,64}$/;
@@ -27,7 +27,7 @@ type Transport = "stdio" | "http";
 
 export interface EditTarget {
     name: string;
-    scope: McpScope;
+    scope: McpMutableScope;
     config: McpServerConfigDTO;
 }
 
@@ -388,7 +388,7 @@ const KvEditor: React.FC<KvEditorProps> = ({ rows, onChange, keyPlaceholder, val
 export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspace, editTarget, onClose, onAdded }) => {
     const { rpcClient } = useRpcContext();
     const isEdit = !!editTarget;
-    const [scope, setScope] = useState<McpScope>("user");
+    const [scope, setScope] = useState<McpMutableScope>("user");
     const [transport, setTransport] = useState<Transport>("stdio");
     const [name, setName] = useState("");
     const [command, setCommand] = useState("");

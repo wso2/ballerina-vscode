@@ -685,6 +685,8 @@ export interface PromptEnhancementResponse {
 export type McpTransportType = "stdio" | "http";
 export type McpConnectionStatus = "disconnected" | "connecting" | "connected" | "failed";
 export type McpScope = "user" | "workspace" | "builtin";
+/** Scopes the user can add/edit/delete. Built-ins are read-only. */
+export type McpMutableScope = "user" | "workspace";
 export interface McpToolSummaryDTO {
     name: string;
     description?: string;
@@ -712,7 +714,7 @@ export interface SetMcpServerEnabledRequest {
 }
 export interface AddMcpServerRequest {
     name: string;
-    scope: McpScope;
+    scope: McpMutableScope;
     config: McpServerConfigDTO;
 }
 export interface AddMcpServerResponse {
@@ -720,19 +722,19 @@ export interface AddMcpServerResponse {
     error?: string;
 }
 export interface OpenMcpConfigRequest {
-    scope: McpScope;
+    scope: McpMutableScope;
 }
 export interface McpWorkspaceContextResponse {
     hasWorkspace: boolean;
 }
 export interface UpdateMcpServerRequest {
     name: string;
-    scope: McpScope;
+    scope: McpMutableScope;
     config: McpServerConfigDTO;
 }
 export interface DeleteMcpServerRequest {
     name: string;
-    scope: McpScope;
+    scope: McpMutableScope;
 }
 export interface SetMcpToolsEnabledRequest {
     enabled: boolean;
