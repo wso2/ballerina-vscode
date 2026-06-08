@@ -35,8 +35,13 @@ on:
         type: boolean
         required: false
         default: false
+      lsSource:
+        description: LS source — local (build from source) or download (fetch from release tag)
+        type: string
+        required: false
+        default: 'local'
       ballerinaLsTag:
-        description: Override Ballerina LS download tag (latest, prerelease, v1.5.0)
+        description: Release tag to download the LS from when lsSource=download (latest, prerelease, v1.5.0)
         type: string
         required: false
         default: ''
@@ -92,6 +97,7 @@ jobs:
         uses: ./.github/actions/build
         with:
           isPreRelease: ${{ inputs.isPreRelease }}
+          lsSource: ${{ inputs.lsSource }}
           ballerinaLsTag: ${{ inputs.ballerinaLsTag }}
           enableCache: ${{ inputs.enableCache }}
           enableLSCache: ${{ !inputs.isReleaseBuild }}

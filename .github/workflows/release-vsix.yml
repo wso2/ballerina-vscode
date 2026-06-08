@@ -7,8 +7,16 @@ on:
         required: true
         type: boolean
         default: true
+      lsSource:
+        description: 'LS source: local builds the LS from source in this repo; download fetches it from a GitHub release tag'
+        type: choice
+        required: false
+        default: 'local'
+        options:
+          - 'local'
+          - 'download'
       ballerinaLsTag:
-        description: 'Override Ballerina LS download tag (latest, prerelease, v1.5.0). Overrides isPreRelease for LS download.'
+        description: 'Release tag to download the LS from (only used when lsSource=download; e.g. latest, prerelease, v1.5.0)'
         type: string
         required: false
         default: ''
@@ -31,6 +39,7 @@ jobs:
     with:
       runOnAWS: true
       isPreRelease: ${{ inputs.isPreRelease }}
+      lsSource: ${{ inputs.lsSource }}
       ballerinaLsTag: ${{ inputs.ballerinaLsTag }}
       enableCache: false
       ballerina: true
