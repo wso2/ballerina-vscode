@@ -124,6 +124,16 @@ runs:
         path: packages/ballerina-extension/ls
         key: ballerina-ls-${{ steps.resolve-ballerina-ls-version.outputs.version }}
 
+    - name: Patch playwright-vscode-tester Form.ts
+      shell: bash
+      run: |
+        FILE="submodules/wso2-vscode-extensions/workspaces/common-libs/playwright-vscode-tester/src/components/Form.ts"
+        # hover() without force:true triggers the expression-helper popup on GitHub-hosted ubuntu
+        # runners (css-1o4gefw overlay intercepts pointer events), causing mode-button detection to
+        # fail and leaving the popup open to block subsequent clicks. Force bypasses the overlay.
+        sed -i 's/await containerDiv\.hover();/await containerDiv.hover({ force: true });/g' "$FILE"
+        echo "Patched: $(grep -c 'force: true' "$FILE") occurrence(s) updated in $FILE"
+
     - name: Build repo
       shell: bash
       id: build
