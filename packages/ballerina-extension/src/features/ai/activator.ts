@@ -333,6 +333,14 @@ async function teardownMcp(): Promise<void> {
     }
 }
 
+// Serialize transitions so a rapid disable→enable isn't undone by an in-flight teardown.
+let mcpLifecycleTransition: Promise<void> = Promise.resolve();
+function queueMcpLifecycleTransition(task: () => Promise<void> | void): void {
+    mcpLifecycleTransition = mcpLifecycleTransition
+        .then(() => task())
+        .catch(err => console.warn('[mcp] lifecycle transition failed:', err));
+}
+
 function activateMcp(): void {
     if (isMcpEnabled()) {
         setupMcp();
@@ -342,11 +350,13 @@ function activateMcp(): void {
         if (!enableChanged) {
             return;
         }
-        if (isMcpEnabled()) {
-            setupMcp();
-        } else {
-            teardownMcp().catch(err => console.warn('[mcp] teardown failed:', err));
-        }
+        queueMcpLifecycleTransition(async () => {
+            if (isMcpEnabled()) {
+                setupMcp();
+            } else {
+                await teardownMcp();
+            }
+        });
         sendConfigChangeNotification('mcpToolsEnabled', isMcpEnabled());
     });
     extension.context?.subscriptions.push(disposable);
