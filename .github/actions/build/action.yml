@@ -35,18 +35,6 @@ inputs:
     description: Ballerina distribution version
     required: false
     default: '2201.13.2'
-  BALLERINA_AUTH_ORG:
-    required: false
-  BALLERINA_AUTH_CLIENT_ID:
-    required: false
-  BALLERINA_DEV_COPILOT_ROOT_URL:
-    required: false
-  BALLERINA_DEV_COPILOT_AUTH_ORG:
-    required: false
-  BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID:
-    required: false
-  BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL:
-    required: false
   COPILOT_ROOT_URL:
     required: false
   COPILOT_DEV_ROOT_URL:
@@ -153,12 +141,6 @@ runs:
         # Credentials for the LS gradle build (maven.pkg.github.com/ballerina-platform/*)
         packageUser: ${{ github.actor }}
         packagePAT: ${{ github.token }}
-        BALLERINA_AUTH_ORG: ${{ inputs.BALLERINA_AUTH_ORG }}
-        BALLERINA_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_AUTH_CLIENT_ID }}
-        BALLERINA_DEV_COPILOT_ROOT_URL: ${{ inputs.BALLERINA_DEV_COPILOT_ROOT_URL }}
-        BALLERINA_DEV_COPILOT_AUTH_ORG: ${{ inputs.BALLERINA_DEV_COPILOT_AUTH_ORG }}
-        BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID }}
-        BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL: ${{ inputs.BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL }}
         COPILOT_ROOT_URL: ${{ inputs.COPILOT_ROOT_URL }}
         COPILOT_DEV_ROOT_URL: ${{ inputs.COPILOT_DEV_ROOT_URL }}
         APPINSIGHTS_INSTRUMENTATION_KEY: ${{ inputs.APPINSIGHTS_INSTRUMENTATION_KEY }}
