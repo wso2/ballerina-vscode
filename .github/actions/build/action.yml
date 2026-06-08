@@ -7,8 +7,12 @@ inputs:
     description: Whether this is a prerelease build
     required: false
     default: 'true'
+  lsSource:
+    description: LS source — local (use jar built from source) or download (fetch from GitHub release)
+    required: false
+    default: 'local'
   ballerinaLsTag:
-    description: Override Ballerina LS download tag (latest, prerelease, v1.5.0). Overrides isPreRelease for LS download.
+    description: Release tag to download the LS from when lsSource=download (latest, prerelease, v1.5.0)
     required: false
     default: ''
   enableCache:
@@ -31,9 +35,6 @@ inputs:
     description: Ballerina distribution version
     required: false
     default: '2201.13.2'
-  token:
-    description: GitHub token for the LS download / publish steps
-    required: false
   BALLERINA_AUTH_ORG:
     required: false
   BALLERINA_AUTH_CLIENT_ID:
@@ -99,6 +100,17 @@ runs:
         isPreRelease: ${{ inputs.isPreRelease }}
         version: ${{ inputs.version }}
 
+    - name: Validate lsSource
+      shell: bash
+      run: |
+        case "${{ inputs.lsSource }}" in
+          local|download) ;;
+          *)
+            echo "::error::Invalid lsSource '${{ inputs.lsSource }}'. Must be 'local' or 'download'."
+            exit 1
+            ;;
+        esac
+
     - name: Copy .env.example to .env
       shell: bash
       run: |
@@ -109,16 +121,16 @@ runs:
 
     - name: Resolve Ballerina LS version
       id: resolve-ballerina-ls-version
-      if: ${{ inputs.enableLSCache == 'true' }}
+      if: ${{ inputs.lsSource == 'download' && inputs.enableLSCache == 'true' }}
       shell: bash
       run: node packages/ballerina-extension/scripts/download-ls.js --resolve-version
       env:
         BALLERINA_LS_TAG: ${{ inputs.ballerinaLsTag != '' && inputs.ballerinaLsTag || (inputs.isPreRelease == 'true' && 'prerelease' || 'latest') }}
-        GITHUB_TOKEN: ${{ inputs.token }}
+        GITHUB_TOKEN: ${{ github.token }}
 
     - name: Restore Ballerina LS from cache
       id: ballerina-ls-cache
-      if: ${{ inputs.enableLSCache == 'true' }}
+      if: ${{ inputs.lsSource == 'download' && inputs.enableLSCache == 'true' }}
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: packages/ballerina-extension/ls
@@ -136,10 +148,11 @@ runs:
         node common/scripts/install-run-rush.js build --to ballerina --verbose
       env:
         isPreRelease: ${{ inputs.isPreRelease == 'true' }}
-        BALLERINA_LS_TAG: ${{ inputs.enableLSCache == 'true' && steps.resolve-ballerina-ls-version.outputs.version || (inputs.ballerinaLsTag != '' && inputs.ballerinaLsTag || (inputs.isPreRelease == 'true' && 'prerelease' || 'latest')) }}
+        BALLERINA_LS_SOURCE: ${{ inputs.lsSource == 'download' && 'download' || '' }}
+        BALLERINA_LS_TAG: ${{ inputs.lsSource == 'download' && (inputs.enableLSCache == 'true' && steps.resolve-ballerina-ls-version.outputs.version || (inputs.ballerinaLsTag != '' && inputs.ballerinaLsTag || (inputs.isPreRelease == 'true' && 'prerelease' || 'latest'))) || '' }}
         # Credentials for the LS gradle build (maven.pkg.github.com/ballerina-platform/*)
         packageUser: ${{ github.actor }}
-        packagePAT: ${{ inputs.token != '' && inputs.token || github.token }}
+        packagePAT: ${{ github.token }}
         BALLERINA_AUTH_ORG: ${{ inputs.BALLERINA_AUTH_ORG }}
         BALLERINA_AUTH_CLIENT_ID: ${{ inputs.BALLERINA_AUTH_CLIENT_ID }}
         BALLERINA_DEV_COPILOT_ROOT_URL: ${{ inputs.BALLERINA_DEV_COPILOT_ROOT_URL }}

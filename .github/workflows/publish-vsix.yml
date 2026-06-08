@@ -1,4 +1,4 @@
-name: Publish VSIX to VSCode Marketplace and OpenVSX
+name: Publish Extension
 
 on:
   workflow_dispatch:
@@ -33,7 +33,11 @@ env:
 jobs:
   publish:
     name: Publish vsix to marketplaces
+    permissions:
+      contents: write
     runs-on: codebuild-ballerina-vscode-${{ github.run_id }}-${{ github.run_attempt }}
+    env:
+      THREAD_KEY: ballerina-release-${{ github.event.inputs.workflowRunId }}
     steps:
       - name: Download artifact
         id: download-artifact
@@ -83,11 +87,11 @@ jobs:
         if: ${{ github.event.inputs.isPreRelease == 'false' }}
         run: |
           id=`curl -X GET -H "Accept: application/vnd.github.v3+json" \
-          -H "Authorization:token ${{ secrets.CHOREO_BOT_TOKEN }}" \
+          -H "Authorization:token ${{ github.token }}" \
           https://api.github.com/repos/${REPO}/releases/tags/v${{ steps.vsix.outputs.version }} \
            | jq -r .id` && \
            curl -X PATCH -H "Accept: application/vnd.github.v3+json" \
-          -H "Authorization:token ${{ secrets.CHOREO_BOT_TOKEN }}" \
+          -H "Authorization:token ${{ github.token }}" \
             -d '{"draft":false,"prerelease":false}' \
             https://api.github.com/repos/${REPO}/releases/$id
 
@@ -131,6 +135,7 @@ jobs:
         run: |
           body=$(cat << EOF
           {
+            "thread": {"threadKey": "${THREAD_KEY}"},
             "cards": [
               {
                 "header": {
@@ -185,5 +190,23 @@ jobs:
           curl \
             -X POST \
             -H 'Content-Type: application/json' \
-            "${{ secrets.BI_TEAM_CHAT_API }}" \
+            "${{ secrets.EDITOR_TEAM_CHAT_API }}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD" \
             -d "$body"
+
+  Notify:
+    name: Notify (failure)
+    needs: [publish]
+    if: ${{ always() && contains(needs.*.result, 'failure') && github.repository == 'wso2/ballerina-vscode' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: "Failure Notification"
+        uses: ./.github/actions/failure-notification
+        with:
+          title: "Publish Extension Failed"
+          run_id: ${{ github.run_id }}
+          chat_api: ${{ secrets.EDITOR_TEAM_CHAT_API }}
+          repository: ${{ github.repository }}
+          thread_key: ballerina-release-${{ github.event.inputs.workflowRunId }}

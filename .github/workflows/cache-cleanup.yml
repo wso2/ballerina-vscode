@@ -1,4 +1,4 @@
-name: cleanup caches by a branch
+name: Cache Cleanup
 on:
   workflow_dispatch:
     inputs:
@@ -11,6 +11,8 @@ on:
 
 jobs:
   cleanup:
+    permissions:
+      actions: write
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -41,4 +43,4 @@ jobs:
           done
           echo "Done"
         env:
-          GH_TOKEN: ${{ secrets.CHOREO_BOT_TOKEN }}
+          GH_TOKEN: ${{ github.token }}

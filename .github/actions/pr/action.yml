@@ -4,32 +4,24 @@ inputs:
     description: 'Publish version'
     required: true
   isPreRelease:
-    default: true
-    type: boolean
+    default: 'true'
   chatAPI:
     description: 'Google chat API'
-    required: true
-  bot_username:
-    description: 'Ballerina bot username'
-    required: true
-  bot_email:
-    description: 'Ballerina bot email'
-    required: true
-  bot_token:
-    description: 'Ballerina bot token'
     required: true
   ref_name:
     description: 'Branch name'
     required: true
+  threadKey:
+    description: 'Google Chat thread key for grouping release notifications'
+    required: false
+    default: ''
   ballerina:
     description: 'Is Ballerina'
-    type: boolean
-    default: false
+    default: 'false'
     required: true
   commonLibs:
     description: 'Is Common Lib'
-    type: boolean
-    default: false
+    default: 'false'
     required: true
 
 runs:
@@ -38,8 +30,8 @@ runs:
       - name: Config git
         shell: bash
         run: |
-          git config --global user.name ${{ inputs.bot_username }}
-          git config --global user.email ${{ inputs.bot_email }}
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Add Ballerina git changes
         if: ${{ inputs.ballerina == 'true' }}
@@ -55,11 +47,10 @@ runs:
         shell: bash
         id: commit
         run: |
-          mv .git/config .git/config-old
-          git remote add origin https://${{ inputs.bot_token }}@github.com/${{ github.repository }}.git
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
           git diff --staged --quiet || git commit -m "Update version to ${{ inputs.version }}"
         env:
-          GH_TOKEN: ${{ inputs.bot_token }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: Create tag
         shell: bash
@@ -85,14 +76,23 @@ runs:
           pr=$(gh pr create -B "$baseBranch" -H "${{ inputs.version }}" --title "Merge \"${{ inputs.version }}\" into \"$baseBranch\"" --body '$subject')
           echo "prURL=$pr" >> $GITHUB_OUTPUT
         env:
-          GH_TOKEN: ${{ inputs.bot_token }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: "PR Notification"
         if: ${{ inputs.isPreRelease == 'false' }}
         shell: bash
         run: |
+          THREAD_KEY="${{ inputs.threadKey }}"
+          if [ -n "${THREAD_KEY}" ]; then
+            THREAD_FIELD='"thread": {"threadKey": "'"${THREAD_KEY}"'"},'
+            URL_SUFFIX="&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD"
+          else
+            THREAD_FIELD=""
+            URL_SUFFIX=""
+          fi
           body=$(cat << EOF
           {
+            ${THREAD_FIELD}
             "cards": [
               {
                 "header": {
@@ -128,5 +128,5 @@ runs:
           curl \
             -X POST \
             -H 'Content-Type: application/json' \
-            "${{ inputs.chatAPI }}" \
+            "${{ inputs.chatAPI }}${URL_SUFFIX}" \
             -d "$body"
