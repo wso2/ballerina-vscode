@@ -1,4 +1,4 @@
-name: Publish VSIX to VSCode Marketplace and OpenVSX
+name: Publish Extension
 
 on:
   workflow_dispatch:

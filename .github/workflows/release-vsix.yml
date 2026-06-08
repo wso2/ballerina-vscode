@@ -1,4 +1,4 @@
-name: Release VSIX
+name: Release Extension
 
 on:
   workflow_dispatch:
