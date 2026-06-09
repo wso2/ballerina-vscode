@@ -101,40 +101,6 @@ async function clickLinkButtonText(webview: Frame, text: string) {
     });
 }
 
-// Real Playwright click on diagram add buttons. empty-node-add-button elements are
-// always visible (inside branches or at diagram end). For hover-only link-add-buttons
-// we hover each diagram link and wait for React to re-render before clicking.
-async function clickNextDiagramPlus(webview: Frame) {
-    await webview.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 30000 });
-    // Give React time to attach event handlers after the previous saveForm
-    await page.page.waitForTimeout(1000);
-
-    // First try: always-visible add buttons (e.g. inside empty If/Match branches).
-    // Only use this path when exactly one is present — with multiple buttons (e.g. two Match
-    // clauses both empty) .first() would pick the wrong branch.
-    const emptyButtons = webview.locator('[data-testid^="empty-node-add-button"]');
-    if (await emptyButtons.count() === 1) {
-        await emptyButtons.first().click({ force: true });
-        await webview.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
-        return;
-    }
-
-    // Second try: hover each diagram link from last to first to reveal hover-only add buttons
-    const links = webview.locator('[data-testid^="diagram-link-"]');
-    const linkCount = await links.count();
-    for (let i = linkCount - 1; i >= 0; i--) {
-        await links.nth(i).hover({ force: true });
-        await page.page.waitForTimeout(500);
-        const addButton = webview.locator('[data-testid^="link-add-button-"]').last();
-        if (await addButton.isVisible({ timeout: 300 }).catch(() => false)) {
-            await addButton.click({ force: true });
-            await webview.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
-            return;
-        }
-    }
-
-    throw new Error('No diagram add button was available');
-}
 
 export default function createTests() {
     test.describe.serial('Automation Flow Nodes Tests', {}, async () => {
@@ -224,7 +190,9 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add Match node');
-            await clickNextDiagramPlus(artifactWebView);
+            // link-5 = after If, inside the do block (same sequential numbering as links 1-4)
+            await diagram.clickHoverAddButtonByIndex(5);
+            await artifactWebView.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
             await selectNode(sidePanel, 'Match', 'Control');
             await form.switchToFormView(false, artifactWebView);
             await fillCodeMirror(artifactWebView, 'count', 0);
@@ -232,7 +200,11 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add Log Error node');
-            await clickNextDiagramPlus(artifactWebView);
+            // Match 1=> clause is the last empty-node-add-button (below If branches in the diagram)
+            await artifactWebView.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 30000 });
+            await page.page.waitForTimeout(1000);
+            await artifactWebView.locator('[data-testid^="empty-node-add-button"]').last().click({ force: true });
+            await artifactWebView.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
             await selectNode(sidePanel, 'Log Error', 'Logging');
             await form.switchToFormView(false, artifactWebView);
             await form.fill({
@@ -247,7 +219,9 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add Log Warn node');
-            await clickNextDiagramPlus(artifactWebView);
+            // link-7 = inside Match 1=> clause, after Log Error (link-6 = after Match inside do)
+            await diagram.clickHoverAddButtonByIndex(7);
+            await artifactWebView.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
             await selectNode(sidePanel, 'Log Warn', 'Logging');
             await form.switchToFormView(false, artifactWebView);
             await form.fill({
@@ -262,7 +236,9 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add While node');
-            await clickNextDiagramPlus(artifactWebView);
+            // link-6 = after Match inside the do block
+            await diagram.clickHoverAddButtonByIndex(6);
+            await artifactWebView.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
             await selectNode(sidePanel, 'While', 'Control');
             await form.switchToFormView(false, artifactWebView);
             await fillFirstCodeMirror(artifactWebView, 'count < 3');
