@@ -101,6 +101,55 @@ async function clickLinkButtonText(webview: Frame, text: string) {
     });
 }
 
+// Hover the diagram link that sits just above the Error Handler node (the last
+// link inside the do-block body) and click its add button. Because the If node
+// creates several internal branch links with unpredictable indices, targeting by
+// position is more reliable than targeting by a fixed diagram-link-N index.
+async function clickLastDoBodyLink(webview: Frame) {
+    await webview.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 30000 });
+    await page.page.waitForTimeout(1000);
+
+    const canvas = webview.locator('[data-testid="bi-diagram-canvas"]');
+
+    // Locate the Error Handler node to find the do-block bottom boundary
+    const ehText = canvas.getByText('Error Handler').first();
+    await ehText.waitFor({ state: 'visible', timeout: 15000 });
+    const ehBox = await ehText.boundingBox();
+    if (!ehBox) throw new Error('Cannot locate Error Handler bounding box');
+
+    // Among all diagram links, find the lowest one still above the Error Handler
+    const links = canvas.locator('[data-testid^="diagram-link-"]');
+    const count = await links.count();
+    let bestIdx = -1;
+    let bestBottom = 0;
+
+    for (let i = 0; i < count; i++) {
+        const box = await links.nth(i).boundingBox();
+        if (!box) continue;
+        const bottom = box.y + box.height;
+        if (bottom < ehBox.y && bottom > bestBottom) {
+            bestBottom = bottom;
+            bestIdx = i;
+        }
+    }
+
+    if (bestIdx === -1) throw new Error('No do-body link found above Error Handler');
+
+    const target = links.nth(bestIdx);
+    const testId = await target.getAttribute('data-testid');
+    const num = testId!.replace('diagram-link-', '');
+
+    await target.hover({ force: true });
+    await page.page.waitForTimeout(500);
+
+    const addBtn = canvas.locator(`[data-testid="link-add-button-${num}"]`);
+    if (!await addBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        throw new Error(`link-add-button-${num} not visible after hover`);
+    }
+    await addBtn.click({ force: true });
+    await webview.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
+}
+
 
 export default function createTests() {
     test.describe.serial('Automation Flow Nodes Tests', {}, async () => {
@@ -190,9 +239,7 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add Match node');
-            // link-5 = after If, inside the do block (same sequential numbering as links 1-4)
-            await diagram.clickHoverAddButtonByIndex(5);
-            await artifactWebView.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
+            await clickLastDoBodyLink(artifactWebView);
             await selectNode(sidePanel, 'Match', 'Control');
             await form.switchToFormView(false, artifactWebView);
             await fillCodeMirror(artifactWebView, 'count', 0);
@@ -200,11 +247,7 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add Log Error node');
-            // Match 1=> clause is the last empty-node-add-button (below If branches in the diagram)
-            await artifactWebView.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 30000 });
-            await page.page.waitForTimeout(1000);
-            await artifactWebView.locator('[data-testid^="empty-node-add-button"]').last().click({ force: true });
-            await artifactWebView.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
+            await clickLastDoBodyLink(artifactWebView);
             await selectNode(sidePanel, 'Log Error', 'Logging');
             await form.switchToFormView(false, artifactWebView);
             await form.fill({
@@ -219,9 +262,7 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add Log Warn node');
-            // link-7 = inside Match 1=> clause, after Log Error (link-6 = after Match inside do)
-            await diagram.clickHoverAddButtonByIndex(7);
-            await artifactWebView.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
+            await clickLastDoBodyLink(artifactWebView);
             await selectNode(sidePanel, 'Log Warn', 'Logging');
             await form.switchToFormView(false, artifactWebView);
             await form.fill({
@@ -236,9 +277,7 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add While node');
-            // link-6 = after Match inside the do block
-            await diagram.clickHoverAddButtonByIndex(6);
-            await artifactWebView.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
+            await clickLastDoBodyLink(artifactWebView);
             await selectNode(sidePanel, 'While', 'Control');
             await form.switchToFormView(false, artifactWebView);
             await fillFirstCodeMirror(artifactWebView, 'count < 3');
