@@ -140,7 +140,7 @@ This tool discovers relevant Ballerina libraries using keyword-based search. It 
 **Scope - ALL Ballerina Libraries:**
 - **ballerina/*** - Standard/core libraries maintained by the Ballerina team
 - **ballerinax/*** - Extended connector packages for third-party services
-- **xlibb/*** - C library bindings
+- **xlibb/*** - Experimental yet practical Ballerina packages
 - Other organization packages available in Ballerina Central
 
 **Keyword Guidelines:**
