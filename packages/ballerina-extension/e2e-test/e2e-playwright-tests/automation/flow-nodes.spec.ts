@@ -101,52 +101,38 @@ async function clickLinkButtonText(webview: Frame, text: string) {
     });
 }
 
-// Hover the diagram link that sits just above the Error Handler node (the last
-// link inside the do-block body) and click its add button. Because the If node
-// creates several internal branch links with unpredictable indices, targeting by
-// position is more reliable than targeting by a fixed diagram-link-N index.
-async function clickLastDoBodyLink(webview: Frame) {
+// Mirrors the original clickNextDiagramPlus algorithm from the main branch but
+// uses real Playwright hover instead of synthetic dispatchEvent (which does not
+// trigger React event handlers on Linux GitHub runners).
+// Priority: empty-node-add-button (always visible) > second-to-last link-add-button.
+// Second-to-last avoids the function-level link after the Error Handler (always last).
+async function clickNextDiagramPlus(webview: Frame) {
     await webview.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 30000 });
-    await page.page.waitForTimeout(1000);
-
-    const canvas = webview.locator('[data-testid="bi-diagram-canvas"]');
-
-    // Locate the Error Handler node to find the do-block bottom boundary
-    const ehText = canvas.getByText('Error Handler').first();
-    await ehText.waitFor({ state: 'visible', timeout: 15000 });
-    const ehBox = await ehText.boundingBox();
-    if (!ehBox) throw new Error('Cannot locate Error Handler bounding box');
-
-    // Among all diagram links, find the lowest one still above the Error Handler
-    const links = canvas.locator('[data-testid^="diagram-link-"]');
-    const count = await links.count();
-    let bestIdx = -1;
-    let bestBottom = 0;
-
-    for (let i = 0; i < count; i++) {
-        const box = await links.nth(i).boundingBox();
-        if (!box) continue;
-        const bottom = box.y + box.height;
-        if (bottom < ehBox.y && bottom > bestBottom) {
-            bestBottom = bottom;
-            bestIdx = i;
-        }
-    }
-
-    if (bestIdx === -1) throw new Error('No do-body link found above Error Handler');
-
-    const target = links.nth(bestIdx);
-    const testId = await target.getAttribute('data-testid');
-    const num = testId!.replace('diagram-link-', '');
-
-    await target.hover({ force: true });
     await page.page.waitForTimeout(500);
 
-    const addBtn = canvas.locator(`[data-testid="link-add-button-${num}"]`);
-    if (!await addBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-        throw new Error(`link-add-button-${num} not visible after hover`);
+    // Prefer always-visible empty-node-add-buttons (branch/clause placeholders)
+    const emptyBtns = webview.locator('[data-testid^="empty-node-add-button"]');
+    if (await emptyBtns.count() > 0) {
+        await emptyBtns.first().click({ force: true });
+        await webview.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
+        return;
     }
-    await addBtn.click({ force: true });
+
+    // No empty buttons: hover every diagram link with real Playwright so React
+    // renders the link-add-button overlays, then click second-to-last.
+    const links = webview.locator('[data-testid^="diagram-link-"]');
+    const linkCount = await links.count();
+    for (let i = 0; i < linkCount; i++) {
+        await links.nth(i).hover({ force: true });
+        await page.page.waitForTimeout(100);
+    }
+
+    const addBtns = webview.locator('[data-testid^="link-add-button-"]');
+    const btnCount = await addBtns.count();
+    if (btnCount === 0) throw new Error('No diagram add button was available');
+
+    // Second-to-last avoids the function-level continuation link (which is last)
+    await addBtns.nth(Math.max(0, btnCount - 2)).click({ force: true });
     await webview.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
 }
 
