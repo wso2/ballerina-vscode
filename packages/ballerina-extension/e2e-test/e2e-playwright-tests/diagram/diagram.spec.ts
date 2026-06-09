@@ -124,10 +124,12 @@ export default function createTests() {
                 }
             });
 
-            // Click the add Else Block 
-            // Click the "Add Else Block" button in the If configuration UI before saving
+            // Dismiss the expression helper popup triggered by CodeMirror fill before clicking
+            await page.page.keyboard.press('Escape');
+            await page.page.waitForTimeout(300);
+
+            // Click the add Else Block
             // The "Add Else Block" is not a button, but a div with text.
-            // So select it by its text using .getByText or .locator, and click it.
             const addElseBlockDiv = artifactWebView.getByText('Add Else Block', { exact: true });
             await addElseBlockDiv.click();
             await artifactWebView.getByRole('button', { name: 'Save' }).click();

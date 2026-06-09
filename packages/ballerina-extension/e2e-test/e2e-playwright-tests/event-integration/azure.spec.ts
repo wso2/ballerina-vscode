@@ -46,7 +46,14 @@ export default function createTests() {
                         type: 'cmEditor',
                         value: '"Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test"',
                         additionalProps: { clickLabel: true }
-                    },
+                    }
+                }
+            });
+            // Dismiss expression helper popup triggered by CodeMirror focus before filling next field
+            await page.page.keyboard.press('Escape');
+            await page.page.waitForTimeout(300);
+            await form.fill({
+                values: {
                     'entityConfig': {
                         type: 'cmEditor',
                         value: `{ queueName: "testQueue" }`,
@@ -85,7 +92,14 @@ export default function createTests() {
                         type: 'cmEditor',
                         value: '"Endpoint=sb://test.updated.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test"',
                         additionalProps: { clickLabel: true }
-                    },
+                    }
+                }
+            });
+            // Dismiss expression helper popup triggered by CodeMirror focus before filling next field
+            await page.page.keyboard.press('Escape');
+            await page.page.waitForTimeout(300);
+            await form.fill({
+                values: {
                     'entityConfig': {
                         type: 'cmEditor',
                         value: `{ queueName: "updated-queue-name" }`,

@@ -101,45 +101,35 @@ async function clickLinkButtonText(webview: Frame, text: string) {
     });
 }
 
-// Add buttons only appear on hover and are not stable Playwright targets; synthetic
-// mouse events via evaluateAll are used because standard hover()+click() does not
-// reliably trigger the diagram's React event handlers for these SVG overlay nodes.
+// Real Playwright click on diagram add buttons. empty-node-add-button elements are
+// always visible (inside branches or at diagram end). For hover-only link-add-buttons
+// we hover each diagram link and wait for React to re-render before clicking.
 async function clickNextDiagramPlus(webview: Frame) {
     await webview.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 30000 });
-    const clickedId = await webview.locator('[data-testid]').evaluateAll((elements) => {
-        const links = elements.filter((element) => {
-            const id = element.getAttribute('data-testid') || '';
-            return id.startsWith('diagram-link-');
-        });
-        for (const link of links) {
-            for (const type of ['pointerover', 'mouseover', 'mouseenter', 'pointerenter']) {
-                link.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
-            }
-        }
 
-        const candidates = elements.filter((element) => {
-            const id = element.getAttribute('data-testid') || '';
-            return id.startsWith('link-add-button') || id.startsWith('empty-node-add-button');
-        });
-        const target = candidates.find((element) => (element.getAttribute('data-testid') || '').startsWith('empty-node-add-button'))
-            || candidates[candidates.length - 2]
-            || candidates[candidates.length - 1];
-        if (!target) {
-            return '';
-        }
-        for (const type of ['pointerover', 'mouseover', 'mouseenter', 'pointerenter']) {
-            target.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
-        }
-        for (const type of ['pointerdown', 'mousedown', 'mouseup', 'click']) {
-            target.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
-        }
-        return target.getAttribute('data-testid') || '';
-    });
-
-    await webview.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
-    if (!clickedId) {
-        throw new Error('No diagram add button was available');
+    // First try: always-visible add buttons (e.g. inside empty If/Match branches)
+    const emptyButtons = webview.locator('[data-testid^="empty-node-add-button"]');
+    if (await emptyButtons.count() > 0) {
+        await emptyButtons.first().click({ force: true });
+        await webview.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
+        return;
     }
+
+    // Second try: hover each diagram link from last to first to reveal hover-only add buttons
+    const links = webview.locator('[data-testid^="diagram-link-"]');
+    const linkCount = await links.count();
+    for (let i = linkCount - 1; i >= 0; i--) {
+        await links.nth(i).hover({ force: true });
+        await page.page.waitForTimeout(500);
+        const addButton = webview.locator('[data-testid^="link-add-button-"]').last();
+        if (await addButton.isVisible({ timeout: 300 }).catch(() => false)) {
+            await addButton.click({ force: true });
+            await webview.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
+            return;
+        }
+    }
+
+    throw new Error('No diagram add button was available');
 }
 
 export default function createTests() {
