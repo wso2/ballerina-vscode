@@ -162,6 +162,15 @@ This tool discovers relevant Ballerina libraries using keyword-based search. It 
 3. Select the most appropriate libraries (typically 1-5 libraries)
 4. Then, call ${LIBRARY_GET_TOOL} with the selected library names to get detailed API documentation (functions, types, clients, services, etc.)
 
+**Example Workflow:**
+User query: <a request mentioning a service, technology, or capability>
+Keywords: [<specific term>, <supporting term>, <generic term>]  // first keyword has the highest weight
+Call ${LIBRARY_SEARCH_TOOL} with the keywords
+→ Returns: [
+    { name: "<organization>/<library>", description: "..." }
+  ]
+Then call ${LIBRARY_GET_TOOL} with the selected library names
+
 **Tool Response Format:**
 Returns an array of library objects, each containing a name and description:
 [
