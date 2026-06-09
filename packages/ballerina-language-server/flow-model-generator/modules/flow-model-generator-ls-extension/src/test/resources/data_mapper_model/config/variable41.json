@@ -41,9 +41,9 @@
           "org": "ballerinax",
           "packageName": "redis",
           "moduleName": "redis",
-          "version": "3.1.0"
+          "version": "3.2.1"
         },
-        "ref": "1527622454",
+        "ref": "-2076783368",
         "typeInfo": {
           "orgName": "ballerinax",
           "moduleName": "redis"
@@ -60,9 +60,9 @@
         "org": "ballerinax",
         "packageName": "redis",
         "moduleName": "redis",
-        "version": "3.1.0"
+        "version": "3.2.1"
       },
-      "ref": "1527622454",
+      "ref": "-2076783368",
       "typeInfo": {
         "orgName": "ballerinax",
         "moduleName": "redis"
@@ -70,7 +70,7 @@
     },
     "mappings": [],
     "refs": {
-      "1527622454": {
+      "-2076783368": {
         "fields": [
           {
             "name": "clientName",
@@ -92,9 +92,49 @@
             "typeName": "int",
             "kind": "int",
             "optional": false
+          },
+          {
+            "fields": [],
+            "name": "keepAlive",
+            "displayName": "keepAlive",
+            "typeName": "redis:KeepAliveConfig?",
+            "kind": "record",
+            "optional": false,
+            "ref": "-982682949",
+            "typeInfo": {
+              "orgName": "ballerinax",
+              "moduleName": "redis"
+            }
           }
         ],
         "typeName": "redis:Options",
+        "kind": "record"
+      },
+      "-982682949": {
+        "fields": [
+          {
+            "name": "idle",
+            "displayName": "idle",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "interval",
+            "displayName": "interval",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "count",
+            "displayName": "count",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "redis:KeepAliveConfig?",
         "kind": "record"
       }
     },
