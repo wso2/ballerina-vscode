@@ -58,6 +58,6 @@ export class SidePanel {
      */
     public async expandSection(sectionTitle: string): Promise<void> {
         const sectionContainer = this.getLocator().getByText(sectionTitle, { exact: true });
-        await sectionContainer.click();
+        await sectionContainer.click({ force: true });
     }
 }

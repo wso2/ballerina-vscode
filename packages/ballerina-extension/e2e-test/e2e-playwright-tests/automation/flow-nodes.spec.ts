@@ -225,7 +225,7 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add Match node');
-            await clickLastDoBodyLink(artifactWebView);
+            await clickNextDiagramPlus(artifactWebView);
             await selectNode(sidePanel, 'Match', 'Control');
             await form.switchToFormView(false, artifactWebView);
             await fillCodeMirror(artifactWebView, 'count', 0);
@@ -233,7 +233,7 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add Log Error node');
-            await clickLastDoBodyLink(artifactWebView);
+            await clickNextDiagramPlus(artifactWebView);
             await selectNode(sidePanel, 'Log Error', 'Logging');
             await form.switchToFormView(false, artifactWebView);
             await form.fill({
@@ -248,7 +248,7 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add Log Warn node');
-            await clickLastDoBodyLink(artifactWebView);
+            await clickNextDiagramPlus(artifactWebView);
             await selectNode(sidePanel, 'Log Warn', 'Logging');
             await form.switchToFormView(false, artifactWebView);
             await form.fill({
@@ -263,7 +263,7 @@ export default function createTests() {
             await saveForm(artifactWebView);
 
             logStep('Add While node');
-            await clickLastDoBodyLink(artifactWebView);
+            await clickNextDiagramPlus(artifactWebView);
             await selectNode(sidePanel, 'While', 'Control');
             await form.switchToFormView(false, artifactWebView);
             await fillFirstCodeMirror(artifactWebView, 'count < 3');
