@@ -106,6 +106,8 @@ async function clickLinkButtonText(webview: Frame, text: string) {
 // we hover each diagram link and wait for React to re-render before clicking.
 async function clickNextDiagramPlus(webview: Frame) {
     await webview.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 30000 });
+    // Give React time to attach event handlers after the previous saveForm
+    await page.page.waitForTimeout(1000);
 
     // First try: always-visible add buttons (e.g. inside empty If/Match branches)
     const emptyButtons = webview.locator('[data-testid^="empty-node-add-button"]');

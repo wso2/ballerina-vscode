@@ -52,6 +52,16 @@ export default function createTests() {
             // Dismiss expression helper popup triggered by CodeMirror focus before filling next field
             await page.page.keyboard.press('Escape');
             await page.page.waitForTimeout(300);
+            // entityConfig defaults to Record mode (controlled React component) where view.dispatch
+            // is immediately reset to {}. Switch to Expression mode first so the fill sticks.
+            const entityConfigContainer = artifactWebView.locator('[data-testid="ex-editor-entityConfig"]');
+            if (await entityConfigContainer.count() > 0) {
+                const exprModeBtn = entityConfigContainer.locator('[data-testid="expression-mode"]');
+                if (await exprModeBtn.count() > 0) {
+                    await exprModeBtn.click({ force: true });
+                    await page.page.waitForTimeout(300);
+                }
+            }
             await form.fill({
                 values: {
                     'entityConfig': {
@@ -61,7 +71,7 @@ export default function createTests() {
                     }
                 }
             });
-            await form.submit('Create');
+            await form.submit('Create', true);
 
             const projectExplorer = new ProjectExplorer(page.page);
             await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Azure Service Bus Event Integration`]);
@@ -98,6 +108,16 @@ export default function createTests() {
             // Dismiss expression helper popup triggered by CodeMirror focus before filling next field
             await page.page.keyboard.press('Escape');
             await page.page.waitForTimeout(300);
+            // entityConfig defaults to Record mode (controlled React component) where view.dispatch
+            // is immediately reset to {}. Switch to Expression mode first so the fill sticks.
+            const entityConfigContainerEdit = artifactWebView.locator('[data-testid="ex-editor-entityConfig"]');
+            if (await entityConfigContainerEdit.count() > 0) {
+                const exprModeBtnEdit = entityConfigContainerEdit.locator('[data-testid="expression-mode"]');
+                if (await exprModeBtnEdit.count() > 0) {
+                    await exprModeBtnEdit.click({ force: true });
+                    await page.page.waitForTimeout(300);
+                }
+            }
             await form.fill({
                 values: {
                     'entityConfig': {
@@ -107,7 +127,7 @@ export default function createTests() {
                     }
                 }
             });
-            await form.submit('Save Changes');
+            await form.submit('Save Changes', true);
 
             const saveChangesBtn = artifactWebView.locator('#save-changes-btn vscode-button[appearance="primary"]');
             await saveChangesBtn.waitFor({ state: 'visible' });
