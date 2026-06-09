@@ -119,7 +119,7 @@ async function clickNextDiagramPlus(webview: Frame) {
     }
 
     // No empty buttons: hover every diagram link with real Playwright so React
-    // renders the link-add-button overlays, then click second-to-last.
+    // renders the link-add-button overlays, then identify the second-to-last button.
     const links = webview.locator('[data-testid^="diagram-link-"]');
     const linkCount = await links.count();
     for (let i = 0; i < linkCount; i++) {
@@ -131,8 +131,17 @@ async function clickNextDiagramPlus(webview: Frame) {
     const btnCount = await addBtns.count();
     if (btnCount === 0) throw new Error('No diagram add button was available');
 
-    // Second-to-last avoids the function-level continuation link (which is last)
-    await addBtns.nth(Math.max(0, btnCount - 2)).click({ force: true });
+    // Re-hover the specific link for the second-to-last button so the button is
+    // visible at click time (hover state resets as we iterate over all links).
+    // Second-to-last avoids the function-level continuation link (which is last).
+    const targetBtnIdx = Math.max(0, btnCount - 2);
+    const targetBtnTestId = await addBtns.nth(targetBtnIdx).getAttribute('data-testid');
+    const correspondingLinkId = targetBtnTestId?.replace('link-add-button', 'diagram-link');
+    if (correspondingLinkId) {
+        await webview.locator(`[data-testid="${correspondingLinkId}"]`).hover({ force: true });
+        await page.page.waitForTimeout(200);
+    }
+    await addBtns.nth(targetBtnIdx).click({ force: true });
     await webview.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
 }
 
