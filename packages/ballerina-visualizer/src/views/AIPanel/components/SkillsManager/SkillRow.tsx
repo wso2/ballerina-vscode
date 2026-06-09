@@ -83,6 +83,9 @@ const RowActions = styled.div`
     gap: 2px;
     flex-shrink: 0;
     visibility: hidden;
+    /* Rendered after the toggle in the DOM (so forward tab reaches it once
+       :focus-within reveals it), but kept left of the toggle visually. */
+    order: 1;
 `;
 
 const RowIconButton = styled.button<{ $danger?: boolean }>`
@@ -117,6 +120,7 @@ const ToggleSwitch = styled.button<{ $on: boolean }>`
     cursor: pointer;
     position: relative;
     flex-shrink: 0;
+    order: 2;
     background: ${(p: { $on: boolean }) => (p.$on
         ? "var(--vscode-button-background)"
         : "var(--vscode-input-background)")};
@@ -204,6 +208,14 @@ const SkillRow: React.FC<SkillRowProps> = ({ skill, onToggle, onEdit, onDelete }
                             <RowName $dim={!enabled} title={skill.name}>{shortName}</RowName>
                             {skill.trigger && <RowMeta title={skill.trigger}>{skill.trigger}</RowMeta>}
                         </RowMain>
+                        {onToggle && (
+                            <ToggleSwitch
+                                type="button"
+                                $on={enabled}
+                                title={enabled ? "Disable skill" : "Enable skill"}
+                                onClick={() => onToggle(skill, !enabled)}
+                            />
+                        )}
                         {isEditable && (onEdit || onDelete) && (
                             <RowActions className="skill-row-actions">
                                 {onEdit && (
@@ -217,14 +229,6 @@ const SkillRow: React.FC<SkillRowProps> = ({ skill, onToggle, onEdit, onDelete }
                                     </RowIconButton>
                                 )}
                             </RowActions>
-                        )}
-                        {onToggle && (
-                            <ToggleSwitch
-                                type="button"
-                                $on={enabled}
-                                title={enabled ? "Disable skill" : "Enable skill"}
-                                onClick={() => onToggle(skill, !enabled)}
-                            />
                         )}
                     </>
                 )}
