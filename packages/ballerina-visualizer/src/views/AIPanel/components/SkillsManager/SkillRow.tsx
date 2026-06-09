@@ -21,61 +21,130 @@ import styled from "@emotion/styled";
 import { SkillEntry, SkillTier } from "@wso2/ballerina-core";
 import { SecondaryActionButton, DangerActionButton } from "../../styles";
 
-// ─── Styled components (matching MCP's ServerCard pattern) ───────────────────
+// ─── Styled components (mirrors McpManagerPanel's compact row) ───────────────
 
-const Card = styled.div`
-    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
-    border-radius: 6px;
-    padding: 10px 12px;
+const Row = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 0;
-    margin-bottom: 6px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+
+    &:last-child { border-bottom: none; }
 `;
 
-const CardHeader = styled.div`
+const RowHeader = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 6px 10px;
+    transition: background 0.12s ease;
+
+    &:hover { background: var(--vscode-list-hoverBackground); }
+
+    &:hover .skill-row-actions,
+    &:focus-within .skill-row-actions {
+        visibility: visible;
+    }
 `;
 
-const CardName = styled.span`
+const RowMain = styled.div`
     flex: 1;
     min-width: 0;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--vscode-editor-foreground);
-    white-space: nowrap;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+`;
+
+const RowName = styled.span<{ $dim?: boolean }>`
+    flex-shrink: 0;
+    max-width: 50%;
+    font-size: 13px;
+    font-weight: 500;
+    color: ${(p: { $dim?: boolean }) => (p.$dim
+        ? "var(--vscode-descriptionForeground)"
+        : "var(--vscode-foreground)")};
     overflow: hidden;
     text-overflow: ellipsis;
-`;
-
-const CardDescription = styled.span`
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    margin-top: 2px;
-    display: block;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 `;
 
-const BuiltinRow = styled.div`
-    display: flex;
-    flex-direction: column;
-    padding: 4px 0;
-    margin-bottom: 4px;
-`;
-
-const ActionRow = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 4px;
-`;
-
-const Spacer = styled.div`
+const RowMeta = styled.span`
     flex: 1;
+    min-width: 0;
+    font-size: 11.5px;
+    color: var(--vscode-descriptionForeground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`;
+
+const RowActions = styled.div`
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    visibility: hidden;
+    /* Rendered after the toggle in the DOM (so forward tab reaches it once
+       :focus-within reveals it), but kept left of the toggle visually. */
+    order: 1;
+`;
+
+const RowIconButton = styled.button<{ $danger?: boolean }>`
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-font-family);
+
+    &:hover {
+        background: ${(p: { $danger?: boolean }) => (p.$danger
+            ? "var(--vscode-inputValidation-errorBackground, var(--vscode-toolbar-hoverBackground))"
+            : "var(--vscode-toolbar-hoverBackground)")};
+        color: ${(p: { $danger?: boolean }) => (p.$danger
+            ? "var(--vscode-errorForeground)"
+            : "var(--vscode-foreground)")};
+    }
+
+    .codicon { font-size: 14px; }
+`;
+
+const ToggleSwitch = styled.button<{ $on: boolean }>`
+    width: 30px;
+    height: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    order: 2;
+    background: ${(p: { $on: boolean }) => (p.$on
+        ? "var(--vscode-button-background)"
+        : "var(--vscode-input-background)")};
+    border: 1px solid ${(p: { $on: boolean }) => (p.$on
+        ? "var(--vscode-contrastBorder, var(--vscode-button-background))"
+        : "var(--vscode-contrastBorder, var(--vscode-checkbox-border, var(--vscode-descriptionForeground)))")};
+    transition: background 0.15s, border-color 0.15s;
+
+    &::after {
+        content: "";
+        position: absolute;
+        box-sizing: border-box;
+        top: 1px;
+        left: ${(p: { $on: boolean }) => (p.$on ? "15px" : "1px")};
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: ${(p: { $on: boolean }) => (p.$on
+            ? "var(--vscode-button-foreground)"
+            : "var(--vscode-descriptionForeground)")};
+        border: 1px solid var(--vscode-contrastBorder, transparent);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        transition: left 0.15s, background 0.15s;
+    }
 `;
 
 const ConfirmRow = styled.div`
@@ -83,38 +152,27 @@ const ConfirmRow = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11px;
+    min-width: 0;
+    font-size: 12px;
     color: var(--vscode-foreground);
+`;
+
+const ConfirmText = styled.span`
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    strong { font-weight: 600; }
+`;
+
+const Spacer = styled.div`
+    flex: 1;
 `;
 
 const ActionButton = SecondaryActionButton;
 const DeleteButton = DangerActionButton;
-
-const ToggleTrack = styled.button<{ enabled: boolean }>`
-    width: 36px;
-    height: 20px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    flex-shrink: 0;
-    position: relative;
-    background: ${({ enabled }: { enabled: boolean }) =>
-        enabled ? 'var(--vscode-button-background)' : 'var(--vscode-button-secondaryBackground, #555)'};
-    transition: background 0.2s;
-    &:hover { opacity: 0.85; }
-`;
-
-const ToggleKnob = styled.span<{ enabled: boolean }>`
-    position: absolute;
-    top: 2px;
-    left: ${({ enabled }: { enabled: boolean }) => enabled ? '18px' : '2px'};
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--vscode-button-foreground, #fff);
-    transition: left 0.2s;
-`;
 
 const getShortName = (name: string) =>
     name.includes('/') ? name.split('/').pop()! : name;
@@ -134,75 +192,48 @@ const SkillRow: React.FC<SkillRowProps> = ({ skill, onToggle, onEdit, onDelete }
     const shortName = getShortName(skill.name);
     const enabled = skill.enabled !== false;
 
-    if (skill.tier === SkillTier.BUILTIN) {
-        return (
-            <BuiltinRow>
-                <CardHeader>
-                    <CardName title={skill.name}>{shortName}</CardName>
-                    {onToggle && (
-                        <ToggleTrack
-                            type="button"
-                            enabled={enabled}
-                            title={enabled ? 'Disable skill' : 'Enable skill'}
-                            onClick={() => onToggle(skill, !enabled)}
-                        >
-                            <ToggleKnob enabled={enabled} />
-                        </ToggleTrack>
-                    )}
-                </CardHeader>
-                {skill.trigger && <CardDescription title={skill.trigger}>{skill.trigger}</CardDescription>}
-            </BuiltinRow>
-        );
-    }
-
     return (
-        <Card>
-            <CardHeader>
-                <CardName title={skill.name}>{shortName}</CardName>
-                {onToggle && (
-                    <ToggleTrack
-                        type="button"
-                        enabled={enabled}
-                        title={enabled ? 'Disable skill' : 'Enable skill'}
-                        onClick={() => onToggle(skill, !enabled)}
-                    >
-                        <ToggleKnob enabled={enabled} />
-                    </ToggleTrack>
+        <Row>
+            <RowHeader>
+                {confirming ? (
+                    <ConfirmRow>
+                        <ConfirmText>Delete <strong>{shortName}</strong>?</ConfirmText>
+                        <Spacer />
+                        <DeleteButton type="button" onClick={() => { setConfirming(false); onDelete?.(skill); }}>Yes, delete</DeleteButton>
+                        <ActionButton type="button" onClick={() => setConfirming(false)}>Cancel</ActionButton>
+                    </ConfirmRow>
+                ) : (
+                    <>
+                        <RowMain>
+                            <RowName $dim={!enabled} title={skill.name}>{shortName}</RowName>
+                            {skill.trigger && <RowMeta title={skill.trigger}>{skill.trigger}</RowMeta>}
+                        </RowMain>
+                        {onToggle && (
+                            <ToggleSwitch
+                                type="button"
+                                $on={enabled}
+                                title={enabled ? "Disable skill" : "Enable skill"}
+                                onClick={() => onToggle(skill, !enabled)}
+                            />
+                        )}
+                        {isEditable && (onEdit || onDelete) && (
+                            <RowActions className="skill-row-actions">
+                                {onEdit && (
+                                    <RowIconButton type="button" title="Edit skill" aria-label="Edit skill" onClick={() => onEdit(skill)}>
+                                        <span className="codicon codicon-edit" />
+                                    </RowIconButton>
+                                )}
+                                {onDelete && (
+                                    <RowIconButton type="button" $danger title="Delete skill" aria-label="Delete skill" onClick={() => setConfirming(true)}>
+                                        <span className="codicon codicon-trash" />
+                                    </RowIconButton>
+                                )}
+                            </RowActions>
+                        )}
+                    </>
                 )}
-            </CardHeader>
-            {skill.trigger && <CardDescription title={skill.trigger}>{skill.trigger}</CardDescription>}
-
-            {isEditable && (onEdit || onDelete) && (
-                <ActionRow>
-                    {confirming ? (
-                        <ConfirmRow>
-                            <span>Delete <strong>{shortName}</strong>?</span>
-                            <Spacer />
-                            <DeleteButton type="button" onClick={() => { setConfirming(false); onDelete?.(skill); }}>
-                                Yes, delete
-                            </DeleteButton>
-                            <ActionButton type="button" onClick={() => setConfirming(false)}>
-                                Cancel
-                            </ActionButton>
-                        </ConfirmRow>
-                    ) : (
-                        <>
-                            <Spacer />
-                            {onEdit && (
-                                <ActionButton type="button" onClick={() => onEdit(skill)}>
-                                    Edit
-                                </ActionButton>
-                            )}
-                            {onDelete && (
-                                <DeleteButton type="button" onClick={() => setConfirming(true)}>
-                                    Delete
-                                </DeleteButton>
-                            )}
-                        </>
-                    )}
-                </ActionRow>
-            )}
-        </Card>
+            </RowHeader>
+        </Row>
     );
 };
 
