@@ -58,6 +58,12 @@ export class SidePanel {
      */
     public async expandSection(sectionTitle: string): Promise<void> {
         const sectionContainer = this.getLocator().getByText(sectionTitle, { exact: true });
-        await sectionContainer.click({ force: true });
+        try {
+            await sectionContainer.click({ timeout: 5000 });
+        } catch {
+            // Fall back to force click if a VS Code overlay (e.g. notification popup)
+            // is blocking the element — this can occur on macOS but not on Linux CI.
+            await sectionContainer.click({ force: true });
+        }
     }
 }
