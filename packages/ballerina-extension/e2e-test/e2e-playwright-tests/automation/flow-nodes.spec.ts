@@ -109,9 +109,11 @@ async function clickNextDiagramPlus(webview: Frame) {
     // Give React time to attach event handlers after the previous saveForm
     await page.page.waitForTimeout(1000);
 
-    // First try: always-visible add buttons (e.g. inside empty If/Match branches)
+    // First try: always-visible add buttons (e.g. inside empty If/Match branches).
+    // Only use this path when exactly one is present — with multiple buttons (e.g. two Match
+    // clauses both empty) .first() would pick the wrong branch.
     const emptyButtons = webview.locator('[data-testid^="empty-node-add-button"]');
-    if (await emptyButtons.count() > 0) {
+    if (await emptyButtons.count() === 1) {
         await emptyButtons.first().click({ force: true });
         await webview.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 30000 });
         return;
