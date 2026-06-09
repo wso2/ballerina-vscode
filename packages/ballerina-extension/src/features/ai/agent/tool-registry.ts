@@ -58,7 +58,7 @@ import { createClarifyTool, CLARIFY_TOOL } from './tools/clarify';
 import { createSkillTool, SKILL_TOOL_NAME } from './tools/skill-tool';
 import { createSaveSkillTool, SAVE_SKILL_TOOL_NAME } from './tools/save-skill';
 import { REGISTERED_SKILLS } from './skills';
-import { bridgeMcpTools, getMcpClientManager } from './mcp';
+import { getMcpTools } from './mcp';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -80,8 +80,6 @@ export interface ToolRegistryOptions {
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
     const { eventHandler, toolModelUsage, tempProjectPath, modifiedFiles, allModifiedFiles, projects, generationType, projectRootPath, generationId, threadId, migrationSourcePath, webSearchEnabled, ctx } = opts;
-    const mcpManager = getMcpClientManager();
-    const mcpTools = mcpManager ? bridgeMcpTools({ manager: mcpManager, eventHandler }) : {};
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
@@ -145,6 +143,6 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [CLARIFY_TOOL]: createClarifyTool(eventHandler),
         [SKILL_TOOL_NAME]: createSkillTool(REGISTERED_SKILLS, projectRootPath, eventHandler),
         [SAVE_SKILL_TOOL_NAME]: createSaveSkillTool(eventHandler),
-        ...mcpTools,
+        ...getMcpTools(eventHandler),
     };
 }

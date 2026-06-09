@@ -18,7 +18,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { McpMutableScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 const NAME_REGEX = /^[a-zA-Z0-9_.-]{1,64}$/;
@@ -27,7 +27,7 @@ type Transport = "stdio" | "http";
 
 export interface EditTarget {
     name: string;
-    scope: McpScope;
+    scope: McpMutableScope;
     config: McpServerConfigDTO;
 }
 
@@ -159,29 +159,6 @@ const Input = styled.input<{ hasError?: boolean }>`
     }
 `;
 
-const Textarea = styled.textarea`
-    background: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, var(--vscode-panel-border)));
-    border-radius: 3px;
-    padding: 6px 8px;
-    font-size: 12px;
-    font-family: var(--vscode-editor-font-family, ui-monospace, monospace);
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 64px;
-    resize: vertical;
-
-    &:focus {
-        outline: none;
-        border-color: var(--vscode-focusBorder, var(--vscode-button-background));
-    }
-
-    &::placeholder {
-        color: var(--vscode-input-placeholderForeground, var(--vscode-descriptionForeground));
-    }
-`;
-
 const KvTable = styled.div`
     display: flex;
     flex-direction: column;
@@ -191,6 +168,13 @@ const KvTable = styled.div`
 const KvRowEl = styled.div`
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 24px;
+    gap: 6px;
+    align-items: center;
+`;
+
+const ArgRowEl = styled.div`
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 24px;
     gap: 6px;
     align-items: center;
 `;
@@ -288,13 +272,41 @@ const SecondaryButton = styled(BaseButton)`
     }
 `;
 
-/** Split a multi-line args textarea into a list, dropping empty lines. */
-function splitArgLines(value: string): string[] {
-    return value
-        .split(/\r?\n/)
-        .map(s => s.trimEnd())
-        .filter(s => s.length > 0);
+interface ArgsEditorProps {
+    rows: string[];
+    onChange: (rows: string[]) => void;
 }
+
+const ArgsEditor: React.FC<ArgsEditorProps> = ({ rows, onChange }) => {
+    const updateRow = (idx: number, value: string) => {
+        const next = rows.slice();
+        next[idx] = value;
+        onChange(next);
+    };
+    const removeRow = (idx: number) => {
+        const next = rows.slice();
+        next.splice(idx, 1);
+        onChange(next);
+    };
+    return (
+        <KvTable>
+            {rows.map((row, idx) => (
+                <ArgRowEl key={idx}>
+                    <Input
+                        type="text"
+                        value={row}
+                        placeholder="argument"
+                        onChange={(e) => updateRow(idx, e.target.value)}
+                    />
+                    <KvRemove type="button" title="Remove" onClick={() => removeRow(idx)}>
+                        <span className="codicon codicon-trash" style={{ fontSize: 12 }} />
+                    </KvRemove>
+                </ArgRowEl>
+            ))}
+            <KvAdd type="button" onClick={() => onChange([...rows, ""])}>+ Add argument</KvAdd>
+        </KvTable>
+    );
+};
 
 type KvRow = { key: string; value: string };
 
@@ -311,6 +323,18 @@ function rowsToRecord(rows: KvRow[]): Record<string, string> {
         const k = row.key.trim();
         if (!k) continue;
         out[k] = row.value;
+    }
+    return out;
+}
+
+/** Like rowsToRecord but trims values too — for env-var references that are looked up verbatim at runtime. */
+function rowsToEnvRefRecord(rows: KvRow[]): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const row of rows) {
+        const k = row.key.trim();
+        const v = row.value.trim();
+        if (!k || !v) continue;
+        out[k] = v;
     }
     return out;
 }
@@ -364,14 +388,15 @@ const KvEditor: React.FC<KvEditorProps> = ({ rows, onChange, keyPlaceholder, val
 export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspace, editTarget, onClose, onAdded }) => {
     const { rpcClient } = useRpcContext();
     const isEdit = !!editTarget;
-    const [scope, setScope] = useState<McpScope>("user");
+    const [scope, setScope] = useState<McpMutableScope>("user");
     const [transport, setTransport] = useState<Transport>("stdio");
     const [name, setName] = useState("");
     const [command, setCommand] = useState("");
-    const [argsText, setArgsText] = useState("");
+    const [argsRows, setArgsRows] = useState<string[]>([]);
     const [envRows, setEnvRows] = useState<KvRow[]>([]);
     const [url, setUrl] = useState("");
     const [headerRows, setHeaderRows] = useState<KvRow[]>([]);
+    const [envHeaderRows, setEnvHeaderRows] = useState<KvRow[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
 
@@ -394,10 +419,11 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             setTransport("stdio");
             setName("");
             setCommand("");
-            setArgsText("");
+            setArgsRows([]);
             setEnvRows([]);
             setUrl("");
             setHeaderRows([]);
+            setEnvHeaderRows([]);
             setSubmitting(false);
             setServerError(null);
             return;
@@ -409,15 +435,17 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             setName(editTarget.name);
             if (editTarget.config.type === "stdio") {
                 setCommand(editTarget.config.command);
-                setArgsText((editTarget.config.args ?? []).join("\n"));
+                setArgsRows(editTarget.config.args ?? []);
                 setEnvRows(recordToRows(editTarget.config.env));
                 setUrl("");
                 setHeaderRows([]);
+                setEnvHeaderRows([]);
             } else {
                 setUrl(editTarget.config.url);
                 setHeaderRows(recordToRows(editTarget.config.headers));
+                setEnvHeaderRows(recordToRows(editTarget.config.headersFromEnv));
                 setCommand("");
-                setArgsText("");
+                setArgsRows([]);
                 setEnvRows([]);
             }
             setServerError(null);
@@ -461,7 +489,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
         setServerError(null);
         let config: McpServerConfigDTO;
         if (transport === "stdio") {
-            const args = splitArgLines(argsText);
+            const args = argsRows.map(a => a.trim()).filter(Boolean);
             const env = rowsToRecord(envRows);
             config = {
                 type: "stdio",
@@ -471,10 +499,12 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             };
         } else {
             const headers = rowsToRecord(headerRows);
+            const headersFromEnv = rowsToEnvRefRecord(envHeaderRows);
             config = {
                 type: "http",
                 url: url.trim(),
                 ...(Object.keys(headers).length > 0 ? { headers } : {}),
+                ...(Object.keys(headersFromEnv).length > 0 ? { headersFromEnv } : {}),
             };
         }
         try {
@@ -553,7 +583,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                         <Label>Transport</Label>
                         <TabRow>
                             <Tab active={transport === "stdio"} onClick={() => setTransport("stdio")}>Stdio</Tab>
-                            <Tab active={transport === "http"} onClick={() => setTransport("http")}>HTTP</Tab>
+                            <Tab active={transport === "http"} onClick={() => setTransport("http")}>Streamable HTTP</Tab>
                         </TabRow>
                     </FieldGroup>
 
@@ -570,15 +600,8 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                                 />
                             </FieldGroup>
                             <FieldGroup>
-                                <Label htmlFor="mcp-args">Arguments</Label>
-                                <Textarea
-                                    id="mcp-args"
-                                    value={argsText}
-                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setArgsText(e.target.value)}
-                                    placeholder={"-y\nyour-mcp-package"}
-                                    rows={3}
-                                />
-                                <Hint>One argument per line. Empty lines are ignored.</Hint>
+                                <Label>Arguments</Label>
+                                <ArgsEditor rows={argsRows} onChange={setArgsRows} />
                             </FieldGroup>
                             <FieldGroup>
                                 <Label>Environment variables</Label>
@@ -602,7 +625,11 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                             <FieldGroup>
                                 <Label>Headers</Label>
                                 <KvEditor rows={headerRows} onChange={setHeaderRows} keyPlaceholder="Header-Name" valuePlaceholder="value" />
-                                <Hint>For Bearer tokens, add a row with key <code>Authorization</code> and value <code>Bearer your-token</code>.</Hint>
+                            </FieldGroup>
+                            <FieldGroup>
+                                <Label>Headers from environment variables</Label>
+                                <KvEditor rows={envHeaderRows} onChange={setEnvHeaderRows} keyPlaceholder="Header-Name" valuePlaceholder="ENV_VAR_NAME" />
+                                <Hint>Set the header name and an environment variable name. The value is read from that variable at runtime.</Hint>
                             </FieldGroup>
                         </>
                     )}

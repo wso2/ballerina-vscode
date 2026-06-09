@@ -29,7 +29,7 @@ import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { loadSkillsContext } from './skills/context';
 
-import { getMcpClientManager } from './mcp';
+import { refreshMcpClientManager } from './mcp';
 import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
 import { integrateCodeToWorkspace } from './utils';
 import { getWorkspaceTomlValues } from '../../../utils';
@@ -323,15 +323,8 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             // These are separate API calls NOT included in the main agent loop's totalUsage
             const toolModelUsage: Record<string, { inputTokens: number; outputTokens: number }> = {};
 
-            // Refresh MCP server connections so any mcp.json edits since the last turn take effect.
-            const mcpMgr = getMcpClientManager();
-            if (mcpMgr) {
-                try {
-                    await mcpMgr.refresh();
-                } catch (err) {
-                    console.warn('[AgentExecutor] MCP refresh failed:', err);
-                }
-            }
+            // Refresh before building the tool registry so it picks up mid-session mcp.json edits.
+            await refreshMcpClientManager();
 
             // Create tools
             const tools = createToolRegistry({

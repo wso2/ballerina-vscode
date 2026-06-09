@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import { BUILT_IN_MCP_SERVERS } from "./builtIns";
 import { loadMcpConfig, McpLoadErrors } from "./configLoader";
 import {
     McpConnectionStatus,
@@ -58,6 +59,18 @@ const { StreamableHTTPClientTransport } = require("@modelcontextprotocol/sdk/cli
 
 const CLIENT_NAME = "wso2-integrator-copilot";
 const CLIENT_VERSION = "1.0.0";
+
+const CONNECT_TIMEOUT_MS = 30000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(`Timed out after ${ms}ms: ${label}`)), ms);
+        promise.then(
+            value => { clearTimeout(timer); resolve(value); },
+            err => { clearTimeout(timer); reject(err); },
+        );
+    });
+}
 
 interface McpToolDescriptor {
     name: string;
@@ -119,11 +132,12 @@ function normaliseConfigForDto(cfg: McpServerConfig, transport: McpTransportType
             ...(stdio.env ? { env: stdio.env } : {}),
         };
     }
-    const http = cfg as { url?: string; headers?: Record<string, string> };
+    const http = cfg as { url?: string; headers?: Record<string, string>; headersFromEnv?: Record<string, string> };
     return {
         type: "http",
         url: http.url ?? "",
         ...(http.headers ? { headers: http.headers } : {}),
+        ...(http.headersFromEnv ? { headersFromEnv: http.headersFromEnv } : {}),
     };
 }
 
@@ -198,8 +212,24 @@ export class McpClientManager {
         return { ...this.lastErrors };
     }
 
+    /**
+     * Synthesize entries for every shipped built-in MCP server, so they flow
+     * through the same connect/disconnect path as on-disk entries.
+     */
+    private builtInEntries(): { scope: McpScope; name: string; config: McpServerConfig }[] {
+        return BUILT_IN_MCP_SERVERS.map(b => ({
+            scope: "builtin" as McpScope,
+            name: b.id,
+            config: b.defaultConfig,
+        }));
+    }
+
     private async doRefresh(): Promise<void> {
-        const { entries, errors } = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
+        const { entries: diskEntries, errors } = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
+        // A same-named user/workspace server overrides a built-in — they'd otherwise collide on the mcp__<name>__ namespace.
+        const diskNames = new Set(diskEntries.map(e => e.name));
+        const builtIns = this.builtInEntries().filter(b => !diskNames.has(b.name));
+        const entries = [...diskEntries, ...builtIns];
         this.lastErrors = errors;
         const desiredKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
 
@@ -212,7 +242,7 @@ export class McpClientManager {
                 this.servers.delete(key);
                 continue;
             }
-            const enabled = this.isEffectivelyEnabled(desired.scope, desired.name, desired.config);
+            const enabled = this.isServerEnabled(desired.scope, desired.name, desired.config);
             const configChanged = configKey(desired.config) !== configKey(state.config);
             if (configChanged) {
                 await this.disconnect(state);
@@ -228,7 +258,7 @@ export class McpClientManager {
         const opens: Promise<void>[] = [];
         for (const entry of entries) {
             const key = keyOf(entry.scope, entry.name);
-            const enabled = this.isEffectivelyEnabled(entry.scope, entry.name, entry.config);
+            const enabled = this.isServerEnabled(entry.scope, entry.name, entry.config);
             if (!enabled) {
                 this.servers.set(key, {
                     scope: entry.scope,
@@ -274,27 +304,13 @@ export class McpClientManager {
         if (override !== undefined) {
             return override;
         }
+        // Built-ins fall back to the per-entry `autoEnable` flag (default off).
+        // The user can still toggle them; their override persists in the store.
+        if (scope === "builtin") {
+            const def = BUILT_IN_MCP_SERVERS.find(b => b.id === name);
+            return def?.autoEnable === true;
+        }
         return cfg.disabled !== true;
-    }
-
-    isGroupEnabled(scope: McpScope): boolean {
-        return this.enabledOverrides.get(`group:${scope}`) !== false;
-    }
-
-    private isEffectivelyEnabled(scope: McpScope, name: string, cfg: McpServerConfig): boolean {
-        return this.isGroupEnabled(scope) && this.isServerEnabled(scope, name, cfg);
-    }
-
-    getGroupStates(): { user: boolean; workspace: boolean } {
-        return {
-            user: this.isGroupEnabled("user"),
-            workspace: this.isGroupEnabled("workspace"),
-        };
-    }
-
-    async setGroupEnabled(scope: McpScope, enabled: boolean): Promise<void> {
-        await this.enabledOverrides.set(`group:${scope}`, enabled);
-        await this.refresh();
     }
 
     async deleteServerOverride(scope: McpScope, name: string): Promise<void> {
@@ -304,9 +320,11 @@ export class McpClientManager {
     /** Drop any server-scoped override keys that no longer have a matching entry in the config files. */
     async pruneOrphanOverrides(): Promise<void> {
         const { entries } = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
-        const liveKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
+        const liveKeys = new Set([
+            ...entries.map(e => keyOf(e.scope, e.name)),
+            ...this.builtInEntries().map(e => keyOf(e.scope, e.name)),
+        ]);
         for (const key of this.enabledOverrides.keys()) {
-            if (key.startsWith("group:")) { continue; }
             if (!liveKeys.has(key)) {
                 await this.enabledOverrides.delete(key);
             }
@@ -314,11 +332,12 @@ export class McpClientManager {
     }
 
     private async connect(state: ServerState): Promise<void> {
+        let client: McpClient | undefined;
         try {
-            const client = new McpClientImpl({ name: CLIENT_NAME, version: CLIENT_VERSION });
+            client = new McpClientImpl({ name: CLIENT_NAME, version: CLIENT_VERSION });
             const transport = this.buildTransport(state.config);
-            await client.connect(transport);
-            const { tools } = await client.listTools();
+            await withTimeout(client.connect(transport), CONNECT_TIMEOUT_MS, `connect to '${state.scope}:${state.name}'`);
+            const { tools } = await withTimeout(client.listTools(), CONNECT_TIMEOUT_MS, `list tools for '${state.scope}:${state.name}'`);
             // Disposed mid-connect: close the client instead of leaking it.
             if (this.disposed) {
                 await client.close().catch(() => { /* ignore */ });
@@ -344,6 +363,10 @@ export class McpClientManager {
             state.status = "connected";
             state.error = undefined;
         } catch (err: any) {
+            // Close a half-open client so a timed-out stdio child / socket doesn't leak.
+            if (client) {
+                client.close().catch(() => { /* ignore */ });
+            }
             state.status = "failed";
             state.error = err?.message ?? String(err);
             state.client = undefined;
@@ -377,7 +400,16 @@ export class McpClientManager {
             throw new Error("http MCP server config requires 'url'");
         }
         const url = new URL(cfg.url);
-        const headers = cfg.headers ?? {};
+        const headers: Record<string, string> = { ...(cfg.headers ?? {}) };
+        // Resolve env-var-backed headers at connect time so secrets stay out of mcp.json.
+        for (const [name, envVar] of Object.entries(cfg.headersFromEnv ?? {})) {
+            const value = process.env[envVar];
+            if (typeof value === "string" && value) {
+                headers[name] = value;
+            } else {
+                console.warn(`[mcp] Header '${name}' references unset env var '${envVar}'`);
+            }
+        }
         return new StreamableHTTPClientTransport(url, {
             requestInit: { headers },
         });
@@ -492,6 +524,18 @@ export function initMcpClientManager(overrides: EnabledOverrideStore, workspaceP
 
 export function getMcpClientManager(): McpClientManager | undefined {
     return singleton;
+}
+
+/** Refresh the active manager so mid-session mcp.json edits take effect. No-op if MCP is off; errors are logged, never thrown. */
+export async function refreshMcpClientManager(): Promise<void> {
+    if (!singleton) {
+        return;
+    }
+    try {
+        await singleton.refresh();
+    } catch (err) {
+        console.warn('[mcp] refresh failed:', err);
+    }
 }
 
 export async function disposeMcpClientManager(): Promise<void> {

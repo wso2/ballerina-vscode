@@ -19,22 +19,14 @@
 import { McpServerConfig } from "./types";
 
 export interface BuiltInMcpServer {
-    /** Stable id used as the server name when added to the user's config. */
+    /** Stable id, also used as the server name. */
     id: string;
     displayName: string;
     description: string;
-    /** The config that will be written into the user's `mcp.json` on enable. */
     defaultConfig: McpServerConfig;
-    /**
-     * Marks servers that need credentials before they will connect. v1 surfaces
-     * the flag in the UI but does not run any auth flow yet.
-     */
-    requiresAuth?: boolean;
+    /** When true, the server is on by default on first run; the user's toggle still overrides and persists. */
+    autoEnable?: boolean;
 }
 
-/**
- * Curated list of "blessed" MCP connectors that the Copilot offers as one-click
- * adds in the MCP panel. Intentionally empty in v1; populating this list is the
- * single-file extension point for shipping a WSO2/Choreo connector later.
- */
+/** Built-in MCP servers shipped with the Copilot. Empty until curated connectors land. */
 export const BUILT_IN_MCP_SERVERS: readonly BuiltInMcpServer[] = [];

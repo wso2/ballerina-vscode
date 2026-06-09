@@ -78,8 +78,6 @@ import {
     DeleteMcpServerRequest,
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
-    McpGroupStatesDTO,
-    SetMcpGroupEnabledRequest,
     AgentsMdFileInfoDTO,
 } from "./interfaces";
 
@@ -191,11 +189,8 @@ export interface AIPanelAPI {
     deleteMcpServer: (params: DeleteMcpServerRequest) => Promise<AddMcpServerResponse>;
     setMcpToolsEnabled: (params: SetMcpToolsEnabledRequest) => Promise<void>;
     getMcpToolsEnabled: () => Promise<boolean>;
-    getMcpPreviewEnabled: () => Promise<boolean>;
     getMcpWorkspaceContext: () => Promise<McpWorkspaceContextResponse>;
     getMcpLoadErrors: () => Promise<McpLoadErrorsDTO>;
-    getMcpGroupStates: () => Promise<McpGroupStatesDTO>;
-    setMcpGroupEnabled: (params: SetMcpGroupEnabledRequest) => Promise<void>;
     getAgentsMdFileInfo: () => Promise<AgentsMdFileInfoDTO>;
     openOrCreateAgentsMd: () => Promise<void>;
 }

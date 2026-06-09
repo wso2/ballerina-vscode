@@ -148,11 +148,8 @@ import {
     deleteMcpServer,
     setMcpToolsEnabled,
     getMcpToolsEnabled,
-    getMcpPreviewEnabled,
     getMcpWorkspaceContext,
     getMcpLoadErrors,
-    getMcpGroupStates,
-    setMcpGroupEnabled,
     getAgentsMdFileInfo,
     openOrCreateAgentsMd,
     McpServerStatusDTO,
@@ -165,8 +162,6 @@ import {
     DeleteMcpServerRequest,
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
-    McpGroupStatesDTO,
-    SetMcpGroupEnabledRequest,
     AgentsMdFileInfoDTO,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -493,24 +488,12 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(getMcpToolsEnabled, HOST_EXTENSION);
     }
 
-    getMcpPreviewEnabled(): Promise<boolean> {
-        return this._messenger.sendRequest(getMcpPreviewEnabled, HOST_EXTENSION);
-    }
-
     getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
         return this._messenger.sendRequest(getMcpWorkspaceContext, HOST_EXTENSION);
     }
 
     getMcpLoadErrors(): Promise<McpLoadErrorsDTO> {
         return this._messenger.sendRequest(getMcpLoadErrors, HOST_EXTENSION);
-    }
-
-    getMcpGroupStates(): Promise<McpGroupStatesDTO> {
-        return this._messenger.sendRequest(getMcpGroupStates, HOST_EXTENSION);
-    }
-
-    setMcpGroupEnabled(params: SetMcpGroupEnabledRequest): Promise<void> {
-        return this._messenger.sendRequest(setMcpGroupEnabled, HOST_EXTENSION, params);
     }
 
     getAgentsMdFileInfo(): Promise<AgentsMdFileInfoDTO> {

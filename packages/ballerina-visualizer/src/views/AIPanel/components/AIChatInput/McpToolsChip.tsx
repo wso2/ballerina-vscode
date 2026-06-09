@@ -18,7 +18,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { McpGroupStatesDTO, McpLoadErrorsDTO, McpScope, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { McpLoadErrorsDTO, McpScope, McpServerStatusDTO } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Icon } from "@wso2/ui-toolkit";
 import { ExperimentalTag } from "../ExperimentalTag";
@@ -203,23 +203,6 @@ const GroupLabel = styled.div`
     padding: 6px 4px 2px;
 `;
 
-const GroupOffBadge = styled.span`
-    display: inline-flex;
-    align-items: center;
-    padding: 0 5px;
-    height: 13px;
-    border-radius: 3px;
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    color: var(--vscode-descriptionForeground);
-    background: transparent;
-    border: 1px solid var(--vscode-descriptionForeground);
-    opacity: 0.75;
-    text-transform: uppercase;
-    cursor: help;
-`;
-
 const WarningBanner = styled.button`
     width: 100%;
     text-align: left;
@@ -303,23 +286,28 @@ const ToggleSwitch = styled.button<{ on: boolean; disabled?: boolean }>`
     flex-shrink: 0;
     opacity: ${(p: { disabled?: boolean }) => (p.disabled ? 0.5 : 1)};
     background: ${(p: { on: boolean }) => (p.on
-        ? "var(--vscode-inputOption-activeBackground, var(--vscode-focusBorder))"
+        ? "var(--vscode-button-background)"
         : "var(--vscode-input-background)")};
     border: 1px solid ${(p: { on: boolean }) => (p.on
-        ? "var(--vscode-inputOption-activeBorder, var(--vscode-checkbox-border, transparent))"
-        : "var(--vscode-checkbox-border, var(--vscode-input-border, transparent))")};
+        ? "var(--vscode-contrastBorder, var(--vscode-button-background))"
+        : "var(--vscode-contrastBorder, var(--vscode-checkbox-border, var(--vscode-descriptionForeground)))")};
     transition: background 0.15s, border-color 0.15s;
 
     &::after {
         content: "";
         position: absolute;
+        box-sizing: border-box;
         top: 1px;
         left: ${(p: { on: boolean }) => (p.on ? "13px" : "1px")};
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: var(--vscode-foreground);
-        transition: left 0.15s;
+        background: ${(p: { on: boolean }) => (p.on
+            ? "var(--vscode-button-foreground)"
+            : "var(--vscode-descriptionForeground)")};
+        border: 1px solid var(--vscode-contrastBorder, transparent);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        transition: left 0.15s, background 0.15s;
     }
 `;
 
@@ -331,23 +319,34 @@ const OffMessage = styled.div`
     line-height: 1.5;
 `;
 
-const SCOPE_ORDER: McpScope[] = ["workspace", "user"];
+const SCOPE_ORDER: McpScope[] = ["builtin", "workspace", "user"];
+
+function scopeLabel(scope: McpScope): string {
+    if (scope === "builtin") { return "Built-in"; }
+    return scope === "workspace" ? "Project" : "User";
+}
+
+/** Display name for a transport token. */
+function transportName(transport: string): string {
+    return transport === "http" ? "Streamable HTTP" : "Stdio";
+}
 
 function transportLabel(s: McpServerStatusDTO): string {
+    const transport = transportName(s.transport);
     if (s.shadowed) {
-        return `${s.transport} · shadowed by project`;
+        return `${transport} · shadowed by project`;
     }
     if (s.status === "failed" && s.error) {
         return `Failed: ${s.error}`;
     }
     if (s.status === "disconnected") {
-        return `${s.transport} · disabled`;
+        return `${transport} · disabled`;
     }
     if (s.status === "connecting") {
-        return `${s.transport} · connecting`;
+        return `${transport} · connecting`;
     }
     const n = s.tools.length;
-    return `${s.transport} · ${n} tool${n === 1 ? "" : "s"}`;
+    return `${transport} · ${n} tool${n === 1 ? "" : "s"}`;
 }
 
 export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onOpenMcpManager }) => {
@@ -361,7 +360,6 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
     // from flashing while the backend is still spawning MCP clients.
     const [togglePending, setTogglePending] = useState(false);
     const [pendingToggle, setPendingToggle] = useState<Set<string>>(new Set());
-    const [groupStates, setGroupStates] = useState<McpGroupStatesDTO>({ user: true, workspace: true });
     const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -388,9 +386,6 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
         api.getMcpLoadErrors().then((errs) => {
             if (!cancelled) setLoadErrors(errs);
         }).catch((err) => console.warn("[mcp] getMcpLoadErrors failed:", err));
-        api.getMcpGroupStates().then((g) => {
-            if (!cancelled) setGroupStates(g);
-        }).catch((err) => console.warn("[mcp] getMcpGroupStates failed:", err));
         const disposeServers = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
             if (cancelled) return;
             setServers(list);
@@ -400,15 +395,11 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
         const disposeErrors = rpcClient.onMcpLoadErrorsChanged((errs: McpLoadErrorsDTO) => {
             if (!cancelled) setLoadErrors(errs);
         });
-        const disposeGroups = rpcClient.onMcpGroupStatesChanged((g: McpGroupStatesDTO) => {
-            if (!cancelled) setGroupStates(g);
-        });
         return () => {
             cancelled = true;
             window.clearTimeout(fallback);
             disposeServers();
             disposeErrors();
-            disposeGroups();
         };
     }, [rpcClient, mcpToolsEnabled]);
 
@@ -513,7 +504,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                 title={chipTitle}
                 onClick={toggleVisible}
             >
-                <Icon name="PowerPlug" sx={{ fontSize: "16px", display: "flex", alignItems: "center", height: "16px" }} iconSx={{ position: "relative", top: "1px" }} />
+                <Icon name="bi-mcp" sx={{ fontSize: "12px", display: "flex", alignItems: "center", height: "12px" }} iconSx={{ position: "relative", top: "1px" }} />
                 <StatusDot status={headlineStatus} />
             </Chip>
 
@@ -528,7 +519,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                                 onClick={handleToggleGlobal}
                             />
                             <HeaderTitle>MCP</HeaderTitle>
-                            <ExperimentalTag size="sm" label="Beta" tooltip="MCP tool support is in beta and may change." />
+                            <ExperimentalTag size="sm" label="Preview" tooltip="MCP tool support is in preview and may change." />
                         </HeaderLeft>
                         <HeaderRight>
                             <IconAction
@@ -553,8 +544,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
 
                     {!mcpToolsEnabled ? (
                         <OffMessage>
-                            MCP tool support is off.<br />
-                            Toggle it on to load servers.
+                            MCP support is off.
                         </OffMessage>
                     ) : (
                         <ScrollBody>
@@ -584,17 +574,11 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                                 grouped.map((group) => (
                                     <React.Fragment key={group[0].scope}>
                                         <GroupLabel>
-                                            <span>{group[0].scope === "workspace" ? "Project" : "User"}</span>
-                                            {!groupStates[group[0].scope] && (
-                                                <GroupOffBadge title="Open the Manage panel to enable this group">
-                                                    Disabled
-                                                </GroupOffBadge>
-                                            )}
+                                            <span>{scopeLabel(group[0].scope)}</span>
                                         </GroupLabel>
                                         {group.map((s) => {
                                             const rowKey = `${s.scope}:${s.name}`;
                                             const rowPending = pendingToggle.has(rowKey);
-                                            const groupActive = groupStates[s.scope];
                                             return (
                                             <ServerRow key={rowKey}>
                                                 <StatusDot status={s.status} />
@@ -610,8 +594,8 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                                                 <ToggleSwitch
                                                     type="button"
                                                     on={s.enabled}
-                                                    disabled={rowPending || !groupActive}
-                                                    title={!groupActive ? `${s.scope === "workspace" ? "Project" : "User"} group is off — enable the group to change individual servers` : s.enabled ? "Disable this server" : "Enable this server"}
+                                                    disabled={rowPending}
+                                                    title={s.enabled ? "Disable this server" : "Enable this server"}
                                                     onClick={() => handleToggleServer(s.scope, s.name, s.enabled)}
                                                 />
                                                 )}

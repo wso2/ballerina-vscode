@@ -77,8 +77,6 @@ import {
     DeleteMcpServerRequest,
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
-    McpGroupStatesDTO,
-    SetMcpGroupEnabledRequest,
     AgentsMdFileInfoDTO,
     ParseSkillFileRequest,
     ParseSkillFileResponse,
@@ -165,14 +163,10 @@ export const updateMcpServer: RequestType<UpdateMcpServerRequest, AddMcpServerRe
 export const deleteMcpServer: RequestType<DeleteMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/deleteMcpServer` };
 export const setMcpToolsEnabled: RequestType<SetMcpToolsEnabledRequest, void> = { method: `${_preFix}/setMcpToolsEnabled` };
 export const getMcpToolsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getMcpToolsEnabled` };
-export const getMcpPreviewEnabled: RequestType<void, boolean> = { method: `${_preFix}/getMcpPreviewEnabled` };
 export const getMcpWorkspaceContext: RequestType<void, McpWorkspaceContextResponse> = { method: `${_preFix}/getMcpWorkspaceContext` };
 export const getMcpLoadErrors: RequestType<void, McpLoadErrorsDTO> = { method: `${_preFix}/getMcpLoadErrors` };
 export const mcpServersChanged: NotificationType<McpServerStatusDTO[]> = { method: `${_preFix}/mcpServersChanged` };
 export const mcpLoadErrorsChanged: NotificationType<McpLoadErrorsDTO> = { method: `${_preFix}/mcpLoadErrorsChanged` };
-export const getMcpGroupStates: RequestType<void, McpGroupStatesDTO> = { method: `${_preFix}/getMcpGroupStates` };
-export const setMcpGroupEnabled: RequestType<SetMcpGroupEnabledRequest, void> = { method: `${_preFix}/setMcpGroupEnabled` };
-export const mcpGroupStatesChanged: NotificationType<McpGroupStatesDTO> = { method: `${_preFix}/mcpGroupStatesChanged` };
 export const getAgentsMdFileInfo: RequestType<void, AgentsMdFileInfoDTO> = { method: `${_preFix}/getAgentsMdFileInfo` };
 export const openOrCreateAgentsMd: RequestType<void, void> = { method: `${_preFix}/openOrCreateAgentsMd` };
 export const agentsMdFileInfoChanged: NotificationType<AgentsMdFileInfoDTO> = { method: `${_preFix}/agentsMdFileInfoChanged` };

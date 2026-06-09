@@ -46,7 +46,7 @@ import { initMcpClientManager, disposeMcpClientManager, watchMcpConfig, getMcpCl
 import { registerAgentsMdWatcher } from './agent/agents-md';
 import { resolveProjectRootPath } from './agent';
 import { extension } from '../../BalExtensionContext';
-import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged, notifyMcpGroupStatesChanged } from '../../RPCLayer';
+import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged } from '../../RPCLayer';
 import { sendConfigChangeNotification } from './utils/ai-utils';
 
 /**
@@ -250,22 +250,13 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
 
 const MCP_ENABLED_OVERRIDE_KEY = 'ballerina.copilot.mcp.enabledOverrides';
 const MCP_ENABLE_SETTING = 'copilot.enableMcpTools';
-const MCP_PREVIEW_SETTING = 'copilot.mcp.preview';
 
 let mcpWatchDisposer: (() => void) | null = null;
 let mcpTrustDisposable: { dispose(): void } | null = null;
 
-function isMcpPreviewEnabled(): boolean {
-    return vscodeWorkspace.getConfiguration('ballerina').get<boolean>(MCP_PREVIEW_SETTING, false);
-}
-
+// MCP runs only when the user enabled it.
 function isMcpEnabled(): boolean {
     return vscodeWorkspace.getConfiguration('ballerina').get<boolean>(MCP_ENABLE_SETTING, false);
-}
-
-// MCP runs only when the feature is in preview (master gate) and the user enabled it.
-function shouldRunMcp(): boolean {
-    return isMcpPreviewEnabled() && isMcpEnabled();
 }
 
 function setupMcp(): void {
@@ -302,7 +293,6 @@ function setupMcp(): void {
         try {
             notifyMcpServersChanged(manager.listServers());
             notifyMcpLoadErrorsChanged(manager.getLoadErrors());
-            notifyMcpGroupStatesChanged(manager.getGroupStates());
         } catch (err) {
             console.warn('[mcp] Failed to push servers-changed notification:', err);
         }
@@ -338,33 +328,36 @@ async function teardownMcp(): Promise<void> {
     try {
         notifyMcpServersChanged([]);
         notifyMcpLoadErrorsChanged({});
-        notifyMcpGroupStatesChanged({ user: true, workspace: true });
     } catch (err) {
         console.warn('[mcp] Failed to push empty servers list on teardown:', err);
     }
 }
 
+// Serialize transitions so a rapid disable→enable isn't undone by an in-flight teardown.
+let mcpLifecycleTransition: Promise<void> = Promise.resolve();
+function queueMcpLifecycleTransition(task: () => Promise<void> | void): void {
+    mcpLifecycleTransition = mcpLifecycleTransition
+        .then(() => task())
+        .catch(err => console.warn('[mcp] lifecycle transition failed:', err));
+}
+
 function activateMcp(): void {
-    if (shouldRunMcp()) {
+    if (isMcpEnabled()) {
         setupMcp();
     }
     const disposable = vscodeWorkspace.onDidChangeConfiguration((e) => {
-        const previewChanged = e.affectsConfiguration(`ballerina.${MCP_PREVIEW_SETTING}`);
         const enableChanged = e.affectsConfiguration(`ballerina.${MCP_ENABLE_SETTING}`);
-        if (!previewChanged && !enableChanged) {
+        if (!enableChanged) {
             return;
         }
-        if (shouldRunMcp()) {
-            setupMcp();
-        } else {
-            teardownMcp().catch(err => console.warn('[mcp] teardown failed:', err));
-        }
-        if (previewChanged) {
-            sendConfigChangeNotification('mcpPreview', isMcpPreviewEnabled());
-        }
-        if (enableChanged) {
-            sendConfigChangeNotification('mcpToolsEnabled', isMcpEnabled());
-        }
+        queueMcpLifecycleTransition(async () => {
+            if (isMcpEnabled()) {
+                setupMcp();
+            } else {
+                await teardownMcp();
+            }
+        });
+        sendConfigChangeNotification('mcpToolsEnabled', isMcpEnabled());
     });
     extension.context?.subscriptions.push(disposable);
 }

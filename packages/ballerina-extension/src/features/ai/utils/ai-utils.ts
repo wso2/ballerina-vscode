@@ -359,7 +359,7 @@ export function sendUsageMetricsNotification(
     sendAIPanelNotification({ type: "usage_metrics", usage, breakdown });
 }
 
-export function sendConfigChangeNotification(key: 'showContextUsage' | 'mcpToolsEnabled' | 'mcpPreview', value: boolean): void {
+export function sendConfigChangeNotification(key: 'showContextUsage' | 'mcpToolsEnabled', value: boolean): void {
     sendAIPanelNotification({ type: 'config_change', key, value });
 }
 

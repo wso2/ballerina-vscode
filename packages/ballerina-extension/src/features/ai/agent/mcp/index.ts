@@ -34,7 +34,8 @@ export {
     McpClientManager,
     initMcpClientManager,
     getMcpClientManager,
+    refreshMcpClientManager,
     disposeMcpClientManager,
     type EnabledOverrideStore,
 } from "./McpClientManager";
-export { bridgeMcpTools, type BridgeOptions } from "./toolBridge";
+export { bridgeMcpTools, getMcpTools, type BridgeOptions } from "./toolBridge";

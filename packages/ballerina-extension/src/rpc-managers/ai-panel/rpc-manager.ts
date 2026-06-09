@@ -79,8 +79,6 @@ import {
     DeleteMcpServerRequest,
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
-    McpGroupStatesDTO,
-    SetMcpGroupEnabledRequest,
     AgentsMdFileInfoDTO,
 } from "@wso2/ballerina-core";
 import {
@@ -89,7 +87,7 @@ import {
 } from "../../features/ai/agent/agents-md";
 import { ConfigurationTarget } from "vscode";
 import { getMcpClientManager, ensureMcpConfigFileExists, writeMcpServer, updateMcpServer, deleteMcpServer } from "../../features/ai/agent/mcp";
-import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged, notifyMcpGroupStatesChanged } from "../../RPCLayer";
+import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged } from "../../RPCLayer";
 import * as os from "os";
 import * as fs from 'fs';
 import path from "path";
@@ -1191,10 +1189,6 @@ User reverted the last made changes. The files have been restored to the state b
         await workspace.getConfiguration('ballerina').update('copilot.enableSkills', !!params?.enabled, ConfigurationTarget.Global);
     }
 
-    async getMcpPreviewEnabled(): Promise<boolean> {
-        return workspace.getConfiguration('ballerina').get<boolean>('copilot.mcp.preview', false);
-    }
-
     async getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
         return { hasWorkspace: !!resolveProjectRootPath() && vscode.workspace.isTrusted };
     }
@@ -1205,24 +1199,6 @@ User reverted the last made changes. The files have been restored to the state b
             return {};
         }
         return manager.getLoadErrors();
-    }
-
-    async getMcpGroupStates(): Promise<McpGroupStatesDTO> {
-        const manager = getMcpClientManager();
-        if (!manager) {
-            return { user: true, workspace: true };
-        }
-        return manager.getGroupStates();
-    }
-
-    async setMcpGroupEnabled(params: SetMcpGroupEnabledRequest): Promise<void> {
-        const manager = getMcpClientManager();
-        if (!manager) {
-            return;
-        }
-        await manager.setGroupEnabled(params.scope, params.enabled);
-        notifyMcpServersChanged(manager.listServers());
-        notifyMcpGroupStatesChanged(manager.getGroupStates());
     }
 
     async addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {
