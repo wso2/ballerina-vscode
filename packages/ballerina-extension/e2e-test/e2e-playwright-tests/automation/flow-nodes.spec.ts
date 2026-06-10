@@ -144,12 +144,29 @@ async function clickNextDiagramPlus(webview: Frame) {
         return;
     }
 
-    // No empty buttons: hover every diagram link with real Playwright so React
-    // renders the link-add-button overlays, then identify the second-to-last button.
+    // As the diagram grows it can extend past the viewport, making lower links
+    // unhoverable ("Element is outside of the viewport" on 1080p CI runners).
+    // Zoom out until every diagram link is within the viewport.
+    const allLinksInViewport = () => webview.evaluate(() => {
+        const links = [...document.querySelectorAll('[data-testid^="diagram-link-"]')];
+        return links.length > 0 && links.every((link) => {
+            const rect = link.getBoundingClientRect();
+            return rect.top >= 0 && rect.bottom <= window.innerHeight && rect.left >= 0 && rect.right <= window.innerWidth;
+        });
+    });
+    const zoomOutButton = webview.locator('i.fw-bi-minus');
+    for (let i = 0; i < 15 && !(await allLinksInViewport()); i++) {
+        if (await zoomOutButton.count() === 0) break;
+        await zoomOutButton.click({ force: true });
+        await page.page.waitForTimeout(200);
+    }
+
+    // Hover every diagram link with real Playwright so React renders the
+    // link-add-button overlays, then identify the second-to-last button.
     const links = webview.locator('[data-testid^="diagram-link-"]');
     const linkCount = await links.count();
     for (let i = 0; i < linkCount; i++) {
-        await links.nth(i).hover({ force: true });
+        await links.nth(i).hover({ force: true }).catch(() => { });
         await page.page.waitForTimeout(100);
     }
 
