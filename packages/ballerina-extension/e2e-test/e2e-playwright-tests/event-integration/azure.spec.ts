@@ -44,17 +44,34 @@ export default function createTests() {
                 values: {
                     'connectionString': {
                         type: 'cmEditor',
-                        value: 'Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test',
-                        additionalProps: { clickLabel: true, switchMode: 'primary-mode', window: global.window }
-                    },
-                    'entityConfig': {
-                        type: 'cmEditor',
-                        value: `{ queueName: "testQueue" }`,
-                        additionalProps: { clickLabel: true, switchMode: 'expression-mode', window: global.window }
+                        value: '"Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test"',
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
-            await form.submit('Create');
+            // Dismiss expression helper popup triggered by CodeMirror focus before filling next field
+            await page.page.keyboard.press('Escape');
+            await page.page.waitForTimeout(300);
+            // entityConfig defaults to Record mode (controlled React component) where view.dispatch
+            // is immediately reset to {}. Switch to Expression mode first so the fill sticks.
+            const entityConfigContainer = artifactWebView.locator('[data-testid="ex-editor-entityConfig"]');
+            if (await entityConfigContainer.count() > 0) {
+                const exprModeBtn = entityConfigContainer.locator('[data-testid="expression-mode"]');
+                if (await exprModeBtn.count() > 0) {
+                    await exprModeBtn.click({ force: true });
+                    await page.page.waitForTimeout(300);
+                }
+            }
+            await form.fill({
+                values: {
+                    'entityConfig': {
+                        type: 'cmEditor',
+                        value: `{ queueName: "testQueue" }`,
+                        additionalProps: { clickLabel: true }
+                    }
+                }
+            });
+            await form.submit('Create', true);
 
             const projectExplorer = new ProjectExplorer(page.page);
             await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Azure Service Bus Event Integration`]);
@@ -83,17 +100,34 @@ export default function createTests() {
                 values: {
                     'connectionString': {
                         type: 'cmEditor',
-                        value: 'Endpoint=sb://test.updated.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test',
-                        additionalProps: { clickLabel: true, switchMode: 'primary-mode', window: global.window }
-                    },
-                    'entityConfig': {
-                        type: 'cmEditor',
-                        value: `{ queueName: "updated-queue-name" }`,
-                        additionalProps: { clickLabel: true, switchMode: 'expression-mode', window: global.window }
+                        value: '"Endpoint=sb://test.updated.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=test"',
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
-            await form.submit('Save Changes');
+            // Dismiss expression helper popup triggered by CodeMirror focus before filling next field
+            await page.page.keyboard.press('Escape');
+            await page.page.waitForTimeout(300);
+            // entityConfig defaults to Record mode (controlled React component) where view.dispatch
+            // is immediately reset to {}. Switch to Expression mode first so the fill sticks.
+            const entityConfigContainerEdit = artifactWebView.locator('[data-testid="ex-editor-entityConfig"]');
+            if (await entityConfigContainerEdit.count() > 0) {
+                const exprModeBtnEdit = entityConfigContainerEdit.locator('[data-testid="expression-mode"]');
+                if (await exprModeBtnEdit.count() > 0) {
+                    await exprModeBtnEdit.click({ force: true });
+                    await page.page.waitForTimeout(300);
+                }
+            }
+            await form.fill({
+                values: {
+                    'entityConfig': {
+                        type: 'cmEditor',
+                        value: `{ queueName: "updated-queue-name" }`,
+                        additionalProps: { clickLabel: true }
+                    }
+                }
+            });
+            await form.submit('Save Changes', true);
 
             const saveChangesBtn = artifactWebView.locator('#save-changes-btn vscode-button[appearance="primary"]');
             await saveChangesBtn.waitFor({ state: 'visible' });
