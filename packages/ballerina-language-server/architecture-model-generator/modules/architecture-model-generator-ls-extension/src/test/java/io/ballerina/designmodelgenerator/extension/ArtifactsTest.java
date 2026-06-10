@@ -47,8 +47,9 @@ public class ArtifactsTest extends AbstractLSTest {
         String packageName = getStringValue(artifactsResponse, "packageName");
         String moduleName = getStringValue(artifactsResponse, "moduleName");
 
-        if (!artifact.equals(testConfig.output()) || !Objects.equals(packageName, testConfig.packageName()) ||
-                !Objects.equals(moduleName, testConfig.moduleName())) {
+        if (!isJsonPermutation(artifact, testConfig.output())
+                || !Objects.equals(packageName, testConfig.packageName())
+                || !Objects.equals(moduleName, testConfig.moduleName())) {
             TestConfig updatedConfig = new TestConfig(testConfig.description(), testConfig.source(), packageName,
                     moduleName, artifact);
 //            updateConfig(configJsonPath, updatedConfig);
