@@ -35,7 +35,7 @@ const LibrarySearchToolSchema = jsonSchema<{
         keywords: {
             type: "array",
             items: { type: "string" },
-            description: `Array of search keywords to find relevant Ballerina libraries. Keywords are weighted by order - first keyword has highest weight, subsequent keywords have decreasing weight. Maximum ${MAX_SEARCH_KEYWORDS} keywords allowed.`,
+            description: `Array of search keywords to find relevant Ballerina libraries. Keywords are weighted by order - first keyword has highest weight, subsequent keywords have decreasing weight. Maximum ${MAX_SEARCH_KEYWORDS} keywords allowed. Examples: ["GitHub", "API", "integration"], ["Stripe", "payment", "gateway"], ["HTTP", "REST", "service"]`,
             minItems: 1,
             maxItems: MAX_SEARCH_KEYWORDS,
         },
