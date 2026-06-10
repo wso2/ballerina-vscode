@@ -191,6 +191,8 @@ jobs:
     steps:
       - name: Enable long paths for Git
         shell: bash
+        # Override the job default working-directory — it does not exist before checkout.
+        working-directory: ${{ github.workspace }}
         run: git config --system core.longpaths true
 
       - name: Checkout repository
