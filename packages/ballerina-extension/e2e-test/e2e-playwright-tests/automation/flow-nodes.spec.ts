@@ -144,28 +144,32 @@ async function clickNextDiagramPlus(webview: Frame) {
         return;
     }
 
-    // As the diagram grows it can extend past the viewport, making lower links
+    // As the diagram grows it extends past the viewport, making lower links
     // unhoverable ("Element is outside of the viewport" on 1080p CI runners).
-    // Zoom out until every diagram link is within the viewport.
-    const allLinksInViewport = () => webview.evaluate(() => {
-        const links = [...document.querySelectorAll('[data-testid^="diagram-link-"]')];
-        return links.length > 0 && links.every((link) => {
-            const rect = link.getBoundingClientRect();
-            return rect.top >= 0 && rect.bottom <= window.innerHeight && rect.left >= 0 && rect.right <= window.innerWidth;
-        });
-    });
-    const zoomOutButton = webview.locator('i.fw-bi-minus');
-    for (let i = 0; i < 15 && !(await allLinksInViewport()); i++) {
-        if (await zoomOutButton.count() === 0) break;
-        await zoomOutButton.click({ force: true });
-        await page.page.waitForTimeout(200);
-    }
+    // The diagram registers VerticalScrollCanvasAction, so a real mouse wheel
+    // over the canvas pans the diagram vertically — scroll each link into the
+    // canvas area before hovering it.
+    const canvasBox = await webview.locator('[data-testid="bi-diagram-canvas"]').boundingBox();
+    const scrollLinkIntoView = async (link: ReturnType<Frame['locator']>) => {
+        if (!canvasBox) return;
+        await page.page.mouse.move(canvasBox.x + canvasBox.width / 2, canvasBox.y + canvasBox.height / 2);
+        for (let attempt = 0; attempt < 20; attempt++) {
+            const box = await link.boundingBox();
+            if (box && box.y >= canvasBox.y + 10 && box.y + box.height <= canvasBox.y + canvasBox.height - 10) {
+                return;
+            }
+            const delta = box && box.y < canvasBox.y + 10 ? -200 : 200;
+            await page.page.mouse.wheel(0, delta);
+            await page.page.waitForTimeout(150);
+        }
+    };
 
     // Hover every diagram link with real Playwright so React renders the
     // link-add-button overlays, then identify the second-to-last button.
     const links = webview.locator('[data-testid^="diagram-link-"]');
     const linkCount = await links.count();
     for (let i = 0; i < linkCount; i++) {
+        await scrollLinkIntoView(links.nth(i));
         await links.nth(i).hover({ force: true }).catch(() => { });
         await page.page.waitForTimeout(100);
     }
@@ -181,7 +185,9 @@ async function clickNextDiagramPlus(webview: Frame) {
     const targetBtnTestId = await addBtns.nth(targetBtnIdx).getAttribute('data-testid');
     const correspondingLinkId = targetBtnTestId?.replace('link-add-button', 'diagram-link');
     if (correspondingLinkId) {
-        await webview.locator(`[data-testid="${correspondingLinkId}"]`).hover({ force: true });
+        const targetLink = webview.locator(`[data-testid="${correspondingLinkId}"]`);
+        await scrollLinkIntoView(targetLink);
+        await targetLink.hover({ force: true });
         await page.page.waitForTimeout(200);
     }
     await addBtns.nth(targetBtnIdx).click({ force: true });
