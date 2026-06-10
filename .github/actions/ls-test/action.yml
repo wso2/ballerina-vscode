@@ -1,0 +1,57 @@
+name: Run Ballerina LS tests
+description: Sets up JDK, Gradle, and Ballerina, restores the dependency cache, and runs the language server gradle test suite. The repository must already be checked out.
+
+inputs:
+  cache-branch:
+    description: Branch name used in the Ballerina dependency cache key
+    required: true
+  gradle-version:
+    description: Version passed to gradle as -Pversion (omitted when empty)
+    required: false
+    default: ''
+  package-user:
+    description: User for maven.pkg.github.com authentication
+    required: true
+  package-pat:
+    description: Token for maven.pkg.github.com authentication
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set up JDK 21
+      uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+      with:
+        distribution: 'temurin'
+        java-version: 21.0.3
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+
+    - name: Set Up Ballerina
+      uses: ballerina-platform/setup-ballerina@97fd67111e3c3ecdfafff96fc24d95ad909ab299 # v1.1.4
+      with:
+        version: 2201.13.3
+
+    - name: Cache Ballerina dependencies
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: /home/runner/.ballerina/repositories/
+        key: ${{ runner.os }}-ballerina-${{ inputs.cache-branch }}-${{ hashFiles('**/gradle.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-ballerina-${{ inputs.cache-branch }}-
+          ${{ runner.os }}-ballerina-
+
+    - name: Test with Gradle
+      shell: bash
+      working-directory: packages/ballerina-language-server
+      env:
+        packageUser: ${{ inputs.package-user }}
+        packagePAT: ${{ inputs.package-pat }}
+        GRADLE_PROJECT_VERSION: ${{ inputs.gradle-version }}
+      run: |
+        if [ -n "$GRADLE_PROJECT_VERSION" ]; then
+          ./gradlew -Pversion="$GRADLE_PROJECT_VERSION" test
+        else
+          ./gradlew test
+        fi
