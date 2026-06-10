@@ -54,10 +54,17 @@ async function saveForm(webview: Frame) {
         const panelText = await webview.getByTestId('side-panel').innerText({ timeout: 1000 }).catch(() => '');
         throw new Error(`Flow node form did not finish saving.\n${panelText}\n${error}`);
     });
-    await webview.getByTestId('side-panel').waitFor({ state: 'hidden', timeout: 60000 }).catch(async (error) => {
-        const panelText = await webview.getByTestId('side-panel').innerText({ timeout: 1000 }).catch(() => '');
-        throw new Error(`Flow node form did not close after saving.\n${panelText}\n${error}`);
-    });
+    // Retry the Save click once — on slow CI runners the first click can land
+    // before the form's onChange state settles, leaving the panel open.
+    const closed = await webview.getByTestId('side-panel').waitFor({ state: 'hidden', timeout: 20000 }).then(() => true, () => false);
+    if (!closed) {
+        await dismissHelperPanel();
+        await webview.getByRole('button', { name: 'Save' }).last().click({ force: true }).catch(() => { });
+        await webview.getByTestId('side-panel').waitFor({ state: 'hidden', timeout: 60000 }).catch(async (error) => {
+            const panelText = await webview.getByTestId('side-panel').innerText({ timeout: 1000 }).catch(() => '');
+            throw new Error(`Flow node form did not close after saving.\n${panelText}\n${error}`);
+        });
+    }
     await webview.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 60000 });
     await page.page.waitForTimeout(1000);
 }
@@ -68,6 +75,25 @@ async function selectNode(sidePanel: SidePanel, nodeTitle: string, sectionTitle?
         await sidePanel.expandSection(sectionTitle);
     }
     await sidePanel.clickNode(nodeTitle);
+}
+
+// Fills a named ex-editor field directly via the CodeMirror view. Unlike
+// Form.fill's cmEditor handler (which silently no-ops if the ex-editor
+// container has not rendered yet — observed on slow Linux CI runners),
+// this explicitly waits for the editor to be mounted before dispatching.
+async function fillExEditor(webview: Frame, key: string, value: string) {
+    const container = webview.locator(`[data-testid="ex-editor-${key}"]`);
+    await container.waitFor({ state: 'visible', timeout: 30000 });
+    await container.locator('.cm-content').first().waitFor({ state: 'attached', timeout: 30000 });
+    await container.evaluate((element, text) => {
+        const cmContent = element.querySelector('.cm-content') as HTMLElement & { cmView?: { view?: any } };
+        const view = cmContent?.cmView?.view;
+        if (!view) {
+            throw new Error('CodeMirror view not found in ex-editor container');
+        }
+        view.focus();
+        view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: text } });
+    }, value);
 }
 
 async function fillFirstCodeMirror(webview: Frame, value: string) {
@@ -172,15 +198,7 @@ export default function createTests() {
             await diagram.clickAddButtonByIndex(1);
             await selectNode(sidePanel, 'Log Info', 'Logging');
             await form.switchToFormView(false, artifactWebView);
-            await form.fill({
-                values: {
-                    'msg': {
-                        type: 'cmEditor',
-                        value: '"flow started"',
-                        additionalProps: { clickLabel: true }
-                    }
-                }
-            });
+            await fillExEditor(artifactWebView, 'msg', '"flow started"');
             await saveForm(artifactWebView);
 
             logStep('Add int count Declare Variable node');
@@ -213,15 +231,7 @@ export default function createTests() {
             await diagram.clickHoverAddButtonByIndex(3);
             await selectNode(sidePanel, 'Log Debug', 'Logging');
             await form.switchToFormView(false, artifactWebView);
-            await form.fill({
-                values: {
-                    'msg': {
-                        type: 'cmEditor',
-                        value: 'string `initial ${count} ${msg}`',
-                        additionalProps: { clickLabel: true }
-                    }
-                }
-            });
+            await fillExEditor(artifactWebView, 'msg', 'string `initial ${count} ${msg}`');
             await saveForm(artifactWebView);
 
             logStep('Add If node with Else block');
@@ -245,30 +255,14 @@ export default function createTests() {
             await clickNextDiagramPlus(artifactWebView);
             await selectNode(sidePanel, 'Log Error', 'Logging');
             await form.switchToFormView(false, artifactWebView);
-            await form.fill({
-                values: {
-                    'msg': {
-                        type: 'cmEditor',
-                        value: '"sample error log"',
-                        additionalProps: { clickLabel: true }
-                    }
-                }
-            });
+            await fillExEditor(artifactWebView, 'msg', '"sample error log"');
             await saveForm(artifactWebView);
 
             logStep('Add Log Warn node');
             await clickNextDiagramPlus(artifactWebView);
             await selectNode(sidePanel, 'Log Warn', 'Logging');
             await form.switchToFormView(false, artifactWebView);
-            await form.fill({
-                values: {
-                    'msg': {
-                        type: 'cmEditor',
-                        value: '"sample warn log"',
-                        additionalProps: { clickLabel: true }
-                    }
-                }
-            });
+            await fillExEditor(artifactWebView, 'msg', '"sample warn log"');
             await saveForm(artifactWebView);
 
             logStep('Add While node');
