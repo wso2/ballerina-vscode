@@ -923,10 +923,10 @@ export function updateView(refreshTreeView?: boolean, updatedIdentifier?: string
         }
 
         const projectPath = StateMachine.context().projectPath;
-        const project = StateMachine.context().projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
+        const project = StateMachine.context().projectStructure?.projects.find(project => isSamePath(project.projectPath, projectPath));
 
         // These changes will be revisited in the revamp
-        project.directoryMap[targetedArtifactType].forEach((artifact: ProjectStructureArtifactResponse) => {
+        project?.directoryMap[targetedArtifactType]?.forEach((artifact: ProjectStructureArtifactResponse) => {
             if (artifact.id === currentIdentifier || artifact.name === currentIdentifier || artifact.id === updatedIdentifier || artifact.name === updatedIdentifier) {
                 currentArtifact = artifact;
             }
@@ -954,9 +954,9 @@ export function updateView(refreshTreeView?: boolean, updatedIdentifier?: string
         let currentArtifact: ProjectStructureArtifactResponse;
 
         const projectPath = StateMachine.context().projectPath;
-        const project = StateMachine.context().projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
+        const project = StateMachine.context().projectStructure?.projects.find(project => isSamePath(project.projectPath, projectPath));
 
-        project.directoryMap[DIRECTORY_MAP.TYPE].forEach((artifact) => {
+        project?.directoryMap[DIRECTORY_MAP.TYPE]?.forEach((artifact) => {
             if (artifact.id === lastView.location.type.name || artifact.name === lastView.location.type.name) {
                 currentArtifact = artifact;
             }
