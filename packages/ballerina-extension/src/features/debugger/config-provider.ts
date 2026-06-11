@@ -702,9 +702,11 @@ class BIRunAdapter extends LoggingDebugSession {
         // Claim the per-integration slot synchronously before any await —
         // serializes concurrent launchRequests of the same integration so
         // neither can read an empty slot and race past the conflict check.
-        // The script is set by resolveDebugConfiguration for every launch.
+        // The script is set by resolveDebugConfiguration for every launch;
+        // if it is ever missing, fall back to a per-session unique key so
+        // unrelated script-less sessions never collide on a shared slot.
         const configScript = (this.session.configuration as { script?: string })?.script;
-        this.slotKey = configScript ? path.resolve(configScript) : '';
+        this.slotKey = configScript ? path.resolve(configScript) : `session:${this.session.id}`;
         const existingAdapter = BIRunAdapter.activeAdapters.get(this.slotKey) ?? null;
         BIRunAdapter.activeAdapters.set(this.slotKey, this);
 

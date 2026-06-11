@@ -19,6 +19,7 @@ import { PALETTE_COMMANDS } from "./cmds/cmd-runner";
 const BALLERINA_DEBUG_TYPE = "ballerina";
 const NOTEBOOK_DEBUG_SESSION_NAME = "Ballerina Notebook Debug";
 const TASK_TERMINATION_TIMEOUT_MS = 10000;
+const SESSION_TERMINATION_TIMEOUT_MS = 10000;
 
 export const RUN_CONFLICT_PROMPT =
     "This integration is already running. Do you want to stop it and start it again?";
@@ -131,10 +132,18 @@ async function stopRunDebugSession(run: ActiveRun): Promise<void> {
     if (!session) {
         return;
     }
-    // Wait for actual terminate; stopDebugging only sends the request.
+    // Wait for actual terminate; stopDebugging only sends the request. Guarded
+    // by a timeout so a stuck adapter cannot hang the restart flow forever —
+    // a lingering process is still handled by the task-level wait that follows
+    // (waitForRunTaskEnd + force-start prompt).
     await new Promise<void>((resolve) => {
+        const timeout = setTimeout(() => {
+            sub.dispose();
+            resolve();
+        }, SESSION_TERMINATION_TIMEOUT_MS);
         const sub = debug.onDidTerminateDebugSession((ended) => {
             if (ended === session) {
+                clearTimeout(timeout);
                 sub.dispose();
                 resolve();
             }
