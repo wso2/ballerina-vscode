@@ -2431,7 +2431,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
                     // check if params.openApiContractPath is within the project path
                     if (isPathInside(params.projectPath, params.openApiContractPath)) {
-                        const updatedSpecPath = params.openApiContractPath.replace(params.projectPath, '.');
+                        const relativeSpecPath = path
+                            .relative(path.normalize(params.projectPath), path.normalize(params.openApiContractPath))
+                            .replace(/\\/g, "/");
+                        const updatedSpecPath = relativeSpecPath.startsWith(".") ? relativeSpecPath : `./${relativeSpecPath}`;
                         // Replace the file path of the openapi spec to be relative path in the toml
                         const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
                         const updatedToml: Partial<PackageTomlValues> = {
