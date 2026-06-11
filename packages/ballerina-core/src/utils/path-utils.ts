@@ -26,15 +26,18 @@
  *
  * Strips trailing `/` and `\` separators, but preserves filesystem roots
  * ("/" or "C:\") whose trailing separator is semantically significant.
+ * Also lowercases a leading Windows drive letter: VS Code's `Uri.fsPath`
+ * reports "c:\..." while other sources (LS, configs) may report "C:\...".
  */
 export function normalizeProjectPath(path: string | undefined | null): string {
     if (!path) {
         return "";
     }
-    const trimmed = path.replace(/[\\/]+$/, "");
+    const withNormalizedDrive = path.replace(/^[A-Za-z]:/, (drive) => drive.toLowerCase());
+    const trimmed = withNormalizedDrive.replace(/[\\/]+$/, "");
     // "/" would become "" and "C:\" would become the drive-relative "C:"; keep those as-is
     if (trimmed.length === 0 || /^[A-Za-z]:$/.test(trimmed)) {
-        return path;
+        return withNormalizedDrive;
     }
     return trimmed;
 }
@@ -62,5 +65,6 @@ export function isPathInside(parent: string | undefined | null, child: string | 
     if (isSamePath(parent, child)) {
         return true;
     }
-    return child.startsWith(normalizedParent + "/") || child.startsWith(normalizedParent + "\\");
+    const normalizedChild = normalizeProjectPath(child);
+    return normalizedChild.startsWith(normalizedParent + "/") || normalizedChild.startsWith(normalizedParent + "\\");
 }
