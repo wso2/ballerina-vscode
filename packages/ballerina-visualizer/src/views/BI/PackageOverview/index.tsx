@@ -26,6 +26,7 @@ import {
     BuildMode,
     BI_COMMANDS,
     DIRECTORY_MAP,
+    isSamePath,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox, ProgressIndicator, Overlay, Dropdown } from "@wso2/ui-toolkit";
@@ -449,7 +450,7 @@ function DeploymentOptions({
         enabled: platformExtState.isExtInstalled,
         refetchInterval: 5000,
     });
-    const currentProjectMeta = devantMetadata?.projectsMetadata?.find(p => p.projectPath === projectPath);
+    const currentProjectMeta = devantMetadata?.projectsMetadata?.find(p => isSamePath(p.projectPath, projectPath));
     const isDeployed = devantMetadata?.isLoggedIn
         ? (currentProjectMeta?.hasComponent ?? false)
         : false;
@@ -799,7 +800,7 @@ export function PackageOverview(props: PackageOverviewProps) {
             .getBIDiagramRpcClient()
             .getProjectStructure()
             .then((res) => {
-                const project = res.projects.find(project => project.projectPath === projectPath);
+                const project = res.projects.find(project => isSamePath(project.projectPath, projectPath));
                 setIsInProject(res.workspaceName !== undefined);
                 if (project) {
                     setProjectStructure(project);
@@ -878,23 +879,20 @@ export function PackageOverview(props: PackageOverviewProps) {
         setProjectStructure(prev => prev ? { ...prev, projectTitle: newTitle } : prev);
     }, [projectPath, rpcClient]);
 
-    const isEmptyIntegration = useMemo((): boolean => {
-        if (!projectStructure) return true;
-
-        const { directoryMap } = projectStructure;
-        const validConnections = directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
+    function isEmptyIntegration(): boolean {
+        // Filter out connections that start with underscore
+        const validConnections = projectStructure.directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
             conn => !conn.name.startsWith('_')
-        ) ?? [];
+        ) || [];
 
         return (
-            !directoryMap[DIRECTORY_MAP.AUTOMATION]?.length &&
-            !directoryMap[DIRECTORY_MAP.LISTENER]?.length &&
-            !directoryMap[DIRECTORY_MAP.SERVICE]?.length &&
-            !directoryMap[DIRECTORY_MAP.AGENTS]?.length &&
-            !directoryMap[DIRECTORY_MAP.WORKFLOW]?.length &&
-            validConnections.length === 0
+            (!projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION] || projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION].length === 0) &&
+            (validConnections.length === 0) &&
+            (!projectStructure.directoryMap[DIRECTORY_MAP.LISTENER] || projectStructure.directoryMap[DIRECTORY_MAP.LISTENER].length === 0) &&
+            (!projectStructure.directoryMap[DIRECTORY_MAP.SERVICE] || projectStructure.directoryMap[DIRECTORY_MAP.SERVICE].length === 0) &&
+            (!projectStructure.directoryMap.agents || projectStructure.directoryMap.agents.length === 0)
         );
-    }, [projectStructure]);
+    }
 
     if (!projectStructure) {
         return (
@@ -1097,7 +1095,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                             {!isLibrary && (
                                 <DiagramHeaderContainer withPadding={true}>
                                     <Title variant="h2">Design</Title>
-                                    {!isEmptyIntegration && (
+                                    {!isEmptyIntegration() && (
                                         <ActionContainer>
                                             <Button appearance="secondary" onClick={handleGenerate}>
                                                 <Icon name="bi-ai-chat" sx={{ marginRight: 8 }} iconSx={{ width: "16px", height: "16px", fontSize: "16px" }} /> Generate with AI
@@ -1112,7 +1110,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                             {isLibrary && <LibraryOverview projectStructure={projectStructure} isNPSupported={isNPSupported} projectPath={projectPath} onRefresh={fetchContext} />}
                             {!isLibrary && (
                                 <DiagramContent>
-                                    {isEmptyIntegration ? (
+                                    {isEmptyIntegration() ? (
                                         <EmptyStateContainer>
                                             <Typography variant="h3" sx={{ marginBottom: "16px" }}>
                                                 Your integration is empty
@@ -1143,7 +1141,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                 <ReadmeHeaderContainer>
                                     <Title variant="h2">README</Title>
                                     <ReadmeButtonContainer>
-                                        {readmeContent && isEmptyIntegration && (
+                                        {readmeContent && isEmptyIntegration() && (
                                             <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
                                                 <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
                                             </Button>

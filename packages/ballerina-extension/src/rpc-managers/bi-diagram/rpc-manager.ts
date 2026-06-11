@@ -162,7 +162,8 @@ import {
     ProjectInfo,
     PROJECT_KIND,
     MACHINE_VIEW,
-    isSamePath
+    isSamePath,
+    isPathInside
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -2448,7 +2449,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     console.log(">>> Applied text edits for openapi client");
 
                     // check if params.openApiContractPath is within the project path
-                    if (params.openApiContractPath.startsWith(params.projectPath)) {
+                    if (isPathInside(params.projectPath, params.openApiContractPath)) {
                         const updatedSpecPath = params.openApiContractPath.replace(params.projectPath, '.');
                         // Replace the file path of the openapi spec to be relative path in the toml
                         const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
