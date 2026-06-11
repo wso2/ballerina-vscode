@@ -563,6 +563,9 @@ function getCustomEntryNodeIcon(type: string) {
         case "trigger.shopify":
         case "shopify":
             return "bi-shopify";
+        case "trigger.hubspot":
+        case "hubspot":
+            return "bi-hubspot";
         default:
             return "bi-globe";
     }
