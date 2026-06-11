@@ -37,6 +37,7 @@ const EVENT_INTEGRATION_MODULES: ReadonlySet<string> = new Set([
     "postgresql",
     "trigger.shopify",
     "trigger.twilio",
+    "trigger.hubspot",
     "solace"
 ]);
 
