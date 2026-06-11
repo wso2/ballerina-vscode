@@ -28,6 +28,7 @@ import { LANGUAGE } from "../../../core";
 import { StateMachine } from "../../../stateMachine";
 import { VisualizerWebview } from "../../../views/visualizer/webview";
 import { requiresPackageSelection } from "../../../utils/command-utils";
+import { confirmAndStopActiveRun } from "../integration-runner-state";
 
 function activateRunCmdCommand() {
 
@@ -73,6 +74,14 @@ function activateRunCmdCommand() {
 
     async function run(filePath: string) {
         try {
+
+            // Single-instance guard (#1012): the terminal run path must honor
+            // the one-integration-at-a-time rule like the debug-API paths do.
+            // (No-op when invoked right after restartIntegration, which clears
+            // the runner state synchronously before re-running.)
+            if (!await confirmAndStopActiveRun()) {
+                return;
+            }
 
             sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN);
             if (window.activeTextEditor && window.activeTextEditor.document.isDirty) {

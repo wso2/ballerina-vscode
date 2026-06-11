@@ -10,16 +10,27 @@
  */
 
 import * as path from "path";
-import { commands, debug, DebugSession, Terminal, Uri, window } from "vscode";
+import { commands, debug, DebugSession, TaskExecution, tasks, Terminal, Uri, window } from "vscode";
 import { extension } from "../../BalExtensionContext";
 import { startDebugging } from "../editor-support/activator";
 import { TracerMachine } from "../tracing";
 import { PALETTE_COMMANDS } from "./cmds/cmd-runner";
 
 const BALLERINA_DEBUG_TYPE = "ballerina";
+const NOTEBOOK_DEBUG_SESSION_NAME = "Ballerina Notebook Debug";
+const TASK_TERMINATION_TIMEOUT_MS = 10000;
+
+export const RUN_CONFLICT_PROMPT =
+    "There is already a running integration. Do you want to stop it and start this integration?";
+export const FORCE_START_PROMPT =
+    "The previous run has not stopped yet (terminate was already sent). Force start anyway?";
 
 function isIntegrationRunDebugSession(session: DebugSession): boolean {
     if (session.type !== BALLERINA_DEBUG_TYPE) {
+        return false;
+    }
+    // Notebook cell debugging is not an integration run.
+    if (session.name === NOTEBOOK_DEBUG_SESSION_NAME) {
         return false;
     }
     return !(session.configuration as { debugTests?: boolean })?.debugTests;
@@ -27,6 +38,7 @@ function isIntegrationRunDebugSession(session: DebugSession): boolean {
 
 let runTerminal: Terminal | undefined;
 let runDebugSession: DebugSession | undefined;
+let runTask: TaskExecution | undefined;
 let lastRunPath: string | undefined;
 
 export function markTerminalRunStarted(terminal: Terminal, projectPath: string): void {
@@ -34,10 +46,24 @@ export function markTerminalRunStarted(terminal: Terminal, projectPath: string):
     lastRunPath = projectPath;
 }
 
+/**
+ * Registers the `bal run` task execution backing a BI run session, so that the
+ * single-instance guard can await full process termination (port release)
+ * before starting the next run.
+ */
+export function markTaskRunStarted(task: TaskExecution, projectPath: string): void {
+    runTask = task;
+    lastRunPath = projectPath;
+}
+
+function isTaskAlive(): boolean {
+    return !!runTask && tasks.taskExecutions.some((execution) => execution === runTask);
+}
+
 export function isIntegrationRunning(): boolean {
     const terminalAlive = !!runTerminal && runTerminal.exitStatus === undefined;
     const debugAlive = !!runDebugSession;
-    return terminalAlive || debugAlive;
+    return terminalAlive || debugAlive || isTaskAlive();
 }
 
 export function isIntegrationRunningAt(targetPath: string): boolean {
@@ -50,22 +76,105 @@ export function isIntegrationRunningAt(targetPath: string): boolean {
     return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
 
+/** Stops the tracked run debug session and waits for it to actually terminate. */
+async function stopRunDebugSession(): Promise<void> {
+    const session = runDebugSession;
+    if (!session) {
+        return;
+    }
+    // Wait for actual terminate; stopDebugging only sends the request.
+    await new Promise<void>((resolve) => {
+        const sub = debug.onDidTerminateDebugSession((ended) => {
+            if (ended === session) {
+                sub.dispose();
+                resolve();
+            }
+        });
+        debug.stopDebugging(session);
+    });
+    runDebugSession = undefined;
+}
+
+/**
+ * Waits until the tracked `bal run` task process has fully exited.
+ * Returns false when the process is still alive after the timeout.
+ */
+async function waitForRunTaskEnd(timeoutMs: number = TASK_TERMINATION_TIMEOUT_MS): Promise<boolean> {
+    const task = runTask;
+    if (!task || !tasks.taskExecutions.some((execution) => execution === task)) {
+        return true;
+    }
+    return new Promise<boolean>((resolve) => {
+        const timeout = setTimeout(() => {
+            listener.dispose();
+            resolve(false);
+        }, timeoutMs);
+        const listener = tasks.onDidEndTaskProcess((event) => {
+            if (event.execution === task) {
+                clearTimeout(timeout);
+                listener.dispose();
+                resolve(true);
+            }
+        });
+        // The task may have ended between the initial check and listener registration.
+        if (!tasks.taskExecutions.some((execution) => execution === task)) {
+            clearTimeout(timeout);
+            listener.dispose();
+            resolve(true);
+        }
+    });
+}
+
+/**
+ * Single-instance guard (product-integrator#1012): only one integration may run
+ * at a time. If an integration is running, asks the user whether to stop it.
+ *
+ * Returns true when the caller may proceed with the new run (nothing was
+ * running, or the previous run was stopped and its process fully terminated,
+ * or the user chose to force-start). Returns false when the new launch must be
+ * cancelled, leaving the current run untouched.
+ */
+export async function confirmAndStopActiveRun(): Promise<boolean> {
+    if (!isIntegrationRunning()) {
+        return true;
+    }
+    const choice = await window.showInformationMessage(RUN_CONFLICT_PROMPT, "Yes", "No");
+    if (choice !== "Yes") {
+        return false;
+    }
+    // The run may have ended on its own while the prompt was open.
+    if (!isIntegrationRunning()) {
+        return true;
+    }
+    if (runDebugSession) {
+        // Stopping the session triggers the adapter's disconnect, which
+        // terminates the underlying `bal run` task as well.
+        await stopRunDebugSession();
+    } else if (isTaskAlive()) {
+        // Task outlived its debug session; terminate it directly.
+        runTask!.terminate();
+    }
+    if (runTerminal) {
+        runTerminal.dispose();
+        runTerminal = undefined;
+    }
+    // Await full process termination so the new run does not hit port conflicts.
+    const ended = await waitForRunTaskEnd();
+    if (!ended) {
+        const forceChoice = await window.showWarningMessage(FORCE_START_PROMPT, "Force Start", "Cancel new launch");
+        return forceChoice === "Force Start";
+    }
+    return true;
+}
+
 export async function restartIntegration(targetPath: string): Promise<void> {
     if (runDebugSession) {
         const session = runDebugSession;
         // Preserve original mode so debug restarts keep breakpoints.
         const wasNoDebug = session.configuration.noDebug ?? true;
-        // Wait for actual terminate; stopDebugging only sends the request.
-        await new Promise<void>((resolve) => {
-            const sub = debug.onDidTerminateDebugSession((ended) => {
-                if (ended === session) {
-                    sub.dispose();
-                    resolve();
-                }
-            });
-            debug.stopDebugging(session);
-        });
-        runDebugSession = undefined;
+        await stopRunDebugSession();
+        // Avoid port conflicts: the `bal run` task can outlive the session briefly.
+        await waitForRunTaskEnd();
         TracerMachine.startServer();
         // Direct re-launch skips the BI run flow's Try-It suggestion.
         await startDebugging(Uri.file(targetPath), false, false, wasNoDebug);
@@ -99,6 +208,11 @@ export function activateIntegrationRunnerState(): void {
         debug.onDidTerminateDebugSession((session) => {
             if (session === runDebugSession) {
                 runDebugSession = undefined;
+            }
+        }),
+        tasks.onDidEndTaskProcess((event) => {
+            if (event.execution === runTask) {
+                runTask = undefined;
             }
         })
     );

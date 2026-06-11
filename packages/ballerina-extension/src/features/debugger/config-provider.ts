@@ -71,6 +71,7 @@ import { extension } from '../../BalExtensionContext';
 import * as fs from 'fs';
 import { findHighestVersionJdk } from '../../utils/server/server';
 import { PlatformExtRpcManager } from '../../rpc-managers/platform-ext/rpc-manager';
+import { confirmAndStopActiveRun, markTaskRunStarted } from '../project/integration-runner-state';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
@@ -91,6 +92,17 @@ class DebugConfigProvider implements DebugConfigurationProvider {
         if (!config.type) {
             commands.executeCommand('workbench.action.debug.configure');
             return undefined;
+        }
+
+        // Single-instance guard (#1012): only one integration may run at a
+        // time, across all launch paths (BI run, fast run, and debug). Test
+        // and notebook sessions are exempt. Returning undefined cancels the
+        // new launch cleanly, leaving the current run untouched.
+        if (!config.debugTests && config.name !== 'Ballerina Notebook Debug') {
+            const proceed = await confirmAndStopActiveRun();
+            if (!proceed) {
+                return undefined;
+            }
         }
 
         if (config.noDebug && (extension.ballerinaExtInstance.enabledRunFast() || StateMachine.context().isBI)) {
@@ -812,6 +824,9 @@ class BIRunAdapter extends LoggingDebugSession {
             try {
                 const taskExecution = await tasks.executeTask(task);
                 this.task = taskExecution;
+                // Register with the central runner state so the single-instance
+                // guard can await full process termination before the next run.
+                markTaskRunStarted(taskExecution, projectRoot);
 
                 this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
                     if (e.execution === this.task) {
