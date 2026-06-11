@@ -1,77 +1,103 @@
-# Run Conflict (Single-Instance) - Test Specification
+# Run Conflict (Concurrent Runs / Same-Integration Restart) - Test Specification
 
 ## Application Overview
 
-WSO2 Integrator allows only **one running integration at a time** (decision for 5.0.0, see
-wso2/product-integrator#1012). When the user starts a run while another integration is
-already running, the extension must show a prompt and handle both choices gracefully:
+WSO2 Integrator supports **running multiple integrations concurrently**
+(wso2/product-integrator#1012): each integration runs as its own VS Code task
+("Ballerina Run - <package>") in its own terminal, so users can start one
+integration and then start others without stopping the first, and switch
+between their terminals freely.
 
-- **Yes** → stop the running integration, wait for the process to fully terminate
+A single integration, however, has **at most one running instance**. When the
+user starts a run for an integration that is already running, the extension
+must prompt and handle both choices gracefully:
+
+- **Yes** → stop the running instance, wait for the process to fully terminate
   (port released), then start the new run.
-- **No** → leave the running integration untouched; the new launch is cancelled cleanly
-  (no broken debug session, no Try-It popup).
+- **No** → leave the running instance untouched; the new launch is cancelled
+  cleanly (no broken debug session, no Try-It popup).
 
-The conflict handling lives in `BIRunAdapter.launchRequest`
-(`src/features/debugger/config-provider.ts`, introduced by wso2/vscode-extensions#2076).
+Implementation:
+
+- Per-integration registry: `src/features/project/integration-runner-state.ts`
+  (`confirmAndStopActiveRun(targetPath)`), applied in
+  `DebugConfigProvider.resolveDebugConfiguration` (BI run, fast run, debug) and
+  in the terminal run path.
+- Per-integration adapter slots and unique task identities:
+  `BIRunAdapter` in `src/features/debugger/config-provider.ts`.
+- Per-integration run terminals: `runCommandWithConf` in
+  `src/features/project/cmds/cmd-runner.ts`.
 
 ## UI Elements Identified
 
 - **Run Integration** button (aria-label "Run Integration") - editor toolbar
-- **Conflict notification** - info notification: "There is already a running integration.
-  Do you want to stop it and start this integration?" with **Yes** / **No** buttons
-- **Force-start notification** - warning notification after a 10 s termination timeout:
-  "The previous run has not stopped yet (terminate was already sent). Force start anyway?"
-  with **Force Start** / **Cancel new launch** buttons
-- **Terminal panel** - task terminal running `bal run`
+- **Restart notification** - info notification: "This integration is already
+  running. Do you want to stop it and start it again?" with **Yes** / **No**
+- **Force-start notification** - warning notification after a 10 s termination
+  timeout: "The previous run has not stopped yet (terminate was already sent).
+  Force start anyway?" with **Force Start** / **Cancel new launch**
+- **Task terminals** - one per running integration, named
+  "Ballerina Run - <package>"
 
-> Note: the e2e harness enables Do Not Disturb by default (`toggleNotifications(true)` in
-> `initTest`). This suite re-enables notifications so the conflict prompt is visible, and
-> restores DND at the end.
+> Note: the e2e harness enables Do Not Disturb by default
+> (`toggleNotifications(true)` in `initTest`). This suite re-enables
+> notifications so the prompt is visible, and restores DND in `afterAll`.
 
 ## Missing Test IDs Recommendations
 
-1. `data-testid="run-conflict-notification"`
-2. `data-testid="run-conflict-yes-button"` / `data-testid="run-conflict-no-button"`
+1. `data-testid="run-restart-notification"`
+2. `data-testid="run-restart-yes-button"` / `data-testid="run-restart-no-button"`
 3. `data-testid="force-start-notification"`
 
-## Test Scenarios
+## Test Scenarios (automated, single-package project)
 
-### 1. Second run shows conflict prompt (Description: Run while another run is active)
+The harness project has one package, so a second Run always targets the same
+integration and exercises the restart prompt.
 
-**Steps:**
+### 1. Second run of the same integration shows restart prompt
+
 1. Create an automation and overwrite `automation.bal` with a long-running main
    (sleeps ~5 min) so the first run stays alive.
-2. Click **Run Integration**; wait for "Running executable" in the terminal.
+2. Click **Run Integration**; wait for the run output in the terminal.
 3. Click **Run Integration** again.
-4. Verify the notification "There is already a running integration..." appears with
-   **Yes** and **No** buttons.
+4. Verify the "This integration is already running..." notification appears
+   with **Yes** and **No** buttons.
 
-### 2. Decline keeps the current run (Description: Choose "No" on the prompt)
+### 2. Decline keeps the current run
 
-**Steps:**
 1. With the prompt visible, click **No**.
-2. Verify the notification disappears.
-3. Verify the original process is still running ("Running executable" still in terminal,
-   task not terminated).
-4. Verify no error notification and no Try-It view is opened for the cancelled session.
+2. Verify the notification disappears, the original process is still running,
+   and no error notification or Try-It view appears for the cancelled session.
 
-### 3. Accept stops old run and starts new (Description: Choose "Yes" on the prompt)
+### 3. Accept stops the old instance and starts a new one
 
-**Steps:**
-1. Click **Run Integration** again; the conflict prompt appears.
+1. Click **Run Integration** again; the prompt appears.
 2. Click **Yes**.
-3. Verify the old task terminates and a new `bal run` task starts
-   (fresh "Compiling source" → "Running executable" sequence in the terminal).
-4. Verify exactly one integration is running afterwards (a further Run click prompts again).
+3. Verify the old task terminates and a fresh `bal run` cycle starts
+   ("Compiling source" → run output).
 
-### 4. (Manual / future) Cross-package switch
+### 4. Exactly one instance after restart
 
-Covered manually with the `run-switch-sample` workspace (listener → automation,
-listener → listener on another port). Automating this requires a multi-package
-workspace template in `data/` and project-explorer-driven run, which the current
-harness does not support yet.
+A further Run click must prompt again — exactly one instance of the
+integration is running.
 
-### 5. (Manual) Force-start timeout path
+## Manual Scenarios (multi-package workspace: `run-switch-sample`)
 
-Requires a process that ignores SIGTERM for >10 s to trigger the force-start prompt;
-validated manually.
+### 5. Concurrent runs
+
+Run `hr_api` (listener :9090), then run `inventory_api` (listener :9091), then
+`schedule_executor` (automation) — **no prompts**; all three run concurrently,
+each in its own "Ballerina Run - <package>" terminal; both health endpoints
+respond while the automation ticks.
+
+### 6. Switch between running integrations
+
+With all three running, click between integrations in the project explorer and
+their terminals; verify each terminal shows its own live output and stopping
+one (debug toolbar / terminal trash) does not affect the others.
+
+### 7. Force-start timeout path
+
+Requires a process that ignores SIGTERM for >10 s; restart the same
+integration and verify the force-start prompt appears and both choices behave
+sanely.

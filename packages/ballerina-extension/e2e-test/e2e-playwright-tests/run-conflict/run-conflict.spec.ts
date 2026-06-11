@@ -23,7 +23,10 @@ import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 import { FileUtils } from '../utils/helpers/fileSystem';
 
 const RUN_BUTTON_SELECTOR = 'ul.actions-container[role="toolbar"] li.action-item a[role="button"][aria-label="Run Integration"]';
-const CONFLICT_PROMPT_TEXT = 'There is already a running integration';
+// Integrations run concurrently; only re-running the SAME integration prompts
+// to restart it (product-integrator#1012). This suite uses a single-package
+// project, so a second Run always targets the same integration.
+const CONFLICT_PROMPT_TEXT = 'This integration is already running';
 
 // Long-running main so the first run stays alive while we trigger a second run.
 const LONG_RUNNING_AUTOMATION = `import ballerina/io;
@@ -46,7 +49,7 @@ function conflictNotification() {
 }
 
 export default function createTests() {
-    test.describe.serial('Run Conflict (Single-Instance) Tests', {
+    test.describe.serial('Run Conflict (Same-Integration Restart) Tests', {
     }, async () => {
         initTest();
 
@@ -133,9 +136,9 @@ export default function createTests() {
             await restarted.waitFor({ timeout: 60000 });
         });
 
-        test('Exactly one integration runs after switch', async () => {
+        test('Exactly one instance runs after restart', async () => {
             // A further Run click must prompt again — proving the previous
-            // accept path left exactly one active run slot.
+            // accept path left exactly one active instance of this integration.
             await clickRunButton();
 
             const notification = conflictNotification();

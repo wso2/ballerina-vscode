@@ -71,7 +71,7 @@ import { extension } from '../../BalExtensionContext';
 import * as fs from 'fs';
 import { findHighestVersionJdk } from '../../utils/server/server';
 import { PlatformExtRpcManager } from '../../rpc-managers/platform-ext/rpc-manager';
-import { confirmAndStopActiveRun, markTaskRunStarted } from '../project/integration-runner-state';
+import { confirmAndStopActiveRun, markTaskRunStarted, FORCE_START_PROMPT, RUN_CONFLICT_PROMPT } from '../project/integration-runner-state';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
@@ -94,21 +94,24 @@ class DebugConfigProvider implements DebugConfigurationProvider {
             return undefined;
         }
 
-        // Single-instance guard (#1012): only one integration may run at a
-        // time, across all launch paths (BI run, fast run, and debug). Test
-        // and notebook sessions are exempt. Returning undefined cancels the
-        // new launch cleanly, leaving the current run untouched.
-        if (!config.debugTests && config.name !== 'Ballerina Notebook Debug') {
-            const proceed = await confirmAndStopActiveRun();
-            if (!proceed) {
-                return undefined;
-            }
-        }
-
         if (config.noDebug && (extension.ballerinaExtInstance.enabledRunFast() || StateMachine.context().isBI)) {
             await handleMainFunctionParams(config);
         }
         const configs = await getModifiedConfigs(_folder, config);
+
+        // Per-integration restart guard (#1012): integrations run
+        // concurrently, but a single integration has at most one running
+        // instance. Re-launching an integration that is already running
+        // prompts to restart it, across all launch paths (BI run, fast run,
+        // and debug). Test and notebook sessions are exempt. Returning
+        // undefined cancels the new launch cleanly, leaving the current run
+        // untouched.
+        if (!configs.debugTests && configs.name !== 'Ballerina Notebook Debug') {
+            const proceed = await confirmAndStopActiveRun(configs.script);
+            if (!proceed) {
+                return undefined;
+            }
+        }
 
         // Check if config generation is required before starting the debug session
         const shouldProceed = await prepareAndGenerateConfig(extension.ballerinaExtInstance, configs.script, false, StateMachine.context().isBI, false);
@@ -676,7 +679,11 @@ class BIRunAdapter extends LoggingDebugSession {
 
     private session: DebugSession;
     private disconnected = false;
-    private static activeAdapter: BIRunAdapter | null = null;
+    // One adapter slot per integration (keyed by resolved project path):
+    // different integrations run concurrently, while two launches of the SAME
+    // integration conflict (#1012).
+    private static activeAdapters: Map<string, BIRunAdapter> = new Map();
+    private slotKey: string = '';
 
     constructor(session: DebugSession) {
         super();
@@ -684,26 +691,34 @@ class BIRunAdapter extends LoggingDebugSession {
     }
 
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments, request?: DebugProtocol.Request): void {
-        // Capture and claim the slot synchronously before any await — serializes concurrent
-        // launchRequests so neither can read null and race past the conflict check.
-        const existingAdapter = BIRunAdapter.activeAdapter;
-        BIRunAdapter.activeAdapter = this;
+        // Claim the per-integration slot synchronously before any await —
+        // serializes concurrent launchRequests of the same integration so
+        // neither can read an empty slot and race past the conflict check.
+        // The script is set by resolveDebugConfiguration for every launch.
+        const configScript = (this.session.configuration as { script?: string })?.script;
+        this.slotKey = configScript ? path.resolve(configScript) : '';
+        const existingAdapter = BIRunAdapter.activeAdapters.get(this.slotKey) ?? null;
+        BIRunAdapter.activeAdapters.set(this.slotKey, this);
 
         getCurrentProjectRoot().then(async (projectRoot) => {
+            // Prefer the launch config's script — it points at the integration
+            // the user actually triggered, which may differ from the "current"
+            // project when multiple integrations are open and running.
+            if (configScript && fs.existsSync(configScript) && fs.statSync(configScript).isDirectory()) {
+                projectRoot = configScript;
+            }
+
             // Treat any non-null existingAdapter as a conflict, even if its task hasn't
             // started yet (adapter claimed slot but still launching).
             if (existingAdapter) {
                 const existingTask = existingAdapter.task;
-                const choice = await window.showInformationMessage(
-                    'There is already a running integration. Do you want to stop it and start this integration?',
-                    'Yes', 'No'
-                );
+                const choice = await window.showInformationMessage(RUN_CONFLICT_PROMPT, 'Yes', 'No');
                 if (choice !== 'Yes') {
                     // Prevent the debug tracker from triggering the Try It view for this cancelled session.
                     (this.session.configuration as any).suggestTryit = false;
                     // Restore the previous adapter so the next launch still detects it.
-                    if (BIRunAdapter.activeAdapter === this) {
-                        BIRunAdapter.activeAdapter = existingAdapter;
+                    if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
+                        BIRunAdapter.activeAdapters.set(this.slotKey, existingAdapter);
                     }
                     response.success = true;
                     this.sendResponse(response);
@@ -721,8 +736,7 @@ class BIRunAdapter extends LoggingDebugSession {
                         let listener: { dispose(): void };
                         const timeout = setTimeout(async () => {
                             listener.dispose();
-                            const forceChoice = await window.showWarningMessage(
-                                'The previous run has not stopped yet (terminate was already sent). Force start anyway?',
+                            const forceChoice = await window.showWarningMessage(FORCE_START_PROMPT,
                                 'Force Start', 'Cancel new launch'
                             );
                             if (forceChoice === 'Force Start') {
@@ -730,8 +744,8 @@ class BIRunAdapter extends LoggingDebugSession {
                             } else {
                                 // Process is still running — restore the previous adapter so
                                 // subsequent launches still detect it as a conflict.
-                                if (BIRunAdapter.activeAdapter === this) {
-                                    BIRunAdapter.activeAdapter = existingAdapter;
+                                if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
+                                    BIRunAdapter.activeAdapters.set(this.slotKey, existingAdapter);
                                 }
                                 resolve(false);
                             }
@@ -763,9 +777,12 @@ class BIRunAdapter extends LoggingDebugSession {
                 }
             }
 
+            // Unique task identity per integration so VS Code runs them as
+            // separate tasks (own terminals) instead of deduplicating into a
+            // single "already active" task.
             const taskDefinition: TaskDefinition = {
                 type: 'shell',
-                task: 'run'
+                task: `run:${projectRoot}`
             };
 
             let runCommand: string = `${quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd())} run`;
@@ -790,8 +807,8 @@ class BIRunAdapter extends LoggingDebugSession {
                 debugLog(`[BIRunAdapter] Setting cwd to project root: ${cwd}`);
             } catch (error) {
                 window.showErrorMessage(`Failed to determine working directory`);
-                if (BIRunAdapter.activeAdapter === this) {
-                    BIRunAdapter.activeAdapter = null;
+                if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
+                    BIRunAdapter.activeAdapters.delete(this.slotKey);
                 }
                 response.success = false;
                 this.sendResponse(response);
@@ -806,14 +823,14 @@ class BIRunAdapter extends LoggingDebugSession {
             const task = new Task(
                 taskDefinition,
                 TaskScope.Workspace,
-                'Ballerina Run',
+                `Ballerina Run - ${path.basename(projectRoot)}`,
                 'ballerina',
                 execution
             );
 
             // Guard against being superseded while awaiting getCurrentProjectRoot() or the
             // termination wait above — the other adapter already owns the slot.
-            if (BIRunAdapter.activeAdapter !== this) {
+            if (BIRunAdapter.activeAdapters.get(this.slotKey) !== this) {
                 (this.session.configuration as any).suggestTryit = false;
                 response.success = true;
                 this.sendResponse(response);
@@ -832,8 +849,8 @@ class BIRunAdapter extends LoggingDebugSession {
                     if (e.execution === this.task) {
                         this.taskTerminationListener?.dispose();
                         this.taskTerminationListener = null;
-                        if (BIRunAdapter.activeAdapter === this) {
-                            BIRunAdapter.activeAdapter = null;
+                        if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
+                            BIRunAdapter.activeAdapters.delete(this.slotKey);
                         }
                         // Skip TerminatedEvent if disconnectRequest already fired —
                         // the session is already being torn down by VS Code.
@@ -847,8 +864,8 @@ class BIRunAdapter extends LoggingDebugSession {
                 this.sendResponse(response);
             } catch (error) {
                 window.showErrorMessage(`Failed to run Ballerina package: ${error}`);
-                if (BIRunAdapter.activeAdapter === this) {
-                    BIRunAdapter.activeAdapter = null;
+                if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
+                    BIRunAdapter.activeAdapters.delete(this.slotKey);
                 }
                 response.success = false;
                 this.sendResponse(response);
@@ -856,8 +873,8 @@ class BIRunAdapter extends LoggingDebugSession {
             }
         }).catch((error) => {
             window.showErrorMessage(`Failed to determine project root: ${error}`);
-            if (BIRunAdapter.activeAdapter === this) {
-                BIRunAdapter.activeAdapter = null;
+            if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
+                BIRunAdapter.activeAdapters.delete(this.slotKey);
             }
             response.success = false;
             this.sendResponse(response);
@@ -869,10 +886,10 @@ class BIRunAdapter extends LoggingDebugSession {
         this.disconnected = true;
         if (this.task) {
             this.task.terminate();
-            // Don't clear activeAdapter here — the process is still shutting down.
-            // taskTerminationListener will clear it once onDidEndTaskProcess fires.
-        } else if (BIRunAdapter.activeAdapter === this) {
-            BIRunAdapter.activeAdapter = null;
+            // Don't clear the adapter slot here — the process is still shutting
+            // down. taskTerminationListener clears it once onDidEndTaskProcess fires.
+        } else if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
+            BIRunAdapter.activeAdapters.delete(this.slotKey);
         }
         if (this.notificationHandler) {
             this.notificationHandler.dispose();

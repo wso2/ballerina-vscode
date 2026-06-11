@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import * as path from "path";
 import { BallerinaProject } from "@wso2/ballerina-core";
 import { Terminal, window, workspace } from "vscode";
 import { isSupportedSLVersion, isWindows, createVersionNumber, quoteShellPath } from "../../../utils";
@@ -101,6 +102,18 @@ const TERMINAL_NAME = 'Terminal';
 const BAL_CONFIG_FILES = 'BAL_CONFIG_FILES';
 
 let terminal: Terminal;
+// One run terminal per integration so concurrent runs do not kill each other
+// (#1012). Keyed by resolved project path.
+const runTerminals = new Map<string, Terminal>();
+
+function isRegisteredRunTerminal(candidate: Terminal): boolean {
+    for (const runTerminal of runTerminals.values()) {
+        if (runTerminal === candidate && runTerminal.exitStatus === undefined) {
+            return true;
+        }
+    }
+    return false;
+}
 
 export function runCommand(file: BallerinaProject | string, executor: string, cmd: BALLERINA_COMMANDS,
     ...args: string[]) {
@@ -111,11 +124,21 @@ export function runCommand(file: BallerinaProject | string, executor: string, cm
 export function runCommandWithConf(file: BallerinaProject | string, executor: string, cmd: BALLERINA_COMMANDS,
     confPath: string, ...args: string[]) {
     TracerMachine.startServer();
-    if (terminal) {
-        terminal.dispose();
-    }
     let filePath = '';
     typeof file === 'string' ? filePath = file : filePath = file.path!;
+    const isRun = isRunCommand(cmd);
+    if (isRun) {
+        // Restarting the same integration replaces its terminal; run terminals
+        // of other integrations are left untouched (#1012).
+        const runKey = path.resolve(filePath);
+        const existingRunTerminal = runTerminals.get(runKey);
+        if (existingRunTerminal) {
+            existingRunTerminal.dispose();
+            runTerminals.delete(runKey);
+        }
+    } else if (terminal && !isRegisteredRunTerminal(terminal)) {
+        terminal.dispose();
+    }
     let argsList = '';
     if (args && args.length > 0) {
         args.forEach((arg) => {
@@ -171,7 +194,10 @@ export function runCommandWithConf(file: BallerinaProject | string, executor: st
             const configs = env['BAL_CONFIG_FILES'] ? `${env['BAL_CONFIG_FILES']}:${confPath}` : confPath;
             Object.assign(env, { BAL_CONFIG_FILES: configs });
         }
-        terminal = window.createTerminal({ name: TERMINAL_NAME, cwd: filePath, env });
+        // Name run terminals per integration so concurrent runs are easy to
+        // tell apart and switch between.
+        const terminalName = isRun ? `Run - ${path.basename(filePath)}` : TERMINAL_NAME;
+        terminal = window.createTerminal({ name: terminalName, cwd: filePath, env });
     }
     terminal.sendText(isWindows() ? 'cls' : 'clear', true);
     terminal.show(true);
@@ -179,7 +205,8 @@ export function runCommandWithConf(file: BallerinaProject | string, executor: st
         terminal.sendText(isWindows() ? `echo $Env:${BAL_CONFIG_FILES}` : `echo $${BAL_CONFIG_FILES}`);
     }
     terminal.sendText(commandText, true);
-    if (isRunCommand(cmd)) {
+    if (isRun) {
+        runTerminals.set(path.resolve(filePath), terminal);
         markTerminalRunStarted(terminal, filePath);
     }
 }

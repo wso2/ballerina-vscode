@@ -75,14 +75,6 @@ function activateRunCmdCommand() {
     async function run(filePath: string) {
         try {
 
-            // Single-instance guard (#1012): the terminal run path must honor
-            // the one-integration-at-a-time rule like the debug-API paths do.
-            // (No-op when invoked right after restartIntegration, which clears
-            // the runner state synchronously before re-running.)
-            if (!await confirmAndStopActiveRun()) {
-                return;
-            }
-
             sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN);
             if (window.activeTextEditor && window.activeTextEditor.document.isDirty) {
                 await commands.executeCommand(PALETTE_COMMANDS.SAVE_ALL);
@@ -148,6 +140,13 @@ function activateRunCmdCommand() {
             // }
 
             if (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) {
+                // Per-integration restart guard (#1012): integrations run
+                // concurrently; only re-running this same project prompts to
+                // restart it. (No-op when invoked right after
+                // restartIntegration, which clears its runner state first.)
+                if (!await confirmAndStopActiveRun(currentProject.path!)) {
+                    return;
+                }
                 const configPath: string = extension.ballerinaExtInstance.getBallerinaConfigPath();
                 extension.ballerinaExtInstance.setBallerinaConfigPath('');
                 runCommandWithConf(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(),
@@ -155,6 +154,9 @@ function activateRunCmdCommand() {
                     configPath, currentProject.path!
                 );
             } else {
+                if (!await confirmAndStopActiveRun(getCurrenDirectoryPath())) {
+                    return;
+                }
                 runCurrentFile();
             }
 
