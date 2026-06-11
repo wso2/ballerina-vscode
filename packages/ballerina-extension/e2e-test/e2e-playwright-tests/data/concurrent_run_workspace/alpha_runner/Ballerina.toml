@@ -1,0 +1,9 @@
+[package]
+org = "anjanash"
+name = "alpha_runner"
+version = "0.1.0"
+distribution = "2201.13.2"
+title = "alpha_runner"
+
+[build-options]
+sticky = true

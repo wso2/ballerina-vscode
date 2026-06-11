@@ -81,22 +81,21 @@ integration and exercises the restart prompt.
 A further Run click must prompt again — exactly one instance of the
 integration is running.
 
-## Manual Scenarios (multi-package workspace: `run-switch-sample`)
+## Related Scenarios
 
-### 5. Concurrent runs
+### 5. Concurrent runs across integrations — AUTOMATED
 
-Run `hr_api` (listener :9090), then run `inventory_api` (listener :9091), then
-`schedule_executor` (automation) — **no prompts**; all three run concurrently,
-each in its own "Ballerina Run - <package>" terminal; both health endpoints
-respond while the automation ticks.
+Covered by the `run-concurrent` suite (two-package workspace template
+`data/concurrent_run_workspace`): no prompts when running a second integration,
+dedicated terminals per integration, restart prompt only for the same one.
 
-### 6. Switch between running integrations
+### 6. Concurrent listeners on real ports — MANUAL
 
-With all three running, click between integrations in the project explorer and
-their terminals; verify each terminal shows its own live output and stopping
-one (debug toolbar / terminal trash) does not affect the others.
+Run `hr_api` (:9090), `inventory_api` (:9091) and `schedule_executor` from the
+`run-switch-sample` workspace; verify port liveness via curl and that stopping
+one run does not affect the others (see validation guide).
 
-### 7. Force-start timeout path
+### 7. (Manual) Force-start timeout path
 
 Requires a process that ignores SIGTERM for >10 s; restart the same
 integration and verify the force-start prompt appears and both choices behave
