@@ -33,6 +33,20 @@
         "wso2.hurl-client"
     ],
     "contributes": {
+        "taskDefinitions": [
+            {
+                "type": "ballerina-run",
+                "properties": {
+                    "projectRoot": {
+                        "type": "string",
+                        "description": "Resolved path of the Ballerina integration being run. Part of the task identity so each integration runs as its own task."
+                    }
+                },
+                "required": [
+                    "projectRoot"
+                ]
+            }
+        ],
         "languages": [
             {
                 "id": "ballerina",

@@ -27,7 +27,8 @@ import {
     DebugAdapterTrackerFactory,
     DebugAdapterTracker,
     ViewColumn,
-    TaskScope
+    TaskScope,
+    TaskPanelKind
 } from 'vscode';
 import * as child_process from "child_process";
 import { getPortPromise } from 'portfinder';
@@ -103,10 +104,11 @@ class DebugConfigProvider implements DebugConfigurationProvider {
         // concurrently, but a single integration has at most one running
         // instance. Re-launching an integration that is already running
         // prompts to restart it, across all launch paths (BI run, fast run,
-        // and debug). Test and notebook sessions are exempt. Returning
-        // undefined cancels the new launch cleanly, leaving the current run
-        // untouched.
-        if (!configs.debugTests && configs.name !== 'Ballerina Notebook Debug') {
+        // and debug). Test and notebook sessions are exempt (the notebook
+        // flag is used because getModifiedConfigs overwrites config.name).
+        // Returning undefined cancels the new launch cleanly, leaving the
+        // current run untouched.
+        if (!configs.debugTests && !configs.notebookDebug) {
             const proceed = await confirmAndStopActiveRun(configs.script);
             if (!proceed) {
                 return undefined;
@@ -556,9 +558,15 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
     }
 
     async createDebugAdapterDescriptor(session: DebugSession, executable: DebugAdapterExecutable | undefined): Promise<DebugAdapterDescriptor> {
-        // Check if the project contains errors(and fix the possible ones) before starting the debug session
+        // Check if the project contains errors(and fix the possible ones) before starting the debug session.
+        // Prefer the launch config's script — it points at the integration the
+        // user actually triggered, which may differ from the "current" project
+        // when multiple integrations are open (#1012).
         const langClient = extension.ballerinaExtInstance.langClient;
-        const projectRoot = await getCurrentProjectRoot();
+        const sessionScript = (session.configuration as { script?: string })?.script;
+        const projectRoot = sessionScript && fs.existsSync(sessionScript) && fs.statSync(sessionScript).isDirectory()
+            ? sessionScript
+            : await getCurrentProjectRoot();
         await cleanAndValidateProject(langClient, projectRoot);
 
         if (session.configuration.noDebug && extension.ballerinaExtInstance.enabledRunFast()) {
@@ -778,11 +786,14 @@ class BIRunAdapter extends LoggingDebugSession {
             }
 
             // Unique task identity per integration so VS Code runs them as
-            // separate tasks (own terminals) instead of deduplicating into a
-            // single "already active" task.
+            // separate tasks instead of deduplicating into a single "already
+            // active" task. The 'ballerina-run' type is registered in
+            // package.json (taskDefinitions) with projectRoot as an identity
+            // property — ad-hoc properties on 'shell' tasks are NOT part of
+            // the task identity and would collide across integrations.
             const taskDefinition: TaskDefinition = {
-                type: 'shell',
-                task: `run:${projectRoot}`
+                type: 'ballerina-run',
+                projectRoot: path.resolve(projectRoot)
             };
 
             let runCommand: string = `${quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd())} run`;
@@ -827,6 +838,13 @@ class BIRunAdapter extends LoggingDebugSession {
                 'ballerina',
                 execution
             );
+            // Dedicated terminal per integration: concurrent runs must not
+            // share (and steal) each other's task terminal.
+            task.presentationOptions = {
+                panel: TaskPanelKind.Dedicated,
+                showReuseMessage: false,
+                clear: false
+            };
 
             // Guard against being superseded while awaiting getCurrentProjectRoot() or the
             // termination wait above — the other adapter already owns the slot.

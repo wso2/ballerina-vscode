@@ -29,11 +29,15 @@ function isIntegrationRunDebugSession(session: DebugSession): boolean {
     if (session.type !== BALLERINA_DEBUG_TYPE) {
         return false;
     }
-    // Notebook cell debugging is not an integration run.
-    if (session.name === NOTEBOOK_DEBUG_SESSION_NAME) {
+    // Notebook cell debugging is not an integration run. Checked via the
+    // notebookDebug flag because the session name is overwritten with the
+    // script's basename during config resolution; the name check is kept as
+    // a fallback for sessions that skip resolution.
+    const configuration = session.configuration as { debugTests?: boolean; notebookDebug?: boolean };
+    if (configuration?.notebookDebug || session.name === NOTEBOOK_DEBUG_SESSION_NAME) {
         return false;
     }
-    return !(session.configuration as { debugTests?: boolean })?.debugTests;
+    return !configuration?.debugTests;
 }
 
 /**
