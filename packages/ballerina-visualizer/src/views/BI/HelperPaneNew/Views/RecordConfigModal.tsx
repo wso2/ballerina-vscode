@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind, getPrimaryInputType, InputType } from "@wso2/ballerina-core";
+import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind, getPrimaryInputType, getSecondaryInputType, InputType } from "@wso2/ballerina-core";
 import { Dropdown, HelperPane, Typography, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useEffect, useRef, useState, RefObject } from "react";
@@ -142,6 +142,10 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
     const [recordModel, setRecordModel] = useState<TypeField[]>([]);
     const recordModelRef = useRef<TypeField[]>([]);
+    // Package coordinates of the currently selected record type, captured when building the
+    // getRecordConfig request and reused for the generateValue (getRecordSource) call so the
+    // backend can resolve imports.
+    const codedataRef = useRef<RecordSourceGenRequest["codedata"]>(undefined);
     const [selectedMemberName, setSelectedMemberName] = useState<string>("");
     const firstRender = useRef<boolean>(true);
     const initialMountRef = useRef<boolean>(true);
@@ -363,6 +367,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 },
                 typeConstraint: defaultSelection.type,
             };
+            codedataRef.current = request.codedata;
             const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
             console.log(">>> GetRecordConfigResponse", typeFieldResponse);
             if (typeFieldResponse.errorMsg) {
@@ -427,6 +432,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 },
                 typeConstraint: member.type,
             }
+            codedataRef.current = request.codedata;
 
             const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
             if (typeFieldResponse.errorMsg) {
@@ -460,9 +466,15 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     };
 
     const handleModelChange = async (updatedModel: TypeField[]) => {
+        // The expression editor type (e.g. the union "jco:DestinationConfig|jco:AdvancedConfig")
+        // is the type the generated value is assigned to. Send it as the typeConstraint so the
+        // backend can derive the correct value. Optional, so older backends remain unaffected.
+        const typeConstraint = getSecondaryInputType(recordTypeField?.property?.types)?.ballerinaType;
         const request: RecordSourceGenRequest = {
             filePath: fileName,
-            type: updatedModel[0]
+            type: updatedModel[0],
+            ...(typeConstraint ? { typeConstraint } : {}),
+            ...(codedataRef.current ? { codedata: codedataRef.current } : {})
         }
         const recordSourceResponse: RecordSourceGenResponse = await rpcClient.getBIDiagramRpcClient().getRecordSource(request);
         console.log(">>> recordSourceResponse", recordSourceResponse);
