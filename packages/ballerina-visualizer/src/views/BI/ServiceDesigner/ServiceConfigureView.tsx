@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import styled from "@emotion/styled";
-import { ConfigProperties, ConfigVariable, DIRECTORY_MAP, getPrimaryInputType, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, PropertyModel, ServiceModel } from "@wso2/ballerina-core";
+import { ConfigProperties, ConfigVariable, DIRECTORY_MAP, getPrimaryInputType, isSamePath, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, PropertyModel, ServiceModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon, LinkButton, ProgressRing, SidePanelBody, SplitView, TabPanel, ThemeColors, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -532,7 +532,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         rpcClient.getVisualizerLocation().then((location) => {
             const projectPath = location.projectPath;
             rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
-                const project = res.projects.find(project => project.projectPath === projectPath);
+                const project = res.projects.find(project => isSamePath(project.projectPath, projectPath));
                 const projectListeners = project?.directoryMap[DIRECTORY_MAP.LISTENER] || [];
                 const listenersToSet: ProjectStructureArtifactResponse[] = [];
                 const listenerPropertyModel = service?.properties?.listener;

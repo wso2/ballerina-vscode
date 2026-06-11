@@ -28,6 +28,7 @@ import {
     FunctionModelResponse,
     STModification,
     removeStatement,
+    isSamePath,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
@@ -259,7 +260,7 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
         rpcClient.getVisualizerLocation().then((location) => {
             const projectPath = location.projectPath;
             rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
-                const project = res.projects.find(project => project.projectPath === projectPath);
+                const project = res.projects.find(project => isSamePath(project.projectPath, projectPath));
                 const listeners = project?.directoryMap[DIRECTORY_MAP.LISTENER];
                 if (listeners.length > 0) {
                     setProjectListeners(listeners);

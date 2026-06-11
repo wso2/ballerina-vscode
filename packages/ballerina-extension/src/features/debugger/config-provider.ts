@@ -59,7 +59,7 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { PALETTE_COMMANDS } from '../project/cmds/cmd-runner';
 import { Disposable } from 'monaco-languageclient';
 import { getCurrentProjectRoot, selectBallerinaProjectForDebugging } from '../../utils/project-utils';
-import { BallerinaProjectComponents, BIGetEnclosedFunctionRequest, EVENT_TYPE, MainFunctionParamsResponse } from '@wso2/ballerina-core';
+import { BallerinaProjectComponents, BIGetEnclosedFunctionRequest, EVENT_TYPE, MainFunctionParamsResponse, isPathInside } from '@wso2/ballerina-core';
 import { openView, StateMachine } from '../../stateMachine';
 import { waitForBallerinaService } from '../tryit/utils';
 import { BreakpointManager } from './breakpoint-manager';
@@ -493,7 +493,7 @@ async function handleDebugHitVisualization(uri: Uri, clientBreakpoint: DebugProt
     const newContext = StateMachine.context();
 
     // Check if breakpoint is in a different package
-    if (!uri.fsPath.startsWith(newContext.projectPath)) {
+    if (!isPathInside(newContext.projectPath, uri.fsPath)) {
         console.log("Debug hit in a different package");
         window.showInformationMessage("Cannot visualize debug hit since it belongs to a different integration");
         openView(EVENT_TYPE.OPEN_VIEW, newContext);

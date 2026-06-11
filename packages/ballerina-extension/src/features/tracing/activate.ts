@@ -16,6 +16,7 @@
  */
 
 import * as vscode from 'vscode';
+import { isSamePath } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../../core';
 import { TracerMachine } from './tracer-machine';
 import { TraceTreeDataProvider } from './trace-tree-view';
@@ -207,7 +208,7 @@ async function resolveTracingTargetPath(promptMessage: string): Promise<string |
         }
         targetPath = selectedPackage;
         await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
-    } else if (projectRoot && projectRoot !== projectPath) {
+    } else if (projectRoot && !isSamePath(projectRoot, projectPath)) {
         targetPath = await getCurrentProjectRoot();
         await StateMachine.updateProjectRootAndInfo(targetPath, projectInfo);
     }

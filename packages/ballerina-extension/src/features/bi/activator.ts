@@ -23,8 +23,10 @@ import {
     DIRECTORY_MAP,
     EVENT_TYPE,
     FlowNode,
+    isSamePath,
     MACHINE_VIEW,
     NodePosition,
+    normalizeProjectPath,
     ProjectInfo
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
@@ -286,7 +288,7 @@ async function handleCommandWithContext(
     }
     // Scenario 2: Invoked from tree view with item context
     else if (item?.resourceUri) {
-        const projectPath = item.resourceUri.fsPath;
+        const projectPath = normalizeProjectPath(item.resourceUri.fsPath);
         openView(EVENT_TYPE.OPEN_VIEW, {
             view,
             projectPath,
@@ -446,11 +448,11 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
     const rpcClient = new BiDiagramRpcManager();
     const { projectPath, projectInfo } = StateMachine.context();
     const projectRoot = await findBallerinaPackageRoot(filePath);
-    if (projectRoot && (!projectPath || projectRoot !== projectPath)) {
+    if (projectRoot && (!projectPath || !isSamePath(projectRoot, projectPath))) {
         await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
     }
     const projectStructure = await rpcClient.getProjectStructure();
-    const project = projectStructure.projects.find(project => project.projectPath === projectRoot);
+    const project = projectStructure.projects.find(project => isSamePath(project.projectPath, projectRoot));
     const componentCategory = project?.directoryMap[componentType];
 
     if (!componentCategory) {

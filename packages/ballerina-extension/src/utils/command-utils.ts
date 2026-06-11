@@ -17,7 +17,7 @@
  */
 
 import { window } from "vscode";
-import { MACHINE_VIEW, ProjectInfo } from "@wso2/ballerina-core";
+import { isSamePath, MACHINE_VIEW, ProjectInfo } from "@wso2/ballerina-core";
 import { MESSAGES } from "../features/project";
 
 export function requiresPackageSelection(
@@ -63,5 +63,5 @@ export function needsProjectDiscovery(
     projectRoot: string | undefined,
     projectPath: string | undefined
 ): boolean {
-    return !projectInfo || (!!projectRoot && projectPath !== projectRoot);
+    return !projectInfo || (!!projectRoot && !isSamePath(projectPath, projectRoot));
 }
