@@ -17,7 +17,7 @@
  */
 import * as vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
-import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, PROJECT_KIND, ProjectInfo, ProjectStructure, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
+import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, isSamePath, PROJECT_KIND, ProjectInfo, ProjectStructure, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
 import { StateMachine } from "../stateMachine";
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
@@ -139,7 +139,7 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
             ?.filter(child => child?.projectPath !== undefined)
             ?.filter(
                 child => !currentProjectStructure.projects
-                    ?.some(project => project.projectPath === child.projectPath)
+                    ?.some(project => isSamePath(project.projectPath, child.projectPath))
             ).map(child => child.projectPath) ?? [];
 
         // Check if the active project exists in the current structure.
@@ -379,7 +379,7 @@ function processDeletion(artifact: BaseArtifact, artifactCategoryKey: string, pr
     if (mapping) {
         try {
             const projectPath = StateMachine.context().projectPath;
-            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+            const project = projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
             project.directoryMap[mapping.mapKey] =
                 project.directoryMap[mapping.mapKey]?.filter(value => value.id !== artifact.id) ?? [];
         } catch (error) {
@@ -405,7 +405,7 @@ async function processAddition(artifact: BaseArtifact, artifactCategoryKey: stri
             const projectPath = StateMachine.context().projectPath;
             const entryValue = await getEntryValue(artifact, projectPath, mapping.icon);
 
-            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+            const project = projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
             // Ensure the array exists before pushing
             if (!project.directoryMap[mapping.mapKey]) {
                 project.directoryMap[mapping.mapKey] = [];
@@ -436,7 +436,7 @@ async function processUpdate(artifact: BaseArtifact, artifactCategoryKey: string
         try {
             const projectPath = StateMachine.context().projectPath;
             const entryValue = await getEntryValue(artifact, projectPath, mapping.icon);
-            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+            const project = projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
             // Ensure the array exists
             if (!project.directoryMap[mapping.mapKey]) {
                 project.directoryMap[mapping.mapKey] = [];
@@ -492,7 +492,7 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
     const results = await Promise.all(promises);
 
     const projectPath = StateMachine.context().projectPath;
-    const project = currentProjectStructure.projects.find(project => project.projectPath === projectPath);
+    const project = currentProjectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
     try {
         if (project) {
             for (const key of Object.keys(project.directoryMap)) {

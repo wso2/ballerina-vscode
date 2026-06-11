@@ -23,3 +23,4 @@ export * from "./diagram/template-utils";
 export * from  "./diagram/modification-util";
 export * from "./diagram/utils";
 export * from './form-property-utils';
+export * from './path-utils';

@@ -21,7 +21,9 @@ import {
     dependencyPullProgress,
     BI_COMMANDS,
     NodePosition,
-    ProjectInfo
+    ProjectInfo,
+    normalizeProjectPath,
+    isSamePath
 } from "@wso2/ballerina-core";
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
@@ -107,7 +109,7 @@ const stateMachine = createMachine<MachineContext>(
             UPDATE_PROJECT_ROOT_AND_INFO: {
                 actions: [
                     assign({
-                        projectPath: (context, event) => event.projectPath,
+                        projectPath: (context, event) => normalizeProjectPath(event.projectPath),
                         projectInfo: (context, event) => event.projectInfo
                     }),
                     async (context, event) => {
@@ -921,7 +923,7 @@ export function updateView(refreshTreeView?: boolean, updatedIdentifier?: string
         }
 
         const projectPath = StateMachine.context().projectPath;
-        const project = StateMachine.context().projectStructure.projects.find(project => project.projectPath === projectPath);
+        const project = StateMachine.context().projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
 
         // These changes will be revisited in the revamp
         project.directoryMap[targetedArtifactType].forEach((artifact: ProjectStructureArtifactResponse) => {
@@ -952,7 +954,7 @@ export function updateView(refreshTreeView?: boolean, updatedIdentifier?: string
         let currentArtifact: ProjectStructureArtifactResponse;
 
         const projectPath = StateMachine.context().projectPath;
-        const project = StateMachine.context().projectStructure.projects.find(project => project.projectPath === projectPath);
+        const project = StateMachine.context().projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
 
         project.directoryMap[DIRECTORY_MAP.TYPE].forEach((artifact) => {
             if (artifact.id === lastView.location.type.name || artifact.name === lastView.location.type.name) {
@@ -1060,7 +1062,7 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
         const isBI = checkIsBI(balProjects[0].uri);
         const scope = isBI && fetchScope(balProjects[0].uri);
         const { orgName, packageName } = getOrgPackageName(balProjects[0].uri.fsPath);
-        const projectPath = balProjects[0].uri.fsPath;
+        const projectPath = normalizeProjectPath(balProjects[0].uri.fsPath);
         setContextValues(isBI, projectPath);
         return { isBI, projectPath, scope, orgName, packageName };
     }
@@ -1069,18 +1071,19 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
 }
 
 async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMetadata> {
+    const normalizedFsPath = normalizeProjectPath(workspaceURI.fsPath);
     const isBallerinaWorkspace = await checkIsBallerinaWorkspace(workspaceURI);
 
     if (isBallerinaWorkspace) {
         const isBI = checkIsBI(workspaceURI);
-        setContextValues(isBI, undefined, workspaceURI.fsPath);
+        setContextValues(isBI, undefined, normalizedFsPath);
 
-        return { isBI, workspacePath: workspaceURI.fsPath };
+        return { isBI, workspacePath: normalizedFsPath };
     } else {
         const isBallerinaPackage = await checkIsBallerinaPackage(workspaceURI);
         const isBI = isBallerinaPackage && checkIsBI(workspaceURI);
         const scope = fetchScope(workspaceURI);
-        const projectPath = isBallerinaPackage ? workspaceURI.fsPath : "";
+        const projectPath = isBallerinaPackage ? normalizedFsPath : "";
         const { orgName, packageName } = getOrgPackageName(projectPath);
 
         setContextValues(isBI, projectPath);

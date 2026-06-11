@@ -22,6 +22,7 @@ import {
     DIRECTORY_MAP,
     findDevantScopeByModule,
     AvailableNode,
+    isSamePath,
 } from "@wso2/ballerina-core";
 import { Uri, window, WorkspaceEdit } from "vscode";
 import * as vscode from "vscode";
@@ -152,7 +153,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             250,
         );
         StateMachine.service().subscribe(async (state) => {
-            if (state.context?.projectPath && state.context?.projectPath !== projectPath) {
+            if (state.context?.projectPath && !isSamePath(state.context?.projectPath, projectPath)) {
                 projectPath = state.context?.projectPath;
                 if (disposeProjectPathWatcher) {
                     disposeProjectPathWatcher();
@@ -505,7 +506,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
 
         const project = projectStructure.projects.find(
-            (project) => project.projectPath === StateMachine.context()?.projectPath,
+            (project) => isSamePath(project.projectPath, StateMachine.context()?.projectPath),
         );
         if (!project) {
             return;

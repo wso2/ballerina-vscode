@@ -23,7 +23,7 @@ import { BallerinaExtension, ExtendedLangClient } from "../../core";
 import { getCurrentBallerinaProject, getCurrentProjectRoot } from "../../utils/project-utils";
 import { typeOfComment } from "./utils";
 import { ConfigProperty, ConfigTypes, Constants, Property } from "./model";
-import { BallerinaProject, ConfigVariableResponse, EVENT_TYPE, MACHINE_VIEW, PackageConfigSchema, ProjectDiagnosticsResponse, SyntaxTree } from "@wso2/ballerina-core";
+import { BallerinaProject, ConfigVariableResponse, EVENT_TYPE, isSamePath, MACHINE_VIEW, PackageConfigSchema, ProjectDiagnosticsResponse, SyntaxTree } from "@wso2/ballerina-core";
 import { TextDocumentEdit } from "vscode-languageserver-types";
 import { modifyFileContent } from "../../utils/modification";
 import { fileURLToPath } from "url";
@@ -58,7 +58,7 @@ export async function prepareAndGenerateConfig(
                 return false;
             }
 
-            const selectedPackageInfo = packages?.find((child) => child.projectPath === selectedPackage);
+            const selectedPackageInfo = packages?.find((child) => isSamePath(child.projectPath, selectedPackage));
 
             if (!selectedPackageInfo) {
                 throw new Error("Failed to find selected package information.");

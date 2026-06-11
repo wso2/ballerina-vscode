@@ -25,7 +25,7 @@ import { BallerinaExtension } from "src/core";
 import Handlebars from "handlebars";
 import { clientManager, findRunningBallerinaProcesses, handleError, waitForBallerinaService } from "./utils";
 import { buildHurlCellsFromOASSpec } from "./hurl-builder";
-import { BIDesignModelResponse, EVENT_TYPE, MACHINE_VIEW, OpenAPISpec, ProjectInfo } from "@wso2/ballerina-core";
+import { BIDesignModelResponse, EVENT_TYPE, isSamePath, MACHINE_VIEW, OpenAPISpec, ProjectInfo } from "@wso2/ballerina-core";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { startDebugging } from "../editor-support/activator";
 import { v4 as uuidv4 } from "uuid";
@@ -656,7 +656,7 @@ async function checkBallerinaProcessRunning(projectDir: string): Promise<boolean
             let projectName: string;
 
             if (workspacePath && projectInfo && projectInfo.children?.length > 0) {
-                const project = projectInfo.children.find((child: ProjectInfo) => child.projectPath === projectDir);
+                const project = projectInfo.children.find((child: ProjectInfo) => isSamePath(child.projectPath, projectDir));
                 projectName = project?.title || project?.name || '';
             }
 

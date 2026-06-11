@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import styled from "@emotion/styled";
-import { ConfigVariable } from "@wso2/ballerina-core";
+import { ConfigVariable, isSamePath } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Dropdown, ErrorBanner, Icon, SplitView, TextField, Tooltip, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { AddForm } from "../AddConfigurableVariables";
@@ -141,7 +141,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             .getBIDiagramRpcClient()
             .getProjectStructure()
             .then((res) => {
-                const projectInfo = res.projects.find(project => project.projectPath === props.projectPath);
+                const projectInfo = res.projects.find(project => isSamePath(project.projectPath, props.projectPath));
                 integrationCategory.current = `${props.org}/${projectInfo.projectName}`;
                 setIsLoading(true);
                 getConfigVariables(true);
