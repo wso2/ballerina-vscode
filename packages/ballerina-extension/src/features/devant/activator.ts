@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { BI_COMMANDS, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, SCOPE, findScopeByModule } from "@wso2/ballerina-core";
+import { BI_COMMANDS, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, SCOPE, findScopeByModule, isSamePath } from "@wso2/ballerina-core";
 import {
     WICommandIds,
     ICommitAndPushCmdParams,
@@ -73,7 +73,7 @@ const handleComponentPushToDevant = async () => {
             return;
         }
         const projectStructure = StateMachine.context().projectStructure.projects.find(
-            (proj) => proj.projectPath === projectRoot
+            (proj) => isSamePath(proj.projectPath, projectRoot)
         );
         if (!projectStructure) {
             return;

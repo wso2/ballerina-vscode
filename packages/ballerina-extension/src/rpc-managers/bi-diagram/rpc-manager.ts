@@ -159,7 +159,9 @@ import {
     SuggestedProjectDefaultsResponse,
     ProjectInfo,
     PROJECT_KIND,
-    MACHINE_VIEW
+    MACHINE_VIEW,
+    isSamePath,
+    isPathInside
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -751,7 +753,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteProject(params: DeleteProjectRequest): Promise<void> {
         const projectInfo = StateMachine.context().projectInfo;
-        const targetProject = projectInfo?.children.find((child) => child.projectPath === params.projectPath);
+        const targetProject = projectInfo?.children.find((child) => isSamePath(child.projectPath, params.projectPath));
         const projectName = targetProject?.title || targetProject?.name;
         if (!projectName) {
             return;
@@ -1183,11 +1185,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 content = `# ${workspaceName} Project\n\nAdd your project description here.`;
             } else {
                 const project = projectInfo?.children && projectInfo?.children.length > 0
-                    ? projectInfo?.children.find((child) => child.projectPath === params.projectPath)
+                    ? projectInfo?.children.find((child) => isSamePath(child.projectPath, params.projectPath))
                     : projectInfo;
                 const projectName = project?.title || project?.name;
                 const isLibrary = StateMachine.context().projectStructure?.projects?.find(
-                    p => p.projectPath === params.projectPath
+                    p => isSamePath(p.projectPath, params.projectPath)
                 )?.isLibrary ?? false;
                 const kind = isLibrary ? "Library" : "Integration";
                 content = `# ${projectName} ${kind}\n\nAdd your ${kind.toLowerCase()} description here.`;
@@ -1209,10 +1211,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         const projectInfo = StateMachine.context().projectInfo;
 
         let componentInfo: ProjectInfo;
-        if (projectInfo?.projectPath === componentPath) {
+        if (isSamePath(projectInfo?.projectPath, componentPath)) {
             componentInfo = projectInfo;
         } else {
-            componentInfo = projectInfo?.children?.find(child => child.projectPath === componentPath);
+            componentInfo = projectInfo?.children?.find(child => isSamePath(child.projectPath, componentPath));
         }
 
         const integrationType = await this.selectIntegrationType(scopes);
@@ -2428,8 +2430,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     console.log(">>> Applied text edits for openapi client");
 
                     // check if params.openApiContractPath is within the project path
-                    if (params.openApiContractPath.startsWith(params.projectPath)) {
-                        const updatedSpecPath = params.openApiContractPath.replace(params.projectPath, '.');
+                    if (isPathInside(params.projectPath, params.openApiContractPath)) {
+                        const relativeSpecPath = path
+                            .relative(path.normalize(params.projectPath), path.normalize(params.openApiContractPath))
+                            .replace(/\\/g, "/");
+                        const updatedSpecPath = relativeSpecPath.startsWith(".") ? relativeSpecPath : `./${relativeSpecPath}`;
                         // Replace the file path of the openapi spec to be relative path in the toml
                         const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
                         const updatedToml: Partial<PackageTomlValues> = {
@@ -2591,7 +2596,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async updateProjectTitle(params: UpdateProjectTitleRequest): Promise<void> {
         setTomlSectionField(path.join(params.projectPath, 'Ballerina.toml'), 'workspace', 'title', params.title);
         const currentProjectInfo = StateMachine.context().projectInfo;
-        if (currentProjectInfo.projectPath === params.projectPath) {
+        if (isSamePath(currentProjectInfo.projectPath, params.projectPath)) {
             StateMachine.updateProjectInfo({ ...currentProjectInfo, title: params.title });
         } else {
             StateMachine.refreshProjectInfo();
@@ -2610,7 +2615,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             updatedProjectInfo = {
                 ...currentProjectInfo,
                 children: currentProjectInfo.children.map((child) =>
-                    child.projectPath === params.packagePath
+                    isSamePath(child.projectPath, params.packagePath)
                         ? { ...child, title: params.title }
                         : child
                 ),
