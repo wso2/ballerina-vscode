@@ -16,11 +16,10 @@
  * under the License.
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     SourceFile,
-    MappingParameters,
     LLMDiagnostics,
     DiagnosticEntry,
     AIPanelPrompt,
@@ -29,7 +28,6 @@ import {
     ChatNotify,
     DocumentationGeneratorIntermediaryState,
     OperationType,
-    ExtendedDataMapperMetadata,
     DocGenerationRequest,
     DocGenerationType,
     FileChanges,
@@ -53,7 +51,7 @@ import { StreamEntry, StreamItem } from "../AgentStreamView/types";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
 import CheckpointSeparator from "../CheckpointSeparator";
-import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, SkillEntry, TaskApprovalRequest } from "@wso2/ballerina-core";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, AuthProviderChip, UsageBadge, ApprovalOverlay, OverlayMessage, OverlayCloseButton } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
@@ -80,6 +78,10 @@ import CommonApprovalFooter from "./Footer/CommonApprovalFooter";
 import ClarifyFooter from "./Footer/ClarifyFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
+import { McpManagerPanel } from "../../McpManagerPanel";
+
+/** Full-page panels reachable from the chat. The chat itself is the empty stack. */
+export type PanelRoute = "settings" | "mcp" | "skills";
 import WelcomeMessage from "./Welcome";
 import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isContainsSyntaxError } from "./utils/utils";
 
@@ -89,6 +91,7 @@ import { SegmentType, splitContent } from "./segment";
 import { MigrationContextCard } from "../MigrationContextCard";
 import { ActiveMigrationSession } from "@wso2/ballerina-rpc-client";
 import { ReviewBar } from "../ReviewBar";
+import SkillsManager from "../SkillsManager";
 
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
@@ -211,7 +214,14 @@ const AIChat: React.FC = () => {
         useState<DocumentationGeneratorIntermediaryState | null>(null);
     const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
 
-    const [showSettings, setShowSettings] = useState(false);
+    // Panel navigation stack. [] = chat; the top of the stack is the visible
+    // panel. Back pops one level, so the same panel returns to wherever it was
+    // opened from (e.g. MCP manager → chat when opened from the chip, or → settings
+    // when opened from the Customize Copilot section).
+    const [panelStack, setPanelStack] = useState<PanelRoute[]>([]);
+    const activePanel = panelStack[panelStack.length - 1];
+    const pushPanel = (route: PanelRoute) => setPanelStack(s => [...s, route]);
+    const popPanel = () => setPanelStack(s => s.slice(0, -1));
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isWebToolsEnabled, setIsWebToolsEnabled] = useState(false);
     const userWebSearchPreferenceRef = useRef(false);
@@ -251,8 +261,10 @@ const AIChat: React.FC = () => {
         breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number };
     } | null>(null);
     const [showContextUsage, setShowContextUsage] = useState(false);
+    const [mcpToolsEnabled, setMcpToolsEnabled] = useState(false);
 
     const [runningServices, setRunningServices] = useState<RunningServiceInfo[]>([]);
+    const [skills, setSkills] = useState<SkillEntry[]>([]);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -411,8 +423,17 @@ const AIChat: React.FC = () => {
 
     useEffect(() => { fetchUsage(); fetchLoginMethod(); }, []);
 
+    const refreshSkills = useCallback(() => {
+        rpcClient.getAiPanelRpcClient().getSkills().then(res => setSkills(res.skills));
+    }, [rpcClient]);
+
+    useEffect(function fetchSkills() {
+        refreshSkills();
+    }, [refreshSkills]);
+
     useEffect(() => {
         rpcClient.getAiPanelRpcClient().getShowContextUsage().then(setShowContextUsage).catch(() => {});
+        rpcClient.getAiPanelRpcClient().getMcpToolsEnabled().then(setMcpToolsEnabled).catch(() => {});
     }, []);
 
     const handleCheckpointRestore = async (checkpointId: string) => {
@@ -829,6 +850,31 @@ const AIChat: React.FC = () => {
                 return msgs;
             });
 
+        } else if (type === "skill_enable_event") {
+            const evt = response as any;
+            const enableData = {
+                requestId: evt.requestId,
+                stage: evt.stage,
+                skillName: evt.skillName,
+                skillId: evt.skillId,
+            };
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
+                const entries = parseStream(last.content);
+                let found = false;
+                let updated = entries.map(entry => {
+                    const idx = entry.items.findIndex(item => item.kind === "skill_enable" && (item.data as any)?.requestId === enableData.requestId);
+                    if (idx === -1) return entry;
+                    found = true;
+                    return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "skill_enable" as const, data: enableData } : item) };
+                });
+                if (!found) updated = appendToLastEntry(entries, { kind: "skill_enable", data: enableData });
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
+            });
+
         } else if (type === "diagnostics") {
             currentDiagnosticsRef.current = response.diagnostics;
 
@@ -896,6 +942,8 @@ const AIChat: React.FC = () => {
         } else if (type === "config_change") {
             if ((response as any).key === 'showContextUsage') {
                 setShowContextUsage((response as any).value);
+            } else if ((response as any).key === 'mcpToolsEnabled') {
+                setMcpToolsEnabled((response as any).value);
             }
 
         } else if (type === "stop") {
@@ -1193,6 +1241,13 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
+            if (metadata?.selectedSkillId) {
+                const existing = hiddenContextRef.current ? `${hiddenContextRef.current}\n` : "";
+                const argsClause = metadata.selectedSkillArgs
+                    ? ` and args="${metadata.selectedSkillArgs}"`
+                    : '';
+                hiddenContextRef.current = `${existing}The user has explicitly selected the "${metadata.selectedSkillId}" skill. You MUST call invoke_skill with skillName="${metadata.selectedSkillId}"${argsClause} and apply its rules. Invoke it immediately before you begin the work the skill governs (for example, right before editing the relevant file), not as a separate up-front step.`;
+            }
             await processAgentGeneration(parsedInput.text, attachments);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
@@ -1233,47 +1288,6 @@ const AIChat: React.FC = () => {
                             );
                             await processAgentGeneration(
                                 useCase, attachments, "CODE_FOR_USER_REQUIREMENT"
-                            );
-                            break;
-                    }
-                    break;
-                }
-                case Command.DataMap: {
-                    switch (parsedInput.templateId) {
-                        case "mappings-for-records":
-                            // TODO: Update this to use the LS API for validating function names
-                            const invalidPattern = /[<>\/\(\)\{\}\[\]\\!@#$%^&*+=|;:'",.?`~]/;
-                            if (invalidPattern.test(parsedInput.placeholderValues.functionName)) {
-                                throw new Error("Please provide a valid function name without special characters.");
-                            }
-
-                            await processMappingParameters(
-                                {
-                                    inputRecord: parsedInput.placeholderValues.inputRecords
-                                        .split(",")
-                                        .map((item) => item.trim()),
-                                    outputRecord: parsedInput.placeholderValues.outputRecord,
-                                    functionName: parsedInput.placeholderValues.functionName,
-                                },
-                                metadata as ExtendedDataMapperMetadata,
-                                attachments
-                            );
-                            break;
-                        case "mappings-for-function":
-                            await processMappingParameters(
-                                {
-                                    inputRecord: [],
-                                    outputRecord: "",
-                                    functionName: parsedInput.placeholderValues.functionName,
-                                },
-                                metadata as ExtendedDataMapperMetadata,
-                                attachments
-                            );
-                            break;
-                        case "inline-mappings":
-                            await processInlineMappingParameters(
-                                metadata as ExtendedDataMapperMetadata,
-                                attachments
                             );
                             break;
                     }
@@ -1412,28 +1426,6 @@ const AIChat: React.FC = () => {
         }
     }
 
-    async function processMappingParameters(
-        parameters: MappingParameters,
-        metadata?: ExtendedDataMapperMetadata,
-        attachments?: Attachment[]
-    ) {
-        await rpcClient.getAiPanelRpcClient().generateMappingCode({
-            parameters,
-            metadata,
-            attachments
-        });
-    }
-
-    async function processInlineMappingParameters(
-        metadata: ExtendedDataMapperMetadata,
-        attachments?: Attachment[]
-    ) {
-        await rpcClient.getAiPanelRpcClient().generateInlineMappingCode({
-            metadata,
-            attachments
-        });
-    }
-
     async function processContextTypeCreation(attachments: Attachment[]) {
         if (!attachments || attachments.length === 0) {
             throw new Error(`Missing attachment`);
@@ -1521,7 +1513,7 @@ const AIChat: React.FC = () => {
     }
 
     async function handleSettings() {
-        setShowSettings(true);
+        pushPanel("settings");
     }
 
     async function handleClearChat(): Promise<void> {
@@ -1760,7 +1752,7 @@ const AIChat: React.FC = () => {
     }
     return (
         <>
-            {!showSettings && (
+            {panelStack.length === 0 && (
                 <AIChatView style={{ position: "relative" }}>
                     {approvalOverlay.show && (
                         <ApprovalOverlay>
@@ -2189,6 +2181,23 @@ const AIChat: React.FC = () => {
                                 />
                             );
                         }
+
+                        const activeSkillEnableItem = lastStreamItems.find(
+                            (item: StreamItem) => item.kind === "skill_enable" && (item as any).data?.stage === "prompting"
+                        ) as { kind: "skill_enable"; data: { requestId: string; skillName: string; skillId: string } } | undefined;
+
+                        if (activeSkillEnableItem) {
+                            const { requestId, skillName, skillId } = activeSkillEnableItem.data;
+                            return (
+                                <CommonApprovalFooter
+                                    type="skill_enable"
+                                    skillName={skillName}
+                                    onEnable={() => rpcClient.getAiPanelRpcClient().enableSkillFromChat({ requestId, skillId })}
+                                    onSkip={() => rpcClient.getAiPanelRpcClient().cancelSkillEnable({ requestId })}
+                                />
+                            );
+                        }
+
                         if (webToolApprovalRequest) {
                             return (
                                 <CommonApprovalFooter
@@ -2246,17 +2255,24 @@ const AIChat: React.FC = () => {
                             onToggleWebSearch={handleToggleWebSearch}
                             disabled={isUsageExceeded}
                             contextUsage={showContextUsage ? contextUsage : null}
+                            mcpToolsEnabled={mcpToolsEnabled}
+                            onOpenMcpManager={() => pushPanel("mcp")}
                             runningServicesPanel={{
                                 services: runningServices,
                                 onStopService: handleStopRunningService,
                                 onStopAll: handleStopAllRunningServices,
                             }}
+                            skills={skills}
                         />
                         );
                     })()}
                 </AIChatView>
             )}
-            {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}
+            {activePanel === "settings" && (
+                <SettingsPanel onClose={popPanel} onNavigate={pushPanel} mcpToolsEnabled={mcpToolsEnabled} />
+            )}
+            {activePanel === "mcp" && <McpManagerPanel onClose={popPanel} />}
+            {activePanel === "skills" && <SkillsManager onClose={popPanel} onSkillsChange={refreshSkills} />}
         </>
     );
 };

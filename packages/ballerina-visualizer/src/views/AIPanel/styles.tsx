@@ -134,3 +134,74 @@ export const OverlayCloseButton = styled.button`
         background: var(--vscode-toolbar-hoverBackground);
     }
 `;
+
+// ── AI Panel action buttons ───────────────────────────────────────────────────
+// Shared compact action-button system used across the AI panel surfaces
+// (SettingsPanel, McpManagerPanel, etc). All variants share the same
+// padding/radius/typography so action rows line up. Pick the variant by intent:
+//   PrimaryActionButton   — main CTA (Sign in, Add, Save)
+//   SecondaryActionButton — neutral action (Edit, Cancel, View)
+//   DangerActionButton    — destructive (Sign out, Delete, Disconnect)
+//   SuccessActionButton   — locked/confirmed indicator (Authorized, Connected)
+
+const actionButtonBase = `
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--vscode-font-family);
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: default;
+    }
+`;
+
+export const PrimaryActionButton = styled.button`
+    ${actionButtonBase}
+    color: var(--vscode-button-foreground);
+    background: var(--vscode-button-background);
+    border: 1px solid transparent;
+    &:hover:not(:disabled) {
+        background: var(--vscode-button-hoverBackground);
+    }
+`;
+
+export const SecondaryActionButton = styled.button`
+    ${actionButtonBase}
+    color: var(--vscode-descriptionForeground);
+    background: transparent;
+    border: 1px solid var(--vscode-panel-border, var(--vscode-input-border));
+    &:hover:not(:disabled) {
+        color: var(--vscode-foreground);
+        border-color: var(--vscode-foreground);
+    }
+`;
+
+export const DangerActionButton = styled.button`
+    ${actionButtonBase}
+    color: var(--vscode-descriptionForeground);
+    background: transparent;
+    border: 1px solid var(--vscode-panel-border, var(--vscode-input-border));
+    &:hover:not(:disabled) {
+        color: var(--vscode-errorForeground);
+        border-color: var(--vscode-errorForeground);
+    }
+`;
+
+export const SuccessActionButton = styled.button`
+    ${actionButtonBase}
+    color: var(--vscode-charts-green, #388a34);
+    background: transparent;
+    border: 1px solid var(--vscode-charts-green, #388a34);
+    cursor: default;
+    opacity: 0.85;
+`;

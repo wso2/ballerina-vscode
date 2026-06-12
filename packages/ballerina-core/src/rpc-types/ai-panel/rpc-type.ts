@@ -29,9 +29,7 @@ import {
     GenerateAgentCodeRequest,
     DocGenerationRequest,
     AddFilesToProjectRequest,
-    MetadataWithAttachments,
     ProcessContextTypeCreationRequest,
-    ProcessMappingParametersRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
     RestoreCheckpointRequest,
@@ -58,6 +56,26 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    GetSkillsResponse,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
+    SkillEnableRequest,
+    SkillEnableCancelRequest,
+    SetSkillsEnabledRequest,
+    McpServerStatusDTO,
+    SetMcpServerEnabledRequest,
+    AddMcpServerRequest,
+    AddMcpServerResponse,
+    OpenMcpConfigRequest,
+    McpWorkspaceContextResponse,
+    UpdateMcpServerRequest,
+    DeleteMcpServerRequest,
+    SetMcpToolsEnabledRequest,
+    McpLoadErrorsDTO,
+    AgentsMdFileInfoDTO,
+    ParseSkillFileRequest,
+    ParseSkillFileResponse,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -70,8 +88,6 @@ export const clearInitialPrompt: NotificationType<void> = { method: `${_preFix}/
 export const isScaffoldEnvActive: RequestType<void, boolean> = { method: `${_preFix}/isScaffoldEnvActive` };
 export const openChatWindowWithCommand: NotificationType<void> = { method: `${_preFix}/openChatWindowWithCommand` };
 export const generateContextTypes: NotificationType<ProcessContextTypeCreationRequest> = { method: `${_preFix}/generateContextTypes` };
-export const generateMappingCode: NotificationType<ProcessMappingParametersRequest> = { method: `${_preFix}/generateMappingCode` };
-export const generateInlineMappingCode: NotificationType<MetadataWithAttachments> = { method: `${_preFix}/generateInlineMappingCode` };
 export const getServiceNames: RequestType<void, TestGenerationMentions> = { method: `${_preFix}/getServiceNames` };
 export const promptGithubAuthorize: RequestType<void, boolean> = { method: `${_preFix}/promptGithubAuthorize` };
 export const isCopilotSignedIn: RequestType<void, boolean> = { method: `${_preFix}/isCopilotSignedIn` };
@@ -122,3 +138,27 @@ export const stopRunningService: RequestType<StopRunningServiceRequest, boolean>
 export const runService: RequestType<RunServiceRequest, boolean> = { method: `${_preFix}/runService` };
 export const runningServicesChanged: NotificationType<RunningServiceInfo[]> = { method: `${_preFix}/runningServicesChanged` };
 export const getDefaultVertexCredsPath: RequestType<void, string> = { method: `${_preFix}/getDefaultVertexCredsPath` };
+export const getSkills: RequestType<void, GetSkillsResponse> = { method: `${_preFix}/getSkills` };
+export const addSkill: RequestType<AddSkillRequest, boolean> = { method: `${_preFix}/addSkill` };
+export const toggleSkill: RequestType<ToggleSkillRequest, boolean> = { method: `${_preFix}/toggleSkill` };
+export const deleteSkill: RequestType<DeleteSkillRequest, boolean> = { method: `${_preFix}/deleteSkill` };
+export const getSkillsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getSkillsEnabled` };
+export const setSkillsEnabled: RequestType<SetSkillsEnabledRequest, void> = { method: `${_preFix}/setSkillsEnabled` };
+export const enableSkillFromChat: RequestType<SkillEnableRequest, boolean> = { method: `${_preFix}/enableSkillFromChat` };
+export const cancelSkillEnable: RequestType<SkillEnableCancelRequest, void> = { method: `${_preFix}/cancelSkillEnable` };
+export const parseSkillFile: RequestType<ParseSkillFileRequest, ParseSkillFileResponse> = { method: `${_preFix}/parseSkillFile` };
+export const listMcpServers: RequestType<void, McpServerStatusDTO[]> = { method: `${_preFix}/listMcpServers` };
+export const setMcpServerEnabled: RequestType<SetMcpServerEnabledRequest, void> = { method: `${_preFix}/setMcpServerEnabled` };
+export const openMcpConfig: RequestType<OpenMcpConfigRequest, void> = { method: `${_preFix}/openMcpConfig` };
+export const addMcpServer: RequestType<AddMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/addMcpServer` };
+export const updateMcpServer: RequestType<UpdateMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/updateMcpServer` };
+export const deleteMcpServer: RequestType<DeleteMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/deleteMcpServer` };
+export const setMcpToolsEnabled: RequestType<SetMcpToolsEnabledRequest, void> = { method: `${_preFix}/setMcpToolsEnabled` };
+export const getMcpToolsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getMcpToolsEnabled` };
+export const getMcpWorkspaceContext: RequestType<void, McpWorkspaceContextResponse> = { method: `${_preFix}/getMcpWorkspaceContext` };
+export const getMcpLoadErrors: RequestType<void, McpLoadErrorsDTO> = { method: `${_preFix}/getMcpLoadErrors` };
+export const mcpServersChanged: NotificationType<McpServerStatusDTO[]> = { method: `${_preFix}/mcpServersChanged` };
+export const mcpLoadErrorsChanged: NotificationType<McpLoadErrorsDTO> = { method: `${_preFix}/mcpLoadErrorsChanged` };
+export const getAgentsMdFileInfo: RequestType<void, AgentsMdFileInfoDTO> = { method: `${_preFix}/getAgentsMdFileInfo` };
+export const openOrCreateAgentsMd: RequestType<void, void> = { method: `${_preFix}/openOrCreateAgentsMd` };
+export const agentsMdFileInfoChanged: NotificationType<AgentsMdFileInfoDTO> = { method: `${_preFix}/agentsMdFileInfoChanged` };

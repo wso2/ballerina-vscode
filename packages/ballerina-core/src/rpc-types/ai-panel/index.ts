@@ -27,9 +27,7 @@ import {
     GenerateAgentCodeRequest,
     DocGenerationRequest,
     AddFilesToProjectRequest,
-    MetadataWithAttachments,
     ProcessContextTypeCreationRequest,
-    ProcessMappingParametersRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
     RestoreCheckpointRequest,
@@ -56,6 +54,27 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    GetSkillsResponse,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
+    SkillEnableRequest,
+    SkillEnableCancelRequest,
+    SetSkillsEnabledRequest,
+    ParseSkillFileRequest,
+    ParseSkillFileResponse,
+    SkillTier,
+    McpServerStatusDTO,
+    SetMcpServerEnabledRequest,
+    AddMcpServerRequest,
+    AddMcpServerResponse,
+    OpenMcpConfigRequest,
+    McpWorkspaceContextResponse,
+    UpdateMcpServerRequest,
+    DeleteMcpServerRequest,
+    SetMcpToolsEnabledRequest,
+    McpLoadErrorsDTO,
+    AgentsMdFileInfoDTO,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -71,8 +90,6 @@ export interface AIPanelAPI {
     // Data-mapper related functions
     openChatWindowWithCommand: () => void;
     generateContextTypes: (params: ProcessContextTypeCreationRequest) => void;
-    generateMappingCode: (params: ProcessMappingParametersRequest) => void;
-    generateInlineMappingCode: (params: MetadataWithAttachments) => void;
     getServiceNames: () => Promise<TestGenerationMentions>;
     promptGithubAuthorize: () => Promise<boolean>;
     isCopilotSignedIn: () => Promise<boolean>;
@@ -141,4 +158,31 @@ export interface AIPanelAPI {
     // Vertex AI BYOK Helpers
     // ==================================
     getDefaultVertexCredsPath: () => Promise<string>;
+    // ==================================
+    // Skills Management
+    // ==================================
+    getSkills: () => Promise<GetSkillsResponse>;
+    addSkill: (params: AddSkillRequest) => Promise<boolean>;
+    toggleSkill: (params: ToggleSkillRequest) => Promise<boolean>;
+    deleteSkill: (params: DeleteSkillRequest) => Promise<boolean>;
+    enableSkillFromChat: (params: SkillEnableRequest) => Promise<boolean>;
+    cancelSkillEnable: (params: SkillEnableCancelRequest) => Promise<void>;
+    parseSkillFile: (params: ParseSkillFileRequest) => Promise<ParseSkillFileResponse>;
+    getSkillsEnabled: () => Promise<boolean>;
+    setSkillsEnabled: (params: SetSkillsEnabledRequest) => Promise<void>;
+    // ==================================
+    // MCP tool support
+    // ==================================
+    listMcpServers: () => Promise<McpServerStatusDTO[]>;
+    setMcpServerEnabled: (params: SetMcpServerEnabledRequest) => Promise<void>;
+    openMcpConfig: (params: OpenMcpConfigRequest) => Promise<void>;
+    addMcpServer: (params: AddMcpServerRequest) => Promise<AddMcpServerResponse>;
+    updateMcpServer: (params: UpdateMcpServerRequest) => Promise<AddMcpServerResponse>;
+    deleteMcpServer: (params: DeleteMcpServerRequest) => Promise<AddMcpServerResponse>;
+    setMcpToolsEnabled: (params: SetMcpToolsEnabledRequest) => Promise<void>;
+    getMcpToolsEnabled: () => Promise<boolean>;
+    getMcpWorkspaceContext: () => Promise<McpWorkspaceContextResponse>;
+    getMcpLoadErrors: () => Promise<McpLoadErrorsDTO>;
+    getAgentsMdFileInfo: () => Promise<AgentsMdFileInfoDTO>;
+    openOrCreateAgentsMd: () => Promise<void>;
 }

@@ -199,6 +199,8 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         model.node.codedata.node === "FUNCTION_CALL" &&
         model.node.codedata.org === project?.org &&
         Boolean(model.node.properties?.view?.value);
+    const canOpenDataMapper =
+        model.node.codedata.node === "DATA_MAPPER_CALL" && Boolean(model.node.properties?.view?.value);
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (readOnly) {
@@ -266,6 +268,13 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         viewFunction();
+    };
+
+    const handleOnOpenDataMapperClick = () => {
+        if (readOnly) {
+            return;
+        }
+        openDataMapper();
     };
 
     const openDataMapper = async () => {
@@ -401,6 +410,21 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                                     buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
                                     appearance="icon"
                                     onClick={handleOnViewFunctionClick}
+                                >
+                                    <Icon
+                                        name="bi-function-flow"
+                                        sx={{ width: 16, height: 16 }}
+                                        iconSx={{ fontSize: 16 }}
+                                    />
+                                </NodeStyles.MenuButton>
+                            </Tooltip>
+                        )}
+                        {canOpenDataMapper && (
+                            <Tooltip content="View data mapper">
+                                <NodeStyles.MenuButton
+                                    buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                                    appearance="icon"
+                                    onClick={handleOnOpenDataMapperClick}
                                 >
                                     <Icon
                                         name="bi-function-flow"

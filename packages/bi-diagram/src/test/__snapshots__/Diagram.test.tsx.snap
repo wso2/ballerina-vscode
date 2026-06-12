@@ -6960,6 +6960,29 @@ exports[`BI Diagram - Snapshot Tests renders all nodes flow correctly: all-nodes
                   class="css-31"
                 >
                   <div
+                    class="css-32"
+                  >
+                    <div
+                      class="css-23 css-24"
+                    >
+                      <vscode-button>
+                        <div
+                          class="css-33"
+                        >
+                          <i
+                            class="fw-bi-function-flow"
+                            style="font-size: 16px;"
+                          />
+                        </div>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                  <div
                     class="css-23 css-24"
                   >
                     <vscode-button>
