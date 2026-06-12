@@ -71,7 +71,7 @@ function readConfigFile(filePath: string): ReadResult {
             console.warn(`[mcp] Invalid JSON at ${filePath}:`, msg);
             return { file: EMPTY_CONFIG, error: `Invalid JSON: ${msg}` };
         }
-        if (!parsed || typeof parsed !== "object" || !(parsed as any).mcpServers || typeof (parsed as any).mcpServers !== "object") {
+        if (!parsed || typeof parsed !== "object" || !(parsed as any).mcpServers || typeof (parsed as any).mcpServers !== "object" || Array.isArray((parsed as any).mcpServers)) {
             const msg = "Missing or non-object 'mcpServers' key.";
             console.warn(`[mcp] Ignoring invalid config at ${filePath}: ${msg}`);
             return { file: EMPTY_CONFIG, error: msg };
