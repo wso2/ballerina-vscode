@@ -706,6 +706,10 @@ class BIRunAdapter extends LoggingDebugSession {
 
     private session: DebugSession;
     private disconnected = false;
+    // True once this adapter finished without (or after) a running task —
+    // cancelled/failed/superseded launches included. Gate for slot
+    // restoration: an ended adapter must never be restored (#1690).
+    private ended = false;
     // One adapter slot per integration (keyed by resolved project path):
     // different integrations run concurrently, while two launches of the SAME
     // integration conflict (#1012).
@@ -750,6 +754,7 @@ class BIRunAdapter extends LoggingDebugSession {
                     (this.session.configuration as any).suggestTryit = false;
                     // Restore the previous adapter so the next launch still detects it.
                     this.restoreOrReleaseSlot(existingAdapter);
+                    this.ended = true;
                     response.success = true;
                     this.sendResponse(response);
                     this.sendEvent(new TerminatedEvent());
@@ -797,6 +802,7 @@ class BIRunAdapter extends LoggingDebugSession {
 
                     if (!shouldProceed) {
                         (this.session.configuration as any).suggestTryit = false;
+                        this.ended = true;
                         response.success = true;
                         this.sendResponse(response);
                         this.sendEvent(new TerminatedEvent());
@@ -845,6 +851,7 @@ class BIRunAdapter extends LoggingDebugSession {
                 if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
                     BIRunAdapter.activeAdapters.delete(this.slotKey);
                 }
+                this.ended = true;
                 response.success = false;
                 this.sendResponse(response);
                 this.sendEvent(new TerminatedEvent());
@@ -874,6 +881,7 @@ class BIRunAdapter extends LoggingDebugSession {
             // termination wait above — the other adapter already owns the slot.
             if (BIRunAdapter.activeAdapters.get(this.slotKey) !== this) {
                 (this.session.configuration as any).suggestTryit = false;
+                this.ended = true;
                 response.success = true;
                 this.sendResponse(response);
                 this.sendEvent(new TerminatedEvent());
@@ -891,6 +899,7 @@ class BIRunAdapter extends LoggingDebugSession {
                     if (e.execution === this.task) {
                         this.taskTerminationListener?.dispose();
                         this.taskTerminationListener = null;
+                        this.ended = true;
                         if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
                             BIRunAdapter.activeAdapters.delete(this.slotKey);
                         }
@@ -909,6 +918,7 @@ class BIRunAdapter extends LoggingDebugSession {
                 if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
                     BIRunAdapter.activeAdapters.delete(this.slotKey);
                 }
+                this.ended = true;
                 response.success = false;
                 this.sendResponse(response);
                 this.sendEvent(new TerminatedEvent());
@@ -918,6 +928,7 @@ class BIRunAdapter extends LoggingDebugSession {
             if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
                 BIRunAdapter.activeAdapters.delete(this.slotKey);
             }
+            this.ended = true;
             response.success = false;
             this.sendResponse(response);
             this.sendEvent(new TerminatedEvent());
@@ -929,15 +940,21 @@ class BIRunAdapter extends LoggingDebugSession {
      * but only while its run is still actually alive. Restoring a dead
      * adapter would make every future launch report "already running" even
      * though the integration is stopped (product-integrator#1690).
+     *
+     * Alive means: not ended (cancelled/failed/superseded launches set the
+     * `ended` flag even though they never had a task), and either its task
+     * process is still running or it is genuinely still mid-launch.
      */
     private restoreOrReleaseSlot(existingAdapter: BIRunAdapter): void {
         if (BIRunAdapter.activeAdapters.get(this.slotKey) !== this) {
             return;
         }
         const existingTask = existingAdapter.task;
-        const existingAlive = existingTask
-            ? tasks.taskExecutions.some(execution => execution === existingTask)
-            : true; // no task yet — the previous launch is still in flight
+        const existingAlive = !existingAdapter.ended && (
+            existingTask
+                ? tasks.taskExecutions.some(execution => execution === existingTask)
+                : true // no task yet and not ended — the previous launch is still in flight
+        );
         if (existingAlive) {
             BIRunAdapter.activeAdapters.set(this.slotKey, existingAdapter);
         } else {
@@ -951,8 +968,12 @@ class BIRunAdapter extends LoggingDebugSession {
             this.task.terminate();
             // Don't clear the adapter slot here — the process is still shutting
             // down. taskTerminationListener clears it once onDidEndTaskProcess fires.
-        } else if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
-            BIRunAdapter.activeAdapters.delete(this.slotKey);
+        } else {
+            // Disconnected before the task ever started: this launch is over.
+            this.ended = true;
+            if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
+                BIRunAdapter.activeAdapters.delete(this.slotKey);
+            }
         }
         if (this.notificationHandler) {
             this.notificationHandler.dispose();
