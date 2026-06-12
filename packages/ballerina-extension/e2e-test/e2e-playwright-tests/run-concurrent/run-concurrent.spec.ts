@@ -18,6 +18,7 @@
 import { test } from '@playwright/test';
 import * as path from 'path';
 import { initTest, logStep, page, toggleNotifications } from '../utils/helpers';
+import { waitForBISidebarTreeView } from '../utils/helpers/sidebar';
 import { ProjectExplorer } from '../utils/pages';
 
 const RUN_BUTTON_SELECTOR = 'ul.actions-container[role="toolbar"] li.action-item a[role="button"][aria-label="Run Integration"]';
@@ -29,6 +30,28 @@ const WORKSPACE_TEMPLATE = path.join(__dirname, '..', 'data', 'concurrent_run_wo
 const ALPHA = 'alpha_runner';
 const BETA = 'beta_runner';
 
+// Waits for the BI sidebar and the workspace tree on a cold start, when no
+// prior suite has warmed up the extension and the language server is still
+// indexing the workspace packages.
+async function waitForWorkspaceTree(firstItem: string) {
+    logStep('Waiting for the BI sidebar and workspace tree (cold start)');
+    // Dismiss any stuck quick input and the parent-git-repository prompt,
+    // then switch to the WSO2 Integrator activity (the file explorer is
+    // focused initially) and wait for the LS to index the workspace.
+    await page.page.keyboard.press('Escape').catch(() => undefined);
+    const gitPrompt = page.page.locator('.notification-toast-container', { hasText: 'git repository was found' });
+    if (await gitPrompt.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await gitPrompt.getByRole('button', { name: 'Never' }).click().catch(() => undefined);
+    }
+    await waitForBISidebarTreeView(page, 60000);
+    const projectExplorer = new ProjectExplorer(page.page);
+    await projectExplorer.init().catch(() => undefined);
+    await page.page
+        .locator(`div[role="treeitem"][aria-label='${firstItem}']`)
+        .first()
+        .waitFor({ timeout: 90000 });
+}
+
 // Opens an integration's own overview so the Run button targets THAT
 // integration. Selecting the tree node only highlights it — the focused
 // project (and the Run target) changes only when the package overview is
@@ -37,10 +60,24 @@ async function openIntegration(name: string) {
     logStep(`Opening overview of integration '${name}'`);
     const projectExplorer = new ProjectExplorer(page.page);
     const node = await projectExplorer.findItem([name]);
-    await node!.hover();
-    const openOverview = page.page.getByRole('button', { name: 'Open Overview' }).first();
-    await openOverview.waitFor({ timeout: 10000 });
-    await openOverview.click();
+
+    // The inline action renders on hover and can take a moment right after
+    // startup — retry the hover a few times before failing.
+    let opened = false;
+    for (let attempt = 0; attempt < 3 && !opened; attempt++) {
+        await node!.hover();
+        const openOverview = page.page.getByRole('button', { name: 'Open Overview' }).first();
+        opened = await openOverview
+            .waitFor({ timeout: 7000 })
+            .then(() => true)
+            .catch(() => false);
+        if (opened) {
+            await openOverview.click();
+        }
+    }
+    if (!opened) {
+        throw new Error(`'Open Overview' action did not appear for tree item '${name}'`);
+    }
     // Let the package overview load and the focused project settle before
     // the Run button is used (Run targets the focused project).
     await page.page.waitForTimeout(2500);
@@ -114,6 +151,7 @@ export default function createTests() {
             // Prompts (if any) are notifications; make sure DND is off so they render.
             await toggleNotifications(false);
 
+            await waitForWorkspaceTree(ALPHA);
             await openIntegration(ALPHA);
             await clickRunButton(ALPHA);
             logStep('Waiting for alpha_runner output');

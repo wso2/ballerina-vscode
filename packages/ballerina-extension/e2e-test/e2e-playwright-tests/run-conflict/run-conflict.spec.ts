@@ -18,6 +18,7 @@
 import { test } from '@playwright/test';
 import * as path from 'path';
 import { initTest, logStep, page, toggleNotifications } from '../utils/helpers';
+import { waitForBISidebarTreeView } from '../utils/helpers/sidebar';
 import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 import { FileUtils } from '../utils/helpers/fileSystem';
@@ -82,8 +83,25 @@ export default function createTests() {
             // Conflict prompts are notifications; DND must be off to see them.
             await toggleNotifications(false);
 
-            logStep('Locating automation entry point in explorer');
+            logStep('Waiting for the BI sidebar and project tree (cold start)');
+            // On a standalone (cold-start) run no prior suite has warmed up the
+            // extension: dismiss any stuck quick input, switch to the WSO2
+            // Integrator activity (the file explorer is focused initially),
+            // and give the language server time to index the project.
+            await page.page.keyboard.press('Escape').catch(() => undefined);
+            const gitPrompt = page.page.locator('.notification-toast-container', { hasText: 'git repository was found' });
+            if (await gitPrompt.isVisible({ timeout: 1000 }).catch(() => false)) {
+                await gitPrompt.getByRole('button', { name: 'Never' }).click().catch(() => undefined);
+            }
+            await waitForBISidebarTreeView(page, 60000);
             const projectExplorer = new ProjectExplorer(page.page);
+            await projectExplorer.init().catch(() => undefined);
+            await page.page
+                .locator(`div[role="treeitem"][aria-label='${DEFAULT_PROJECT_NAME}']`)
+                .first()
+                .waitFor({ timeout: 90000 });
+
+            logStep('Locating automation entry point in explorer');
             const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
 
             // Open automation.bal so ${file} in the launch config resolves.
