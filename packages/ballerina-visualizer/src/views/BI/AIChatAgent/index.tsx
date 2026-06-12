@@ -28,6 +28,7 @@ import {
     DIRECTORY_MAP,
     ProjectStructureArtifactResponse,
     PropertyModel,
+    isSamePath,
 } from "@wso2/ballerina-core";
 import { Codicon, Icon, LinkButton, Typography, View } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
@@ -114,7 +115,7 @@ export function AIAgentDesigner(props: AIAgentDesignerProps) {
         rpcClient.getVisualizerLocation().then((location) => {
             const projectPath = location.projectPath;
             rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
-                const project = res.projects.find(project => project.projectPath === projectPath);
+                const project = res.projects.find(project => isSamePath(project.projectPath, projectPath));
                 const listeners = project?.directoryMap[DIRECTORY_MAP.LISTENER];
                 if (listeners.length > 0) {
                     setProjectListeners(listeners);

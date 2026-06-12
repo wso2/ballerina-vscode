@@ -29,6 +29,7 @@ import {
     DIRECTORY_MAP,
     CodeData,
     LinePosition,
+    isSamePath,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Global, css } from "@emotion/react";
@@ -510,7 +511,7 @@ const MainPanel = () => {
                             if (isStaleNavigation()) return;
                             const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
                             if (isStaleNavigation()) return;
-                            const project = projectStructure.projects.find(project => project.projectPath === value.projectPath);
+                            const project = projectStructure.projects.find(project => isSamePath(project.projectPath, value.projectPath));
                             const services = project?.directoryMap?.[DIRECTORY_MAP.SERVICE] as ProjectStructureArtifactResponse[] | undefined;
                             const entryPoint = services?.find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
                             setViewComponent(
