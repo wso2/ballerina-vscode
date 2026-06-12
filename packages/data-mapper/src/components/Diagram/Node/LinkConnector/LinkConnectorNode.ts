@@ -49,6 +49,7 @@ export class LinkConnectorNode extends DataMapperNodeModel {
     public hidden: boolean;
     public shouldInitLinks: boolean;
     public label: string;
+    public hasUnresolvedInputs: boolean;
 
     constructor(
         public context: IDataMapperContext,
@@ -68,6 +69,7 @@ export class LinkConnectorNode extends DataMapperNodeModel {
         const prevSourcePorts = this.sourcePorts;
         this.sourcePorts = [];
         this.targetMappedPort = undefined;
+        this.hasUnresolvedInputs = false;
         this.inPort = new IntermediatePortModel(`${this.mapping.inputs.join('_')}_${this.mapping.output}_IN`, "IN");
         this.outPort = new IntermediatePortModel(`${this.mapping.inputs.join('_')}_${this.mapping.output}_OUT`, "OUT");
         this.addPort(this.inPort);
@@ -87,11 +89,14 @@ export class LinkConnectorNode extends DataMapperNodeModel {
             if (!matchedSearch) return;
 
             const inputNode = findInputNode(field, this, views, lastViewIndex);
-            if (inputNode) {
-                const inputPort = getInputPort(inputNode, field?.replace(/\.\d+/g, ''));
-                if (!this.sourcePorts.some(port => port?.getID() === inputPort?.getID())) {
-                    this.sourcePorts.push(inputPort);
-                }
+            const inputPort = inputNode ? getInputPort(inputNode, field?.replace(/\.\d+/g, '')) : undefined;
+            if (!inputPort) {
+                // The input field is absent from the diagram, hence the mapping cannot be visualized as a link
+                this.hasUnresolvedInputs = true;
+                return;
+            }
+            if (!this.sourcePorts.some(port => port.getID() === inputPort.getID())) {
+                this.sourcePorts.push(inputPort);
             }
         })
 
@@ -185,7 +190,7 @@ export class LinkConnectorNode extends DataMapperNodeModel {
                 }
             })
 
-            if (this.targetMappedPort) {
+            if (this.targetMappedPort && !this.hasOnlyUnresolvedInputs()) {
                 const outPort = this.outPort;
                 const targetPort = this.targetMappedPort;
 
@@ -228,6 +233,12 @@ export class LinkConnectorNode extends DataMapperNodeModel {
 
     public hasError(): boolean {
         return this.diagnostics.length > 0;
+    }
+
+    // True when none of the mapping inputs could be resolved to a port,
+    // i.e. the mapping has inputs but their fields are absent from the diagram
+    public hasOnlyUnresolvedInputs(): boolean {
+        return this.hasUnresolvedInputs && this.sourcePorts.length === 0;
     }
 
     public async deleteLink(): Promise<void> {
