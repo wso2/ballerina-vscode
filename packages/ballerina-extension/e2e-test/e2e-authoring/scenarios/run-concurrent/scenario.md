@@ -22,5 +22,6 @@ Known UI facts discovered while authoring (kept for future iterations):
   project changes only when the package overview is opened via the node's
   inline "Open Overview" action.
 - A run started from the workspace overview opens the
-  "Select an integration to run" quickpick whose items are project PATHS;
-  typing the package name filters it.
+  "Select an integration to run" quickpick. Item labels are integration
+  NAMES (project paths appear only as item descriptions); typing the
+  package name filters it.

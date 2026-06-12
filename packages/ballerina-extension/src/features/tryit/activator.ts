@@ -32,7 +32,7 @@ import { v4 as uuidv4 } from "uuid";
 import { createGraphqlView } from "../../views/graphql";
 import { openView, StateMachine } from "../../stateMachine";
 import { getCurrentProjectRoot } from "../../utils/project-utils";
-import { requiresPackageSelection, selectPackageOrPrompt } from "../../utils/command-utils";
+import { requiresPackageSelection, selectIntegrationOrPrompt } from "../../utils/command-utils";
 import { VisualizerWebview } from "../../views/visualizer/webview";
 import { TracerMachine } from "../tracing";
 
@@ -1300,8 +1300,12 @@ async function getProjectPathAndServices(
             projectPath = Object.keys(serviceInfos)[0];
         }
         if (Object.keys(serviceInfos).length > 1) {
-            const selectedProjectRoot = await selectPackageOrPrompt(
-                Object.keys(serviceInfos),
+            // Show integration NAMES in the picker (paths only as descriptions).
+            const selectedProjectRoot = await selectIntegrationOrPrompt(
+                Object.keys(serviceInfos).map((root) => ({
+                    name: path.basename(root),
+                    projectPath: root
+                })),
                 "Multiple integrations contain services. Please select one."
             );
             if (!selectedProjectRoot) {

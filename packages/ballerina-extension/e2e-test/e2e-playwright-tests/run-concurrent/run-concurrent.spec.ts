@@ -90,9 +90,10 @@ async function clickRunButton(integrationName?: string) {
     await runButton.click();
 
     // If a run is launched from the workspace overview, the "Select an
-    // integration to run" quickpick appears (items are project paths).
-    // Answer it with the wanted integration. NOTE: must use waitFor —
-    // isVisible() returns immediately, before the picker renders.
+    // integration to run" quickpick appears (labels are integration NAMES,
+    // with paths demoted to descriptions). Answer it with the wanted
+    // integration. NOTE: must use waitFor — isVisible() returns immediately,
+    // before the picker renders.
     if (integrationName) {
         const picker = page.page.locator('.quick-input-widget').first();
         const pickerVisible = await picker
@@ -100,6 +101,11 @@ async function clickRunButton(integrationName?: string) {
             .then(() => true)
             .catch(() => false);
         if (pickerVisible) {
+            // The picker must show integration names, not full paths.
+            const firstLabel = await picker.locator('.monaco-list-row .label-name').first().textContent().catch(() => '') ?? '';
+            if (firstLabel.includes('/') || firstLabel.includes('\\')) {
+                throw new Error(`Integration picker shows paths instead of names: '${firstLabel}'`);
+            }
             logStep(`Answering integration picker with '${integrationName}'`);
             await page.page.keyboard.type(integrationName);
             await page.page.waitForTimeout(500);
