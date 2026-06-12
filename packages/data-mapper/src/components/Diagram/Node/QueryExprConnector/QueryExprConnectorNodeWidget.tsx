@@ -82,7 +82,7 @@ export function QueryExprConnectorNodeWidget(props: QueryExprConnectorNodeWidget
         </div>
     );
 
-    return (!node.hidden && (
+    return (!node.hidden && !node.hasOnlyUnresolvedInputs() && (
             <div className={classes.root} data-testid={`link-connector-node-${node?.targetPort?.getName()}`}>
                 <div className={classes.header}>
                     {renderPortWidget(engine, node.inPort, `${node?.value}-input`)}
