@@ -7,8 +7,12 @@ This suite verifies the cross-integration behavior using a **two-package Balleri
 workspace** template (`data/concurrent_run_workspace`): packages `alpha_runner` and
 `beta_runner`, each a long-running automation printing a unique start marker.
 
-The same-integration restart behavior is covered separately by the `run-conflict`
-suite (single-package project).
+Same-integration restart coverage is split between the two suites: this suite
+owns the multi-package branch — re-running an already-running integration and
+**declining** (No), proving the cancelled launch leaves every other running
+integration untouched (Scenario 4). The full restart flow (accept stops and
+restarts cleanly, decline keeps the run, exactly one instance after restart) is
+owned by the `run-conflict` suite on a single-package project.
 
 ## Harness Notes
 
@@ -43,11 +47,16 @@ suite (single-package project).
 2. Switch to the alpha terminal; its output is intact — the second run did not
    kill or steal the first run's terminal.
 
-### 4. Re-running the same integration prompts restart
+### 4. Re-run same integration → decline keeps all runs intact
+
+This scenario owns the decline (No) branch in a multi-package workspace; the
+accept (Yes) branch and the rest of the restart flow are covered by the
+`run-conflict` suite.
 
 1. Click `beta_runner`, then **Run Integration** again.
 2. Verify the "This integration is already running..." notification appears.
-3. Click **No**; verify both integrations are still running.
+3. Click **No**; verify the new launch is cancelled and BOTH integrations —
+   including the untouched `alpha_runner` — are still running.
 
 ## Out of scope (manual, see validation guide)
 
