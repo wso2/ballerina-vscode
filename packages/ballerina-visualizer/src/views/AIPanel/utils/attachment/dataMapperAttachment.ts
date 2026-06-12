@@ -17,16 +17,15 @@
  */
 
 import { BaseAttachment } from "./baseAttachment";
-import { getFileTypesForCommand } from "./attachmentManager";
-import { Command } from "@wso2/ballerina-core";
+import { DOCUMENT_TYPES } from "./attachmentManager";
 
 /**
  * DataMapperAttachment overrides how the file is read. Instead of plain text,
  * it reads the file as a Data URL, extracts the Base64 portion, and returns it.
  */
 export class DataMapperAttachment extends BaseAttachment {
-    constructor(private command: Command) {
-        super(getFileTypesForCommand(command));
+    constructor() {
+        super(DOCUMENT_TYPES);
     }
 
     protected readFileContent(file: File): Promise<string> {

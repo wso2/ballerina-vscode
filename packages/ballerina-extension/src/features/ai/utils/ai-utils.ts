@@ -315,6 +315,10 @@ export function sendClarifyNotification(event: ChatNotify & { type: "clarify_eve
     sendAIPanelNotification(event);
 }
 
+export function sendSkillEnableNotification(event: ChatNotify & { type: "skill_enable_event" }): void {
+    sendAIPanelNotification(event);
+}
+
 export function sendWebToolToggleNotification(active: boolean): void {
     RPCLayer._messenger.sendNotification(
         webToolToggle,
@@ -351,7 +355,7 @@ export function sendUsageMetricsNotification(
     sendAIPanelNotification({ type: "usage_metrics", usage, breakdown });
 }
 
-export function sendConfigChangeNotification(key: 'showContextUsage', value: boolean): void {
+export function sendConfigChangeNotification(key: 'showContextUsage' | 'mcpToolsEnabled', value: boolean): void {
     sendAIPanelNotification({ type: 'config_change', key, value });
 }
 
