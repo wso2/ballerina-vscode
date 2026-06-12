@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { SemanticVersion, PackageTomlValues, SCOPE, WorkspaceTomlValues, ProjectInfo } from '@wso2/ballerina-core';
+import { SemanticVersion, PackageTomlValues, SCOPE, WorkspaceTomlValues, ProjectInfo, isSamePath } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
 import { WorkspaceConfiguration, workspace, Uri, RelativePattern, extensions } from 'vscode';
 import * as fs from 'fs';
@@ -400,7 +400,7 @@ export function getOrgAndPackageName(projectInfo: ProjectInfo, projectPath: stri
 
     if (projectInfo.children?.length) {
         const matchedProject = projectInfo.children.find(
-            (child) => child.projectPath === projectPath
+            (child) => isSamePath(child.projectPath, projectPath)
         );
 
         if (matchedProject) {

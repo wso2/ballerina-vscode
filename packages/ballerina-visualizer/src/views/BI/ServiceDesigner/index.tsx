@@ -27,7 +27,8 @@ import {
     ComponentInfo,
     ServiceModel,
     Protocol,
-    SHARED_COMMANDS
+    SHARED_COMMANDS,
+    isSamePath
 } from "@wso2/ballerina-core";
 import { buildBaseUrl } from "./buildHurlString";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -453,7 +454,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         rpcClient.getVisualizerLocation().then((location) => {
             const projectPath = location.projectPath;
             rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
-                const project = res.projects.find(project => project.projectPath === projectPath);
+                const project = res.projects.find(project => isSamePath(project.projectPath, projectPath));
                 const listeners = project?.directoryMap[DIRECTORY_MAP.LISTENER];
                 if (listeners.length > 0) {
                     setProjectListeners(listeners);
@@ -658,7 +659,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         const context = await rpcClient.getVisualizerLocation();
         const projectPath = context.projectPath;
         const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
-        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+        const project = projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
 
         const serviceArtifact = findServiceArtifact(project.directoryMap[DIRECTORY_MAP.SERVICE]);
         if (serviceArtifact) {

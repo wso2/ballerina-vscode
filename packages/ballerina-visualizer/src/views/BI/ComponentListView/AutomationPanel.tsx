@@ -18,7 +18,7 @@
 import React, { useEffect, useState } from 'react';
 import { Icon } from '@wso2/ui-toolkit';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, SCOPE } from '@wso2/ballerina-core';
+import { DIRECTORY_MAP, EVENT_TYPE, isSamePath, MACHINE_VIEW, SCOPE } from '@wso2/ballerina-core';
 
 import { CardGrid, PanelViewMore, Title, TitleWrapper } from './styles';
 import { BodyText } from '../../styles';
@@ -37,7 +37,7 @@ export function AutomationPanel(props: AutomationPanelProps) {
         rpcClient.getVisualizerLocation().then((location) => {
             const projectPath = location.projectPath;
             rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
-                const project = res.projects.find(project => project.projectPath === projectPath);
+                const project = res.projects.find(project => isSamePath(project.projectPath, projectPath));
                 setAutomationExists(project?.directoryMap[DIRECTORY_MAP.AUTOMATION].length > 0);
             });
         });

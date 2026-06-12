@@ -152,6 +152,18 @@ function appendToLastEntry(entries: StreamEntry[], item: StreamItem): StreamEntr
     return [...entries.slice(0, -1), { ...last, items: [...last.items, item] }];
 }
 
+const SCAFFOLD_DONE_PREFIX = "ballerina.scaffold.done:";
+
+// Stable, non-crypto hash for keying scaffold runs by (prompt + steps).
+function scaffoldKeyHash(text: string, hiddenContext: string | undefined): string {
+    const input = text + "\0" + (hiddenContext ?? "");
+    let h = 5381;
+    for (let i = 0; i < input.length; i++) {
+        h = ((h << 5) + h + input.charCodeAt(i)) | 0;
+    }
+    return (h >>> 0).toString(36);
+}
+
 const AIChat: React.FC = () => {
     const { rpcClient } = useRpcContext();
     const [messages, setMessages] = useState<Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>>([]);
@@ -252,6 +264,7 @@ const AIChat: React.FC = () => {
     const messagesRef = useRef<any>([]);
 
     const isErrorChunkReceivedRef = useRef(false);
+    const activeScaffoldKeyRef = useRef<string | null>(null);
 
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
@@ -279,7 +292,7 @@ const AIChat: React.FC = () => {
             rpcClient
                 .getAiPanelRpcClient()
                 .getDefaultPrompt()
-                .then((defaultPrompt: AIPanelPrompt) => {
+                .then(async (defaultPrompt: AIPanelPrompt) => {
                     if (defaultPrompt) {
                         // Extract CodeContext from both command-template metadata and text-type direct param
                         const codeCtx = defaultPrompt.type === 'command-template'
@@ -299,6 +312,23 @@ const AIChat: React.FC = () => {
                             setFooterInputPlaceholder(textPrompt.inputPlaceholder ?? null);
 
                             if (defaultPrompt.autoSubmit && defaultPrompt.text.trim().length > 0) {
+                                // Devant scaffold gate: when the extension was launched with INITIAL_SCAFFOLD_PROMPT,
+                                // never auto-execute the same scaffold twice on this env URL (localStorage scoped per origin).
+                                // Fail open — if the RPC errors for any reason, behave as if env is unset.
+                                const isScaffoldEnv = await rpcClient
+                                    .getAiPanelRpcClient()
+                                    .isScaffoldEnvActive()
+                                    .catch(() => false);
+                                if (isScaffoldEnv) {
+                                    const key = SCAFFOLD_DONE_PREFIX + scaffoldKeyHash(defaultPrompt.text, defaultPrompt.hiddenContext);
+                                    if (localStorage.getItem(key) === "1") {
+                                        // Already executed in a previous session for this env+spec.
+                                        // Drop the cached prompt so it isn't re-served on next panel mount.
+                                        rpcClient.getAiPanelRpcClient().clearInitialPrompt();
+                                        return;
+                                    }
+                                    activeScaffoldKeyRef.current = key;
+                                }
                                 void handleSend({
                                     input: [{ content: defaultPrompt.text }],
                                     attachments: [],
@@ -878,9 +908,14 @@ const AIChat: React.FC = () => {
             setIsMigrationEnhancementRunning(false);
             fetchUsage();
             setAgentMode(AgentMode.Edit);
+            if (activeScaffoldKeyRef.current && !isErrorChunkReceivedRef.current) {
+                localStorage.setItem(activeScaffoldKeyRef.current, "1");
+            }
+            activeScaffoldKeyRef.current = null;
 
         } else if (type === "abort") {
             console.log("Received abort signal");
+            activeScaffoldKeyRef.current = null;
             setIsWebToolsEnabled(userWebSearchPreferenceRef.current);
             setWebToolApprovalRequest(null);
             const abortItem: StreamItem = { kind: "text", text: "*[Request interrupted by user]*" };

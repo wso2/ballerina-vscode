@@ -20,7 +20,7 @@ import * as os from 'os';
 import { NodePosition } from "@wso2/syntax-tree";
 import { StateMachine } from "../../stateMachine";
 import { Position, Progress, Range, Uri, ViewColumn, window, workspace, WorkspaceEdit } from "vscode";
-import { PROJECT_KIND, ProjectInfo, TextEdit, WorkspaceTypeResponse } from "@wso2/ballerina-core";
+import { isSamePath, PROJECT_KIND, ProjectInfo, TextEdit, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 import axios from 'axios';
 import fs from 'fs';
 import * as path from 'path';
@@ -263,7 +263,7 @@ export function getTargetProjectForPublish(): {
     artifactType: string;
 } | null {
     const { projectPath, projectStructure } = StateMachine.context();
-    const target = projectStructure?.projects.find((p) => p.projectPath === projectPath);
+    const target = projectStructure?.projects.find((p) => isSamePath(p.projectPath, projectPath));
     if (!target) {
         return null;
     }

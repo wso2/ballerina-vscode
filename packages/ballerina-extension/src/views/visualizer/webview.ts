@@ -25,7 +25,7 @@ import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } f
 import { extension } from "../../BalExtensionContext";
 import { StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
-import { MACHINE_VIEW } from "@wso2/ballerina-core";
+import { MACHINE_VIEW, isPathInside } from "@wso2/ballerina-core";
 import { refreshDataMapper } from "../../rpc-managers/data-mapper/utils";
 import { AiPanelWebview } from "../ai-panel/webview";
 import { approvalViewManager } from "../../features/ai/state/ApprovalViewManager";
@@ -74,8 +74,7 @@ export class VisualizerWebview {
 
             // Check the file is changed in the project.
             const projectPath = StateMachine.context().projectPath;
-            const documentUri = document.document.uri.toString();
-            const isDocumentUnderProject = documentUri.includes(projectPath);
+            const isDocumentUnderProject = isPathInside(projectPath, document.document.uri.fsPath);
             // Reset visualizer the undo-redo stack if user did changes in the editor
             if (isOpened && isDocumentUnderProject && !this._panel?.active && !undoRedoManager?.isBatchInProgress()) {
                 undoRedoManager.reset();
