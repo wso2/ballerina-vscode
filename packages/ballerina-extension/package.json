@@ -1232,14 +1232,14 @@
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f247"
+                    "fontCharacter": "\\f248"
                 }
             },
             "ballerina-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1bf"
+                    "fontCharacter": "\\f1c0"
                 }
             },
             "ballerina-source-view": {
@@ -1253,7 +1253,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f21e"
+                    "fontCharacter": "\\f21f"
                 }
             },
             "ballerina-cached-rounded": {
@@ -1351,7 +1351,7 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1c4"
+                    "fontCharacter": "\\f1c5"
                 }
             },
             "distro-file-submodule": {
