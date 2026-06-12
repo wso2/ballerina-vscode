@@ -44,8 +44,6 @@ import {
     generateAgent,
     GenerateAgentCodeRequest,
     generateContextTypes,
-    generateInlineMappingCode,
-    generateMappingCode,
     generateOpenAPI,
     GenerateOpenAPIRequest,
     getActiveTempDir,
@@ -66,14 +64,12 @@ import {
     isUserAuthenticated,
     isWorkspaceProject,
     markAlertShown,
-    MetadataWithAttachments,
     openAIPanel,
     openChatWindowWithCommand,
     openFileDiff,
     OpenFileDiffRequest,
     PlanApprovalRequest,
     ProcessContextTypeCreationRequest,
-    ProcessMappingParametersRequest,
     PromptEnhancementRequest,
     promptForLogin,
     promptGithubAuthorize,
@@ -111,8 +107,6 @@ import {
     addSkill,
     toggleSkill,
     deleteSkill,
-    saveSkillFromChat,
-    cancelSkillSave,
     enableSkillFromChat,
     cancelSkillEnable,
     parseSkillFile,
@@ -121,8 +115,6 @@ import {
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
-    SkillSaveRequest,
-    SkillSaveCancelRequest,
     SkillEnableRequest,
     SkillEnableCancelRequest,
     ParseSkillFileRequest,
@@ -163,8 +155,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
     messenger.onNotification(openChatWindowWithCommand, () => rpcManger.openChatWindowWithCommand());
     messenger.onNotification(generateContextTypes, (args: ProcessContextTypeCreationRequest) => rpcManger.generateContextTypes(args));
-    messenger.onNotification(generateMappingCode, (args: ProcessMappingParametersRequest) => rpcManger.generateMappingCode(args));
-    messenger.onNotification(generateInlineMappingCode, (args: MetadataWithAttachments) => rpcManger.generateInlineMappingCode(args));
     messenger.onRequest(getServiceNames, () => rpcManger.getServiceNames());
     messenger.onRequest(promptGithubAuthorize, () => rpcManger.promptGithubAuthorize());
     messenger.onRequest(isCopilotSignedIn, () => rpcManger.isCopilotSignedIn());
@@ -226,8 +216,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(addSkill, (args: AddSkillRequest) => rpcManger.addSkill(args));
     messenger.onRequest(toggleSkill, (args: ToggleSkillRequest) => rpcManger.toggleSkill(args));
     messenger.onRequest(deleteSkill, (args: DeleteSkillRequest) => rpcManger.deleteSkill(args));
-    messenger.onRequest(saveSkillFromChat, (args: SkillSaveRequest) => rpcManger.saveSkillFromChat(args));
-    messenger.onRequest(cancelSkillSave, (args: SkillSaveCancelRequest) => rpcManger.cancelSkillSave(args));
     messenger.onRequest(enableSkillFromChat, (args: SkillEnableRequest) => rpcManger.enableSkillFromChat(args));
     messenger.onRequest(cancelSkillEnable, (args: SkillEnableCancelRequest) => rpcManger.cancelSkillEnable(args));
     messenger.onRequest(parseSkillFile, (args: ParseSkillFileRequest) => rpcManger.parseSkillFile(args));

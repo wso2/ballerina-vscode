@@ -17,6 +17,7 @@
 import skillMd from './SKILL.md';
 import { getDataMappingSkillContent } from '../../../data-mapper/prompts/mapping-prompt';
 import { DIAGNOSTICS_TOOL_NAME } from '../../tools/diagnostics';
+import { SkillCommand } from '@wso2/ballerina-core';
 import { Skill } from '../types';
 
 function parseSkillMd(content: string): { name: string; description: string } {
@@ -39,4 +40,31 @@ export const dataMapSkill: Skill = {
     name,
     trigger: description,
     content: getDataMappingSkillContent(DIAGNOSTICS_TOOL_NAME),
+    optional: false,
+    default: true,
+    skillCommand: SkillCommand.DataMap,
+    commandTemplates: [
+        {
+            id: 'mappings-for-records',
+            text: 'generate mappings using input as <recordname(s)> and output as <recordname> using the <functionname> function',
+            placeholders: [
+                { id: 'inputRecords', text: '<recordname(s)>', multiline: false },
+                { id: 'outputRecord', text: '<recordname>', multiline: false },
+                { id: 'functionName', text: '<functionname>', multiline: false },
+            ],
+        },
+        {
+            id: 'mappings-for-function',
+            text: 'generate mappings for the <functionname> function',
+            placeholders: [
+                { id: 'functionName', text: '<functionname>', multiline: false },
+            ],
+        },
+        {
+            id: 'inline-mappings',
+            text: 'generate mappings using record fields and external values',
+            placeholders: [],
+            defaultVisibility: false,
+        },
+    ],
 };

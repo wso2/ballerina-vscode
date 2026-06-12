@@ -19,7 +19,18 @@ import { keywords } from '@wso2/ballerina-core';
 export function getDataMappingSkillContent(
   diagnosticsToolName: string,
 ): string {
-  return `### Priority Hierarchy
+  return `### Mapping Request
+$ARGUMENTS
+
+Interpret the request above using whichever of these patterns fits:
+- "generate mappings for the <functionname> function" → function mode; the function name is the word immediately before "function".
+- "generate mappings using input as <inputs> and output as <output> using the <name> function" → records mode; create a new transform function with that signature.
+- "generate mappings using record fields and external values" → inline mode; derive the output type from "Output type: <name>" in the hidden context.
+- A single function name (no surrounding text) → function mode; fill out the existing function with the mapping.
+- A single record/type name with no surrounding text and no function context → inline mode; produce inline field expressions, not a function body.
+- Empty (literal \`$ARGUMENTS\` left in place) → derive everything from the current file context provided in the hidden context.
+
+### Priority Hierarchy
 When generating mapping expressions, follow this strict priority order:
 1. **User-defined mappings** — ABSOLUTE HIGHEST PRIORITY. Complete precedence over everything else.
 2. **Existing sub-mappings** — use the sub-mapping output name as a direct reference.

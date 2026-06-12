@@ -35,4 +35,6 @@ export const skillCreatorSkill: Skill = {
     name,
     trigger: description,
     content: body,
+    optional: true,
+    default: false,
 };

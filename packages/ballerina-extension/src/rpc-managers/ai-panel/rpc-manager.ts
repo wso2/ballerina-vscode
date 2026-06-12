@@ -32,10 +32,8 @@ import {
     GetModuleDirParams,
     LLMDiagnostics,
     LoginMethod,
-    MetadataWithAttachments,
     OpenFileDiffRequest,
     ProcessContextTypeCreationRequest,
-    ProcessMappingParametersRequest,
     PromptEnhancementRequest,
     PromptEnhancementResponse,
     RequirementSpecification,
@@ -59,8 +57,6 @@ import {
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
-    SkillSaveRequest,
-    SkillSaveCancelRequest,
     SkillEnableRequest,
     SkillEnableCancelRequest,
     SkillEnableStage,
@@ -137,8 +133,6 @@ import {
 import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExecutor';
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
-import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
-import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
@@ -391,38 +385,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         } catch (error) {
             console.error(">>> Failed to add files to the project", error);
             return false; //silently fail for timeout issues.
-        }
-    }
-
-    async generateMappingCode(params: ProcessMappingParametersRequest): Promise<void> {
-        try {
-            // Create config using factory function
-            const config = createExecutorConfig(params, {
-                command: Command.DataMap,
-                chatStorageEnabled: true,  // Enable chat storage for checkpoint support
-                cleanupStrategy: 'immediate',  // DataMapper uses immediate cleanup,
-            });
-
-            await new FunctionMappingExecutor(config).run();
-        } catch (error) {
-            console.error('[RPC Manager] Error in generateMappingCode:', error);
-            throw error;
-        }
-    }
-
-    async generateInlineMappingCode(params: MetadataWithAttachments): Promise<void> {
-        try {
-            // Create config using factory function
-            const config = createExecutorConfig(params, {
-                command: Command.DataMap,
-                chatStorageEnabled: true,  // Enable chat storage for checkpoint support
-                cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
-            });
-
-            await new InlineMappingExecutor(config).run();
-        } catch (error) {
-            console.error('[RPC Manager] Error in generateInlineMappingCode:', error);
-            throw error;
         }
     }
 
@@ -948,14 +910,27 @@ User reverted the last made changes. The files have been restored to the state b
         return slash !== -1 ? skillId.slice(slash + 1) : skillId;
     }
 
-    private buildBuiltinSkillEntries(allDisabled: Set<string>): SkillEntry[] {
-        return REGISTERED_SKILLS.map(s => ({
-            id: s.name,
-            name: s.name,
-            trigger: s.trigger,
-            tier: SkillTier.BUILTIN,
-            enabled: !allDisabled.has(s.name),
-        }));
+    private buildBuiltinSkillEntries(allDisabled: Set<string>, allEnabled: Set<string>): SkillEntry[] {
+        return REGISTERED_SKILLS.map(s => {
+            let enabled: boolean;
+            if (s.optional === false) {
+                enabled = true;
+            } else if (s.default === false) {
+                enabled = allEnabled.has(s.name);
+            } else {
+                enabled = !allDisabled.has(s.name);
+            }
+            return {
+                id: s.name,
+                name: s.name,
+                trigger: s.trigger,
+                tier: SkillTier.BUILTIN,
+                enabled,
+                optional: s.optional,
+                commandTemplates: s.commandTemplates,
+                skillCommand: s.skillCommand,
+            };
+        });
     }
 
     private buildProjectSkillEntries(projectRootPath: string, allDisabled: Set<string>): SkillEntry[] {
@@ -990,12 +965,13 @@ User reverted the last made changes. The files have been restored to the state b
         const projectRootPath = resolveProjectRootPath();
         const globalConfig = getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH);
         const projectConfigPath = projectRootPath ? buildProjectSkillsConfigPath(projectRootPath) : null;
-        const projectConfig = projectConfigPath ? getSkillsConfig(projectConfigPath) : { disabledSkills: [] };
+        const projectConfig = projectConfigPath ? getSkillsConfig(projectConfigPath) : { disabledSkills: [], enabledSkills: [] };
         const allDisabled = new Set([...globalConfig.disabledSkills, ...projectConfig.disabledSkills]);
+        const allEnabled = new Set([...globalConfig.enabledSkills, ...projectConfig.enabledSkills]);
 
         return {
             skills: [
-                ...this.buildBuiltinSkillEntries(allDisabled),
+                ...this.buildBuiltinSkillEntries(allDisabled, allEnabled),
                 ...(projectRootPath ? this.buildProjectSkillEntries(projectRootPath, allDisabled) : []),
                 ...this.buildUserSkillEntries(allDisabled),
             ],
@@ -1021,7 +997,10 @@ User reverted the last made changes. The files have been restored to the state b
     async toggleSkill(params: ToggleSkillRequest): Promise<boolean> {
         try {
             const configPath = this.resolveSkillsConfigPath(params.tier, resolveProjectRootPath());
-            setSkillEnabled(configPath, params.skillId, params.enabled);
+            const builtinSkill = params.tier === SkillTier.BUILTIN
+                ? REGISTERED_SKILLS.find(s => s.name === params.skillId)
+                : undefined;
+            setSkillEnabled(configPath, params.skillId, params.enabled, builtinSkill?.default === false);
             return true;
         } catch (error) {
             console.error('[Skills] toggleSkill failed:', error);
@@ -1046,45 +1025,19 @@ User reverted the last made changes. The files have been restored to the state b
         }
     }
 
-    async saveSkillFromChat(params: SkillSaveRequest): Promise<boolean> {
-        try {
-            const draft = approvalManager.getSkillDraft(params.requestId);
-            if (!draft) {
-                console.warn('[Skills] saveSkillFromChat: no pending draft for request', params.requestId);
-                approvalManager.resolveSkillSave(params.requestId, false);
-                return false;
-            }
-            if (params.tier === SkillTier.USER) {
-                writeUserSkill(draft.name, draft.trigger, draft.body);
-            } else {
-                const projectRootPath = resolveProjectRootPath();
-                if (!projectRootPath) {
-                    approvalManager.resolveSkillSave(params.requestId, false);
-                    return false;
-                }
-                writeProjectSkill(projectRootPath, draft.name, draft.trigger, draft.body);
-            }
-            approvalManager.resolveSkillSave(params.requestId, true, params.tier);
-            return true;
-        } catch (error) {
-            console.error('[Skills] saveSkillFromChat failed:', error);
-            approvalManager.resolveSkillSave(params.requestId, false);
-            return false;
-        }
-    }
-
-    async cancelSkillSave(params: SkillSaveCancelRequest): Promise<void> {
-        approvalManager.resolveSkillSave(params.requestId, false);
-    }
-
     async enableSkillFromChat(params: SkillEnableRequest): Promise<boolean> {
         try {
             const projectRootPath = resolveProjectRootPath();
-            // Remove from global config and project config — allDisabled is their union,
-            // so the skill must be cleared from whichever config(s) it was disabled in.
-            setSkillEnabled(GLOBAL_SKILLS_CONFIG_PATH, params.skillId, true);
-            if (projectRootPath) {
-                setSkillEnabled(buildProjectSkillsConfigPath(projectRootPath), params.skillId, true);
+            const builtinSkill = REGISTERED_SKILLS.find(s => s.name === params.skillId);
+            if (builtinSkill?.default === false) {
+                if (projectRootPath) {
+                    setSkillEnabled(buildProjectSkillsConfigPath(projectRootPath), params.skillId, true, true);
+                }
+            } else {
+                setSkillEnabled(GLOBAL_SKILLS_CONFIG_PATH, params.skillId, true);
+                if (projectRootPath) {
+                    setSkillEnabled(buildProjectSkillsConfigPath(projectRootPath), params.skillId, true);
+                }
             }
             sendSkillEnableNotification({ type: "skill_enable_event", requestId: params.requestId, stage: SkillEnableStage.ENABLED, skillName: params.skillId, skillId: params.skillId } as any);
             approvalManager.resolveSkillEnable(params.requestId, true);

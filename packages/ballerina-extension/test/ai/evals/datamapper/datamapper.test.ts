@@ -159,6 +159,7 @@ async function setupTestEnvironment(): Promise<void> {
     }
 }
 
+// TODO: Rework the datamap evaluation to drive the `data-map` SKILL via the agent.
 suite.skip("AI Datamapper Tests Suite", () => {
 
     suiteSetup(async function (): Promise<void> {

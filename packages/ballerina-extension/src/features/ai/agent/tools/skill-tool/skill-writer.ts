@@ -24,6 +24,7 @@ export const GLOBAL_SKILLS_CONFIG_PATH = path.join(
 
 export interface SkillsConfig {
     disabledSkills: string[];
+    enabledSkills: string[];
 }
 
 export function getSkillsConfig(configPath: string): SkillsConfig {
@@ -31,19 +32,37 @@ export function getSkillsConfig(configPath: string): SkillsConfig {
         if (fs.existsSync(configPath)) {
             const raw = fs.readFileSync(configPath, 'utf-8');
             const parsed = JSON.parse(raw);
-            return { disabledSkills: Array.isArray(parsed.disabledSkills) ? parsed.disabledSkills : [] };
+            return {
+                disabledSkills: Array.isArray(parsed.disabledSkills) ? parsed.disabledSkills : [],
+                enabledSkills: Array.isArray(parsed.enabledSkills) ? parsed.enabledSkills : [],
+            };
         }
     } catch { /* fall through to default */ }
-    return { disabledSkills: [] };
+    return { disabledSkills: [], enabledSkills: [] };
 }
 
-export function setSkillEnabled(configPath: string, skillId: string, enabled: boolean): void {
+/**
+ * @param isDefaultFalse - When true, the skill uses the `enabledSkills` list for opt-in tracking
+ *   (because its built-in default is disabled). Otherwise uses the `disabledSkills` list.
+ */
+export function setSkillEnabled(configPath: string, skillId: string, enabled: boolean, isDefaultFalse = false): void {
     const config = getSkillsConfig(configPath);
-    if (enabled) {
-        config.disabledSkills = config.disabledSkills.filter(id => id !== skillId);
+    if (isDefaultFalse) {
+        if (enabled) {
+            if (!config.enabledSkills.includes(skillId)) {
+                config.enabledSkills.push(skillId);
+            }
+            config.disabledSkills = config.disabledSkills.filter(id => id !== skillId);
+        } else {
+            config.enabledSkills = config.enabledSkills.filter(id => id !== skillId);
+        }
     } else {
-        if (!config.disabledSkills.includes(skillId)) {
-            config.disabledSkills.push(skillId);
+        if (enabled) {
+            config.disabledSkills = config.disabledSkills.filter(id => id !== skillId);
+        } else {
+            if (!config.disabledSkills.includes(skillId)) {
+                config.disabledSkills.push(skillId);
+            }
         }
     }
     const dir = path.dirname(configPath);

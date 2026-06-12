@@ -315,10 +315,6 @@ export function sendClarifyNotification(event: ChatNotify & { type: "clarify_eve
     sendAIPanelNotification(event);
 }
 
-export function sendSkillSaveNotification(event: ChatNotify & { type: "skill_save_event" }): void {
-    sendAIPanelNotification(event);
-}
-
 export function sendSkillEnableNotification(event: ChatNotify & { type: "skill_enable_event" }): void {
     sendAIPanelNotification(event);
 }
