@@ -411,9 +411,19 @@ class BallerinaDebugAdapterTrackerFactory implements DebugAdapterTrackerFactory 
                         // if `suggestTryit` is undefined, that means the debug session is directly started from the debug button. Therefore we should trigger the Try-It view.
                         const suggestTryit = session.configuration.suggestTryit === undefined || session.configuration.suggestTryit === true;
                         if (suggestTryit) {
+                            // Target the integration this session actually ran. The Try-It
+                            // trigger fires only after the service is up, so deriving the
+                            // project from the then-current UI context would prompt for an
+                            // integration if the user navigated away in the meantime (#1012).
+                            const sessionScript = (session.configuration as { script?: string })?.script;
+                            const runProjectDir = sessionScript && fs.existsSync(sessionScript) && fs.statSync(sessionScript).isDirectory()
+                                ? sessionScript
+                                : undefined;
                             // Trigger Try-It view when starting/restarting debug sessions in low-code mode
-                            waitForBallerinaService(workspace.workspaceFolders![0].uri.fsPath).then(() => {
-                                commands.executeCommand(PALETTE_COMMANDS.TRY_IT, true);
+                            waitForBallerinaService(runProjectDir ?? workspace.workspaceFolders![0].uri.fsPath).then(() => {
+                                commands.executeCommand(PALETTE_COMMANDS.TRY_IT, true, undefined, undefined, undefined, undefined, runProjectDir);
+                            }).catch((error) => {
+                                debugLog(`Skipping Try-It suggestion: ${error}`);
                             });
                         }
                     } else if (msg.command === "setBreakpoints") {

@@ -57,9 +57,9 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
         clientManager.setClient(ballerinaExtInstance.langClient);
 
         // Register try it command handler
-        const disposable = commands.registerCommand(PALETTE_COMMANDS.TRY_IT, async (withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string, autoRun?: boolean) => {
+        const disposable = commands.registerCommand(PALETTE_COMMANDS.TRY_IT, async (withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string, autoRun?: boolean, projectRoot?: string) => {
             try {
-                await openTryItView(withNotice, resourceMetadata, serviceMetadata, filePath, autoRun);
+                await openTryItView(withNotice, resourceMetadata, serviceMetadata, filePath, autoRun, projectRoot);
             } catch (error) {
                 handleError(error, "Opening Try It view failed");
             }
@@ -73,13 +73,13 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
     }
 }
 
-async function openTryItView(withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string, autoRun?: boolean): Promise<void> {
+async function openTryItView(withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string, autoRun?: boolean, projectRoot?: string): Promise<void> {
     try {
         if (!clientManager.hasClient()) {
             throw new Error('Ballerina Language Server is not connected');
         }
 
-        const projectAndServices = await getProjectPathAndServices(serviceMetadata, filePath);
+        const projectAndServices = await getProjectPathAndServices(serviceMetadata, filePath, projectRoot);
 
         if (!projectAndServices) {
             return;
@@ -1241,8 +1241,27 @@ async function getProjectRoots(): Promise<string[]> {
 
 async function getProjectPathAndServices(
     serviceMetadata?: ServiceMetadata,
-    filePath?: string
+    filePath?: string,
+    preferredRoot?: string
 ): Promise<{ projectPath: string, services: ServiceInfo[] } | undefined> {
+    // A caller that knows which integration it targets (e.g. the post-run
+    // Try-It trigger) passes its root explicitly. Re-deriving the project from
+    // the CURRENT UI context here is wrong for delayed triggers: if the user
+    // has navigated to the workspace overview in the meantime, every package
+    // is considered and an unexpected integration picker pops up (#1012).
+    if (preferredRoot) {
+        try {
+            const projectPath = getProjectWorkingDirectory(preferredRoot);
+            const services = await getServiceInfo(projectPath, serviceMetadata, filePath);
+            if (!services || services.length === 0) {
+                return;
+            }
+            return { projectPath: projectPath, services: services };
+        } catch (error) {
+            throw new Error(`Failed to determine working directory`);
+        }
+    }
+
     const currentProjectRoots = await getProjectRoots();
     if (!currentProjectRoots || currentProjectRoots.length === 0) {
         throw new Error(MESSAGES.NO_PROJECT_FOUND);
