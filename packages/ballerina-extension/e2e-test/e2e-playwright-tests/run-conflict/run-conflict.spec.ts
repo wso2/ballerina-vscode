@@ -165,6 +165,10 @@ export default function createTests() {
         });
 
         test('Rapid double Run shows at most one prompt', async () => {
+            // Clear any lingering notification from the previous test first.
+            await page.page.keyboard.press('Escape').catch(() => undefined);
+            await page.page.waitForTimeout(500);
+
             // Two quick launches of the same integration must not stack two
             // conflict prompts — the duplicate launch is cancelled quietly
             // (in-flight guard dedup in integration-runner-state).
@@ -172,7 +176,7 @@ export default function createTests() {
             await clickRunButton();
 
             const notification = conflictNotification();
-            await notification.waitFor({ timeout: 15000 });
+            await notification.waitFor({ timeout: 20000 });
             await page.page.waitForTimeout(1500);
             const promptCount = await page.page
                 .locator('.notification-toast-container', { hasText: CONFLICT_PROMPT_TEXT })

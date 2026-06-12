@@ -30,19 +30,14 @@ const ALPHA = 'alpha_runner';
 const BETA = 'beta_runner';
 
 async function openIntegration(name: string) {
+    // Selecting the tree item alone does not focus the integration in the
+    // state machine (workspace tree items have no "Open View" action), so a
+    // workspace-level Run opens the "Select an integration to run" picker.
+    // clickRunButton answers it; this click is for view context only.
     const projectExplorer = new ProjectExplorer(page.page);
-    // Open the integration's overview ("Open View" inline action) so the
-    // state machine focuses this project — merely selecting the tree item
-    // leaves the view on the workspace overview, and Run would then open
-    // the "Select an integration to run" picker instead of running.
-    try {
-        await projectExplorer.goToOverview(name);
-    } catch {
-        const item = await projectExplorer.findItem([name]);
-        await item!.click();
-    }
-    // Let the focused-project state settle before the Run button is used.
-    await page.page.waitForTimeout(1500);
+    const item = await projectExplorer.findItem([name]);
+    await item!.click();
+    await page.page.waitForTimeout(1000);
 }
 
 async function clickRunButton(integrationName?: string) {
@@ -52,14 +47,20 @@ async function clickRunButton(integrationName?: string) {
 
     // Workspace-level runs may open the "Select an integration to run"
     // quickpick (items are project paths). Answer it with the wanted
-    // integration instead of letting it swallow the run.
+    // integration instead of letting it swallow the run. NOTE: must use
+    // waitFor — isVisible() returns immediately, before the picker renders.
     if (integrationName) {
         const picker = page.page.locator('.quick-input-widget').first();
-        const pickerVisible = await picker.isVisible({ timeout: 3000 }).catch(() => false);
+        const pickerVisible = await picker
+            .waitFor({ state: 'visible', timeout: 5000 })
+            .then(() => true)
+            .catch(() => false);
         if (pickerVisible) {
+            // Type the package name to filter the path items, then confirm.
             await page.page.keyboard.type(integrationName);
             await page.page.waitForTimeout(500);
             await page.page.keyboard.press('Enter');
+            await picker.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => undefined);
         }
     }
 }
