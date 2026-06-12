@@ -364,6 +364,13 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
+        return () => {
+            if (showTimer.current) { clearTimeout(showTimer.current); }
+            if (hideTimer.current) { clearTimeout(hideTimer.current); }
+        };
+    }, []);
+
+    useEffect(() => {
         let cancelled = false;
         if (!mcpToolsEnabled) {
             // Don't fetch when globally off; clear stale state.
