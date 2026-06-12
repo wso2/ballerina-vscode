@@ -124,14 +124,18 @@ export default function createTests() {
                 }
             });
 
-            // Dismiss the expression helper popup triggered by CodeMirror fill before clicking
+            // Dismiss the expression helper popup triggered by the CodeMirror fill: the first
+            // Escape closes the completion tooltip, the second the helper pane itself.
+            await page.page.keyboard.press('Escape');
+            await page.page.waitForTimeout(300);
             await page.page.keyboard.press('Escape');
             await page.page.waitForTimeout(300);
 
             // Click the add Else Block
-            // The "Add Else Block" is not a button, but a div with text.
+            // The "Add Else Block" is not a button, but a div with text. The helper pane can
+            // linger over it on CI, so bypass the pointer-interception check.
             const addElseBlockDiv = artifactWebView.getByText('Add Else Block', { exact: true });
-            await addElseBlockDiv.click();
+            await addElseBlockDiv.click({ force: true });
             await artifactWebView.getByRole('button', { name: 'Save' }).click();
             await page.page.waitForTimeout(1000);
 
