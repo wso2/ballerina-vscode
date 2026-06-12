@@ -30,6 +30,23 @@ export type PlaceholderTagMap = {
     };
 };
 
+// Placeholder tags for skills that carry their own command templates (keyed by skill id).
+export type SkillPlaceholderTagMap = Record<string, Record<string, Record<string, Tag[]>>>;
+
+export const skillPlaceholderTags: SkillPlaceholderTagMap = {
+    'data-map': {
+        'mappings-for-records': {
+            inputRecords: [],
+            outputRecord: [],
+            functionName: [],
+        },
+        'mappings-for-function': {
+            functionName: [],
+        },
+        'inline-mappings': {},
+    },
+};
+
 // NOTE: if the placeholders are known at compiletime, define here, otherwise inject at runtime.
 export const placeholderTags: PlaceholderTagMap = {
     // [Command.Tests]: {
@@ -40,17 +57,6 @@ export const placeholderTags: PlaceholderTagMap = {
     //         methodPath: [],
     //     },
     // },
-    [Command.DataMap]: {
-        'mappings-for-records': {
-            inputRecords: [],
-            outputRecord: [],
-            functionName: [],
-        },
-        'mappings-for-function': {
-            functionName: [],
-        },
-        'inline-mappings': {}
-    },
     [Command.TypeCreator]: {
         'types-for-attached': {}
     },

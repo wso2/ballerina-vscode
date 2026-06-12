@@ -20,6 +20,7 @@ import React from "react";
 import MarkdownRenderer from "../MarkdownRenderer";
 import TodoSection from "../TodoSection";
 import AskCard from "./AskCard";
+import SkillEnableCard from "./SkillEnableCard";
 import ConfigCard from "./ConfigCard";
 import ConnectorCard from "./ConnectorCard";
 import CommandOutputCard from "./CommandOutputCard";
@@ -70,13 +71,25 @@ const TOOL_ICON_MAP: Record<string, ToolIconEntry> = {
     TaskWrite:                     { loading: "codicon-checklist" },
     ConfigCollector:               { loading: "codicon-settings-gear" },
     ConnectorGeneratorTool:        { loading: "codicon-plug" },
+    invoke_skill:                  { loading: "codicon-book" },
 };
 const DEFAULT_TOOL_ICON = "codicon-symbol-property";
+const MCP_TOOL_PREFIX = "mcp__";
+const MCP_TOOL_ICON = "codicon-plug";
 
 function getToolIcon(toolName: string | undefined, state: "loading" | "done" = "loading"): string {
+    if (toolName && toolName.startsWith(MCP_TOOL_PREFIX)) return MCP_TOOL_ICON;
     const entry = toolName ? TOOL_ICON_MAP[toolName] : undefined;
     if (!entry) return DEFAULT_TOOL_ICON;
     return state === "done" ? (entry.done ?? entry.loading) : entry.loading;
+}
+
+function parseMcpName(toolName: string): { server: string; tool: string } | null {
+    if (!toolName.startsWith(MCP_TOOL_PREFIX)) return null;
+    const rest = toolName.slice(MCP_TOOL_PREFIX.length);
+    const sepIdx = rest.indexOf("__");
+    if (sepIdx <= 0) return null;
+    return { server: rest.slice(0, sepIdx), tool: rest.slice(sepIdx + 2) };
 }
 
 function getToolResultIcon(toolName: string | undefined, toolOutput: any): string {
@@ -96,6 +109,10 @@ function getFileName(filePath: string | undefined): string {
 }
 
 function getToolCallDisplay(toolName: string | undefined, toolInput: any): { label: string; detail?: string } {
+    if (toolName) {
+        const mcp = parseMcpName(toolName);
+        if (mcp) return { label: `Calling ${mcp.server} · ${mcp.tool}...` };
+    }
     switch (toolName) {
         case "file_read":    return { label: "Reading",   detail: getFileName(toolInput?.fileName) + "..." };
         case "file_write":   return { label: "Creating",  detail: getFileName(toolInput?.fileName) + "..." };
@@ -119,11 +136,16 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { lab
         case "stopBallerinaService": return { label: "Stopping service..." };
         case "web_search": return { label: toolInput?.query ? "Searching the web:" : "Searching the web...", detail: toolInput?.query };
         case "web_fetch":  return { label: toolInput?.url ? "Fetching from web:" : "Fetching from web...", detail: toolInput?.url };
+        case "invoke_skill": return { label: toolInput?.skillName ? `Loading skill: ${toolInput.skillName}` : "Loading skill..." };
         default: return { label: "Working..." };
     }
 }
 
 function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hint?: string): { label: string; detail?: string } {
+    if (toolName) {
+        const mcp = parseMcpName(toolName);
+        if (mcp) return { label: `${mcp.server} · ${mcp.tool}` };
+    }
     switch (toolName) {
         case "file_read":    return { label: "Read",    detail: getFileName(toolOutput?.fileName) };
         case "file_write":   return { label: toolOutput?.action === "updated" ? "Updated" : "Created", detail: getFileName(toolOutput?.fileName) };
@@ -165,6 +187,7 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
         }
         case "web_search": return { label: hint ? "Web search:" : "Web search completed", detail: hint };
         case "web_fetch":  return { label: hint ? "Web fetch:" : "Web fetch completed",  detail: hint };
+        case "invoke_skill": return { label: toolOutput?.found ? `Using skill: ${toolOutput.skillName}` : `Skill not found: ${toolOutput?.message ?? ""}` };
         default: return { label: "Done" };
     }
 }
@@ -235,6 +258,8 @@ function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcCli
             );
         case "ask":
             return <AskCard key={idx} data={item.data} rpcClient={rpcClient} />;
+        case "skill_enable":
+            return <SkillEnableCard key={idx} data={item.data} />;
         case "config":
             return <ConfigCard key={idx} data={item.data} rpcClient={rpcClient} />;
         case "connector":

@@ -19,7 +19,7 @@
 
 import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
-import { Command, TemplateId } from "../../interfaces/ai-panel";
+import { Command, SkillCommand, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
 import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, OperationType } from "../..";
 
@@ -29,6 +29,7 @@ import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatemen
 export type AIPanelPrompt =
     | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any>; hiddenContext?: string }
     | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean; hiddenContext?: string; suggestedCommandTemplates?: AIPanelPrompt[];    inputPlaceholder?:string; }
+    | { type: 'skill'; skillId: string; skillName: string; args?: string; autoSubmit?: boolean; hiddenContext?: string }
     | undefined;
 
 export interface AIMachineSnapshot {
@@ -550,6 +551,87 @@ export interface RunServiceRequest {
     /** Absolute path to the temp directory containing the package. */
     tempProjectPath: string;
 }
+
+// ==================================
+// Skills Management Interfaces
+// ==================================
+
+export enum SkillTier {
+    BUILTIN = 'builtin',
+    PROJECT = 'project',
+    USER = 'user',
+}
+
+export interface SkillCommandTemplate {
+    id: string;
+    text: string;
+    placeholders: Array<{ id: string; text: string; multiline: boolean }>;
+    defaultVisibility?: boolean;
+}
+
+export interface SkillEntry {
+    id: string;
+    name: string;
+    trigger: string;
+    body?: string;
+    tier: SkillTier;
+    enabled: boolean;
+    /** False = always active, no toggle shown in UI. Undefined/true = user can toggle. */
+    optional?: boolean;
+    commandTemplates?: SkillCommandTemplate[];
+    /** Identifies this skill as a specific slash command, used for attachment type resolution. */
+    skillCommand?: SkillCommand;
+}
+
+export interface DeleteSkillRequest {
+    skillId: string;
+    tier: SkillTier.PROJECT | SkillTier.USER;
+}
+
+export interface GetSkillsResponse {
+    skills: SkillEntry[];
+}
+
+export interface AddSkillRequest {
+    tier: SkillTier.PROJECT | SkillTier.USER;
+    name: string;
+    trigger: string;
+    body?: string;
+}
+
+export interface ToggleSkillRequest {
+    skillId: string;
+    enabled: boolean;
+    tier: SkillTier;
+}
+
+export enum SkillEnableStage {
+    PROMPTING = 'prompting',
+    ENABLED = 'enabled',
+    SKIPPED = 'skipped',
+}
+
+export interface SkillEnableRequest {
+    requestId: string;
+    skillId: string;
+}
+
+export interface SkillEnableCancelRequest {
+    requestId: string;
+}
+
+export interface ParseSkillFileRequest {
+    fileName: string;
+    fileContent: string;
+}
+
+export interface ParseSkillFileResponse {
+    name?: string;
+    trigger?: string;
+    body?: string;
+    error?: string;
+}
+
 // ==================================
 // Compaction Related Interfaces
 // ==================================
@@ -593,5 +675,84 @@ export interface PromptEnhancementRequest {
 
 export interface PromptEnhancementResponse {
     enhancedPrompt: string;
+}
+
+// ==================================
+// MCP (Model Context Protocol) tool support
+// ==================================
+export type McpTransportType = "stdio" | "http";
+export type McpConnectionStatus = "disconnected" | "connecting" | "connected" | "failed";
+export type McpScope = "user" | "workspace" | "builtin";
+/** Scopes the user can add/edit/delete. Built-ins are read-only. */
+export type McpMutableScope = "user" | "workspace";
+export interface McpToolSummaryDTO {
+    name: string;
+    description?: string;
+}
+export type McpServerConfigDTO =
+    | { type: "stdio"; command: string; args?: string[]; env?: Record<string, string> }
+    | { type: "http"; url: string; headers?: Record<string, string>; headersFromEnv?: Record<string, string> };
+export interface McpServerStatusDTO {
+    name: string;
+    scope: McpScope;
+    transport: McpTransportType;
+    enabled: boolean;
+    status: McpConnectionStatus;
+    error?: string;
+    tools: McpToolSummaryDTO[];
+    /** Raw config as stored on disk — used by the Edit dialog to pre-fill fields. */
+    config: McpServerConfigDTO;
+    /** True when this user-scope server is shadowed by a same-named workspace-scope server. */
+    shadowed?: boolean;
+}
+export interface SetMcpServerEnabledRequest {
+    name: string;
+    scope: McpScope;
+    enabled: boolean;
+}
+export interface AddMcpServerRequest {
+    name: string;
+    scope: McpMutableScope;
+    config: McpServerConfigDTO;
+}
+export interface AddMcpServerResponse {
+    success: boolean;
+    error?: string;
+}
+export interface OpenMcpConfigRequest {
+    scope: McpMutableScope;
+}
+export interface McpWorkspaceContextResponse {
+    hasWorkspace: boolean;
+}
+export interface UpdateMcpServerRequest {
+    name: string;
+    scope: McpMutableScope;
+    config: McpServerConfigDTO;
+}
+export interface DeleteMcpServerRequest {
+    name: string;
+    scope: McpMutableScope;
+}
+export interface SetMcpToolsEnabledRequest {
+    enabled: boolean;
+}
+export interface SetSkillsEnabledRequest {
+    enabled: boolean;
+}
+/** Per-scope parse / read errors for `mcp.json` files. Both fields are optional — missing means OK. */
+export interface McpLoadErrorsDTO {
+    user?: string;
+    workspace?: string;
+}
+
+// ==================================
+// AGENTS.md Settings
+// ==================================
+export interface AgentsMdFileInfoDTO {
+    fileExists: boolean;
+    lineCount?: number;
+    isEmpty?: boolean;
+    hasWorkspace: boolean;
 }
 

@@ -19,6 +19,8 @@ import { CopilotEventHandler } from "../../utils/events";
 import { langClient } from "../../activator";
 import { CopilotSearchLibrariesBySearchRequest, CopilotSearchLibrariesBySearchResponse, MinifiedLibrary } from "@wso2/ballerina-core";
 
+import { LIBRARY_GET_TOOL } from './library-get';
+
 export const LIBRARY_SEARCH_TOOL = "LibrarySearchTool";
 
 // Maximum number of keywords allowed for library search
@@ -39,7 +41,7 @@ const LibrarySearchToolSchema = jsonSchema<{
         },
         searchDescription: {
             type: "string",
-            description: "Optional user-friendly description of what libraries are being searched for (e.g., 'payment processing libraries', 'GitHub API connectors', 'email sending services'). This will be shown to the user during the search to provide context about what is being looked for.",
+            description: "Optional user-friendly description of what libraries are being searched for. This will be shown to the user during the search to provide context about what is being looked for.",
         },
     },
     required: ["keywords"],
@@ -136,65 +138,44 @@ export function getLibrarySearchTool(
 This tool discovers relevant Ballerina libraries using keyword-based search. It searches against library names, descriptions, and function names. Keywords are weighted by order - the first keyword has the highest weight, with decreasing weight for subsequent keywords.
 
 **Scope - ALL Ballerina Libraries:**
-- **ballerina/*** - Standard/core libraries (e.g., ballerina/http, ballerina/io, ballerina/sql)
-- **ballerinax/*** - Extended/connector packages (e.g., ballerinax/stripe, ballerinax/aws.s3, ballerinax/github)
-- **xlibb/*** - C library bindings (e.g., xlibb/docreader)
+- **ballerina/*** - Standard/core libraries maintained by the Ballerina team
+- **ballerinax/*** - Extended connector packages for third-party services
+- **xlibb/*** - Experimental yet practical Ballerina packages
 - Other organization packages available in Ballerina Central
 
 **Keyword Guidelines:**
 - Provide 1-${MAX_SEARCH_KEYWORDS} keywords ordered by importance
 - First keyword = most important (highest weight in search)
 - Subsequent keywords = less important (decreasing weight)
-- Use specific terms (e.g., "Stripe", "GitHub", "PostgreSQL") before generic ones (e.g., "payment", "API", "database")
+- Use specific terms (the service or technology name) before generic ones (the capability or category)
 - Include 'trigger' keyword to indicate webhook related libraries.
 
 **When to use this tool:**
 - To discover which libraries are available for a specific use case or integration
-- Before calling LibraryProviderTool to retrieve full library details
+- Before calling ${LIBRARY_GET_TOOL} to retrieve full library details
 - When the user query mentions integrations, services, connectors, or specific functionality
 - Whenever you need to find relevant libraries but don't know the exact library names
 
 **Important - Two-Step Workflow:**
-1. First, call THIS tool (LibrarySearchTool) with weighted keywords to discover relevant libraries
+1. First, call THIS tool (${LIBRARY_SEARCH_TOOL}) with weighted keywords to discover relevant libraries
 2. Review the returned library names and descriptions
 3. Select the most appropriate libraries (typically 1-5 libraries)
-4. Then, call LibraryProviderTool with the selected library names to get detailed API documentation (functions, types, clients, services, etc.)
+4. Then, call ${LIBRARY_GET_TOOL} with the selected library names to get detailed API documentation (functions, types, clients, services, etc.)
 
-**Example Workflows:**
-
-Example 1 - Stripe Integration:
-User query: "I need to integrate with Stripe payment gateway"
-Keywords: ["Stripe", "payment", "gateway"]  // "Stripe" has highest weight
-Call LibrarySearchTool with keywords: ["Stripe", "payment", "gateway"]
+**Example Workflow:**
+User query: <a request that may span one or more services, technologies, or capabilities>
+Keywords: [<service or technology name>, <another service name if the query needs more>, <supporting or capability terms>]  // lead with the distinct service names; earlier keywords carry more weight
+Call ${LIBRARY_SEARCH_TOOL} with the keywords
 → Returns: [
-    { name: "ballerinax/stripe", description: "Connects to Stripe API for payment processing" }
+    { name: "<organization>/<library>", description: "..." },
+    ...
   ]
-Then call LibraryProviderTool with libraryNames: ["ballerinax/stripe"]
-
-Example 2 - GitHub API:
-User query: "Create a GitHub integration to list issues"
-Keywords: ["GitHub", "API", "issues"]  // "GitHub" has highest weight
-Call LibrarySearchTool with keywords: ["GitHub", "API", "issues"]
-→ Returns: [
-    { name: "ballerinax/github", description: "GitHub API connector for repository management" }
-  ]
-Then call LibraryProviderTool with libraryNames: ["ballerinax/github"]
-
-Example 3 - HTTP Service:
-User query: "Create a REST API"
-Keywords: ["HTTP", "REST", "API"]  // "HTTP" has highest weight
-Call LibrarySearchTool with keywords: ["HTTP", "REST", "API"]
-→ Returns: [
-    { name: "ballerina/http", description: "HTTP client and server implementation" }
-  ]
-Then call LibraryProviderTool with libraryNames: ["ballerina/http"]
+Then call ${LIBRARY_GET_TOOL} with the selected library names
 
 **Tool Response Format:**
-Returns an array of library objects, each containing name and description:
+Returns an array of library objects, each containing a name and description:
 [
-  { name: "ballerinax/stripe", description: "Stripe payment connector for processing payments..." },
-  { name: "ballerinax/aws.s3", description: "AWS S3 connector for object storage operations..." },
-  { name: "ballerina/http", description: "HTTP client and server implementation..." }
+  { name: "<organization>/<library>", description: "..." }
 ]
 `,
         inputSchema: LibrarySearchToolSchema,

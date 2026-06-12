@@ -310,6 +310,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Show context usage indicator in the AI chat input footer."
+                },
+                "ballerina.copilot.enableMcpTools": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable Model Context Protocol (MCP) tool support in the WSO2 Integrator Copilot."
                 }
             }
         },
@@ -1455,6 +1460,7 @@
         "@ai-sdk/anthropic": "3.0.64",
         "@ai-sdk/google-vertex": "4.0.94",
         "@iarna/toml": "2.2.5",
+        "@modelcontextprotocol/sdk": "1.29.0",
         "@types/lodash": "4.14.200",
         "@vscode/test-electron": "2.5.2",
         "@vscode/vsce": "3.7.1",
