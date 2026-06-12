@@ -284,6 +284,11 @@ function setupMcp(): void {
     const workspaceTrusted = vscodeWorkspace.isTrusted;
     const manager = initMcpClientManager(overrides, workspacePath, workspaceTrusted);
     const pushUpdate = () => {
+        // A refresh in flight at teardown could otherwise re-publish this disposed
+        // manager's state after the empty disabled state was already sent.
+        if (getMcpClientManager() !== manager) {
+            return;
+        }
         try {
             notifyMcpServersChanged(manager.listServers());
             notifyMcpLoadErrorsChanged(manager.getLoadErrors());
