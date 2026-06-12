@@ -1258,7 +1258,7 @@ async function getProjectPathAndServices(
             }
             return { projectPath: projectPath, services: services };
         } catch (error) {
-            throw new Error(`Failed to determine working directory`);
+            throw new Error(`Failed to determine working directory for '${preferredRoot}': ${error instanceof Error ? error.message : error}`);
         }
     }
 

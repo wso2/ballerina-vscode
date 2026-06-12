@@ -105,6 +105,23 @@ let terminal: Terminal;
 // One run terminal per integration so concurrent runs do not kill each other
 // (#1012). Keyed by resolved project path.
 const runTerminals = new Map<string, Terminal>();
+let runTerminalCleanupRegistered = false;
+
+// Drop map entries when the user closes a run terminal, so stale Terminal
+// objects do not accumulate across runs.
+function ensureRunTerminalCleanup(): void {
+    if (runTerminalCleanupRegistered) {
+        return;
+    }
+    runTerminalCleanupRegistered = true;
+    window.onDidCloseTerminal((closed) => {
+        for (const [key, runTerminal] of runTerminals) {
+            if (runTerminal === closed) {
+                runTerminals.delete(key);
+            }
+        }
+    });
+}
 
 function isRegisteredRunTerminal(candidate: Terminal): boolean {
     for (const runTerminal of runTerminals.values()) {
@@ -206,6 +223,7 @@ export function runCommandWithConf(file: BallerinaProject | string, executor: st
     }
     terminal.sendText(commandText, true);
     if (isRun) {
+        ensureRunTerminalCleanup();
         runTerminals.set(path.resolve(filePath), terminal);
         markTerminalRunStarted(terminal, filePath);
     }
@@ -220,7 +238,9 @@ function isRunCommand(cmd: BALLERINA_COMMANDS): boolean {
 export function runTerminalCommand(executor: string, file?: BallerinaProject | string, env?: { [key: string]: string }) {
     let filePath = '';
     typeof file === 'string' ? filePath = file : filePath = file?.path!;
-    if (!terminal) {
+    // Never reuse a live run terminal — sending text there would feed the
+    // running integration's stdin. Also replace exited terminals.
+    if (!terminal || terminal.exitStatus !== undefined || isRegisteredRunTerminal(terminal)) {
         terminal = window.createTerminal({ name: TERMINAL_NAME, cwd: filePath, env: env });
     }
     terminal.sendText(executor);

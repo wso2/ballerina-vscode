@@ -48,12 +48,27 @@ function conflictNotification() {
     return page.page.locator('.notification-toast-container', { hasText: CONFLICT_PROMPT_TEXT }).first();
 }
 
+// Clicks the debug toolbar Stop button until no session remains (bounded).
+async function stopAllRunningIntegrations() {
+    for (let i = 0; i < 4; i++) {
+        const stopButton = page.page.locator('.debug-toolbar a[aria-label^="Stop"]').first();
+        if (!await stopButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+            return;
+        }
+        await stopButton.click().catch(() => undefined);
+        await page.page.waitForTimeout(1500);
+    }
+}
+
 export default function createTests() {
     test.describe.serial('Run Conflict (Same-Integration Restart) Tests', {
     }, async () => {
         initTest();
 
         test.afterAll(async () => {
+            // Stop the long-running automation so it does not leak into
+            // subsequent suites on the soft-reload path.
+            await stopAllRunningIntegrations();
             // Restore Do Not Disturb for the rest of the suite.
             await toggleNotifications(true);
         });

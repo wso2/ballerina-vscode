@@ -51,12 +51,27 @@ function terminalWithText(text: string) {
     return page.page.locator('.xterm-screen', { hasText: text }).first();
 }
 
+// Clicks the debug toolbar Stop button until no session remains (bounded).
+async function stopAllRunningIntegrations() {
+    for (let i = 0; i < 4; i++) {
+        const stopButton = page.page.locator('.debug-toolbar a[aria-label^="Stop"]').first();
+        if (!await stopButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+            return;
+        }
+        await stopButton.click().catch(() => undefined);
+        await page.page.waitForTimeout(1500);
+    }
+}
+
 export default function createTests() {
     test.describe.serial('Concurrent Run Tests', {
     }, async () => {
         initTest(true, true, undefined, undefined, WORKSPACE_TEMPLATE);
 
         test.afterAll(async () => {
+            // Stop any still-running integrations so the long-running sleeps do
+            // not leak into subsequent suites on the soft-reload path.
+            await stopAllRunningIntegrations();
             // Restore Do Not Disturb for the rest of the suite.
             await toggleNotifications(true);
         });

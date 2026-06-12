@@ -9,6 +9,7 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  */
 
+import * as fs from "fs";
 import * as path from "path";
 import { commands, debug, DebugSession, TaskExecution, tasks, Terminal, Uri, window } from "vscode";
 import { extension } from "../../BalExtensionContext";
@@ -58,7 +59,17 @@ interface ActiveRun {
 const activeRuns = new Map<string, ActiveRun>();
 
 function runKey(projectPath: string): string {
-    return path.resolve(projectPath);
+    const resolved = path.resolve(projectPath);
+    // Normalize single-file runs to their directory: the debug session is
+    // keyed by configuration.script (the .bal FILE) while the task is keyed
+    // by the project root (a directory). Without this, one logical run would
+    // split into two registry entries and restarts would skip the
+    // port-release wait.
+    try {
+        return fs.statSync(resolved).isFile() ? path.dirname(resolved) : resolved;
+    } catch {
+        return resolved;
+    }
 }
 
 function getOrCreateRun(projectPath: string): ActiveRun {
@@ -206,36 +217,47 @@ async function stopRun(run: ActiveRun): Promise<boolean> {
     return ended;
 }
 
+/** Outcome of the per-integration restart guard. */
+export type RunGuardResult = "proceed" | "cancelled" | "force-started";
+
 /**
  * Per-integration restart guard (product-integrator#1012): integrations run
  * concurrently, but a single integration has at most one running instance.
  * If the integration at targetPath is already running, asks the user whether
  * to stop it and start it again.
  *
- * Returns true when the caller may proceed with the new run (nothing was
- * running at that path, or the previous instance was stopped and its process
- * fully terminated, or the user chose to force-start). Returns false when the
- * new launch must be cancelled, leaving the current run untouched.
+ * Matches the exact run key (not path containment) so a workspace-level
+ * target can never silently stop unrelated runs under it.
+ *
+ * Returns "proceed" when nothing was running at that path or the previous
+ * instance was stopped and its process fully terminated; "force-started"
+ * when the old process is still alive but the user explicitly chose to start
+ * anyway (callers should suppress further conflict prompts for this launch);
+ * "cancelled" when the new launch must be dropped, leaving the current run
+ * untouched.
  */
-export async function confirmAndStopActiveRun(targetPath: string): Promise<boolean> {
-    if (!targetPath || findRunsAt(targetPath).length === 0) {
-        return true;
+export async function confirmAndStopActiveRun(targetPath: string): Promise<RunGuardResult> {
+    if (!targetPath) {
+        return "proceed";
+    }
+    const run = activeRuns.get(runKey(targetPath));
+    if (!run || !isRunAlive(run)) {
+        return "proceed";
     }
     const choice = await window.showInformationMessage(RUN_CONFLICT_PROMPT, "Yes", "No");
     if (choice !== "Yes") {
-        return false;
+        return "cancelled";
     }
-    // Re-query: the run may have ended on its own while the prompt was open.
-    for (const run of findRunsAt(targetPath)) {
-        const ended = await stopRun(run);
-        if (!ended) {
-            const forceChoice = await window.showWarningMessage(FORCE_START_PROMPT, "Force Start", "Cancel new launch");
-            if (forceChoice !== "Force Start") {
-                return false;
-            }
-        }
+    // The run may have ended on its own while the prompt was open.
+    if (!isRunAlive(run)) {
+        return "proceed";
     }
-    return true;
+    const ended = await stopRun(run);
+    if (!ended) {
+        const forceChoice = await window.showWarningMessage(FORCE_START_PROMPT, "Force Start", "Cancel new launch");
+        return forceChoice === "Force Start" ? "force-started" : "cancelled";
+    }
+    return "proceed";
 }
 
 export async function restartIntegration(targetPath: string): Promise<void> {

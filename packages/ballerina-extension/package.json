@@ -40,6 +40,10 @@
                     "projectRoot": {
                         "type": "string",
                         "description": "Resolved path of the Ballerina integration being run. Part of the task identity so each integration runs as its own task."
+                    },
+                    "instanceId": {
+                        "type": "string",
+                        "description": "Unique id per launch. Part of the task identity so a force-started run never collides with the still-terminating previous instance."
                     }
                 },
                 "required": [

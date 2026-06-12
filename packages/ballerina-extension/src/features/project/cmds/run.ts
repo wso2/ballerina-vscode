@@ -144,7 +144,7 @@ function activateRunCmdCommand() {
                 // concurrently; only re-running this same project prompts to
                 // restart it. (No-op when invoked right after
                 // restartIntegration, which clears its runner state first.)
-                if (!await confirmAndStopActiveRun(currentProject.path!)) {
+                if (await confirmAndStopActiveRun(currentProject.path!) === "cancelled") {
                     return;
                 }
                 const configPath: string = extension.ballerinaExtInstance.getBallerinaConfigPath();
@@ -154,7 +154,7 @@ function activateRunCmdCommand() {
                     configPath, currentProject.path!
                 );
             } else {
-                if (!await confirmAndStopActiveRun(getCurrenDirectoryPath())) {
+                if (await confirmAndStopActiveRun(getCurrenDirectoryPath()) === "cancelled") {
                     return;
                 }
                 runCurrentFile();

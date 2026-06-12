@@ -109,9 +109,15 @@ class DebugConfigProvider implements DebugConfigurationProvider {
         // Returning undefined cancels the new launch cleanly, leaving the
         // current run untouched.
         if (!configs.debugTests && !configs.notebookDebug) {
-            const proceed = await confirmAndStopActiveRun(configs.script);
-            if (!proceed) {
+            const guardResult = await confirmAndStopActiveRun(configs.script);
+            if (guardResult === 'cancelled') {
                 return undefined;
+            }
+            if (guardResult === 'force-started') {
+                // The user already confirmed twice (restart + force start) while
+                // the old process is still alive; suppress the adapter-level
+                // conflict prompt so this launch does not ask a third time.
+                configs.forceStartedRun = true;
             }
         }
 
@@ -732,8 +738,11 @@ class BIRunAdapter extends LoggingDebugSession {
             }
 
             // Treat any non-null existingAdapter as a conflict, even if its task hasn't
-            // started yet (adapter claimed slot but still launching).
-            if (existingAdapter) {
+            // started yet (adapter claimed slot but still launching). Skipped when the
+            // registry guard already resolved the conflict via force-start — the old
+            // task is intentionally still alive and the user must not be re-prompted.
+            const forceStarted = (this.session.configuration as { forceStartedRun?: boolean })?.forceStartedRun === true;
+            if (existingAdapter && !forceStarted) {
                 const existingTask = existingAdapter.task;
                 const choice = await window.showInformationMessage(RUN_CONFLICT_PROMPT, 'Yes', 'No');
                 if (choice !== 'Yes') {
@@ -808,7 +817,11 @@ class BIRunAdapter extends LoggingDebugSession {
             // the task identity and would collide across integrations.
             const taskDefinition: TaskDefinition = {
                 type: 'ballerina-run',
-                projectRoot: path.resolve(projectRoot)
+                projectRoot: path.resolve(projectRoot),
+                // Unique per launch: a force-started run overlaps the old
+                // instance of the SAME integration, and an identical identity
+                // would trip VS Code's built-in "task is already active" modal.
+                instanceId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
             };
 
             let runCommand: string = `${quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd())} run`;

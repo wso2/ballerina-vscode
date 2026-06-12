@@ -1,5 +1,5 @@
 [package]
-org = "anjanash"
+org = "wso2test"
 name = "beta_runner"
 version = "0.1.0"
 distribution = "2201.13.2"
