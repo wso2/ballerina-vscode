@@ -447,8 +447,12 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
     const handleReload = async () => {
         setReloading(true);
         try {
-            const list = await rpcClient.getAiPanelRpcClient().listMcpServers();
+            const api = rpcClient.getAiPanelRpcClient();
+            // listMcpServers refreshes first, so read load errors after it to get the fresh set.
+            const list = await api.listMcpServers();
+            const errs = await api.getMcpLoadErrors();
             setServers(list);
+            setLoadErrors(errs);
         } catch (err) {
             console.warn("[mcp] reload failed:", err);
         } finally {
