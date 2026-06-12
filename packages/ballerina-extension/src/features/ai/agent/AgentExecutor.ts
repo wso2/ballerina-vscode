@@ -41,7 +41,6 @@ import * as path from 'path';
 import { approvalViewManager } from '../state/ApprovalViewManager';
 import {
     buildContextManagementOptions,
-    buildBedrockContextManagementOptions,
     detectAppliedCompaction,
     estimateFloorTokens,
     extractCompactionSummary,
@@ -78,18 +77,16 @@ export function clearCompactionDisabledWarning(projectRootPath: string, threadId
 }
 
 function supportsCompaction(loginMethod: LoginMethod): boolean {
+    // AWS Bedrock is intentionally excluded: its Converse/ConverseStream APIs do not
+    // support the `compact-2026-01-12` beta, so server-side compaction is disabled there.
     return loginMethod === LoginMethod.ANTHROPIC_KEY
         || loginMethod === LoginMethod.BI_INTEL
-        || loginMethod === LoginMethod.VERTEX_AI
-        || loginMethod === LoginMethod.AWS_BEDROCK;
+        || loginMethod === LoginMethod.VERTEX_AI;
 }
 
 function buildCompactionProviderOptions(loginMethod: LoginMethod, floorTokens: number) {
     if (!supportsCompaction(loginMethod)) { return undefined; }
-    const config = { estimatedFloorTokens: floorTokens };
-    const options = loginMethod === LoginMethod.AWS_BEDROCK
-        ? buildBedrockContextManagementOptions(config)
-        : buildContextManagementOptions(config);
+    const options = buildContextManagementOptions({ estimatedFloorTokens: floorTokens });
     return options ?? undefined;
 }
 
@@ -99,10 +96,6 @@ function warnCompactionDisabledOnce(projectRootPath: string, eventHandler: (e: a
         compactionDisabledWarnedThreads.add(warnKey);
         eventHandler({ type: 'compaction_disabled' });
     }
-}
-
-function usesContentBasedCompactionDetection(loginMethod: LoginMethod): boolean {
-    return loginMethod === LoginMethod.AWS_BEDROCK;
 }
 
 /** Estimate character length of a message's content for proportional token breakdown. */
@@ -349,10 +342,10 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             let accToolResultChars = 0;
 
             // === SERVER-SIDE COMPACTION STATE ===
-            // Primary detection: providerMetadata on text-start (Anthropic/BI_INTEL/Vertex).
-            // Fallback detection: content-based (<analysis> prefix) for Bedrock, which emits
-            // bare text-start events with no providerMetadata.
-            const useContentBasedDetection = usesContentBasedCompactionDetection(loginMethod);
+            // Detection: providerMetadata on text-start (Anthropic/BI_INTEL/Vertex).
+            // No content-based fallback is needed — AWS Bedrock does not run server-side
+            // compaction (its Converse APIs reject the compact beta).
+            const useContentBasedDetection = false;
             let isCompactionBlock = false;
             let compactionContent = '';
             let cleanedCompactionSummary: string | undefined;
