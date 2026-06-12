@@ -525,6 +525,8 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                         <HeaderLeft>
                             <ToggleSwitch
                                 type="button"
+                                role="switch"
+                                aria-checked={mcpToolsEnabled}
                                 on={mcpToolsEnabled}
                                 title={mcpToolsEnabled ? "Disable MCP" : "Enable MCP"}
                                 onClick={handleToggleGlobal}
@@ -604,6 +606,8 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                                                 ) : (
                                                 <ToggleSwitch
                                                     type="button"
+                                                    role="switch"
+                                                    aria-checked={s.enabled}
                                                     on={s.enabled}
                                                     disabled={rowPending}
                                                     title={s.enabled ? "Disable this server" : "Enable this server"}

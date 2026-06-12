@@ -738,6 +738,8 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                             ) : (
                                 <ToggleSwitch
                                     type="button"
+                                    role="switch"
+                                    aria-checked={s.enabled}
                                     $on={s.enabled}
                                     disabled={isTogglePending}
                                     title={s.enabled ? "Disable this server" : "Enable this server"}
@@ -836,6 +838,8 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                     <ExperimentalTag size="sm" label="Preview" tooltip="MCP tool support is in preview and may change." />
                     <HeaderInlineToggle
                         type="button"
+                        role="switch"
+                        aria-checked={mcpToolsEnabled}
                         $on={mcpToolsEnabled}
                         title={mcpToolsEnabled ? "Disable MCP" : "Enable MCP"}
                         onClick={handleToggleGlobal}

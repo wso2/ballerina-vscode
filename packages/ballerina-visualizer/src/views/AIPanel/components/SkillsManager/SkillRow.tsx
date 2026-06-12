@@ -211,6 +211,8 @@ const SkillRow: React.FC<SkillRowProps> = ({ skill, onToggle, onEdit, onDelete }
                         {onToggle && skill.optional !== false && (
                             <ToggleSwitch
                                 type="button"
+                                role="switch"
+                                aria-checked={enabled}
                                 $on={enabled}
                                 title={enabled ? "Disable skill" : "Enable skill"}
                                 onClick={() => onToggle(skill, !enabled)}

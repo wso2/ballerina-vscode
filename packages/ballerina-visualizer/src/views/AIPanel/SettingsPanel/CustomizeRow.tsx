@@ -181,6 +181,8 @@ export const CustomizeRow: React.FC<{ entry: CustomizeEntry }> = ({ entry }) => 
                     ) : (
                         <ToggleSwitch
                             type="button"
+                            role="switch"
+                            aria-checked={entry.toggle.on}
                             on={entry.toggle.on}
                             disabled={entry.disabled}
                             title={entry.toggle.title}
