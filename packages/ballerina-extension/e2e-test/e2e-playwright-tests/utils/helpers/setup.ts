@@ -275,16 +275,16 @@ async function resumeVSCode() {
     page = new ExtendedPage(await vscode!.firstWindow({ timeout: 60000 }));
 }
 
-function resetTestProjectFromTemplate(): void {
-    if (!existsSync(emptyProjectPath)) {
-        throw new Error(`Empty project template not found: ${emptyProjectPath}`);
+function resetTestProjectFromTemplate(templatePath: string = emptyProjectPath): void {
+    if (!existsSync(templatePath)) {
+        throw new Error(`Project template not found: ${templatePath}`);
     }
 
     if (fs.existsSync(newProjectPath)) {
         fs.rmSync(newProjectPath, { recursive: true, force: true });
     }
 
-    fs.cpSync(emptyProjectPath, newProjectPath, { recursive: true, force: true });
+    fs.cpSync(templatePath, newProjectPath, { recursive: true, force: true });
 }
 
 /**
@@ -459,7 +459,7 @@ export async function createProject(page: ExtendedPage, projectName?: string) {
     await integrationName.waitFor({ timeout: 200000 });
 }
 
-export function initTest(newProject: boolean = true, skipProjectCreation: boolean = true, cleanupAfter?: boolean, projectName?: string) {
+export function initTest(newProject: boolean = true, skipProjectCreation: boolean = true, cleanupAfter?: boolean, projectName?: string, templatePath?: string) {
     test.beforeAll(async ({ }, testInfo) => {
         console.log(`\n▶️  STARTING TEST: ${testInfo.title} (Attempt ${testInfo.retry + 1})`);
 
@@ -475,7 +475,7 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
             wipeAndRecreateDataFolder();
             if (newProject) {
                 console.log('  🧹 Resetting test project from template');
-                resetTestProjectFromTemplate();
+                resetTestProjectFromTemplate(templatePath);
             }
             console.log('  📦 Starting VSCode...');
             await initVSCode(newProject ? newProjectPath : dataFolder);
@@ -500,7 +500,7 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
 
             if (newProject) {
                 console.log('  🧹 Resetting test project from template');
-                resetTestProjectFromTemplate();
+                resetTestProjectFromTemplate(templatePath);
             }
 
             // Wrap the soft-reload path in a timeout. If anything in the chain
