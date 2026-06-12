@@ -1661,6 +1661,17 @@ export interface GetRecordConfigResponse {
 export type RecordSourceGenRequest = {
     filePath: string;
     type: TypeField;
+    // The type the generated value is assigned to, e.g. "jco:DestinationConfig|jco:AdvancedConfig".
+    // Optional for backward compatibility.
+    typeConstraint?: string;
+    // Package coordinates of the type, used to resolve imports. Same shape passed to getRecordConfig.
+    // Optional for backward compatibility.
+    codedata?: {
+        org: string;
+        module: string;
+        version: string;
+        packageName?: string;
+    };
 }
 
 export type RecordSourceGenResponse = {

@@ -597,10 +597,12 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     }
                 }
 
-                else if (isContainingRepeatableMap && nodeProperties?.[field.key]?.value !== undefined) {
-                    if (!(typeof nodeProperties?.[field.key]?.value === "object")) {
-                        throw new Error(`Expected value for repeatable map field "${field.key}" to be an object, but got ${typeof nodeProperties?.[field.key]?.value}.`);
-                    }
+                else if (
+                    isContainingRepeatableMap &&
+                    typeof nodeProperties?.[field.key]?.value === "object" &&
+                    nodeProperties?.[field.key]?.value !== null &&
+                    !Array.isArray(nodeProperties?.[field.key]?.value)
+                ) {
                     if (selectedInputType?.fieldType === "REPEATABLE_MAP") {
                         let initialValues: { key: string; value: string }[];
                         if (typeof data[field.key] === 'string') {

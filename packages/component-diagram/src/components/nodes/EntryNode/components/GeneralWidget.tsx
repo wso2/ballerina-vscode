@@ -130,6 +130,8 @@ function getCustomEntryNodeIcon(type: string) {
             return <Icon name="bi-postgresql" sx={{ color: "#336791" }}/>;
         case "shopify":
             return <Icon name="bi-shopify" sx={{ color: "#95BF47" }} />;
+        case "hubspot":
+            return <Icon name="bi-hubspot" sx={{ color: "#FF7A59" }} />;
         default:
             return null;
     }
