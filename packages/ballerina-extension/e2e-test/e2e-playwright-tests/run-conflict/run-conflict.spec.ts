@@ -161,5 +161,29 @@ export default function createTests() {
             await notification.getByRole('button', { name: 'No', exact: true }).click();
             await notification.waitFor({ state: 'detached', timeout: 10000 });
         });
+
+        test('Rapid double Run shows at most one prompt', async () => {
+            // Two quick launches of the same integration must not stack two
+            // conflict prompts — the duplicate launch is cancelled quietly
+            // (in-flight guard dedup in integration-runner-state).
+            await clickRunButton();
+            await clickRunButton();
+
+            const notification = conflictNotification();
+            await notification.waitFor({ timeout: 15000 });
+            await page.page.waitForTimeout(1500);
+            const promptCount = await page.page
+                .locator('.notification-toast-container', { hasText: CONFLICT_PROMPT_TEXT })
+                .count();
+            if (promptCount > 1) {
+                throw new Error(`Expected at most one conflict prompt, found ${promptCount}`);
+            }
+            await notification.getByRole('button', { name: 'No', exact: true }).click();
+            await notification.waitFor({ state: 'detached', timeout: 10000 });
+
+            // The original run must still be alive.
+            const runningLocator = page.page.locator('.xterm-screen', { hasText: 'run-conflict automation started' }).first();
+            await runningLocator.waitFor({ timeout: 10000 });
+        });
     });
 }

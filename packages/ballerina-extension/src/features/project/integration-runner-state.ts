@@ -236,28 +236,45 @@ export type RunGuardResult = "proceed" | "cancelled" | "force-started";
  * "cancelled" when the new launch must be dropped, leaving the current run
  * untouched.
  */
+// Guards currently in flight, keyed by run key. A rapid double launch of the
+// same integration must not stack a second conflict prompt — the duplicate
+// launch is cancelled quietly while the first one owns the prompt.
+const pendingGuards = new Map<string, Promise<RunGuardResult>>();
+
 export async function confirmAndStopActiveRun(targetPath: string): Promise<RunGuardResult> {
     if (!targetPath) {
         return "proceed";
     }
-    const run = activeRuns.get(runKey(targetPath));
-    if (!run || !isRunAlive(run)) {
-        return "proceed";
-    }
-    const choice = await window.showInformationMessage(RUN_CONFLICT_PROMPT, "Yes", "No");
-    if (choice !== "Yes") {
+    const key = runKey(targetPath);
+    if (pendingGuards.has(key)) {
         return "cancelled";
     }
-    // The run may have ended on its own while the prompt was open.
-    if (!isRunAlive(run)) {
+    const guard = (async (): Promise<RunGuardResult> => {
+        const run = activeRuns.get(key);
+        if (!run || !isRunAlive(run)) {
+            return "proceed";
+        }
+        const choice = await window.showInformationMessage(RUN_CONFLICT_PROMPT, "Yes", "No");
+        if (choice !== "Yes") {
+            return "cancelled";
+        }
+        // The run may have ended on its own while the prompt was open.
+        if (!isRunAlive(run)) {
+            return "proceed";
+        }
+        const ended = await stopRun(run);
+        if (!ended) {
+            const forceChoice = await window.showWarningMessage(FORCE_START_PROMPT, "Force Start", "Cancel new launch");
+            return forceChoice === "Force Start" ? "force-started" : "cancelled";
+        }
         return "proceed";
+    })();
+    pendingGuards.set(key, guard);
+    try {
+        return await guard;
+    } finally {
+        pendingGuards.delete(key);
     }
-    const ended = await stopRun(run);
-    if (!ended) {
-        const forceChoice = await window.showWarningMessage(FORCE_START_PROMPT, "Force Start", "Cancel new launch");
-        return forceChoice === "Force Start" ? "force-started" : "cancelled";
-    }
-    return "proceed";
 }
 
 export async function restartIntegration(targetPath: string): Promise<void> {
