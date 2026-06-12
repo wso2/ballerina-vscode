@@ -66,6 +66,8 @@ export default function createTests() {
         initTest();
 
         test.afterAll(async () => {
+            // Dismiss any notification/quickpick a failed test may have left open.
+            await page.page.keyboard.press('Escape').catch(() => undefined);
             // Stop the long-running automation so it does not leak into
             // subsequent suites on the soft-reload path.
             await stopAllRunningIntegrations();

@@ -31,16 +31,37 @@ const BETA = 'beta_runner';
 
 async function openIntegration(name: string) {
     const projectExplorer = new ProjectExplorer(page.page);
-    const item = await projectExplorer.findItem([name]);
-    await item!.click();
+    // Open the integration's overview ("Open View" inline action) so the
+    // state machine focuses this project — merely selecting the tree item
+    // leaves the view on the workspace overview, and Run would then open
+    // the "Select an integration to run" picker instead of running.
+    try {
+        await projectExplorer.goToOverview(name);
+    } catch {
+        const item = await projectExplorer.findItem([name]);
+        await item!.click();
+    }
     // Let the focused-project state settle before the Run button is used.
-    await page.page.waitForTimeout(1000);
+    await page.page.waitForTimeout(1500);
 }
 
-async function clickRunButton() {
+async function clickRunButton(integrationName?: string) {
     const runButton = page.page.locator(RUN_BUTTON_SELECTOR).first();
     await runButton.waitFor({ timeout: 10000 });
     await runButton.click();
+
+    // Workspace-level runs may open the "Select an integration to run"
+    // quickpick (items are project paths). Answer it with the wanted
+    // integration instead of letting it swallow the run.
+    if (integrationName) {
+        const picker = page.page.locator('.quick-input-widget').first();
+        const pickerVisible = await picker.isVisible({ timeout: 3000 }).catch(() => false);
+        if (pickerVisible) {
+            await page.page.keyboard.type(integrationName);
+            await page.page.waitForTimeout(500);
+            await page.page.keyboard.press('Enter');
+        }
+    }
 }
 
 function restartNotification() {
@@ -69,6 +90,9 @@ export default function createTests() {
         initTest(true, true, undefined, undefined, WORKSPACE_TEMPLATE);
 
         test.afterAll(async () => {
+            // Dismiss any quickpick a failed test may have left open — an
+            // abandoned picker steals focus from subsequent suites.
+            await page.page.keyboard.press('Escape').catch(() => undefined);
             // Stop any still-running integrations so the long-running sleeps do
             // not leak into subsequent suites on the soft-reload path.
             await stopAllRunningIntegrations();
@@ -81,13 +105,13 @@ export default function createTests() {
             await toggleNotifications(false);
 
             await openIntegration(ALPHA);
-            await clickRunButton();
+            await clickRunButton(ALPHA);
             await terminalWithText(`${ALPHA} started`).waitFor({ timeout: 60000 });
         });
 
         test('Run second integration concurrently without prompts', async () => {
             await openIntegration(BETA);
-            await clickRunButton();
+            await clickRunButton(BETA);
 
             // Neither our restart prompt nor VS Code's built-in
             // "task is already active / terminate" modal may appear (#1012).
@@ -118,7 +142,7 @@ export default function createTests() {
 
         test('Re-running the same integration prompts restart', async () => {
             await openIntegration(BETA);
-            await clickRunButton();
+            await clickRunButton(BETA);
 
             const notification = restartNotification();
             await notification.waitFor({ timeout: 15000 });
