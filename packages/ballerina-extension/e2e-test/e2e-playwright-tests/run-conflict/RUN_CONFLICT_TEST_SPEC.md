@@ -90,21 +90,33 @@ integration is running.
    `integration-runner-state.ts`.
 3. Click **No**; verify the original run is still alive.
 
+### 6. Run right after stopping does not claim already running
+
+Covers product-integrator#1690.
+
+1. Stop the running integration via the debug toolbar.
+2. Immediately click **Run Integration**, before the process has exited.
+3. Verify NO "This integration is already running..." prompt appears — the
+   guard detects the in-flight stop (session gone, process exiting) and
+   silently waits for the process to release its ports.
+4. Verify a fresh run starts. A cancelled prompt while one is open must also
+   never resurrect a dead adapter slot (`restoreOrReleaseSlot`).
+
 ## Related Scenarios
 
-### 6. Concurrent runs across integrations — AUTOMATED
+### 7. Concurrent runs across integrations — AUTOMATED
 
 Covered by the `run-concurrent` suite (two-package workspace template
 `data/concurrent_run_workspace`): no prompts when running a second integration,
 dedicated terminals per integration, restart prompt only for the same one.
 
-### 7. Concurrent listeners on real ports — MANUAL
+### 8. Concurrent listeners on real ports — MANUAL
 
 Run `hr_api` (:9090), `inventory_api` (:9091) and `schedule_executor` from the
 `run-switch-sample` workspace; verify port liveness via curl and that stopping
 one run does not affect the others (see validation guide).
 
-### 8. (Manual) Force-start timeout path
+### 9. (Manual) Force-start timeout path
 
 Requires a process that ignores SIGTERM for >10 s; restart the same
 integration and verify the force-start prompt appears and both choices behave

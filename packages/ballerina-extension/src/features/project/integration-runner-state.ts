@@ -254,6 +254,20 @@ export async function confirmAndStopActiveRun(targetPath: string): Promise<RunGu
         if (!run || !isRunAlive(run)) {
             return "proceed";
         }
+        // Stop already in flight (product-integrator#1690): the debug session
+        // is gone but the `bal run` process has not fully exited yet. The
+        // integration is NOT "already running" from the user's point of view —
+        // silently wait for the process to release its ports and proceed.
+        const terminalAlive = !!run.terminal && run.terminal.exitStatus === undefined;
+        if (!run.session && !terminalAlive && isTaskExecutionAlive(run.task)) {
+            const ended = await waitForRunTaskEnd(run);
+            gcRun(run);
+            if (ended) {
+                return "proceed";
+            }
+            const forceChoice = await window.showWarningMessage(FORCE_START_PROMPT, "Force Start", "Cancel new launch");
+            return forceChoice === "Force Start" ? "force-started" : "cancelled";
+        }
         const choice = await window.showInformationMessage(RUN_CONFLICT_PROMPT, "Yes", "No");
         if (choice !== "Yes") {
             return "cancelled";

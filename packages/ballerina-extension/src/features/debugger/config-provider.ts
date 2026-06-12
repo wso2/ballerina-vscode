@@ -749,9 +749,7 @@ class BIRunAdapter extends LoggingDebugSession {
                     // Prevent the debug tracker from triggering the Try It view for this cancelled session.
                     (this.session.configuration as any).suggestTryit = false;
                     // Restore the previous adapter so the next launch still detects it.
-                    if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
-                        BIRunAdapter.activeAdapters.set(this.slotKey, existingAdapter);
-                    }
+                    this.restoreOrReleaseSlot(existingAdapter);
                     response.success = true;
                     this.sendResponse(response);
                     this.sendEvent(new TerminatedEvent());
@@ -776,9 +774,7 @@ class BIRunAdapter extends LoggingDebugSession {
                             } else {
                                 // Process is still running — restore the previous adapter so
                                 // subsequent launches still detect it as a conflict.
-                                if (BIRunAdapter.activeAdapters.get(this.slotKey) === this) {
-                                    BIRunAdapter.activeAdapters.set(this.slotKey, existingAdapter);
-                                }
+                                this.restoreOrReleaseSlot(existingAdapter);
                                 resolve(false);
                             }
                         }, 10000);
@@ -926,6 +922,27 @@ class BIRunAdapter extends LoggingDebugSession {
             this.sendResponse(response);
             this.sendEvent(new TerminatedEvent());
         });
+    }
+
+    /**
+     * Hands the slot back to the previous adapter after a cancelled launch —
+     * but only while its run is still actually alive. Restoring a dead
+     * adapter would make every future launch report "already running" even
+     * though the integration is stopped (product-integrator#1690).
+     */
+    private restoreOrReleaseSlot(existingAdapter: BIRunAdapter): void {
+        if (BIRunAdapter.activeAdapters.get(this.slotKey) !== this) {
+            return;
+        }
+        const existingTask = existingAdapter.task;
+        const existingAlive = existingTask
+            ? tasks.taskExecutions.some(execution => execution === existingTask)
+            : true; // no task yet — the previous launch is still in flight
+        if (existingAlive) {
+            BIRunAdapter.activeAdapters.set(this.slotKey, existingAdapter);
+        } else {
+            BIRunAdapter.activeAdapters.delete(this.slotKey);
+        }
     }
 
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {

@@ -185,5 +185,28 @@ export default function createTests() {
             const runningLocator = page.page.locator('.xterm-screen', { hasText: 'run-conflict automation started' }).first();
             await runningLocator.waitFor({ timeout: 10000 });
         });
+
+        test('Run right after stopping does not claim already running', async () => {
+            // product-integrator#1690: stopping kills the debug session, but the
+            // bal process takes a moment to exit. Running again in that window
+            // must NOT show the "already running" prompt — the guard silently
+            // waits for the process to exit and proceeds.
+            const stopButton = page.page.locator('.debug-toolbar a[aria-label^="Stop"]').first();
+            await stopButton.waitFor({ timeout: 10000 });
+            await stopButton.click();
+
+            // Immediately re-run, without waiting for the process to exit.
+            await clickRunButton();
+
+            if (await conflictNotification().isVisible({ timeout: 3000 }).catch(() => false)) {
+                throw new Error('"Already running" prompt appeared for a stopped integration (#1690)');
+            }
+
+            // A fresh run must start.
+            const compiling = page.page.locator('.xterm-screen', { hasText: 'Compiling source' }).first();
+            await compiling.waitFor({ timeout: 60000 });
+            const restarted = page.page.locator('.xterm-screen', { hasText: 'run-conflict automation started' }).first();
+            await restarted.waitFor({ timeout: 60000 });
+        });
     });
 }
