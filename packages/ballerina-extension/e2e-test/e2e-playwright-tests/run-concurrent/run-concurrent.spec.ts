@@ -29,15 +29,20 @@ const WORKSPACE_TEMPLATE = path.join(__dirname, '..', 'data', 'concurrent_run_wo
 const ALPHA = 'alpha_runner';
 const BETA = 'beta_runner';
 
+// Opens an integration's own overview so the Run button targets THAT
+// integration. Selecting the tree node only highlights it — the focused
+// project (and the Run target) changes only when the package overview is
+// opened via the node's inline "Open Overview" action.
 async function openIntegration(name: string) {
-    // Selecting the tree item alone does not focus the integration in the
-    // state machine (workspace tree items have no "Open View" action), so a
-    // workspace-level Run opens the "Select an integration to run" picker.
-    // clickRunButton answers it; this click is for view context only.
     const projectExplorer = new ProjectExplorer(page.page);
-    const item = await projectExplorer.findItem([name]);
-    await item!.click();
-    await page.page.waitForTimeout(1000);
+    const node = await projectExplorer.findItem([name]);
+    await node!.hover();
+    const openOverview = page.page.getByRole('button', { name: 'Open Overview' }).first();
+    await openOverview.waitFor({ timeout: 10000 });
+    await openOverview.click();
+    // Let the package overview load and the focused project settle before
+    // the Run button is used (Run targets the focused project).
+    await page.page.waitForTimeout(2500);
 }
 
 async function clickRunButton(integrationName?: string) {
@@ -45,10 +50,10 @@ async function clickRunButton(integrationName?: string) {
     await runButton.waitFor({ timeout: 10000 });
     await runButton.click();
 
-    // Workspace-level runs may open the "Select an integration to run"
-    // quickpick (items are project paths). Answer it with the wanted
-    // integration instead of letting it swallow the run. NOTE: must use
-    // waitFor — isVisible() returns immediately, before the picker renders.
+    // If a run is launched from the workspace overview, the "Select an
+    // integration to run" quickpick appears (items are project paths).
+    // Answer it with the wanted integration. NOTE: must use waitFor —
+    // isVisible() returns immediately, before the picker renders.
     if (integrationName) {
         const picker = page.page.locator('.quick-input-widget').first();
         const pickerVisible = await picker
@@ -56,7 +61,6 @@ async function clickRunButton(integrationName?: string) {
             .then(() => true)
             .catch(() => false);
         if (pickerVisible) {
-            // Type the package name to filter the path items, then confirm.
             await page.page.keyboard.type(integrationName);
             await page.page.waitForTimeout(500);
             await page.page.keyboard.press('Enter');
