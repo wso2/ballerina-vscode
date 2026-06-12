@@ -19,7 +19,7 @@
 
 import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
-import { Command, TemplateId } from "../../interfaces/ai-panel";
+import { Command, SkillCommand, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
 import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, OperationType } from "../..";
 
@@ -29,6 +29,7 @@ import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatemen
 export type AIPanelPrompt =
     | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any>; hiddenContext?: string }
     | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean; hiddenContext?: string; suggestedCommandTemplates?: AIPanelPrompt[];    inputPlaceholder?:string; }
+    | { type: 'skill'; skillId: string; skillName: string; args?: string; autoSubmit?: boolean; hiddenContext?: string }
     | undefined;
 
 export interface AIMachineSnapshot {
@@ -561,10 +562,11 @@ export enum SkillTier {
     USER = 'user',
 }
 
-export enum SkillSaveStage {
-    PROMPTING = 'prompting',
-    SAVED = 'saved',
-    CANCELLED = 'cancelled',
+export interface SkillCommandTemplate {
+    id: string;
+    text: string;
+    placeholders: Array<{ id: string; text: string; multiline: boolean }>;
+    defaultVisibility?: boolean;
 }
 
 export interface SkillEntry {
@@ -574,6 +576,11 @@ export interface SkillEntry {
     body?: string;
     tier: SkillTier;
     enabled: boolean;
+    /** False = always active, no toggle shown in UI. Undefined/true = user can toggle. */
+    optional?: boolean;
+    commandTemplates?: SkillCommandTemplate[];
+    /** Identifies this skill as a specific slash command, used for attachment type resolution. */
+    skillCommand?: SkillCommand;
 }
 
 export interface DeleteSkillRequest {
@@ -596,15 +603,6 @@ export interface ToggleSkillRequest {
     skillId: string;
     enabled: boolean;
     tier: SkillTier;
-}
-
-export interface SkillSaveRequest {
-    requestId: string;
-    tier: SkillTier.USER | SkillTier.PROJECT;
-}
-
-export interface SkillSaveCancelRequest {
-    requestId: string;
 }
 
 export enum SkillEnableStage {

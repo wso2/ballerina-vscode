@@ -34,11 +34,9 @@ import {
     GenerateOpenAPIRequest,
     LLMDiagnostics,
     LoginMethod,
-    MetadataWithAttachments,
     OpenFileDiffRequest,
     PlanApprovalRequest,
     ProcessContextTypeCreationRequest,
-    ProcessMappingParametersRequest,
     PromptEnhancementRequest,
     PromptEnhancementResponse,
     RequirementSpecification,
@@ -74,8 +72,6 @@ import {
     enhancePrompt,
     generateAgent,
     generateContextTypes,
-    generateInlineMappingCode,
-    generateMappingCode,
     generateOpenAPI,
     getAIMachineSnapshot,
     getActiveTempDir,
@@ -122,8 +118,6 @@ import {
     addSkill,
     toggleSkill,
     deleteSkill,
-    saveSkillFromChat,
-    cancelSkillSave,
     enableSkillFromChat,
     cancelSkillEnable,
     parseSkillFile,
@@ -133,8 +127,6 @@ import {
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
-    SkillSaveRequest,
-    SkillSaveCancelRequest,
     SkillEnableRequest,
     SkillEnableCancelRequest,
     ParseSkillFileRequest,
@@ -204,14 +196,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     generateContextTypes(params: ProcessContextTypeCreationRequest): void {
         return this._messenger.sendNotification(generateContextTypes, HOST_EXTENSION, params);
-    }
-
-    generateMappingCode(params: ProcessMappingParametersRequest): void {
-        return this._messenger.sendNotification(generateMappingCode, HOST_EXTENSION, params);
-    }
-
-    generateInlineMappingCode(params: MetadataWithAttachments): void {
-        return this._messenger.sendNotification(generateInlineMappingCode, HOST_EXTENSION, params);
     }
 
     getServiceNames(): Promise<TestGenerationMentions> {
@@ -426,14 +410,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     deleteSkill(params: DeleteSkillRequest): Promise<boolean> {
         return this._messenger.sendRequest(deleteSkill, HOST_EXTENSION, params);
-    }
-
-    saveSkillFromChat(params: SkillSaveRequest): Promise<boolean> {
-        return this._messenger.sendRequest(saveSkillFromChat, HOST_EXTENSION, params);
-    }
-
-    cancelSkillSave(params: SkillSaveCancelRequest): Promise<void> {
-        return this._messenger.sendRequest(cancelSkillSave, HOST_EXTENSION, params);
     }
 
     enableSkillFromChat(params: SkillEnableRequest): Promise<boolean> {

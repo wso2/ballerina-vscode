@@ -39,7 +39,6 @@ import {
     sendVisualizerMigrationNotification,
     sendAIPanelNotification,
     sendClarifyNotification,
-    sendSkillSaveNotification,
     sendSkillEnableNotification,
     sendChatComponentNotification,
     sendUsageMetricsNotification,
@@ -187,12 +186,8 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
             case "clarify_event":
                 sendClarifyNotification(event);
                 break;
-            case "skill_save_event":
-                sendSkillSaveNotification(event);
-                break;
-            // @ts-ignore -- SkillEnableEvent added to ChatNotify union
             case "skill_enable_event":
-                sendSkillEnableNotification(event as any);
+                sendSkillEnableNotification(event);
                 break;
             case "chat_component":
                 sendChatComponentNotification(event.componentType, event.data, event.id);

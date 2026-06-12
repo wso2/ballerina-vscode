@@ -208,7 +208,7 @@ const SkillRow: React.FC<SkillRowProps> = ({ skill, onToggle, onEdit, onDelete }
                             <RowName $dim={!enabled} title={skill.name}>{shortName}</RowName>
                             {skill.trigger && <RowMeta title={skill.trigger}>{skill.trigger}</RowMeta>}
                         </RowMain>
-                        {onToggle && (
+                        {onToggle && skill.optional !== false && (
                             <ToggleSwitch
                                 type="button"
                                 $on={enabled}

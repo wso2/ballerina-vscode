@@ -14,10 +14,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import { SkillCommand, SkillCommandTemplate } from '@wso2/ballerina-core';
+
 export interface Skill {
     name: string;
     trigger: string;
     content: string;
+    /** Whether the user can toggle this skill on/off. False = always active, no toggle shown. */
+    optional?: boolean;
+    /** Default enabled state before any user preference is set. */
+    default?: boolean;
+    commandTemplates?: SkillCommandTemplate[];
+    /** Identifies this skill as a specific slash command, used for attachment type resolution. */
+    skillCommand?: SkillCommand;
 }
 
 export interface ProjectSkillMeta {

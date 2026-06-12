@@ -19,7 +19,6 @@
 import { commands, window, workspace as vscodeWorkspace } from 'vscode';
 import { BallerinaExtension, ExtendedLangClient } from '../../core';
 import { activateCopilotLoginCommand, resetBIAuth } from './completions';
-import { ProcessMappingParametersRequest } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from './utils/events';
 import { addConfigFile, getConfigFilePath } from './utils';
 import {
@@ -37,7 +36,6 @@ import {
 } from '../..//utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { AIMachineEventType, DefaultProviderKind, GenerateAgentCodeRequest, ExecutionContext } from '@wso2/ballerina-core';
-import { generateMappingCodeCore } from './data-mapper';
 import { resolveProjectPath } from '../../utils/project-utils';
 import { MESSAGES } from '../project';
 import { AICommandConfig } from './executors/base/AICommandExecutor';
@@ -121,10 +119,6 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
                 console.error(`[Test Mode] Generation failed for project ${params.projectPath}:`, error);
                 throw error;
             }
-        });
-
-        commands.registerCommand('ballerina.test.ai.generatemappingCodecore', async (params: ProcessMappingParametersRequest, testEventHandler: CopilotEventHandler) => {
-            await generateMappingCodeCore(params, testEventHandler);
         });
 
         // Library integration test commands

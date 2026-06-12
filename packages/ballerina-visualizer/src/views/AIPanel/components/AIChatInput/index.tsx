@@ -25,7 +25,7 @@ import { StyledInputComponent, StyledInputRef } from "./StyledInput";
 import { AttachmentOptions, useAttachments } from "./hooks/useAttachments";
 import { Suggestion, SuggestionType, useCommands } from "./hooks/useCommands";
 import { ChatBadgeType } from "../ChatBadge";
-import { Input, SkillBadgeInput } from "./utils/inputUtils";
+import { Input, SkillBadgeInput, stringifyInputArray } from "./utils/inputUtils";
 import SuggestionsList from "./SuggestionsList";
 import ModeToggle, { AgentMode } from "./ModeToggle";
 import AutoApproveChip from "./AutoApproveChip";
@@ -33,7 +33,9 @@ import WebSearchToggle from "./WebSearchToggle";
 import { CommandTemplates } from "../../commandTemplates/data/commandTemplates.const";
 import { Tag } from "../../commandTemplates/models/tag.model";
 import { getFirstOccurringPlaceholder, matchCommandTemplate } from "./utils/utils";
-import { getAllCommands, getTags, getTemplateDefinitionsByCommand } from "../../commandTemplates/utils/utils";
+import { getAllCommands, getTags, getTemplateDefinitionsByCommand, getSkillTags } from "../../commandTemplates/utils/utils";
+import { TemplateDefinition } from "../../commandTemplates/models/template.model";
+import { PlaceholderDefinition } from "../../commandTemplates/models/placeholder.model";
 import { PlaceholderTagMap } from "../../commandTemplates/data/placeholderTags.const";
 import ContextUsageWidget from "../AIChat/compaction/ContextUsageWidget";
 import RunningServicesChip, { RunningServicesPanel } from "./RunningServicesChip";
@@ -177,6 +179,10 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
             activeSuggestionIndex,
             activeCommand,
             setActiveCommand,
+            activeSkillWithTemplates,
+            setActiveSkillWithTemplates,
+            activeSkillBadgeText,
+            setActiveSkillBadgeText,
             handleSuggestionOnTextChange,
             setActiveSuggestion,
             completeSuggestionSelection,
@@ -195,6 +201,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
         } = useAttachments({
             attachmentOptions: attachmentOptions,
             activeCommand,
+            activeSkillCommand: activeSkillWithTemplates?.skillCommand,
         });
 
         /**
@@ -218,6 +225,8 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                 if (!inputValue.text || inputValue.text === "<br>") {
                     setInputValue((prev) => ({ ...prev, text: "" }));
                     setActiveCommand(null);
+                    setActiveSkillWithTemplates(null);
+                    setActiveSkillBadgeText(null);
                 }
             },
             [inputValue.text]
@@ -282,6 +291,39 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                     }
                 }
 
+                if (activeSkillWithTemplates && activeSkillBadgeText && (templateInserted || tagInserted)) {
+                    const templateQuery = text.substring(activeSkillBadgeText.length + 1);
+                    const matchResult = matchCommandTemplate(
+                        templateQuery,
+                        (activeSkillWithTemplates.commandTemplates ?? []) as unknown as TemplateDefinition[]
+                    );
+                    if (matchResult) {
+                        const { template } = matchResult;
+                        const placeholderDefs = template.placeholders as unknown as PlaceholderDefinition[];
+                        const firstPlaceholderDef = getFirstOccurringPlaceholder(templateQuery, placeholderDefs);
+                        if (firstPlaceholderDef) {
+                            const tags = getSkillTags(activeSkillWithTemplates.id, template.id, firstPlaceholderDef.id);
+                            if (tags?.length) {
+                                const tagValue = tagParams?.[firstPlaceholderDef.id];
+                                const matchedTag = tagValue && tags.find((tag) => tag.value === tagValue);
+                                if (matchedTag) {
+                                    inputRef.current.replaceTextWithBadge(firstPlaceholderDef.text, {
+                                        displayText: matchedTag.display,
+                                        rawValue: matchedTag.value,
+                                        badgeType: ChatBadgeType.Tag,
+                                        suffixText: "",
+                                        tagInserted: true,
+                                    });
+                                } else {
+                                    inputRef.current.replaceTextWithText(firstPlaceholderDef.text, "@");
+                                }
+                            } else {
+                                inputRef.current.selectText(firstPlaceholderDef.text);
+                            }
+                        }
+                    }
+                }
+
                 if (updatedContent) {
                     switch (updatedContent.type) {
                         case "command-template":
@@ -297,6 +339,17 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                             break;
                         case "text":
                             inputRef.current?.insertTextAtCursor({ text: updatedContent.text });
+                            break;
+                        case "skill":
+                            inputRef.current?.insertBadgeAtCursor({
+                                displayText: `/${updatedContent.skillName}`,
+                                rawValue: updatedContent.skillId,
+                                badgeType: ChatBadgeType.Skill,
+                                suffixText: " ",
+                            });
+                            if (updatedContent.args) {
+                                inputRef.current?.insertTextAtCursor({ text: updatedContent.args });
+                            }
                             break;
                         default:
                             break;
@@ -406,15 +459,25 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
         /**
          * Inserts a skill badge at the current cursor position in the input field.
          */
-        const insertSkill = (skill: SkillEntry) => {
+        const insertSkill = async (skill: SkillEntry) => {
             const typedText = inputRef.current?.ref.current?.innerText?.trim() ?? '';
+            const shortName = skill.name.includes('/') ? skill.name.split('/').pop()! : skill.name;
+            const badgeText = `/${shortName}`;
             inputRef.current?.insertBadgeAtCursor({
-                displayText: `/${skill.name}`,
+                displayText: badgeText,
                 rawValue: skill.id,
                 badgeType: ChatBadgeType.Skill,
                 suffixText: " ",
                 overlapText: typedText.startsWith('/') ? typedText : undefined,
             });
+
+            // Skills that carry command templates activate the template suggestion system.
+            if (skill.commandTemplates?.length) {
+                setActiveSkillWithTemplates(skill);
+                setActiveSkillBadgeText(badgeText);
+                fileInputRef.current.accept = attachmentOptions.acceptResolver(null, skill.skillCommand);
+                await tagOptions.injectPlaceholderTags();
+            }
         };
 
         /**
@@ -462,7 +525,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                     trigger: suggestion.skillTrigger,
                     enabled: true,
                 };
-                insertSkill(entry);
+                await insertSkill(entry);
             }
         };
 
@@ -473,8 +536,12 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
          * - Stops on Escape
          */
         const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>, removedBadgeTypes?: string[]) => {
-            if (removedBadgeTypes?.includes(ChatBadgeType.Command)) {
+            // Removing a command badge OR a template-carrying skill badge tears down the active
+            // command so its templates/@-popup stop showing.
+            if (removedBadgeTypes?.includes(ChatBadgeType.Command) || removedBadgeTypes?.includes(ChatBadgeType.Skill)) {
                 setActiveCommand(null);
+                setActiveSkillWithTemplates(null);
+                setActiveSkillBadgeText(null);
             }
             if (filteredSuggestions.length > 0) {
                 if (event.key === "ArrowDown") {
@@ -529,6 +596,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
             }
         };
 
+
         /**
          * Clears the chat input and attachments after sending
          */
@@ -546,11 +614,19 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
             const filteredAttachments = attachments.filter(
                 (attachment) => attachment.status === AttachmentStatus.Success
             );
-            const skillBadge = input?.find(
-                (i): i is SkillBadgeInput => 'badgeType' in i && (i as any).badgeType === ChatBadgeType.Skill
-            );
+            const skillBadgeIndex = input?.findIndex(
+                (i): i is SkillBadgeInput => 'badgeType' in i && (i as SkillBadgeInput).badgeType === ChatBadgeType.Skill
+            ) ?? -1;
+            const skillBadge = skillBadgeIndex >= 0 ? input?.[skillBadgeIndex] as SkillBadgeInput : undefined;
+            // Args = everything after the skill badge. Use stringifyInputArray so tag badges (e.g.
+            // @Record / @function from a filled data-map template) contribute their value, not just
+            // the plain-text segments.
+            const selectedSkillArgs = skillBadgeIndex >= 0
+                ? (stringifyInputArray(input?.slice(skillBadgeIndex + 1) ?? []).trim() || undefined)
+                : undefined;
             const metadata = skillBadge
-                ? { ...currentMetadata, selectedSkillId: skillBadge.skillId, selectedSkillName: skillBadge.display.replace(/^\//, '') }
+                ? { ...currentMetadata, selectedSkillId: skillBadge.skillId, selectedSkillName: skillBadge.display.replace(/^\//, ''),
+                    ...(selectedSkillArgs && { selectedSkillArgs }) }
                 : currentMetadata;
             onSend({ input: input, attachments: filteredAttachments, metadata: metadata });
             cleanChatInput();
@@ -648,7 +724,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 <input
                                     type="file"
                                     multiple={attachmentOptions.multiple}
-                                    accept={attachmentOptions.acceptResolver(activeCommand)}
+                                    accept={attachmentOptions.acceptResolver(activeCommand, activeSkillWithTemplates?.skillCommand)}
                                     style={{ display: "none" }}
                                     ref={fileInputRef}
                                     onChange={onAttachmentSelection}

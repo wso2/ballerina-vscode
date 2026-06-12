@@ -16,7 +16,7 @@
 
 import * as path from 'path';
 import { ProjectSkillMeta } from './types';
-import { getDisabledBuiltIns } from './index';
+import { getDisabledBuiltIns, REGISTERED_SKILLS } from './index';
 import { scanProjectSkills, scanUserSkills } from '../tools/skill-tool/skill-reader';
 import { getSkillsConfig, GLOBAL_SKILLS_CONFIG_PATH } from '../tools/skill-tool/skill-writer';
 
@@ -32,13 +32,29 @@ export function buildProjectSkillsConfigPath(projectRootPath: string): string {
     return path.join(projectRootPath, '.copilot', 'skills.config.json');
 }
 
-/** Merged set of globally and project-disabled skill IDs. */
+/** Merged set of globally and project-disabled skill IDs, respecting built-in optional/default flags. */
 export function buildAllDisabledSet(projectRootPath: string | null): Set<string> {
-    const globalDisabled = new Set(getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH).disabledSkills);
-    const projectDisabled = projectRootPath
-        ? new Set(getSkillsConfig(buildProjectSkillsConfigPath(projectRootPath)).disabledSkills)
-        : new Set<string>();
-    return new Set([...globalDisabled, ...projectDisabled]);
+    const globalConfig = getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH);
+    const projectConfig = projectRootPath
+        ? getSkillsConfig(buildProjectSkillsConfigPath(projectRootPath))
+        : { disabledSkills: [], enabledSkills: [] };
+
+    const allDisabled = new Set([...globalConfig.disabledSkills, ...projectConfig.disabledSkills]);
+    const allEnabled = new Set([...globalConfig.enabledSkills, ...projectConfig.enabledSkills]);
+
+    for (const skill of REGISTERED_SKILLS) {
+        if (skill.optional === false) {
+            allDisabled.delete(skill.name);
+        } else if (skill.default === false) {
+            if (allEnabled.has(skill.name)) {
+                allDisabled.delete(skill.name);
+            } else {
+                allDisabled.add(skill.name);
+            }
+        }
+    }
+
+    return allDisabled;
 }
 
 /** Full skills context needed to build agent prompts and the skill tool. */

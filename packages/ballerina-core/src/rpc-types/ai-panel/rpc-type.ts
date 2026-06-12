@@ -29,9 +29,7 @@ import {
     GenerateAgentCodeRequest,
     DocGenerationRequest,
     AddFilesToProjectRequest,
-    MetadataWithAttachments,
     ProcessContextTypeCreationRequest,
-    ProcessMappingParametersRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
     RestoreCheckpointRequest,
@@ -62,8 +60,6 @@ import {
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
-    SkillSaveRequest,
-    SkillSaveCancelRequest,
     SkillEnableRequest,
     SkillEnableCancelRequest,
     SetSkillsEnabledRequest,
@@ -92,8 +88,6 @@ export const clearInitialPrompt: NotificationType<void> = { method: `${_preFix}/
 export const isScaffoldEnvActive: RequestType<void, boolean> = { method: `${_preFix}/isScaffoldEnvActive` };
 export const openChatWindowWithCommand: NotificationType<void> = { method: `${_preFix}/openChatWindowWithCommand` };
 export const generateContextTypes: NotificationType<ProcessContextTypeCreationRequest> = { method: `${_preFix}/generateContextTypes` };
-export const generateMappingCode: NotificationType<ProcessMappingParametersRequest> = { method: `${_preFix}/generateMappingCode` };
-export const generateInlineMappingCode: NotificationType<MetadataWithAttachments> = { method: `${_preFix}/generateInlineMappingCode` };
 export const getServiceNames: RequestType<void, TestGenerationMentions> = { method: `${_preFix}/getServiceNames` };
 export const promptGithubAuthorize: RequestType<void, boolean> = { method: `${_preFix}/promptGithubAuthorize` };
 export const isCopilotSignedIn: RequestType<void, boolean> = { method: `${_preFix}/isCopilotSignedIn` };
@@ -150,8 +144,6 @@ export const toggleSkill: RequestType<ToggleSkillRequest, boolean> = { method: `
 export const deleteSkill: RequestType<DeleteSkillRequest, boolean> = { method: `${_preFix}/deleteSkill` };
 export const getSkillsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getSkillsEnabled` };
 export const setSkillsEnabled: RequestType<SetSkillsEnabledRequest, void> = { method: `${_preFix}/setSkillsEnabled` };
-export const saveSkillFromChat: RequestType<SkillSaveRequest, boolean> = { method: `${_preFix}/saveSkillFromChat` };
-export const cancelSkillSave: RequestType<SkillSaveCancelRequest, void> = { method: `${_preFix}/cancelSkillSave` };
 export const enableSkillFromChat: RequestType<SkillEnableRequest, boolean> = { method: `${_preFix}/enableSkillFromChat` };
 export const cancelSkillEnable: RequestType<SkillEnableCancelRequest, void> = { method: `${_preFix}/cancelSkillEnable` };
 export const parseSkillFile: RequestType<ParseSkillFileRequest, ParseSkillFileResponse> = { method: `${_preFix}/parseSkillFile` };

@@ -27,9 +27,7 @@ import {
     GenerateAgentCodeRequest,
     DocGenerationRequest,
     AddFilesToProjectRequest,
-    MetadataWithAttachments,
     ProcessContextTypeCreationRequest,
-    ProcessMappingParametersRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
     RestoreCheckpointRequest,
@@ -60,8 +58,6 @@ import {
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
-    SkillSaveRequest,
-    SkillSaveCancelRequest,
     SkillEnableRequest,
     SkillEnableCancelRequest,
     SetSkillsEnabledRequest,
@@ -94,8 +90,6 @@ export interface AIPanelAPI {
     // Data-mapper related functions
     openChatWindowWithCommand: () => void;
     generateContextTypes: (params: ProcessContextTypeCreationRequest) => void;
-    generateMappingCode: (params: ProcessMappingParametersRequest) => void;
-    generateInlineMappingCode: (params: MetadataWithAttachments) => void;
     getServiceNames: () => Promise<TestGenerationMentions>;
     promptGithubAuthorize: () => Promise<boolean>;
     isCopilotSignedIn: () => Promise<boolean>;
@@ -171,8 +165,6 @@ export interface AIPanelAPI {
     addSkill: (params: AddSkillRequest) => Promise<boolean>;
     toggleSkill: (params: ToggleSkillRequest) => Promise<boolean>;
     deleteSkill: (params: DeleteSkillRequest) => Promise<boolean>;
-    saveSkillFromChat: (params: SkillSaveRequest) => Promise<boolean>;
-    cancelSkillSave: (params: SkillSaveCancelRequest) => Promise<void>;
     enableSkillFromChat: (params: SkillEnableRequest) => Promise<boolean>;
     cancelSkillEnable: (params: SkillEnableCancelRequest) => Promise<void>;
     parseSkillFile: (params: ParseSkillFileRequest) => Promise<ParseSkillFileResponse>;

@@ -17,12 +17,13 @@
  */
 
 import { useState } from "react";
-import { getAllCommands, getPublicCommands, getTags, getTemplateDefinitionsByCommand } from "../../../commandTemplates/utils/utils";
+import { getAllCommands, getPublicCommands, getTags, getTemplateDefinitionsByCommand, getSkillTags } from "../../../commandTemplates/utils/utils";
 import { CommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
 import { Tag } from "../../../commandTemplates/models/tag.model";
 import { matchCommandTemplate } from "../utils/utils"
 import { PlaceholderTagMap } from "../../../commandTemplates/data/placeholderTags.const";
-import { Command, SkillEntry, SkillTier, TemplateId } from "@wso2/ballerina-core";
+import { Command, SkillCommandTemplate, SkillEntry, SkillTier, TemplateId } from "@wso2/ballerina-core";
+import { TemplateDefinition } from "../../../commandTemplates/models/template.model";
 
 export enum SuggestionType {
     Command = "command",
@@ -47,7 +48,6 @@ const COMMAND_META: Record<string, { icon: string; description: string }> = {
     "/doc":                                { icon: "codicon-book",               description: "Generate documentation" },
     "/openapi":                            { icon: "codicon-file-code",          description: "Import OpenAPI specifications" },
     "/typecreator":                        { icon: "codicon-symbol-class",       description: "Create custom types" },
-    "/datamap":                            { icon: "codicon-arrow-swap",         description: "Generate data mappings" },
     "/natural-programming (experimental)": { icon: "codicon-sparkle",            description: "Experimental NL-to-code" },
 };
 
@@ -104,6 +104,8 @@ export function useCommands({ commandTemplate, skills }: UseCommandsParams) {
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
     const [activeSuggestionValue, setActiveSuggestionValue] = useState<string | null>(null);
     const [activeCommand, setActiveCommand] = useState<Command | null>(null);
+    const [activeSkillWithTemplates, setActiveSkillWithTemplates] = useState<SkillEntry | null>(null);
+    const [activeSkillBadgeText, setActiveSkillBadgeText] = useState<string | null>(null);
 
     const handleSuggestionOnTextChange = ({
         commandTemplate,
@@ -130,6 +132,23 @@ export function useCommands({ commandTemplate, skills }: UseCommandsParams) {
                         return false;
                     }
                     return (template.text.toLowerCase().startsWith(filterText) && template.id !== TemplateId.Wildcard);
+                }).map((template) => ({
+                    text: template.text,
+                    type: SuggestionType.Template,
+                    templateId: template.id,
+                }));
+            } else {
+                filtered = [];
+            }
+        } else if (activeSkillWithTemplates && activeSkillBadgeText) {
+            const query = text.toLowerCase();
+            const templates = activeSkillWithTemplates.commandTemplates ?? [];
+            const templateQuery = query.substring(activeSkillBadgeText.length);
+            if (templateQuery.startsWith(" ")) {
+                const filterText = templateQuery.slice(1);
+                filtered = templates.filter((template) => {
+                    if (template.defaultVisibility === false) return false;
+                    return template.text.toLowerCase().startsWith(filterText);
                 }).map((template) => ({
                     text: template.text,
                     type: SuggestionType.Template,
@@ -239,6 +258,48 @@ export function useCommands({ commandTemplate, skills }: UseCommandsParams) {
                         const query = valueUpToCursor.slice(atIndex).toLowerCase();
                         filtered = getGlobalTagSuggestions(query);
                     }
+                } else if (activeSkillWithTemplates && activeSkillBadgeText) {
+                    const query = text.toLowerCase();
+                    const templateQuery = query.substring(activeSkillBadgeText.length + 1);
+
+                    const matchResult = matchCommandTemplate(
+                        templateQuery,
+                        (activeSkillWithTemplates.commandTemplates ?? []) as unknown as TemplateDefinition[]
+                    );
+
+                    if (matchResult) {
+                        const { match, template } = matchResult;
+
+                        let start = currentCursorPosition - 1;
+                        while (start > 0 && text[start] !== " ") {
+                            start--;
+                        }
+
+                        const currentWord = text
+                            .substring(start === 0 ? 0 : start + 1, currentCursorPosition)
+                            .toLowerCase();
+
+                        const matchedKey = Object.entries(match).find(
+                            ([_, value]) => value.toLowerCase() === currentWord
+                        )?.[0];
+
+                        if (matchedKey) {
+                            const placeholder = template.placeholders?.find(p => p.id === matchedKey);
+                            const tags = getSkillTags(activeSkillWithTemplates.id, template.id, placeholder.id);
+                            if (tags) {
+                                filtered = tags
+                                    .filter(tag => tag.display.toLowerCase().startsWith(currentWord))
+                                    .map(tag => ({
+                                        text: tag.display,
+                                        type: SuggestionType.Tag,
+                                        rawValue: tag.value,
+                                    }));
+                            }
+                        }
+                    } else {
+                        const query = valueUpToCursor.slice(atIndex).toLowerCase();
+                        filtered = getGlobalTagSuggestions(query);
+                    }
                 } else {
                     // No command active, fall back to global tag suggestions
                     const query = valueUpToCursor.slice(atIndex).toLowerCase();
@@ -270,6 +331,10 @@ export function useCommands({ commandTemplate, skills }: UseCommandsParams) {
         setActiveSuggestionValue,
         activeCommand,
         setActiveCommand,
+        activeSkillWithTemplates,
+        setActiveSkillWithTemplates,
+        activeSkillBadgeText,
+        setActiveSkillBadgeText,
         handleSuggestionOnTextChange,
         setActiveSuggestion,
         completeSuggestionSelection,

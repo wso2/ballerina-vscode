@@ -246,7 +246,7 @@ const isCommandBadge = (input: Input): input is CommandBadgeInput => {
     );
 }
 
-const stringifyInputArray = (inputs: Input[]): string => {
+export const stringifyInputArray = (inputs: Input[]): string => {
     return inputs
         .map(input => {
             if ('content' in input) {

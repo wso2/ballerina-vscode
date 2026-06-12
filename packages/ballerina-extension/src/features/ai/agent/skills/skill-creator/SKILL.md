@@ -36,16 +36,25 @@ Compose the three parts of the skill:
 
 ## Step 3 — Save the skill
 
-Call `save_skill` immediately with the formulated `name`, `trigger`, and `body`.
+Write the skill to the project's skills directory using the `file_write` tool. The file path
+MUST be `.agents/skills/<name>/SKILL.md` (relative to the project root), where `<name>` is the
+kebab-case skill name from Step 2.
+
+The file content MUST be the skill's markdown with YAML front matter, in exactly this format:
+
+```
+---
+name: <name>
+description: <trigger>
+---
+
+<body>
+```
+
+Notes:
+- `description` is the trigger sentence(s) from Step 2.
+- Omit the body section entirely (just the front matter) only for very simple skills.
+- After writing, briefly confirm to the user that the skill was created.
 
 Do NOT:
-- Announce that you are about to save
-- Show the skill definition as a code block before calling the tool
-- Ask the user for confirmation before calling the tool — the save dialog handles that
-
-## Example output (internal reference only — do not show to user)
-
-For "create a skill for Ballerina error handling":
-- name: `ballerina-error-handler`
-- trigger: `Use this skill when implementing error handling in Ballerina services, including error propagation, union-type errors, and error logging patterns.`
-- body: rules about using `error` unions, `check` expressions, returning typed errors, `io:println` vs `log:printError`, etc.
+- Announce that you are about to write before calling the tool — just call `file_write`.
