@@ -51,16 +51,18 @@ Implementation:
 
 ## Test Scenarios (automated, single-package project)
 
-The harness project has one package, so a second Run always targets the same
-integration and exercises the restart prompt.
+The suite boots from the `data/run_conflict_project` template, which ships a
+pre-baked long-running automation (~5 min sleep) — per the e2e-writer rule,
+scenarios must not modify Ballerina sources at runtime. One package means a
+second Run always targets the same integration and exercises the restart
+prompt. Artifact creation itself is covered by the `automation` suites.
 
 ### 1. Second run of the same integration shows restart prompt
 
-1. Create an automation and overwrite `automation.bal` with a long-running main
-   (sleeps ~5 min) so the first run stays alive.
-2. Click **Run Integration**; wait for the run output in the terminal.
-3. Click **Run Integration** again.
-4. Verify the "This integration is already running..." notification appears
+1. Start the pre-baked automation via **Run Integration**; wait for its
+   "run-conflict automation started" marker in the terminal.
+2. Click **Run Integration** again.
+3. Verify the "This integration is already running..." notification appears
    with **Yes** and **No** buttons.
 
 ### 2. Decline keeps the current run

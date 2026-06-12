@@ -16,8 +16,8 @@
  * under the License.
  */
 import { test } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page, toggleNotifications } from '../utils/helpers';
-import { switchToIFrame } from '@wso2/playwright-vscode-tester';
+import * as path from 'path';
+import { initTest, logStep, page, toggleNotifications } from '../utils/helpers';
 import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 import { FileUtils } from '../utils/helpers/fileSystem';
@@ -28,15 +28,12 @@ const RUN_BUTTON_SELECTOR = 'ul.actions-container[role="toolbar"] li.action-item
 // project, so a second Run always targets the same integration.
 const CONFLICT_PROMPT_TEXT = 'This integration is already running';
 
-// Long-running main so the first run stays alive while we trigger a second run.
-const LONG_RUNNING_AUTOMATION = `import ballerina/io;
-import ballerina/lang.runtime;
-
-public function main() {
-    io:println("run-conflict automation started");
-    runtime:sleep(300);
-}
-`;
+// Single-package template with a pre-baked long-running automation
+// (~5 min sleep) so the first run stays alive while conflicts are triggered.
+// Pre-baked per the e2e-writer rule: scenarios must not modify Ballerina
+// sources at runtime.
+const PROJECT_TEMPLATE = path.join(__dirname, '..', 'data', 'run_conflict_project');
+const RUN_MARKER = 'run-conflict automation started';
 
 async function clickRunButton() {
     const runButton = page.page.locator(RUN_BUTTON_SELECTOR).first();
@@ -46,6 +43,10 @@ async function clickRunButton() {
 
 function conflictNotification() {
     return page.page.locator('.notification-toast-container', { hasText: CONFLICT_PROMPT_TEXT }).first();
+}
+
+function runningMarker() {
+    return page.page.locator('.xterm-screen', { hasText: RUN_MARKER }).first();
 }
 
 // Clicks the debug toolbar Stop button until no session remains (bounded).
@@ -63,9 +64,10 @@ async function stopAllRunningIntegrations() {
 export default function createTests() {
     test.describe.serial('Run Conflict (Same-Integration Restart) Tests', {
     }, async () => {
-        initTest();
+        initTest(true, true, undefined, undefined, PROJECT_TEMPLATE);
 
         test.afterAll(async () => {
+            logStep('run-conflict: cleaning up runs and notifications');
             // Dismiss any notification/quickpick a failed test may have left open.
             await page.page.keyboard.press('Escape').catch(() => undefined);
             // Stop the long-running automation so it does not leak into
@@ -75,27 +77,12 @@ export default function createTests() {
             await toggleNotifications(true);
         });
 
-        test('Create long-running automation', async () => {
-            await addArtifact('Automation', 'automation');
-
-            const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
-            if (!artifactWebView) {
-                throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
-            }
-            await artifactWebView.getByRole('button', { name: 'Create' }).click();
-            const diagramCanvas = artifactWebView.locator('#bi-diagram-canvas');
-            await diagramCanvas.waitFor({ state: 'visible', timeout: 30000 });
-
-            // Replace the generated main with a long-running one so a second
-            // Run always hits the conflict path.
-            FileUtils.updateProjectFile('automation.bal', LONG_RUNNING_AUTOMATION);
-            await page.page.waitForTimeout(1000);
-
-            // Conflict prompt is a notification; make sure DND is off so it renders.
-            await toggleNotifications(false);
-        });
-
         test('Start first run', async () => {
+            logStep('Disabling Do Not Disturb so prompts render');
+            // Conflict prompts are notifications; DND must be off to see them.
+            await toggleNotifications(false);
+
+            logStep('Locating automation entry point in explorer');
             const projectExplorer = new ProjectExplorer(page.page);
             const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
 
@@ -103,57 +90,68 @@ export default function createTests() {
             await FileUtils.openProjectFileInEditor('automation.bal');
             await mainEntryPoint.click();
 
+            logStep('Clicking Run Integration (first run)');
             await clickRunButton();
 
-            const runningLocator = page.page.locator('.xterm-screen', { hasText: 'run-conflict automation started' }).first();
-            await runningLocator.waitFor({ timeout: 60000 });
+            logStep('Waiting for run output marker');
+            await runningMarker().waitFor({ timeout: 60000 });
+            logStep('First run is alive');
         });
 
         test('Second run shows conflict prompt', async () => {
+            logStep('Clicking Run Integration while a run is active');
             await clickRunButton();
 
+            logStep('Waiting for the restart prompt');
             const notification = conflictNotification();
             await notification.waitFor({ timeout: 15000 });
 
             // Both choices must be offered.
             await notification.getByRole('button', { name: 'Yes', exact: true }).waitFor({ timeout: 5000 });
             await notification.getByRole('button', { name: 'No', exact: true }).waitFor({ timeout: 5000 });
+            logStep('Restart prompt visible with Yes/No');
         });
 
         test('Decline keeps the current run', async () => {
+            logStep('Declining the restart prompt');
             const notification = conflictNotification();
             await notification.getByRole('button', { name: 'No', exact: true }).click();
             await notification.waitFor({ state: 'detached', timeout: 10000 });
 
+            logStep('Verifying the original run is untouched');
             // The original process must still be alive: its output is still on
             // screen and no termination message has appeared.
-            const runningLocator = page.page.locator('.xterm-screen', { hasText: 'run-conflict automation started' }).first();
-            await runningLocator.waitFor({ timeout: 10000 });
+            await runningMarker().waitFor({ timeout: 10000 });
 
             // The cancelled session must not leave an error notification behind.
             const errorNotification = page.page.locator('.notification-toast-container', { hasText: /Failed to run/i });
             if (await errorNotification.isVisible({ timeout: 2000 }).catch(() => false)) {
                 throw new Error('Cancelled launch produced an error notification');
             }
+            logStep('Decline path verified');
         });
 
         test('Accept stops old run and starts new run', async () => {
+            logStep('Clicking Run Integration again');
             await clickRunButton();
 
+            logStep('Accepting the restart prompt');
             const notification = conflictNotification();
             await notification.waitFor({ timeout: 15000 });
             await notification.getByRole('button', { name: 'Yes', exact: true }).click();
 
-            // The new task must reach a fresh "Compiling source" → "Running
-            // executable" cycle. The old task's terminal is replaced, so waiting
-            // for a fresh start marker is sufficient.
+            logStep('Waiting for a fresh compile/run cycle');
+            // The new task must reach a fresh "Compiling source" → run-output
+            // cycle. The old task's terminal is replaced, so waiting for a
+            // fresh start marker is sufficient.
             const compiling = page.page.locator('.xterm-screen', { hasText: 'Compiling source' }).first();
             await compiling.waitFor({ timeout: 60000 });
-            const restarted = page.page.locator('.xterm-screen', { hasText: 'run-conflict automation started' }).first();
-            await restarted.waitFor({ timeout: 60000 });
+            await runningMarker().waitFor({ timeout: 60000 });
+            logStep('Restart (accept) path verified');
         });
 
         test('Exactly one instance runs after restart', async () => {
+            logStep('Clicking Run to confirm a single active instance');
             // A further Run click must prompt again — proving the previous
             // accept path left exactly one active instance of this integration.
             await clickRunButton();
@@ -162,19 +160,23 @@ export default function createTests() {
             await notification.waitFor({ timeout: 15000 });
             await notification.getByRole('button', { name: 'No', exact: true }).click();
             await notification.waitFor({ state: 'detached', timeout: 10000 });
+            logStep('Single-instance invariant verified');
         });
 
         test('Rapid double Run shows at most one prompt', async () => {
+            logStep('Clearing leftover notifications');
             // Clear any lingering notification from the previous test first.
             await page.page.keyboard.press('Escape').catch(() => undefined);
             await page.page.waitForTimeout(500);
 
+            logStep('Clicking Run twice in quick succession');
             // Two quick launches of the same integration must not stack two
             // conflict prompts — the duplicate launch is cancelled quietly
             // (in-flight guard dedup in integration-runner-state).
             await clickRunButton();
             await clickRunButton();
 
+            logStep('Waiting for the (single) restart prompt');
             const notification = conflictNotification();
             await notification.waitFor({ timeout: 20000 });
             await page.page.waitForTimeout(1500);
@@ -187,12 +189,14 @@ export default function createTests() {
             await notification.getByRole('button', { name: 'No', exact: true }).click();
             await notification.waitFor({ state: 'detached', timeout: 10000 });
 
+            logStep('Verifying the original run survived the double click');
             // The original run must still be alive.
-            const runningLocator = page.page.locator('.xterm-screen', { hasText: 'run-conflict automation started' }).first();
-            await runningLocator.waitFor({ timeout: 10000 });
+            await runningMarker().waitFor({ timeout: 10000 });
+            logStep('Rapid double Run verified');
         });
 
         test('Run right after stopping does not claim already running', async () => {
+            logStep('Stopping the running integration via debug toolbar');
             // product-integrator#1690: stopping kills the debug session, but the
             // bal process takes a moment to exit. Running again in that window
             // must NOT show the "already running" prompt — the guard silently
@@ -201,6 +205,7 @@ export default function createTests() {
             await stopButton.waitFor({ timeout: 10000 });
             await stopButton.click();
 
+            logStep('Re-running immediately, before the process exits');
             // Immediately re-run, without waiting for the process to exit.
             await clickRunButton();
 
@@ -208,11 +213,12 @@ export default function createTests() {
                 throw new Error('"Already running" prompt appeared for a stopped integration (#1690)');
             }
 
+            logStep('Waiting for the fresh run to start');
             // A fresh run must start.
             const compiling = page.page.locator('.xterm-screen', { hasText: 'Compiling source' }).first();
             await compiling.waitFor({ timeout: 60000 });
-            const restarted = page.page.locator('.xterm-screen', { hasText: 'run-conflict automation started' }).first();
-            await restarted.waitFor({ timeout: 60000 });
+            await runningMarker().waitFor({ timeout: 60000 });
+            logStep('Stop-then-rerun (#1690) verified');
         });
     });
 }

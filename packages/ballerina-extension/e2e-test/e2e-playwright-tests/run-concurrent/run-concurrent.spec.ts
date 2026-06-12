@@ -17,7 +17,7 @@
  */
 import { test } from '@playwright/test';
 import * as path from 'path';
-import { initTest, page, toggleNotifications } from '../utils/helpers';
+import { initTest, logStep, page, toggleNotifications } from '../utils/helpers';
 import { ProjectExplorer } from '../utils/pages';
 
 const RUN_BUTTON_SELECTOR = 'ul.actions-container[role="toolbar"] li.action-item a[role="button"][aria-label="Run Integration"]';
@@ -34,6 +34,7 @@ const BETA = 'beta_runner';
 // project (and the Run target) changes only when the package overview is
 // opened via the node's inline "Open Overview" action.
 async function openIntegration(name: string) {
+    logStep(`Opening overview of integration '${name}'`);
     const projectExplorer = new ProjectExplorer(page.page);
     const node = await projectExplorer.findItem([name]);
     await node!.hover();
@@ -46,6 +47,7 @@ async function openIntegration(name: string) {
 }
 
 async function clickRunButton(integrationName?: string) {
+    logStep(`Clicking Run Integration${integrationName ? ` (target: ${integrationName})` : ''}`);
     const runButton = page.page.locator(RUN_BUTTON_SELECTOR).first();
     await runButton.waitFor({ timeout: 10000 });
     await runButton.click();
@@ -61,10 +63,13 @@ async function clickRunButton(integrationName?: string) {
             .then(() => true)
             .catch(() => false);
         if (pickerVisible) {
+            logStep(`Answering integration picker with '${integrationName}'`);
             await page.page.keyboard.type(integrationName);
             await page.page.waitForTimeout(500);
             await page.page.keyboard.press('Enter');
             await picker.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => undefined);
+        } else {
+            logStep('No integration picker shown (focused project run)');
         }
     }
 }
@@ -111,7 +116,9 @@ export default function createTests() {
 
             await openIntegration(ALPHA);
             await clickRunButton(ALPHA);
+            logStep('Waiting for alpha_runner output');
             await terminalWithText(`${ALPHA} started`).waitFor({ timeout: 60000 });
+            logStep('alpha_runner is running');
         });
 
         test('Run second integration concurrently without prompts', async () => {
@@ -128,37 +135,45 @@ export default function createTests() {
                 throw new Error('Restart prompt appeared for a DIFFERENT integration — runs are not concurrent');
             }
 
+            logStep('No prompts shown; waiting for beta_runner output');
             await terminalWithText(`${BETA} started`).waitFor({ timeout: 60000 });
+            logStep('beta_runner is running concurrently');
         });
 
         test('Both integrations keep running in separate terminals', async () => {
             // With two task terminals the terminal tabs list is visible; one
             // dedicated terminal per integration ("Ballerina Run - <package>").
+            logStep('Verifying both task terminals exist');
             const alphaTab = page.page.locator('.terminal-tabs-entry', { hasText: ALPHA }).first();
             const betaTab = page.page.locator('.terminal-tabs-entry', { hasText: BETA }).first();
             await alphaTab.waitFor({ timeout: 15000 });
             await betaTab.waitFor({ timeout: 15000 });
 
+            logStep('Switching to alpha terminal to verify intact output');
             // Switching back to the first run shows its output untouched —
             // starting the second integration did not kill or steal it.
             await alphaTab.click();
             await terminalWithText(`${ALPHA} started`).waitFor({ timeout: 10000 });
+            logStep('Both integrations confirmed alive in dedicated terminals');
         });
 
         test('Re-running the same integration prompts restart', async () => {
             await openIntegration(BETA);
             await clickRunButton(BETA);
 
+            logStep('Waiting for the same-integration restart prompt');
             const notification = restartNotification();
             await notification.waitFor({ timeout: 15000 });
             await notification.getByRole('button', { name: 'No', exact: true }).click();
             await notification.waitFor({ state: 'detached', timeout: 10000 });
 
+            logStep('Verifying both integrations survived the declined restart');
             // Declining must leave both integrations running.
             const alphaTab = page.page.locator('.terminal-tabs-entry', { hasText: ALPHA }).first();
             const betaTab = page.page.locator('.terminal-tabs-entry', { hasText: BETA }).first();
             await alphaTab.waitFor({ timeout: 10000 });
             await betaTab.waitFor({ timeout: 10000 });
+            logStep('Same-integration restart prompt verified');
         });
     });
 }
