@@ -422,10 +422,10 @@ const AIChat: React.FC = () => {
         const hours = Math.floor((seconds % 86400) / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
         const parts: string[] = [];
-        if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
-        if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-        if (mins > 0) parts.push(`${mins} minute${mins > 1 ? 's' : ''}`);
-        return parts.length > 0 ? parts.join(', ') : 'less than a minute';
+        if (days > 0) parts.push(`${days}d`);
+        if (hours > 0) parts.push(`${hours}h`);
+        if (mins > 0) parts.push(`${mins}m`);
+        return parts.length > 0 ? parts.join(' ') : 'less than a minute';
     };
 
     const fetchUsage = async () => {
@@ -1839,19 +1839,16 @@ const AIChat: React.FC = () => {
                                     <Tooltip content="Subject to fair usage policy.">
                                         <UsageBadge>Unlimited</UsageBadge>
                                     </Tooltip>
+                                ) : !usage ? (
+                                    <UsageBadge>N/A</UsageBadge>
                                 ) : isUsageExceeded ? (
-                                    <Tooltip content={`Usage limit reached. To request additional quota, contact ${QUOTA_CONTACT_EMAIL}.`}>
+                                    <Tooltip content={`Usage limit reached · resets in ${formatResetsInExact(usage.resetsIn)}`}>
                                         <UsageBadge>Exceeded</UsageBadge>
                                     </Tooltip>
                                 ) : (
-                                    <UsageBadge>
-                                        {!usage ? "N/A" : `${Math.round(usage.remainingUsagePercentage)}%`}
-                                    </UsageBadge>
-                                )}
-                                {usage && usage.resetsIn !== -1 && (
-                                    <span style={{ fontSize: 10, opacity: 0.7 }} title={formatResetsInExact(usage.resetsIn)}>
-                                        Resets in: {formatResetsIn(usage.resetsIn)}
-                                    </span>
+                                    <Tooltip content={`Resets in ${formatResetsInExact(usage.resetsIn)}`}>
+                                        <UsageBadge>{`${Math.round(usage.remainingUsagePercentage)}%`}</UsageBadge>
+                                    </Tooltip>
                                 )}
                             </AuthProviderChip>
                         )}
