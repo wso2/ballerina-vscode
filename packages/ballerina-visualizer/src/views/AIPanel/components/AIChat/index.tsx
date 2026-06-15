@@ -1840,13 +1840,9 @@ const AIChat: React.FC = () => {
                                     </Tooltip>
                                 ) : !usage ? (
                                     <UsageBadge>N/A</UsageBadge>
-                                ) : isUsageExceeded ? (
-                                    <Tooltip content={`Usage limit reached · resets in ${formatResetsInExact(usage.resetsIn)}`}>
-                                        <UsageBadge>Exceeded</UsageBadge>
-                                    </Tooltip>
                                 ) : (
                                     <Tooltip content={`Resets in ${formatResetsInExact(usage.resetsIn)}`}>
-                                        <UsageBadge>{`${Math.round(usage.remainingUsagePercentage)}%`}</UsageBadge>
+                                        <UsageBadge>{isUsageExceeded ? "0%" : `${Math.round(usage.remainingUsagePercentage)}%`}</UsageBadge>
                                     </Tooltip>
                                 )}
                             </AuthProviderChip>
