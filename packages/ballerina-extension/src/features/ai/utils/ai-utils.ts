@@ -38,6 +38,7 @@ import {
 } from "@wso2/ballerina-core";
 import { ModelMessage } from "ai";
 import { MessageRole } from "./ai-types";
+import { USAGE_LIMIT_EXCEEDED_MESSAGE } from "./ai-client";
 import { RPCLayer } from "../../../RPCLayer";
 import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import { MigrationPanelWebview } from "../../../views/migration-panel/webview";
@@ -370,7 +371,7 @@ export function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
         // Standard Error objects have a .message property
         if (error.name === "UsageLimitError") {
-            return "Usage limit exceeded.";
+            return USAGE_LIMIT_EXCEEDED_MESSAGE;
         }
         if (error.name === "AI_RetryError") {
             return "An error occurred connecting with the AI service. Please try again later.";
@@ -408,7 +409,7 @@ export function getErrorMessage(error: unknown): string {
     ) {
         // Check if it has a statusCode property indicating 429
         if ("statusCode" in error && (error as any).statusCode === 429) {
-            return "Usage limit exceeded.";
+            return USAGE_LIMIT_EXCEEDED_MESSAGE;
         }
         return (error as { message: string }).message;
     }

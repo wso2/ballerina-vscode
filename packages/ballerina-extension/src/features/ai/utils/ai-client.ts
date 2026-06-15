@@ -27,6 +27,11 @@ import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets } 
 export const ANTHROPIC_HAIKU = "claude-haiku-4-5-20251001";
 export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-6";
 
+// Contact for requesting more Copilot quota once the usage limit is reached.
+export const QUOTA_REQUEST_CONTACT_EMAIL = "integration-platform-help@wso2.com";
+export const USAGE_LIMIT_EXCEEDED_MESSAGE =
+    `Usage limit exceeded. To request additional quota, contact ${QUOTA_REQUEST_CONTACT_EMAIL}.`;
+
 type AnthropicModel =
     | typeof ANTHROPIC_HAIKU
     | typeof ANTHROPIC_SONNET_4;
@@ -135,7 +140,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         // Handle usage limit exceeded
         if (response.status === 429) {
             console.log("Usage limit exceeded (429)");
-            const error = new Error("Usage limit exceeded.");
+            const error = new Error(USAGE_LIMIT_EXCEEDED_MESSAGE);
             error.name = "UsageLimitError";
             (error as any).statusCode = 429;
             throw error;

@@ -97,6 +97,7 @@ const NO_DRIFT_FOUND = "No drift identified between the code and the documentati
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
 
 const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
+const QUOTA_CONTACT_EMAIL = "integration-platform-help@wso2.com";
 
 //TODO: Add better error handling from backend. stream error type and non 200 status codes
 
@@ -132,6 +133,20 @@ const CompactionNotice: React.FC<{ children: React.ReactNode }> = ({ children })
         {children}
     </CompactionNoticeContainer>
 );
+
+const UsageLimitNoticeContainer = styled.div`
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: var(--vscode-inputValidation-warningBackground, var(--vscode-textCodeBlock-background));
+    border: 1px solid var(--vscode-inputValidation-warningBorder, var(--vscode-panel-border));
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 6px 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--vscode-foreground);
+`;
 
 // ── Agent stream serialization ────────────────────────────────────────────────
 
@@ -1791,11 +1806,13 @@ const AIChat: React.FC = () => {
                                     <Tooltip content="Subject to fair usage policy.">
                                         <UsageBadge>Unlimited</UsageBadge>
                                     </Tooltip>
+                                ) : isUsageExceeded ? (
+                                    <Tooltip content={`Usage limit reached. To request additional quota, contact ${QUOTA_CONTACT_EMAIL}.`}>
+                                        <UsageBadge>Exceeded</UsageBadge>
+                                    </Tooltip>
                                 ) : (
                                     <UsageBadge>
-                                        {!usage ? "N/A"
-                                            : isUsageExceeded ? "Exceeded"
-                                            : `${Math.round(usage.remainingUsagePercentage)}%`}
+                                        {!usage ? "N/A" : `${Math.round(usage.remainingUsagePercentage)}%`}
                                     </UsageBadge>
                                 )}
                                 {usage && usage.resetsIn !== -1 && (
@@ -2164,6 +2181,17 @@ const AIChat: React.FC = () => {
                         })()}
                         <div ref={messagesEndRef} />
                     </main>
+                    {isUsageExceeded && (
+                        <UsageLimitNoticeContainer>
+                            <span className="codicon codicon-warning" role="img" style={{ marginTop: 1 }} />
+                            <span>
+                                You've reached your Integrator Copilot usage limit
+                                {usage && usage.resetsIn !== -1 ? `, which resets in ${formatResetsIn(usage.resetsIn)}` : ""}.
+                                {" "}Email{" "}
+                                <strong>{QUOTA_CONTACT_EMAIL}</strong>{" "}to request additional quota.
+                            </span>
+                        </UsageLimitNoticeContainer>
+                    )}
                     {(() => {
                         const lastAssistantMsg = [...otherMessages].reverse().find(m => m.role === "Copilot");
                         const lastStream = lastAssistantMsg ? parseStream(lastAssistantMsg.content) : [];
