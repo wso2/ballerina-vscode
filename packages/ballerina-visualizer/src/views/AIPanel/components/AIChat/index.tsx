@@ -1166,6 +1166,8 @@ const AIChat: React.FC = () => {
             } else if (error?.name === "UsageLimitError" || error?.statusCode === 429) {
                 setIsUsageExceeded(true);
                 fetchUsage();
+                isErrorChunkReceivedRef.current = true;
+                activeScaffoldKeyRef.current = null;
             } else {
                 updateLastMessage((lastContent) => {
                     if (error && "message" in error) {
