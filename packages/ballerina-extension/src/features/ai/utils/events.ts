@@ -134,7 +134,7 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendContentReplaceNotification(event.content);
                 break;
             case "error":
-                sendErrorNotification(event.content);
+                sendErrorNotification(event);
                 break;
             case "stop":
                 sendMessageStopNotification(command);

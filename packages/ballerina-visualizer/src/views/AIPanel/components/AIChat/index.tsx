@@ -138,14 +138,33 @@ const UsageLimitNoticeContainer = styled.div`
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    background: var(--vscode-inputValidation-warningBackground, var(--vscode-textCodeBlock-background));
+    margin: 8px 20px 0;
+    padding: 8px 10px;
     border: 1px solid var(--vscode-inputValidation-warningBorder, var(--vscode-panel-border));
-    border-radius: 4px;
-    padding: 8px 12px;
-    margin: 6px 0;
+    border-radius: 6px;
+    background: var(--vscode-inputValidation-warningBackground, var(--vscode-textCodeBlock-background));
+    color: var(--vscode-foreground);
     font-size: 12px;
     line-height: 1.5;
-    color: var(--vscode-foreground);
+
+    .codicon {
+        flex-shrink: 0;
+        font-size: 14px;
+        line-height: 18px;
+        color: var(--vscode-inputValidation-warningForeground, var(--vscode-charts-yellow, var(--vscode-foreground)));
+    }
+
+    a {
+        color: var(--vscode-textLink-foreground);
+        font-weight: 600;
+        word-break: break-all;
+        text-decoration: none;
+
+        &:hover {
+            color: var(--vscode-textLink-activeForeground);
+            text-decoration: underline;
+        }
+    }
 `;
 
 // ── Agent stream serialization ────────────────────────────────────────────────
@@ -1017,6 +1036,17 @@ const AIChat: React.FC = () => {
         } else if (type === "error") {
             console.log("Received error signal");
             const errorContent = response.content;
+
+            if (response.code === "usage_limit") {
+                setIsUsageExceeded(true);
+                fetchUsage();
+                setIsCompacting(false);
+                setIsCodeLoading(false);
+                setIsLoading(false);
+                isErrorChunkReceivedRef.current = true;
+                return;
+            }
+
             const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${errorContent}</error>`;
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
@@ -1134,6 +1164,9 @@ const AIChat: React.FC = () => {
                 updateLastMessage((lastContent) =>
                     lastContent + `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">Generation stopped by the user</error>`
                 );
+            } else if (error?.name === "UsageLimitError" || error?.statusCode === 429) {
+                setIsUsageExceeded(true);
+                fetchUsage();
             } else {
                 updateLastMessage((lastContent) => {
                     if (error && "message" in error) {
@@ -2183,12 +2216,11 @@ const AIChat: React.FC = () => {
                     </main>
                     {isUsageExceeded && (
                         <UsageLimitNoticeContainer>
-                            <span className="codicon codicon-warning" role="img" style={{ marginTop: 1 }} />
+                            <span className="codicon codicon-warning" role="img" aria-hidden="true" />
                             <span>
                                 You've reached your Integrator Copilot usage limit
                                 {usage && usage.resetsIn !== -1 ? `, which resets in ${formatResetsIn(usage.resetsIn)}` : ""}.
-                                {" "}Email{" "}
-                                <strong>{QUOTA_CONTACT_EMAIL}</strong>{" "}to request additional quota.
+                                {" "}Email <a href={`mailto:${QUOTA_CONTACT_EMAIL}`}>{QUOTA_CONTACT_EMAIL}</a> to request additional quota.
                             </span>
                         </UsageLimitNoticeContainer>
                     )}

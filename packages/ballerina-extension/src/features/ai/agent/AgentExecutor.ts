@@ -21,7 +21,7 @@ import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, Sem
 import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, addCacheControlToMessages, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
-import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
+import { populateHistoryForAgent, getErrorMessage, buildChatError } from '../utils/ai-utils';
 import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
 import { prepareAgentsMdForTurn } from './agents-md';
@@ -613,10 +613,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 this.config.abortController.abort();
             }
 
-            this.config.eventHandler({
-                type: "error",
-                content: getErrorMessage(error)
-            });
+            this.config.eventHandler(buildChatError(error));
 
             // For other errors, return result with error
             return {
@@ -736,11 +733,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             });
             updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
         }
-
-        context.eventHandler({
-            type: "error",
-            content: getErrorMessage(error)
-        });
     }
 
     /**

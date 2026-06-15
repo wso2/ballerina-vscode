@@ -403,9 +403,12 @@ export interface SaveChat {
     messageId: string;
 }
 
+export type ChatErrorCode = "usage_limit";
+
 export interface ChatError {
     type: "error";
     content: string;
+    code?: ChatErrorCode;
 }
 
 export interface ToolCall {
