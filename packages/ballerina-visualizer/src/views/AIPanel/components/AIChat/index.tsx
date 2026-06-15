@@ -1129,19 +1129,18 @@ const AIChat: React.FC = () => {
     }, [isReqFileExists]);
 
     useEffect(() => {
-        // Step 2: Scroll into view when messages state changes or review bar appears
-        // Use a small delay when the review bar just appeared to let the DOM settle
-        const doScroll = () => {
-            if (messagesEndRef.current) {
-                messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
-            }
+        const scrollToEnd = (behavior: ScrollBehavior) => {
+            messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
         };
-        if (hasActiveReview) {
-            setTimeout(doScroll, 50);
-        } else {
-            doScroll();
+        scrollToEnd("smooth");
+        // Once the turn settles the layout keeps growing (review/restore bar,
+        // markdown + code highlighting), so smooth-scroll lands on a stale
+        // bottom — snap to the true end after that late growth.
+        if (!isLoading && !isCodeLoading) {
+            const t = setTimeout(() => scrollToEnd("auto"), 120);
+            return () => clearTimeout(t);
         }
-    }, [messages, hasActiveReview]);
+    }, [messages, hasActiveReview, isLoading, isCodeLoading]);
 
     async function handleSendQuery(content: {
         input: Input[];
