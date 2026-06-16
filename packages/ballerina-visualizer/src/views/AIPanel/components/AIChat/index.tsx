@@ -97,7 +97,8 @@ const NO_DRIFT_FOUND = "No drift identified between the code and the documentati
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
 
 const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
-const QUOTA_CONTACT_EMAIL = "integration-platform-help@wso2.com";
+// TODO: replace with the quota request portal once it is available.
+const QUOTA_CONTACT_EMAIL = "devant-help@wso2.com";
 
 //TODO: Add better error handling from backend. stream error type and non 200 status codes
 
