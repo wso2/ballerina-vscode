@@ -16,7 +16,7 @@
 
 import { generateText } from "ai";
 import { getEnhancerSystemPrompt, getGeneratorSystemPrompt } from "./prompts";
-import { ANTHROPIC_HAIKU, getAnthropicClient, QUOTA_REQUEST_CONTACT_EMAIL } from "../../utils/ai-client";
+import { ANTHROPIC_HAIKU, getAnthropicClient } from "../../utils/ai-client";
 import { PromptMode, AIMachineEventType } from "@wso2/ballerina-core";
 import { window } from "vscode";
 import { AIStateMachine } from "../../../../views/ai-panel/aiMachine";
@@ -70,10 +70,9 @@ export async function enhancePrompt(
         // Handle specific error types
         if (error.name === "UsageLimitError" || error.statusCode === 429 ||
             error.statusCode === 400 && error.message?.includes("usage limit")) {
-            const baseMsg = error.message?.match(/You .+UTC\./)
+            const errorMsg = error.message?.match(/You .+UTC\./)
                 ? error.message.match(/You .+UTC\./)[0]
                 : "Usage limit exceeded. Please try again later or set your own API key.";
-            const errorMsg = `${baseMsg} To request additional quota, contact ${QUOTA_REQUEST_CONTACT_EMAIL}.`;
             window.showErrorMessage(errorMsg);
             throw new Error(errorMsg);
         }
