@@ -1835,7 +1835,7 @@ const AIChat: React.FC = () => {
                             </AuthProviderChip>
                         ) : (
                             <AuthProviderChip>
-                                Remaining Usage:
+                                Usage:
                                 {usage?.resetsIn === -1 ? (
                                     <Tooltip content="Subject to fair usage policy.">
                                         <UsageBadge>Unlimited</UsageBadge>
@@ -1844,7 +1844,7 @@ const AIChat: React.FC = () => {
                                     <UsageBadge>N/A</UsageBadge>
                                 ) : (
                                     <Tooltip content={`Resets in ${formatResetsInExact(usage.resetsIn)}`}>
-                                        <UsageBadge>{isUsageExceeded ? "0%" : `${Math.round(usage.remainingUsagePercentage)}%`}</UsageBadge>
+                                        <UsageBadge>{isUsageExceeded ? "100%" : `${Math.round(100 - usage.remainingUsagePercentage)}%`}</UsageBadge>
                                     </Tooltip>
                                 )}
                             </AuthProviderChip>
