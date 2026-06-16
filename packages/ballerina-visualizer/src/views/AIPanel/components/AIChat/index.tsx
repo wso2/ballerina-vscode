@@ -97,8 +97,6 @@ const NO_DRIFT_FOUND = "No drift identified between the code and the documentati
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
 
 const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
-// TODO: replace with the quota request portal once it is available.
-const QUOTA_CONTACT_EMAIL = "devant-help@wso2.com";
 
 //TODO: Add better error handling from backend. stream error type and non 200 status codes
 
@@ -2215,7 +2213,7 @@ const AIChat: React.FC = () => {
                             <span>
                                 You've reached your Integrator Copilot usage limit
                                 {usage && usage.resetsIn !== -1 ? `, which resets in ${formatResetsIn(usage.resetsIn)}` : ""}.
-                                {" "}Email <a href={`mailto:${QUOTA_CONTACT_EMAIL}`}>{QUOTA_CONTACT_EMAIL}</a> to request additional quota.
+                                {/* TODO: add a quota request portal link here once available. */}
                             </span>
                         </UsageLimitNoticeContainer>
                     )}
