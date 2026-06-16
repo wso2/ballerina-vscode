@@ -97,7 +97,8 @@ const NO_DRIFT_FOUND = "No drift identified between the code and the documentati
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
 
 const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
-const QUOTA_CONTACT_EMAIL = "integration-platform-help@wso2.com";
+// TODO: replace with the quota request portal once it is available.
+const QUOTA_CONTACT_EMAIL = "devant-help@wso2.com";
 
 //TODO: Add better error handling from backend. stream error type and non 200 status codes
 
@@ -138,14 +139,33 @@ const UsageLimitNoticeContainer = styled.div`
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    background: var(--vscode-inputValidation-warningBackground, var(--vscode-textCodeBlock-background));
+    margin: 8px 20px 0;
+    padding: 8px 10px;
     border: 1px solid var(--vscode-inputValidation-warningBorder, var(--vscode-panel-border));
-    border-radius: 4px;
-    padding: 8px 12px;
-    margin: 6px 0;
+    border-radius: 6px;
+    background: var(--vscode-inputValidation-warningBackground, var(--vscode-textCodeBlock-background));
+    color: var(--vscode-foreground);
     font-size: 12px;
     line-height: 1.5;
-    color: var(--vscode-foreground);
+
+    .codicon {
+        flex-shrink: 0;
+        font-size: 14px;
+        line-height: 18px;
+        color: var(--vscode-inputValidation-warningForeground, var(--vscode-charts-yellow, var(--vscode-foreground)));
+    }
+
+    a {
+        color: var(--vscode-textLink-foreground);
+        font-weight: 600;
+        word-break: break-all;
+        text-decoration: none;
+
+        &:hover {
+            color: var(--vscode-textLink-activeForeground);
+            text-decoration: underline;
+        }
+    }
 `;
 
 // ── Agent stream serialization ────────────────────────────────────────────────
@@ -403,10 +423,10 @@ const AIChat: React.FC = () => {
         const hours = Math.floor((seconds % 86400) / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
         const parts: string[] = [];
-        if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
-        if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-        if (mins > 0) parts.push(`${mins} minute${mins > 1 ? 's' : ''}`);
-        return parts.length > 0 ? parts.join(', ') : 'less than a minute';
+        if (days > 0) parts.push(`${days}d`);
+        if (hours > 0) parts.push(`${hours}h`);
+        if (mins > 0) parts.push(`${mins}m`);
+        return parts.length > 0 ? parts.join(' ') : 'less than a minute';
     };
 
     const fetchUsage = async () => {
@@ -1017,6 +1037,17 @@ const AIChat: React.FC = () => {
         } else if (type === "error") {
             console.log("Received error signal");
             const errorContent = response.content;
+
+            if (response.code === "usage_limit") {
+                setIsUsageExceeded(true);
+                fetchUsage();
+                setIsCompacting(false);
+                setIsCodeLoading(false);
+                setIsLoading(false);
+                isErrorChunkReceivedRef.current = true;
+                return;
+            }
+
             const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${errorContent}</error>`;
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
@@ -1099,19 +1130,18 @@ const AIChat: React.FC = () => {
     }, [isReqFileExists]);
 
     useEffect(() => {
-        // Step 2: Scroll into view when messages state changes or review bar appears
-        // Use a small delay when the review bar just appeared to let the DOM settle
-        const doScroll = () => {
-            if (messagesEndRef.current) {
-                messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
-            }
+        const scrollToEnd = (behavior: ScrollBehavior) => {
+            messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
         };
-        if (hasActiveReview) {
-            setTimeout(doScroll, 50);
-        } else {
-            doScroll();
+        scrollToEnd("smooth");
+        // Once the turn settles the layout keeps growing (review/restore bar,
+        // markdown + code highlighting), so smooth-scroll lands on a stale
+        // bottom — snap to the true end after that late growth.
+        if (!isLoading && !isCodeLoading) {
+            const t = setTimeout(() => scrollToEnd("auto"), 120);
+            return () => clearTimeout(t);
         }
-    }, [messages, hasActiveReview]);
+    }, [messages, hasActiveReview, isLoading, isCodeLoading]);
 
     async function handleSendQuery(content: {
         input: Input[];
@@ -1134,6 +1164,11 @@ const AIChat: React.FC = () => {
                 updateLastMessage((lastContent) =>
                     lastContent + `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">Generation stopped by the user</error>`
                 );
+            } else if (error?.name === "UsageLimitError" || error?.statusCode === 429) {
+                setIsUsageExceeded(true);
+                fetchUsage();
+                isErrorChunkReceivedRef.current = true;
+                activeScaffoldKeyRef.current = null;
             } else {
                 updateLastMessage((lastContent) => {
                     if (error && "message" in error) {
@@ -1801,24 +1836,17 @@ const AIChat: React.FC = () => {
                             </AuthProviderChip>
                         ) : (
                             <AuthProviderChip>
-                                Remaining Usage:
+                                Usage:
                                 {usage?.resetsIn === -1 ? (
                                     <Tooltip content="Subject to fair usage policy.">
                                         <UsageBadge>Unlimited</UsageBadge>
                                     </Tooltip>
-                                ) : isUsageExceeded ? (
-                                    <Tooltip content={`Usage limit reached. To request additional quota, contact ${QUOTA_CONTACT_EMAIL}.`}>
-                                        <UsageBadge>Exceeded</UsageBadge>
-                                    </Tooltip>
+                                ) : !usage ? (
+                                    <UsageBadge>N/A</UsageBadge>
                                 ) : (
-                                    <UsageBadge>
-                                        {!usage ? "N/A" : `${Math.round(usage.remainingUsagePercentage)}%`}
-                                    </UsageBadge>
-                                )}
-                                {usage && usage.resetsIn !== -1 && (
-                                    <span style={{ fontSize: 10, opacity: 0.7 }} title={formatResetsInExact(usage.resetsIn)}>
-                                        Resets in: {formatResetsIn(usage.resetsIn)}
-                                    </span>
+                                    <Tooltip content={`Resets in ${formatResetsInExact(usage.resetsIn)}`}>
+                                        <UsageBadge>{isUsageExceeded ? "100%" : `${Math.round(100 - usage.remainingUsagePercentage)}%`}</UsageBadge>
+                                    </Tooltip>
                                 )}
                             </AuthProviderChip>
                         )}
@@ -2183,12 +2211,11 @@ const AIChat: React.FC = () => {
                     </main>
                     {isUsageExceeded && (
                         <UsageLimitNoticeContainer>
-                            <span className="codicon codicon-warning" role="img" style={{ marginTop: 1 }} />
+                            <span className="codicon codicon-warning" role="img" aria-hidden="true" />
                             <span>
                                 You've reached your Integrator Copilot usage limit
                                 {usage && usage.resetsIn !== -1 ? `, which resets in ${formatResetsIn(usage.resetsIn)}` : ""}.
-                                {" "}Email{" "}
-                                <strong>{QUOTA_CONTACT_EMAIL}</strong>{" "}to request additional quota.
+                                {" "}Email <a href={`mailto:${QUOTA_CONTACT_EMAIL}`}>{QUOTA_CONTACT_EMAIL}</a> to request additional quota.
                             </span>
                         </UsageLimitNoticeContainer>
                     )}

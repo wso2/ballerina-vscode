@@ -17,6 +17,7 @@
 import {
     ChatEntry,
     ChatError,
+    ChatErrorCode,
     ChatNotify,
     ChatStart,
     DiagnosticEntry,
@@ -212,12 +213,8 @@ export function sendMessageStopNotification(command: Command): void {
     sendAIPanelNotification(msg);
 }
 
-export function sendErrorNotification(errorMessage: string): void {
-    const msg: ChatError = {
-        type: "error",
-        content: errorMessage,
-    };
-    sendAIPanelNotification(msg);
+export function sendErrorNotification(error: ChatError): void {
+    sendAIPanelNotification(error);
 }
 
 export function sendMessageStartNotification(): void {
@@ -419,6 +416,29 @@ export function getErrorMessage(error: unknown): string {
     } catch {
         return String(error);
     }
+}
+
+export function getErrorCode(error: unknown): ChatErrorCode | undefined {
+    if (
+        typeof error === "object" &&
+        error !== null &&
+        ((error as any).name === "UsageLimitError" || (error as any).statusCode === 429)
+    ) {
+        return "usage_limit";
+    }
+    return undefined;
+}
+
+/**
+ * Build a ChatError event from a thrown value, tagging it with a code so the
+ * frontend can route it (e.g. usage_limit -> persistent banner, not inline box).
+ */
+export function buildChatError(error: unknown): ChatError {
+    return {
+        type: "error",
+        content: getErrorMessage(error),
+        code: getErrorCode(error),
+    };
 }
 
 export function isHttpPayloadContext(context: PayloadContext): context is HttpPayloadContext {

@@ -28,7 +28,7 @@ import { DataMapperModelResponse, DMModel, Mapping, repairCodeRequest, SourceFil
 import { getDataMappingPrompt } from "./prompts/mapping-prompt";
 import { getBallerinaCodeRepairPrompt } from "./prompts/repair-prompt";
 import { CopilotEventHandler, createWebviewEventHandler, updateAndSaveChat } from "../utils/events";
-import { getErrorMessage } from "../utils/ai-utils";
+import { getErrorMessage, buildChatError } from "../utils/ai-utils";
 import { generateTypesFromContext } from "./utils/types-generation";
 import { generateDataMapperModel } from "./utils/model";
 import { BiDiagramRpcManager } from "../../../rpc-managers/bi-diagram/rpc-manager";
@@ -325,7 +325,7 @@ export async function generateContextTypesCore(
                 content: `Integration failed: ${getErrorMessage(error)}\n\nPlease check file permissions and try again.`
             });
         } else {
-            eventHandler({ type: "error", content: getErrorMessage(error) });
+            eventHandler(buildChatError(error));
         }
         throw error;
     }
