@@ -35,6 +35,10 @@ on:
         type: boolean
         required: false
         default: false
+      runLSTests:
+        type: boolean
+        required: false
+        default: false
       lsSource:
         description: LS source — local (build from source) or download (fetch from release tag)
         type: string
@@ -326,3 +330,30 @@ jobs:
           path: |
             packages/ballerina-extension/e2e-test/data/new-project/**
           retention-days: 5
+
+  LSTest_Ballerina:
+    name: Run Ballerina LS tests (${{ matrix.os }})
+    timeout-minutes: 60
+    if: ${{ inputs.runLSTests }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Enable long paths for Git
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --system core.longpaths true
+
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Run LS tests
+        uses: ./.github/actions/ls-test
+        with:
+          cache-branch: ${{ github.ref_name }}
+          package-user: ${{ github.actor }}
+          package-pat: ${{ secrets.GITHUB_TOKEN }}

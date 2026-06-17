@@ -8,6 +8,7 @@
       "offset": 4
     },
     "offset": 12,
+    "lineOffset": 0,
     "property": {
       "types": [
         {
@@ -26,7 +27,7 @@
       "documentation": {
         "right": {
           "kind": "markdown",
-          "value": "**Description**  \nPrints `any`, `error` or string templates(such as `The respective int value is ${val}`) value(s) to the STDOUT\nfollowed by a new line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```"
+          "value": "**Description**  \nPrints `any`, `error` or string templates value(s) to the standard output stream and terminates the line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```"
         }
       },
       "parameters": []

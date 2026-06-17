@@ -94,18 +94,27 @@
       // Security overrides — keep in sync with trivy findings. Bump to the
       // first fix version listed for each CVE. If a bump breaks workspace
       // consumers, narrow the selector (e.g. "pkg@<x.y.z": "x.y.z").
+      "@babel/core@>=7 <8": "7.29.6",
       "@tootallnate/once": "3.0.1",
       "braces": "3.0.3",
-      "dompurify": "3.4.0",
+      "dompurify": "3.4.9",
+      "form-data@>=2 <3": "2.5.6",
+      "form-data@>=4 <5": "4.0.6",
       "handlebars": "4.7.9",
       "http-proxy": "1.18.1",
-      "js-yaml@4": "4.1.1",
+      "joi@>=17 <18": "17.13.4",
+      // js-yaml v3 has no in-line fix for CVE-2026-53550; the GHSA only fixes
+      // in v4.2.0. Force all consumers to v4 — revert with narrower selector
+      // if a workspace package needs the v3 sync API.
+      "js-yaml": "4.2.0",
+      "launch-editor": "2.14.1",
+      "markdown-it@>=14 <15": "14.2.0",
       "micromatch": "4.0.8",
       "prismjs": "1.30.0",
-      "protobufjs": "7.5.8",
+      "protobufjs@>=7 <8": "7.6.3",
       "qs@6": "6.15.2",
       "serialize-javascript": "7.0.5",
-      "tmp": "0.2.6",
+      "tmp": "0.2.7",
       // uuid 8.x has no in-line fix; bump to 11.1.1 (fix line for v11). Revert
       // if this breaks consumers that strictly need uuid v8 API.
       "uuid@8": "11.1.1",

@@ -291,6 +291,11 @@ public abstract class AbstractLSTest {
         if (path.endsWith("filePath") && element.isJsonPrimitive()) {
             return new JsonPrimitive(element.getAsString().replace('\\', '/'));
         }
+        if (path.endsWith("icon") && element.isJsonPrimitive()) {
+            // Package icon URLs embed the package version, which drifts with the
+            // distribution used in CI; ignore the version when comparing.
+            return new JsonPrimitive(element.getAsString().replaceAll("_\\d+(\\.\\d+)*\\.png$", ".png"));
+        }
         return element;
     }
 
