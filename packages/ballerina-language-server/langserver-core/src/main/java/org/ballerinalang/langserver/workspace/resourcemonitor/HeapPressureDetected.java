@@ -34,19 +34,10 @@ package org.ballerinalang.langserver.workspace.resourcemonitor;
  * @since 1.7.0
  */
 public record HeapPressureDetected(
-        /** The graduated pressure level at which this event was triggered. */
         HeapPressureLevel level,
-
-        /** Current used heap memory in bytes. */
         long usedBytes,
-
-        /** Maximum heap memory in bytes. */
         long maxBytes,
-
-        /** Heap usage ratio (usedBytes / maxBytes). */
         double ratio,
-
-        /** Direction of the pressure transition (RISING or FALLING). */
         PressureDirection direction
 ) {
 }
