@@ -276,22 +276,22 @@ export const langlibTestCases = [
    projectPath: "bi_init"
  },
  {
-   // findAll(), substring(), push(), findGroups(), string.length(), push(), startswith(), fromJsonString(), cloneWithType(), arr.length() 
+   // findAll(), substring(), push(), findGroups(), string.length(), push(), startswith(), fromJsonString(), cloneWithType(), arr.length()
    prompt: "Build an integration that scans HTML email content for all URLs, finds the first clickable link, counts total links and XML attachments, parses XML metadata, checks if URLs start with https, deserializes embedded JSON data with type safety, and measures the size of extracted collections.",
    projectPath: "bi_init"
  },
  {
-   // toUpperAscii(), cloneReadOnly(), string.length() 
+   // toUpperAscii(), cloneReadOnly(), string.length()
    prompt: "Create a service that reads product names from inventory, alphabetically compares and arranges them using unicode ordering, removes the oldest and newest entries, converts remaining names to uppercase, creates immutable copies, measures text lengths, and exports as an array structure.",
    projectPath: "bi_init"
  },
  {
-   // trim(), replaceAll(), decimal:fromString(), float:fromString(), array:length(), .toString(), message(), push() 
+   // trim(), replaceAll(), decimal:fromString(), float:fromString(), array:length(), .toString(), message(), push()
    prompt: "Develop an API that reads scientific measurements from spreadsheets, converts text values to floating point numbers, applies exponential calculations for growth projections, parses currency amounts, validates data types match requirements, aggregates results, and returns JSON output after trimming whitespace.",
    projectPath: "bi_init"
  },
  {
-   // length(), push(), split(), trim(), toLowerAscii(), includes(), keys(), removeAll(), unshift(), cloneReadOnly(), join() 
+   // length(), push(), split(), trim(), toLowerAscii(), includes(), keys(), removeAll(), unshift(), cloneReadOnly(), join()
    prompt: "Write an integration that processes comma-separated log entries, splits them into fields, checks for error keywords, removes sensitive configuration keys conditionally, clears entire cache when needed, prepends priority entries to the front, creates read-only snapshots, combines messages, and finds specific entry positions.",
    projectPath: "bi_init"
  },
@@ -301,7 +301,7 @@ export const langlibTestCases = [
    projectPath: "bi_init"
  },
  {
-   // length(), toCodePointInt(), regexp:fromString(), isFullMatch(), matches(), matchAt(), substring(), push(), toLowerAscii(), trim(), getCodePoint(), fromCodePointInt() 
+   // length(), toCodePointInt(), regexp:fromString(), isFullMatch(), matches(), matchAt(), substring(), push(), toLowerAscii(), trim(), getCodePoint(), fromCodePointInt()
    prompt: "Build a validation service that examines text input character by character, extracts unicode code points at specific positions, converts characters to numeric codes, validates entire strings match patterns, checks pattern matches at exact locations, filters valid entries, interprets yes/no flags, and generates text reports.",
    projectPath: "bi_init"
  },
@@ -326,7 +326,7 @@ export const langlibTestCases = [
    projectPath: "bi_init"
  },
  {
-   // message(), findGroups(), findAllGroups(), toLowerAscii(), includes(), isFullMatch(), matchAt(), find(), substring(), find(), replace(), trim(), replaceAll(), push(), clone(), codePointCompare() 
+   // message(), findGroups(), findAllGroups(), toLowerAscii(), includes(), isFullMatch(), matchAt(), find(), substring(), find(), replace(), trim(), replaceAll(), push(), clone(), codePointCompare()
    prompt: "Develop a log analysis tool that extracts first matching pattern groups from log lines, captures all pattern groups across entries, checks if lines contain error keywords, identifies lines starting with timestamps, filters relevant entries, sorts messages using unicode comparison, and processes all metadata key-value pairs.",
    projectPath: "bi_init"
  },
@@ -339,12 +339,12 @@ export const langlibTestCases = [
 
  // Langlib test cases for existing code
  {
-   // toLowerAscii(), split(), push(), length(), substring() 
+   // toLowerAscii(), split(), push(), length(), substring()
    prompt: "Develop a resource function for processing customers that receives customer data via POST /customers/process endpoint. Parse the incoming JSON payload into typed customer records, export the processed customer data as formatted JSON output, and validate email domains are in lowercase format before storing the customer information.",
    projectPath: "langlib_with_existing_code"
  },
  {
-   // message(), cloneWithType(), toJson(), toString(), join() 
+   // message(), cloneWithType(), toJson(), toString(), join()
    prompt: "Develop a resource function for the POST /customers endpoint that receives customer data. Parse the incoming JSON payload, convert it to a customer record type, serialize the customer data back to JSON format, and ensure all values are converted to string representations for logging.",
    projectPath: "langlib_with_existing_code"
  },
@@ -365,10 +365,133 @@ export const langlibTestCases = [
  }
 ];
 
+export const testCasesForCodeIndexing = [
+  // Covers: Adding a new feature
+  {
+    prompt: "Add an endpoint to search patients by last name, return the results as a FHIR Bundle, following the same style as existing read endpoints.",
+    projectPath: "healthcare_sample"
+  },
+  {
+    prompt: "We need an audit trail whenever a patient or encounter is deleted. Add structured logging that captures the resource type, ID, and timestamp.",
+    projectPath: "healthcare_sample"
+  },
+  {
+    prompt: "I want a full audit trail before any patient or encounter is deleted. Before removing the record, fetch it and log the key fields — name and birthdate for patients, status and period for encounters — along with the resource type and timestamp.",
+    projectPath: "healthcare_sample"
+  },
+  {
+    prompt: "Add a createdAt timestamp to order creation response so callers know when the order was accepted.",
+    projectPath: "order_management_system"
+  },
+  {
+    prompt: "Before writing a new order to the database, check that the order has at least one line item. Return an error early if it doesn't.",
+    projectPath: "order_management_system"
+  },
+
+  // Covers: Modifying an existing feature
+  {
+    prompt: "I want callers to be able to pass their own patient ID (like a hospital MRN) on creation. Use it if provided, otherwise auto-generate one.",
+    projectPath: "healthcare_sample"
+  },
+  {
+    prompt: "Change generate patient id to use UUID v4 instead of the incrementing counter — we need IDs to survive service restarts.",
+    projectPath: "healthcare_sample"
+  },
+  {
+    prompt: "Migrate the patient and encounter persistence layer from MySQL to PostgreSQL, including the driver, connection setup, and config.",
+    projectPath: "healthcare_sample"
+  },
+  {
+    prompt: "The date normalisation and RFC 3339 conversion always go together. Merge them into one function.",
+    projectPath: "salesforce_slack_integration"
+  },
+  {
+    prompt: "Move build lead conversion details logic into functions.bal file",
+    projectPath: "salesforce_slack_integration"
+  },
+  {
+    prompt: "Replace the order service REST API with GraphQL. Make sure the schema covers all the fields the current REST endpoints accept and return.",
+    projectPath: "order_management_system"
+  },
+  {
+    prompt: "The Shopify customer creation handler doesn't retry if Stripe returns a transient error. Add retry logic with up to 3 attempts before giving up.",
+    projectPath: "shopify_stripe_integration_errors"
+  },
+  {
+    prompt: "I want to use generateId from order utils inside db operations.bal, can you update the code?",
+    projectPath: "order_management_system"
+  },
+  {
+    prompt: "onUpdate function is catching errors from the lead conversion and logging them instead of propagating. Change it to let errors bubble up directly.",
+    projectPath: "salesforce_slack_integration_errors"
+  },
+
+  // Covers: Removing an existing feature
+  {
+    prompt: "Remove the team-routing feature — the config, the channel-selection logic, and any related types. All lead notifications should go to the default channel.",
+    projectPath: "salesforce_slack_integration"
+  },
+  {
+    prompt: "We're not filtering leads anymore — every converted lead should produce a notification. Remove the filter configuration, the function that decides whether a lead passes the filters, and the call into it from the main processing flow.",
+    projectPath: "salesforce_slack_integration"
+  },
+
+  // Covers: Understanding/Exploration
+  {
+    prompt: "How does the current SMS flow implementation work?",
+    projectPath: "healthcare_sample"
+  },
+  {
+    prompt: "How does the integration avoid sending duplicate Slack messages for the same lead? Is it safe if two events arrive at the same time?",
+    projectPath: "salesforce_slack_integration"
+  },
+
+  // Covers: Unrelated to the project
+  {
+    prompt: "I'd like to add a feature to the service that fetches the current Bitcoin price every hour from a public crypto exchange and posts the price as a tweet on our company Twitter account.",
+    projectPath: "healthcare_sample"
+  },
+  {
+    prompt: "Add a job that fetches the Bitcoin price every hour and posts it to Slack.",
+    projectPath: "salesforce_slack_integration"
+  },
+
+  // Covers: Common tasks
+  {
+    prompt: "Add doc comments to all public functions",
+    projectPath: "salesforce_slack_integration"
+  },
+  {
+    prompt: "There's an error on main.bal. Can you fix it?",
+    projectPath: "shopify_stripe_integration_errors"
+  },
+
+  // Covers: Overengineed tasks
+  {
+    prompt: "What's the difference between isolated and non-isolated functions in Ballerina?",
+    projectPath: "salesforce_slack_integration"
+  },
+
+  // Covers: Adding/Updating tests
+  {
+    prompt: "Add a test for the delete endpoint — create a reservation, delete it, then check that fetching reservations for that user returns an empty list.",
+    projectPath: "hotel_reservation"
+  },
+  {
+    prompt: "The existing test reservation test only checks the room number. Update it to also verify the checkin date, checkout date, and user details in the response match what was sent in the request.",
+    projectPath: "hotel_reservation"
+  },
+  {
+    prompt: "Write tests for the order utils module — ID generation, timestamp format, and line total calculation.",
+    projectPath: "order_management_system"
+  }
+];
+
 export let testCases = [];
 testCases.push(...initialTestCases);
 testCases.push(...httpTestCases);
 testCases.push(...textEditSpecializedTestCases);
-testCases.push(...testCasesForExistingProject); 
+testCases.push(...testCasesForExistingProject);
 testCases.push(...testCasesForExistingSemanticErrors);
 testCases.push(...langlibTestCases);
+testCases.push(...testCasesForCodeIndexing);

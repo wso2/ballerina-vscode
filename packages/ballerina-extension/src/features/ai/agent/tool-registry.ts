@@ -21,6 +21,8 @@ import { ExecutionContext, ProjectSource } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from '../utils/events';
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME } from './tools/task-writer';
 import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from './tools/diagnostics';
+import { createGrepTool, createGrepExecute, GREP_TOOL_NAME } from './tools/grep';
+import { createGlobTool, createGlobExecute, GLOB_TOOL_NAME } from './tools/glob';
 import {
     createBatchEditTool,
     createEditExecute,
@@ -122,6 +124,12 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         ),
         [FILE_READ_TOOL_NAME]: createReadTool(
             createReadExecute(eventHandler, tempProjectPath)
+        ),
+         [GREP_TOOL_NAME]: createGrepTool(
+            createGrepExecute(eventHandler, tempProjectPath)
+        ),
+        [GLOB_TOOL_NAME]: createGlobTool(
+            createGlobExecute(eventHandler, tempProjectPath)
         ),
         [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath, eventHandler),
         [TEST_RUNNER_TOOL_NAME]: createTestRunnerTool(tempProjectPath, eventHandler, modifiedFiles, allModifiedFiles, ctx),

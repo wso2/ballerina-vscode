@@ -1436,6 +1436,7 @@
         "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../ballerina-visualizer/build/images/* resources/jslibs/images && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs && copyfiles -f ../graphql/build/*.js resources/jslibs"
     },
     "dependencies": {
+        "@vscode/ripgrep": "1.15.9",
         "@ai-sdk/amazon-bedrock": "4.0.83",
         "@ai-sdk/anthropic": "3.0.64",
         "@ai-sdk/google-vertex": "4.0.94",

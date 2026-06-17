@@ -1,6 +1,6 @@
 // Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
 
-import { LLMEvaluationResult } from "../utils/evaluator-utils";
+import { LLMEvaluationResult, ContextRetrievalEvaluationResult } from "../utils/evaluator-utils";
 
 // WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -85,6 +85,7 @@ export interface UsecaseResult {
     readonly toolEvents?: readonly ToolEvent[];
     readonly iteration?: number;
     readonly evaluationResult: LLMEvaluationResult;
+    readonly contextRetrievalEvaluation?: ContextRetrievalEvaluationResult;
     readonly usage?: {
         readonly initial: {
             readonly inputTokens: number;
@@ -210,6 +211,7 @@ export interface UsecaseCompact {
     readonly iteration?: number;
     readonly toolEvents?: readonly ToolEvent[];
     readonly evaluationResult: LLMEvaluationResult;
+    readonly contextRetrievalEvaluation?: ContextRetrievalEvaluationResult;
     readonly usage?: {
         readonly totalTokens: number;
         readonly cacheHits: number;

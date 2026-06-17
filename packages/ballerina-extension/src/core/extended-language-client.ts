@@ -275,6 +275,8 @@ import {
     ClausePositionRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
+    CodeMapRequest,
+    CodeMapResponse,
     ConvertExpressionRequest,
     ConvertExpressionResponse,
     IntrospectDatabaseRequest,
@@ -491,6 +493,7 @@ enum EXTENDED_APIS {
     COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
     COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries',
     COPILOT_SEARCH_LIBRARIES = 'copilotLibraryManager/getLibrariesBySearch',
+    COPILOT_GET_CODE_MAP = 'designModelService/codeMap',
     GET_MIGRATION_TOOLS = 'projectService/getMigrationTools',
     TIBCO_TO_BI = 'projectService/importTibco',
     MULE_TO_BI = 'projectService/importMule',
@@ -1501,6 +1504,11 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     async getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
         return this.sendRequest<SemanticDiffResponse>(EXTENDED_APIS.BI_GET_SEMANTIC_DIFF, params);
     }
+
+    async getCodeMap(params: CodeMapRequest): Promise<CodeMapResponse> {
+        return this.sendRequest<CodeMapResponse>(EXTENDED_APIS.COPILOT_GET_CODE_MAP, params);
+    }
+
 
     // <------------ BI APIS END --------------->
 

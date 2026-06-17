@@ -22,6 +22,8 @@ import { FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_N
 import { CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
 import { CONFIG_COLLECTOR_TOOL } from "./tools/config-collector";
 import { CLARIFY_TOOL } from "./tools/clarify";
+import { GREP_TOOL_NAME } from "./tools/grep";
+import { GLOB_TOOL_NAME } from "./tools/glob";
 import { TEST_RUNNER_TOOL_NAME } from "./tools/test-runner";
 import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
@@ -53,7 +55,7 @@ Create a very high-level and concise design plan for the given user requirement.
 You must use ${TASK_WRITE_TOOL_NAME} tool to create and manage tasks.
 This plan will be visible to the user and the execution will be guided on the tasks you create.
 
-- Break down the implementation into specific, actionable tasks. Each task should be concise and high level as they are visible to a very high level user. 
+- Break down the implementation into specific, actionable tasks. Each task should be concise and high level as they are visible to a very high level user.
 - Each task should have a type. This type will be used to guide the user through the generation proccess.
 - Track each task as you work through them and mark tasks as you start and complete them
 
@@ -114,7 +116,7 @@ Plan the implementation approach in your reasoning. Keep output minimal — no d
 Identify the libraries required to implement the user requirement. Use ${LIBRARY_SEARCH_TOOL} to discover relevant libraries, then use ${LIBRARY_GET_TOOL} to fetch their full details.
 
 ### Step 3: Write the code
-Write/modify the Ballerina code to implement the user requirement. Use the ${FILE_BATCH_EDIT_TOOL_NAME}, ${FILE_SINGLE_EDIT_TOOL_NAME}, ${FILE_WRITE_TOOL_NAME} tools to write/modify the code. 
+Write/modify the Ballerina code to implement the user requirement. Use the ${FILE_BATCH_EDIT_TOOL_NAME}, ${FILE_SINGLE_EDIT_TOOL_NAME}, ${FILE_WRITE_TOOL_NAME} tools to write/modify the code.
 
 ### Step 4: Validate the code
 Once the code is written, always use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them. You may call it multiple times after making changes.
@@ -174,14 +176,27 @@ ${getLanglibInstructions()}
 - Mention types EXPLICITLY in variable declarations and foreach statements. (Avoid var at all costs)
 - To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
-## File modifications
+# Codebase Exploration
+- When the user submits a query, you will receive either **Codebase High Level Overview** or **Complete Structure of the Codebase**. Identify which one you have received before proceeding.
+- If you received Codebase High Level Overview, use it as a navigation map to locate the relevant components to the user query, in the codebase, but the actual source must be read separately when needed.
+- Codebase High Level Overview lists, for each Ballerina file, all of its components (imports, configurables, variables, types, functions, services, listeners, classes) with their signatures and line ranges, but excludes implementation bodies, test files, and resource files.
+- If you receive complete structure of the codebase, it contains the complete source of all .bal files (test and resource files excluded) provided directly in your context.
+
+## Context Retrieval
+- Explore the codebase with ${GREP_TOOL_NAME}, ${FILE_READ_TOOL_NAME}, and ${GLOB_TOOL_NAME}, and keep exploring until you have all the context required to answer confidently.
+
+### Rules for exploration
+- **DO NOT** guess the implementation based on signatures from Codebase High Level Overview or excerpts you retrieved. Always read the actual source code before using any information about a component in the codebase. This is critical to avoid hallucinations and wrong assumptions.
+- When you update or write code, Codebase High Level Overview will become outdated.
+
+## File Modifications and Component Modifications
 - You must apply changes to the existing source code using the provided ${[
-        FILE_BATCH_EDIT_TOOL_NAME,
-        FILE_SINGLE_EDIT_TOOL_NAME,
-        FILE_WRITE_TOOL_NAME,
-    ].join(
-        ", "
-    )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
+            FILE_BATCH_EDIT_TOOL_NAME,
+            FILE_SINGLE_EDIT_TOOL_NAME,
+            FILE_WRITE_TOOL_NAME,
+        ].join(
+            ", "
+        )} tools. The complete existing source code will be provided in the <codebase_structure> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
 - Do not manually add/modify Dependencies.toml. For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
@@ -239,13 +254,21 @@ System context:
 </system-reminder>`;
 }
 
-export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[]) {
+export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[], codeMapMarkdown?: string) {
     const content = [];
 
-    content.push({
-        type: 'text' as const,
-        text: formatCodebaseStructure(projects, tempProjectPath)
-    });
+    // Add codebase high level summary if available, otherwise fall back to full project structure
+    if (codeMapMarkdown) {
+        content.push({
+            type: 'text' as const,
+            text: `<Codebase High Level Summary>\n${codeMapMarkdown}\n</Codebase High Level Summary>`
+        });
+    } else {
+        content.push({
+            type: 'text' as const,
+            text: formatCodebaseStructure(projects, tempProjectPath)
+        });
+    }
 
     // Add code context if available
     if (params.codeContext) {
