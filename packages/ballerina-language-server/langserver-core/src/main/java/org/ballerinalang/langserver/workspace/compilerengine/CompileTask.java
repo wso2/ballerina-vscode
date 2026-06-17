@@ -19,7 +19,7 @@
 package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.projects.PackageDescriptor;
-import org.ballerinalang.langserver.workspace.compilerengine.revovery.CancellationToken;
+import org.ballerinalang.langserver.workspace.compilerengine.recovery.CancellationToken;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 
 import java.time.Instant;

@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.compilerengine.revovery;
+package org.ballerinalang.langserver.workspace.compilerengine.recovery;
 
 /**
  * Failure outcomes that influence recovery ladder mode selection.

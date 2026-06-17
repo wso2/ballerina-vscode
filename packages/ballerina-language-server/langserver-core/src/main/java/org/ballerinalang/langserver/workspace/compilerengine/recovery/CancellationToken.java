@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.compilerengine.revovery;
+package org.ballerinalang.langserver.workspace.compilerengine.recovery;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;

@@ -18,8 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
-import org.ballerinalang.langserver.workspace.compilerengine.revovery.FailureType;
-import org.ballerinalang.langserver.workspace.compilerengine.revovery.RecoveryLadder;
+import org.ballerinalang.langserver.workspace.compilerengine.recovery.FailureType;
+import org.ballerinalang.langserver.workspace.compilerengine.recovery.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;

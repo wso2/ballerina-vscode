@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.compilerengine.revovery;
+package org.ballerinalang.langserver.workspace.compilerengine.recovery;
 
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 
