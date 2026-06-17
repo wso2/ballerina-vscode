@@ -36,7 +36,7 @@ runs:
     - name: Cache Ballerina dependencies
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
-        path: /home/runner/.ballerina/repositories/
+        path: ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\.ballerina\repositories\' || '/home/runner/.ballerina/repositories/' }}
         key: ${{ runner.os }}-ballerina-${{ inputs.cache-branch }}-${{ hashFiles('**/gradle.properties') }}
         restore-keys: |
           ${{ runner.os }}-ballerina-${{ inputs.cache-branch }}-
@@ -50,8 +50,13 @@ runs:
         packagePAT: ${{ inputs.package-pat }}
         GRADLE_PROJECT_VERSION: ${{ inputs.gradle-version }}
       run: |
-        if [ -n "$GRADLE_PROJECT_VERSION" ]; then
-          ./gradlew -Pversion="$GRADLE_PROJECT_VERSION" test
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          GRADLE=./gradlew.bat
         else
-          ./gradlew test
+          GRADLE=./gradlew
+        fi
+        if [ -n "$GRADLE_PROJECT_VERSION" ]; then
+          "$GRADLE" -Pversion="$GRADLE_PROJECT_VERSION" test
+        else
+          "$GRADLE" test
         fi
