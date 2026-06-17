@@ -76,6 +76,52 @@ export function populateHistoryForAgent(chatHistory: any[]): ModelMessage[] {
             });
         }
     }
+    normalizeToolCallInputs(messages);
+    return messages;
+}
+
+/**
+ * Ensures every `tool-call` content block in assistant messages has `input` as a
+ * plain object instead of a JSON string. The Anthropic API rejects requests where
+ * `tool_use.input` is not an object; this can happen when the SDK accumulates a
+ * streaming tool call whose JSON delta fails schema validation and the raw string
+ * leaks through `doParseToolCall`'s error path.
+ *
+ * Mutates the messages array in place and returns it for chaining.
+ */
+export function normalizeToolCallInputs(messages: any[]): any[] {
+    let fixed = 0;
+    for (const message of messages) {
+        if (message?.role !== 'assistant' || !Array.isArray(message.content)) {
+            continue;
+        }
+        for (const block of message.content) {
+            if (block?.type !== 'tool-call') {
+                continue;
+            }
+            const input = block.input;
+            if (input !== null && typeof input === 'object') {
+                continue;
+            }
+            if (typeof input === 'string') {
+                try {
+                    const parsed = JSON.parse(input);
+                    if (parsed !== null && typeof parsed === 'object') {
+                        block.input = parsed;
+                        fixed++;
+                        continue;
+                    }
+                } catch {
+                    // fall through to empty-object fallback
+                }
+            }
+            block.input = {};
+            fixed++;
+        }
+    }
+    if (fixed > 0) {
+        console.warn(`[normalizeToolCallInputs] Fixed ${fixed} tool-call block(s) with non-object input — likely a streaming JSON parse failure in the AI SDK.`);
+    }
     return messages;
 }
 

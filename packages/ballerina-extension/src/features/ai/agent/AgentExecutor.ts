@@ -21,7 +21,7 @@ import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, Sem
 import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, addCacheControlToMessages, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
-import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
+import { populateHistoryForAgent, normalizeToolCallInputs, getErrorMessage } from '../utils/ai-utils';
 import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
 import { GenerationType } from '../utils/libs/libraries';
@@ -363,6 +363,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     if (cleanedCompactionSummary) {
                         stripAnalysisFromCompactionBlocks(stepMessages);
                     }
+                    normalizeToolCallInputs(stepMessages);
                     return { messages: addCacheControlToMessages({ messages: stepMessages, model }) };
                 },
 
