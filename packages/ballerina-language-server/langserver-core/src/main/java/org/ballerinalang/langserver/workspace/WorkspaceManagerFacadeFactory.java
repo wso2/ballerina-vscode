@@ -28,10 +28,10 @@ import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.lspgateway.WorkspaceManagerFacadeImpl;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -59,7 +59,7 @@ public final class WorkspaceManagerFacadeFactory {
 
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
         DualSnapshotStore snapshotStore = new DualSnapshotStore();
-        GracePeriod gracePeriod = GracePeriod.ofMillis(2000);
+        Duration gracePeriod = Duration.ofMillis(2000);
 
         WiringConfiguration config = WiringConfiguration.builder()
                 .eventBus(eventBus)

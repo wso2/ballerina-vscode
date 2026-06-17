@@ -22,6 +22,7 @@ import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -47,7 +48,7 @@ public final class ExecutionProcess {
     private final DocumentUri sourceRoot;
     private final ExecutionMode executionMode;
     private final Path executablePath;
-    private final GracePeriod gracePeriod;
+    private final Duration gracePeriod;
     private final Process underlyingProcess;
     private final Consumer<StreamSource> outputConsumer;
     private final Consumer<ExecutionProcess> terminationHook;
@@ -124,7 +125,7 @@ public final class ExecutionProcess {
                             DocumentUri sourceRoot,
                             ExecutionMode executionMode,
                             Path executablePath,
-                            GracePeriod gracePeriod,
+                            Duration gracePeriod,
                             Process underlyingProcess,
                             Consumer<StreamSource> outputConsumer) {
         this(processId, sourceRoot, executionMode, executablePath, gracePeriod, underlyingProcess,
@@ -148,7 +149,7 @@ public final class ExecutionProcess {
                      @Nonnull DocumentUri sourceRoot,
                      @Nonnull ExecutionMode executionMode,
                      @Nonnull Path executablePath,
-                     @Nonnull GracePeriod gracePeriod,
+                     @Nonnull Duration gracePeriod,
                      @Nonnull Process underlyingProcess,
                      @Nonnull Consumer<StreamSource> outputConsumer,
                      Consumer<ExecutionProcess> terminationHook,

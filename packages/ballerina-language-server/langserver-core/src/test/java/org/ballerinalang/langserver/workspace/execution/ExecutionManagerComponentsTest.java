@@ -93,7 +93,7 @@ public class ExecutionManagerComponentsTest {
         FakeProcess fake = new FakeProcess(true);
 
         ExecutionProcess process = new ExecutionProcess(new ProcessId("p-1"), sourceRoot, ExecutionMode.RUN,
-                sourceRootPath, new GracePeriod(Duration.ofMillis(25)), fake, streamSource -> {
+                sourceRootPath, Duration.ofMillis(25), fake, streamSource -> {
         });
 
         process.markRunning();
@@ -121,7 +121,7 @@ public class ExecutionManagerComponentsTest {
         FakeProcess fake = new FakeProcess(true);
 
         ExecutionProcess process = new ExecutionProcess(new ProcessId("p-2"), sourceRoot, ExecutionMode.RUN,
-                sourceRootPath, new GracePeriod(Duration.ofMillis(25)), fake, streamSource -> {
+                sourceRootPath, Duration.ofMillis(25), fake, streamSource -> {
         });
 
         process.terminate(ExecutionProcess.TerminationReason.USER_REQUESTED);
@@ -138,7 +138,7 @@ public class ExecutionManagerComponentsTest {
         List<String> sequence = new ArrayList<>();
 
         ExecutionProcess process = new ExecutionProcess(new ProcessId("p-3"), sourceRoot, ExecutionMode.RUN,
-                sourceRootPath, new GracePeriod(Duration.ofMillis(10)), fake, streamSource -> {
+                sourceRootPath, Duration.ofMillis(10), fake, streamSource -> {
         }, ignored -> {
             sequence.add("TERM");
             fake.destroy();
@@ -203,7 +203,7 @@ public class ExecutionManagerComponentsTest {
             latch.countDown();
         });
 
-        ExecutionServiceImpl service = new ExecutionServiceImpl(eventBus, new GracePeriod(Duration.ofMillis(200)),
+        ExecutionServiceImpl service = new ExecutionServiceImpl(eventBus, Duration.ofMillis(200),
                 8, virtualThreadFlags::add);
 
         Path sourceRootPath = Files.createDirectories(tempDir.resolve("project-g")).toAbsolutePath().normalize();
@@ -240,7 +240,7 @@ public class ExecutionManagerComponentsTest {
             terminationLatch.countDown();
         });
 
-        ExecutionServiceImpl service = new ExecutionServiceImpl(eventBus, new GracePeriod(Duration.ofMillis(200)),
+        ExecutionServiceImpl service = new ExecutionServiceImpl(eventBus, Duration.ofMillis(200),
                 8, ignored -> {
         });
 
@@ -272,7 +272,7 @@ public class ExecutionManagerComponentsTest {
 
     private ExecutionProcess runningProcess(String id, DocumentUri sourceRoot) {
         ExecutionProcess process = new ExecutionProcess(new ProcessId(id), sourceRoot, ExecutionMode.RUN,
-                Path.of(sourceRoot.uri()), new GracePeriod(Duration.ofMillis(25)), new FakeProcess(true),
+                Path.of(sourceRoot.uri()), Duration.ofMillis(25), new FakeProcess(true),
                 streamSource -> {
         });
         process.markRunning();

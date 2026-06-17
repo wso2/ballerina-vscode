@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
@@ -58,7 +59,7 @@ import javax.annotation.Nonnull;
  */
 public final class ExecutionServiceImpl implements ExecutionService {
     private final EventSyncPubSubHolder eventBus;
-    private final GracePeriod defaultGracePeriod;
+    private final Duration defaultGracePeriod;
     private final ProcessRegistry processRegistry;
     private final ExecutorService virtualThreadExecutor;
     private final Consumer<Boolean> virtualThreadUsageTracker;
@@ -71,7 +72,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
      * @param maxActiveProcesses maximum number of concurrent active processes
      */
     public ExecutionServiceImpl(EventSyncPubSubHolder eventBus,
-                                GracePeriod defaultGracePeriod,
+                                Duration defaultGracePeriod,
                                 int maxActiveProcesses) {
         this(eventBus, defaultGracePeriod, maxActiveProcesses, ignored -> { });
     }
@@ -85,7 +86,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
      * @param virtualThreadUsageTracker consumer to track virtual thread usage (for testing)
      */
     ExecutionServiceImpl(@Nonnull EventSyncPubSubHolder eventBus,
-                         @Nonnull GracePeriod defaultGracePeriod,
+                         @Nonnull Duration defaultGracePeriod,
                          int maxActiveProcesses,
                          @Nonnull Consumer<Boolean> virtualThreadUsageTracker) {
         this.eventBus = eventBus;

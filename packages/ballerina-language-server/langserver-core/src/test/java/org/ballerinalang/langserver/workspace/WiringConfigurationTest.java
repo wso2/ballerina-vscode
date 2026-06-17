@@ -27,7 +27,6 @@ import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
-import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
@@ -37,6 +36,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -89,7 +89,7 @@ public class WiringConfigurationTest {
                     }
                 })
                 .projectLoader((root, kind) -> mock(io.ballerina.projects.Project.class))
-                .gracePeriod(GracePeriod.ofMillis(1000))
+                .gracePeriod(Duration.ofMillis(1000))
                 .maxActiveProcesses(5)
                 .heapPressurePollIntervalMs(60000L)
                 .build();

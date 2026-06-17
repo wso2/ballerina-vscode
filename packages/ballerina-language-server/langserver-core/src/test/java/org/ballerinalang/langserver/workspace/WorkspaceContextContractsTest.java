@@ -29,7 +29,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnap
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionMode;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
-import org.ballerinalang.langserver.workspace.executionmanager.GracePeriod;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessState;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
@@ -45,7 +44,6 @@ import org.testng.annotations.Test;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 
@@ -166,29 +164,13 @@ public class WorkspaceContextContractsTest {
      */
     @Test
     public void executionValueObjects_areImmutable() {
-        Assert.assertTrue(GracePeriod.class.isRecord());
         Assert.assertTrue(ProcessId.class.isRecord());
-        Assert.assertTrue(Modifier.isPublic(GracePeriod.class.getModifiers()));
         Assert.assertTrue(Modifier.isPublic(ProcessId.class.getModifiers()));
 
         List<String> processMethodNames = List.of(ProcessId.class.getMethods()).stream()
                 .map(Method::getName)
                 .toList();
         Assert.assertFalse(processMethodNames.stream().anyMatch(name -> name.startsWith("set")));
-
-        List<String> graceMethodNames = List.of(GracePeriod.class.getMethods()).stream()
-                .map(Method::getName)
-                .toList();
-        Assert.assertFalse(graceMethodNames.stream().anyMatch(name -> name.startsWith("set")));
-    }
-
-    /**
-     * Verifies GracePeriod retains the duration value.
-     */
-    @Test
-    public void gracePeriod_retainsDurationValue() {
-        GracePeriod gracePeriod = new GracePeriod(Duration.ofSeconds(5));
-        Assert.assertEquals(gracePeriod.duration(), Duration.ofSeconds(5));
     }
 
     /**

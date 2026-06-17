@@ -24,7 +24,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapsh
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.execution.ExecutionServiceImpl;
-import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.observability.WorkspaceTraceLogger;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureDetected;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureMonitor;
@@ -33,6 +32,7 @@ import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImp
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeApplier;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
 
+import java.time.Duration;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
@@ -144,7 +144,7 @@ public final class WiringConfiguration implements AutoCloseable {
         private EventSyncPubSubHolder eventBus;
         private DualSnapshotStore snapshotStore;
         private ProjectLoader projectLoader;
-        private GracePeriod gracePeriod;
+        private Duration gracePeriod;
         private int maxActiveProcesses = 5;
         private long heapPressurePollIntervalMs = 5000L;
         private CompilationPipeline.CompilationAction compilationAction;
@@ -164,7 +164,7 @@ public final class WiringConfiguration implements AutoCloseable {
             return this;
         }
 
-        public Builder gracePeriod(@Nonnull GracePeriod gracePeriod) {
+        public Builder gracePeriod(@Nonnull Duration gracePeriod) {
             this.gracePeriod = gracePeriod;
             return this;
         }
