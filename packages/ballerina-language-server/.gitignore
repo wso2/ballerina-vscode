@@ -47,13 +47,13 @@ build/
 # macOS metadata files
 .DS_Store
 .claude
+.codex
+.opencode
 .tasks/
 CLAUDE.md
 
 # Rewrite specific stuff
-.claude
 .agents
-.opencode
 architecture
 tasks
 licence_header.txt
