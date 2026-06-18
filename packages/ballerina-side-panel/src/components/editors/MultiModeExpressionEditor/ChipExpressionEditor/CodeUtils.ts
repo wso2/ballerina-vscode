@@ -300,6 +300,8 @@ export const iterateTokenStream = (
         }
     }
 
+    // The orphan filter only applies to interpolation-based editors (e.g. prompt/template)
+    const hasInterpolation = tokens.some(token => token.type === TokenType.START_EVENT);
     const insideClosedRange = getTokenIndicesInClosedExpressionRanges(tokens);
 
     for (let i = 0; i < tokens.length; i++) {
@@ -324,8 +326,8 @@ export const iterateTokenStream = (
             continue;
         }
 
-        // Skip orphan tokens sitting inside an unclosed ${
-        if (!insideClosedRange.has(i)) {
+        // Skip orphan tokens sitting inside an unclosed ${ (interpolation editors only)
+        if (hasInterpolation && !insideClosedRange.has(i)) {
             continue;
         }
 
