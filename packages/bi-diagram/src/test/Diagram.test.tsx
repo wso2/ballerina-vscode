@@ -17,20 +17,46 @@
  */
 
 import React from "react";
+import fs from "fs";
+import path from "path";
 import { prettyDOM, waitFor } from "@testing-library/dom";
 import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { Diagram } from "../components/Diagram";
 import { Flow } from "../utils/types";
 
-// Import sample data
-import model1 from "../stories/1-start.json";
-import model2 from "../stories/2-error-handle.json";
-import model3 from "../stories/3-suggestions.json";
-import model4 from "../stories/4-with-diagnostics.json";
-import model5 from "../stories/5-complex-1.json";
-import model6 from "../stories/6-ai-agent.json";
-import model7 from "../stories/7-all-nodes.json";
+// Snapshot inputs are sourced from the language server's flow-model-generator
+// test configs. Each config's `diagram` field is the expected flow model the
+// LS produces, which is exactly the `Flow` shape the Diagram component renders.
+// Driving the snapshots off these shared fixtures keeps the diagram coverage in
+// sync with the LS test suite instead of duplicating sample flows.
+const LS_CONFIG_DIR = path.resolve(
+    __dirname,
+    "../../../ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/diagram_generator/config"
+);
+
+// Mirror the skip list from ModelGeneratorTest.java so unstable fixtures stay
+// excluded here too.
+const SKIP_LIST = new Set<string>([
+    "resource_action_call_github.json",
+    "flags2.json",
+]);
+
+interface LsTestConfig {
+    description?: string;
+    diagram: Flow;
+}
+
+function loadLsConfigs(): { name: string; config: LsTestConfig }[] {
+    return fs
+        .readdirSync(LS_CONFIG_DIR)
+        .filter((file) => file.endsWith(".json") && !SKIP_LIST.has(file))
+        .sort()
+        .map((file) => ({
+            name: path.basename(file, ".json"),
+            config: JSON.parse(fs.readFileSync(path.join(LS_CONFIG_DIR, file), "utf8")) as LsTestConfig,
+        }));
+}
 
 // --- Emotion Style Snapshot Helpers ---
 
@@ -162,33 +188,13 @@ async function renderAndCheckSnapshot(model: Flow, testName: string, overrides?:
 }
 
 describe("BI Diagram - Snapshot Tests", () => {
-    test("renders start flow correctly", async () => {
-        await renderAndCheckSnapshot(model1 as unknown as Flow, "start-flow");
-    }, 15000);
+    const configs = loadLsConfigs();
 
-    test("renders flow with error handler correctly", async () => {
-        await renderAndCheckSnapshot(model2 as Flow, "flow-with-error");
-    }, 15000);
+    test("LS config fixtures are discoverable", () => {
+        expect(configs.length).toBeGreaterThan(0);
+    });
 
-    test("renders flow with suggestions correctly", async () => {
-        await renderAndCheckSnapshot(model3 as Flow, "flow-with-suggestions");
-    }, 15000);
-
-    test("renders flow with diagnostics correctly", async () => {
-        await renderAndCheckSnapshot(model4 as unknown as Flow, "flow-with-diagnostics");
-    }, 15000);
-
-    test("renders complex flow correctly", async () => {
-        await renderAndCheckSnapshot(model5 as unknown as Flow, "complex-flow");
-    }, 15000);
-
-    test("renders AI agent flow correctly", async () => {
-        await renderAndCheckSnapshot(model6 as unknown as Flow, "ai-agent-flow");
-    }, 15000);
-
-    test("renders all nodes flow correctly", async () => {
-        await renderAndCheckSnapshot(model7 as unknown as Flow, "all-nodes-flow", {
-            project: { org: "gayanka", path: "/tmp" },
-        });
+    test.each(configs)("renders $name flow correctly", async ({ name, config }) => {
+        await renderAndCheckSnapshot(config.diagram, name);
     }, 15000);
 });
