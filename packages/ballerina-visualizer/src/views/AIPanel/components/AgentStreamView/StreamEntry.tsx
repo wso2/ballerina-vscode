@@ -72,6 +72,8 @@ const TOOL_ICON_MAP: Record<string, ToolIconEntry> = {
     ConfigCollector:               { loading: "codicon-settings-gear" },
     ConnectorGeneratorTool:        { loading: "codicon-plug" },
     invoke_skill:                  { loading: "codicon-book" },
+    migration_source_list:         { loading: "codicon-folder-opened" },
+    migration_source_read:         { loading: "codicon-go-to-file" },
 };
 const DEFAULT_TOOL_ICON = "codicon-symbol-property";
 const MCP_TOOL_PREFIX = "mcp__";
