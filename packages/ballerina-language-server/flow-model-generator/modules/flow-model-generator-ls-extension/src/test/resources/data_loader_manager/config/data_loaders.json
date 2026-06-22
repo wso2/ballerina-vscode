@@ -22,6 +22,22 @@
               "symbol": "init"
             },
             "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Microsoft SharePoint Text Data Loader",
+              "description": "A data loader that retrieves documents from SharePoint document libraries as text.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.microsoft.sharepoint_1.0.0.png"
+            },
+            "codedata": {
+              "node": "DATA_LOADER",
+              "org": "ballerinax",
+              "module": "ai.microsoft.sharepoint",
+              "packageName": "ai.microsoft.sharepoint",
+              "object": "TextDataLoader",
+              "symbol": "init"
+            },
+            "enabled": true
           }
         ]
       }

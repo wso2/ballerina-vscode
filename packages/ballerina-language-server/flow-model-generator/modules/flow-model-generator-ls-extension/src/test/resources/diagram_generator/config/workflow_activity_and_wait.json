@@ -94,7 +94,7 @@
         "metadata": {
           "label": "callActivity",
           "description": "Executes an activity function. The activity runs exactly once, even if the process crashes and restarts.\n\n```ballerina\nPaymentResult result = check ctx->callActivity(processPayment, args = {\"orderId\": orderId});\n```\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.4.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.5.0.png"
         },
         "codedata": {
           "node": "ACTIVITY_CALL",
@@ -132,145 +132,42 @@
               }
             ],
             "value": {
-              "retryOnError": {
+              "retryPolicy": {
                 "metadata": {
-                  "label": "Retry On Error",
-                  "description": "Enable automatic retries on failure (default: `false`)"
+                  "label": "Retry Policy",
+                  "description": "Retry behaviour on failure:\n- `()` / `NoRetry` (default) — error is returned as-is, no retry.\n- `AutoRetry` — automatic backoff retry with configurable attempts and delays.\n- `ManualRetry` — on failure a retry task is created for a human to decide\nwhether to retry (optionally with new input) or permanently fail the activity."
                 },
                 "types": [
                   {
-                    "fieldType": "FLAG",
-                    "ballerinaType": "boolean",
+                    "fieldType": "RECORD_MAP_EXPRESSION",
+                    "ballerinaType": "workflow:AutoRetry",
+                    "typeMembers": [
+                      {
+                        "type": "AutoRetry",
+                        "packageInfo": "ballerina:workflow:0.5.0",
+                        "packageName": "workflow",
+                        "kind": "RECORD_TYPE",
+                        "selected": false
+                      }
+                    ],
                     "selected": false
                   },
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "boolean",
+                    "ballerinaType": "workflow:AutoRetry|\"MANUAL_RETRY\"|()",
                     "selected": false
                   }
                 ],
-                "placeholder": "false",
+                "placeholder": "{}",
                 "optional": true,
                 "editable": true,
                 "advanced": true,
                 "hidden": false,
                 "codedata": {
-                  "kind": "INCLUDED_FIELD",
-                  "originalName": "retryOnError"
+                  "kind": "DEFAULTABLE",
+                  "originalName": "retryPolicy"
                 },
-                "defaultValue": "false"
-              },
-              "maxRetries": {
-                "metadata": {
-                  "label": "Max Retries",
-                  "description": "Maximum retry attempts (default: 0, no retries)"
-                },
-                "types": [
-                  {
-                    "fieldType": "NUMBER",
-                    "ballerinaType": "int",
-                    "selected": false
-                  },
-                  {
-                    "fieldType": "EXPRESSION",
-                    "ballerinaType": "int",
-                    "selected": false
-                  }
-                ],
-                "placeholder": "0",
-                "optional": true,
-                "editable": true,
-                "advanced": true,
-                "hidden": false,
-                "codedata": {
-                  "kind": "INCLUDED_FIELD",
-                  "originalName": "maxRetries"
-                },
-                "defaultValue": "0"
-              },
-              "retryDelay": {
-                "metadata": {
-                  "label": "Retry Delay",
-                  "description": "Initial delay in seconds before the first retry (default: 1.0)"
-                },
-                "types": [
-                  {
-                    "fieldType": "NUMBER",
-                    "ballerinaType": "decimal",
-                    "selected": false
-                  },
-                  {
-                    "fieldType": "EXPRESSION",
-                    "ballerinaType": "decimal",
-                    "selected": false
-                  }
-                ],
-                "placeholder": "0.0d",
-                "optional": true,
-                "editable": true,
-                "advanced": true,
-                "hidden": false,
-                "codedata": {
-                  "kind": "INCLUDED_FIELD",
-                  "originalName": "retryDelay"
-                },
-                "defaultValue": "1.0"
-              },
-              "retryBackoff": {
-                "metadata": {
-                  "label": "Retry Backoff",
-                  "description": "Multiplier applied to delay after each retry (default: 2.0)"
-                },
-                "types": [
-                  {
-                    "fieldType": "NUMBER",
-                    "ballerinaType": "decimal",
-                    "selected": false
-                  },
-                  {
-                    "fieldType": "EXPRESSION",
-                    "ballerinaType": "decimal",
-                    "selected": false
-                  }
-                ],
-                "placeholder": "0.0d",
-                "optional": true,
-                "editable": true,
-                "advanced": true,
-                "hidden": false,
-                "codedata": {
-                  "kind": "INCLUDED_FIELD",
-                  "originalName": "retryBackoff"
-                },
-                "defaultValue": "2.0"
-              },
-              "maxRetryDelay": {
-                "metadata": {
-                  "label": "Max Retry Delay",
-                  "description": "Cap on the delay between retries, in seconds"
-                },
-                "types": [
-                  {
-                    "fieldType": "NUMBER",
-                    "ballerinaType": "decimal",
-                    "selected": false
-                  },
-                  {
-                    "fieldType": "EXPRESSION",
-                    "ballerinaType": "decimal",
-                    "selected": false
-                  }
-                ],
-                "placeholder": "0.0d",
-                "optional": true,
-                "editable": true,
-                "advanced": true,
-                "hidden": false,
-                "codedata": {
-                  "kind": "INCLUDED_FIELD",
-                  "originalName": "maxRetryDelay"
-                },
-                "defaultValue": "0.0d"
+                "defaultValue": "NoRetry"
               }
             },
             "optional": false,
@@ -356,8 +253,8 @@
         "id": "60699",
         "metadata": {
           "label": "println",
-          "description": "Prints `any`, `error` or string templates(such as `The respective int value is ${val}`) value(s) to the STDOUT\nfollowed by a new line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+          "description": "Prints `any`, `error` or string templates value(s) to the standard output stream and terminates the line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
         },
         "codedata": {
           "node": "FUNCTION_CALL",
@@ -365,7 +262,7 @@
           "module": "io",
           "packageName": "io",
           "symbol": "println",
-          "version": "1.8.0",
+          "version": "1.8.1",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {
@@ -733,8 +630,8 @@
         "id": "64660",
         "metadata": {
           "label": "println",
-          "description": "Prints `any`, `error` or string templates(such as `The respective int value is ${val}`) value(s) to the STDOUT\nfollowed by a new line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+          "description": "Prints `any`, `error` or string templates value(s) to the standard output stream and terminates the line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.1.png"
         },
         "codedata": {
           "node": "FUNCTION_CALL",
@@ -742,7 +639,7 @@
           "module": "io",
           "packageName": "io",
           "symbol": "println",
-          "version": "1.8.0",
+          "version": "1.8.1",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {
