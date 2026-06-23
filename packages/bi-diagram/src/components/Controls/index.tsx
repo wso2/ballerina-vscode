@@ -20,7 +20,8 @@ import React from "react";
 import styled from "@emotion/styled";
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { loadDiagramZoomAndPosition, resetDiagramZoomAndPosition } from "../../utils/diagram";
-import { Icon, ThemeColors } from "@wso2/ui-toolkit";
+import { Icon } from "@wso2/ui-toolkit";
+import { CONTROLS_BG_COLOR, CONTROLS_DIVIDER_COLOR, CONTROLS_HOVER_BG_COLOR, NODE_TEXT_COLOR } from "../../resources/constants";
 
 const Container = styled.div<{}>`
     display: flex;
@@ -41,7 +42,7 @@ const GroupContainer = styled.div<{}>`
     gap: 0;
 
     & > *:not(:last-child) {
-        border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+        border-bottom: 1px solid ${CONTROLS_DIVIDER_COLOR};
     }
 
     & > *:first-child {
@@ -65,18 +66,18 @@ const Button = styled.div<{}>`
     align-items: center;
     padding: 8px;
     border-radius: 4px;
-    background-color: ${ThemeColors.SURFACE};
-    fill: ${ThemeColors.ON_SURFACE};
+    background-color: ${CONTROLS_BG_COLOR};
+    fill: ${NODE_TEXT_COLOR};
     width: 32px;
     height: 32px;
     cursor: pointer;
 
     &:hover {
-        background-color: ${ThemeColors.SURFACE_CONTAINER};
+        background-color: ${CONTROLS_HOVER_BG_COLOR};
     }
 
     &:active {
-        background-color: ${ThemeColors.SURFACE_CONTAINER};
+        background-color: ${CONTROLS_HOVER_BG_COLOR};
     }
 `;
 

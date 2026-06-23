@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  lodash: '>=4.18.0'
+  lodash: 4.18.1
   brace-expansion@>=5.0.0 <6: 5.0.6
   '@babel/core@>=7 <8': 7.29.6
   '@tootallnate/once': 3.0.1
@@ -189,7 +189,7 @@ importers:
         specifier: 4.0.0
         version: 4.0.0
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       monaco-languageclient:
         specifier: 0.13.1-next.9
@@ -213,8 +213,8 @@ importers:
         specifier: 0.12.3
         version: 0.12.3
       uuid:
-        specifier: 11.1.1
-        version: 11.1.1
+        specifier: 14.0.0
+        version: 14.0.0
       vscode-debugadapter:
         specifier: 1.51.0
         version: 1.51.0
@@ -295,8 +295,8 @@ importers:
         specifier: 0.5.16
         version: 0.5.16
       axios:
-        specifier: 1.15.2
-        version: 1.15.2
+        specifier: 1.16.0
+        version: 1.16.0
       chai:
         specifier: 4.3.10
         version: 4.3.10
@@ -463,8 +463,8 @@ importers:
         specifier: 3.7.0
         version: 3.7.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       uuid:
-        specifier: 11.1.1
-        version: 11.1.1
+        specifier: 14.0.0
+        version: 14.0.0
       vscode-languageserver-protocol:
         specifier: 3.17.5
         version: 3.17.5
@@ -747,7 +747,7 @@ importers:
         specifier: workspace:*
         version: link:../../submodules/wso2-vscode-extensions/workspaces/wso2-platform/wso2-platform-core
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       markdown-it:
         specifier: 14.2.0
@@ -934,7 +934,7 @@ importers:
         specifier: 0.16.27
         version: 0.16.27
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       lodash.debounce:
         specifier: 4.0.8
@@ -985,6 +985,18 @@ importers:
         specifier: 1.6.1
         version: 1.6.1
     devDependencies:
+      '@babel/core':
+        specifier: 7.27.1
+        version: 7.27.1
+      '@babel/preset-env':
+        specifier: 7.27.2
+        version: 7.27.2(@babel/core@7.27.1)
+      '@babel/preset-react':
+        specifier: 7.27.1
+        version: 7.27.1(@babel/core@7.27.1)
+      '@babel/preset-typescript':
+        specifier: 7.27.1
+        version: 7.27.1(@babel/core@7.27.1)
       '@types/jest':
         specifier: 29.5.14
         version: 29.5.14
@@ -1024,6 +1036,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: 8.32.1
         version: 8.32.1(eslint@9.27.0)(typescript@5.8.3)
+      babel-jest:
+        specifier: 29.7.0
+        version: 29.7.0(@babel/core@7.27.1)
       buffer:
         specifier: 6.0.3
         version: 6.0.3
@@ -1042,9 +1057,15 @@ importers:
       eslint-plugin-react-refresh:
         specifier: 0.4.20
         version: 0.4.20(eslint@9.27.0)
+      identity-obj-proxy:
+        specifier: 3.0.0
+        version: 3.0.0
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@22.15.24)(babel-plugin-macros@3.1.0)(ts-node@10.2.0(@types/node@22.15.24)(typescript@5.8.3))
+      jest-environment-jsdom:
+        specifier: 29.7.0
+        version: 29.7.0
       sass-loader:
         specifier: 16.0.5
         version: 16.0.5(sass@1.89.0)(webpack@5.104.1)
@@ -1112,7 +1133,7 @@ importers:
         specifier: 0.8.5
         version: 0.8.5
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       react:
         specifier: 18.2.0
@@ -1239,7 +1260,7 @@ importers:
         specifier: 0.8.5
         version: 0.8.5
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       react:
         specifier: 18.2.0
@@ -1366,7 +1387,7 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       lodash.debounce:
         specifier: 4.0.8
@@ -1569,7 +1590,7 @@ importers:
         specifier: 1.11.11
         version: 1.11.11
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       react:
         specifier: 18.2.0
@@ -1712,7 +1733,7 @@ importers:
         specifier: 1.11.11
         version: 1.11.11
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       pathfinding:
         specifier: 0.4.18
@@ -1900,7 +1921,7 @@ importers:
         specifier: 0.8.5
         version: 0.8.5
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       react:
         specifier: 18.2.0
@@ -2251,7 +2272,7 @@ importers:
         specifier: 1.11.11
         version: 1.11.11
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       pathfinding:
         specifier: 0.4.18
@@ -2393,7 +2414,7 @@ importers:
         specifier: workspace:*
         version: link:../../submodules/wso2-vscode-extensions/workspaces/common-libs/ui-toolkit
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       lodash.debounce:
         specifier: 4.0.8
@@ -2560,7 +2581,7 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       lodash:
-        specifier: '>=4.18.0'
+        specifier: 4.18.1
         version: 4.18.1
       monaco-editor:
         specifier: 0.52.2
@@ -2722,8 +2743,8 @@ packages:
   '@aws-crypto/util@5.2.0':
     resolution: {integrity: sha512-4RkU9EsI6ZpBve5fseQlGNUWKMa1RLPQ1dnjnQoe07ldfIzcsGb5hC5W0Dm7u423KWzawlrpbjXBrXCEv9zazQ==}
 
-  '@aws-sdk/types@3.973.13':
-    resolution: {integrity: sha512-pEHZqRkAlHfnfAU9tK+WpKv/gBNjGJrHMgA3A0iYRGyswBS2t0pfez+lWlwktb3Bqa0ovh7w/QJTFwp3fDxLNg==}
+  '@aws-sdk/types@3.973.10':
+    resolution: {integrity: sha512-992QrTO7G9qCvKD0fx1rMlqcL14plUcRAbwmqqYVsuF3GrqcvlAL9qxR+baMafarEZ+l7DUQ5lCMmt5mbMhF7g==}
     engines: {node: '>=20.0.0'}
 
   '@azu/format-text@1.0.2':
@@ -4490,50 +4511,50 @@ packages:
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/fs-core@4.57.7':
-    resolution: {integrity: sha512-GDKuYHjP7vAI1kjBo73V+STKr9XIMZknW/xirpRW/EcShX0IKSev/ALafeRfC8Q331nodrXUFu04PugPB0MAhw==}
+  '@jsonjoy.com/fs-core@4.57.5':
+    resolution: {integrity: sha512-wl7eAKUwOcEZ8lL2/C38+w6VnNtBiNmvzKstlKPqRV/ymzg/7Aal5H74HEazSM2khYn9XG20I3fRp0Wr7xIbHA==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/fs-fsa@4.57.7':
-    resolution: {integrity: sha512-1rWsah2nZtRbNeP+c61QcfGfVrJXBmBD0Hm7Akvv4C9MKEasXnbiOS//iH3T3HwUSSBATGrfSp0Xi8nlNhATeQ==}
+  '@jsonjoy.com/fs-fsa@4.57.5':
+    resolution: {integrity: sha512-zIUMYeOgAdhA1M3JvceA2Fli7qas2WJrv6qmruXbq81bgIRKUM1LueJ1G0VRPk4D8wfOceBpayWQZqSEXA0AGA==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/fs-node-builtins@4.57.7':
-    resolution: {integrity: sha512-LWqfY1m+uAosjwM1RrKhMkUnP9jcq1RUczHsNO779ovm1E9v8I/pmj04eBAcoBjhC7ltcPbNFGyRJ5JqSJ7Jdg==}
+  '@jsonjoy.com/fs-node-builtins@4.57.5':
+    resolution: {integrity: sha512-maev+EH0kBJt7R6GZQgRmL5cHvs46PS71Y5M1FfZKN2/JVSAZPpdrLS+z7KYrvPn4oIYMKcG/XAhircG3eP88g==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/fs-node-to-fsa@4.57.7':
-    resolution: {integrity: sha512-9T0zC9LKcAWXDoTLRdLMoJ0seOvJ5bgDKq1tSBoQAFQpPDstQUeV1Oe7PLypdu7F2D3ddRstmwgeNUEN/VaZ4Q==}
+  '@jsonjoy.com/fs-node-to-fsa@4.57.5':
+    resolution: {integrity: sha512-6IQi4TNoR1d+cSRZisWh6eqQ2mq32qgwESjVeXDs2pMWa+H/pZ24kSJKrDkyooUIfk1OIe40Dv9bnqc0FMcFjQ==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/fs-node-utils@4.57.7':
-    resolution: {integrity: sha512-jjWSDOsfcog2cZnUCwX5AHmlIq6b6wx5Pz/2LAcNjJ62Rajwg89Fy7ubN+lDHew0/1reLDa9Z5urybYadhh37g==}
+  '@jsonjoy.com/fs-node-utils@4.57.5':
+    resolution: {integrity: sha512-u8GXaNr2VeQvHBXbJ9byY6GWP5z3HK3kCmdEPwVzjcgpEyAPjNnl0alP3Ylo6Aa4JSS8Ssc/F4+q69/03J2bUA==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/fs-node@4.57.7':
-    resolution: {integrity: sha512-xhnyeyEVTiIOibFvda/5n89nChMLCPKHHM2WQ+GGDf6+U/IrQBW3Qx6x+Uq1bkDbxBkybLOdIGoBtVBrE8Nngg==}
+  '@jsonjoy.com/fs-node@4.57.5':
+    resolution: {integrity: sha512-F6kdnfsmK6q+WEjGhCOd/2iJpcmffj8q3qgXUG1/gHMXaThZp30Ienk3eMT+GfOpEbuVqoPvqNe8IwiPlDk/QQ==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/fs-print@4.57.7':
-    resolution: {integrity: sha512-mFM4P4Gjq0QQHkLnXzPYPEMFrAoe6a5Myedgb6+CmL+nGd3MKvTxYPuD7N1dLIH9RBy1fLdzxd80qvuK8xrx3Q==}
+  '@jsonjoy.com/fs-print@4.57.5':
+    resolution: {integrity: sha512-fTcwBpqk9CEmzYd4Un4WxemvWbS69dGFEQgYmCQ0q02xsMzsZcTKzd3kduB46DBhjRTK77ga4HIQe08Oyn86kg==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/fs-snapshot@4.57.7':
-    resolution: {integrity: sha512-1GS3+plfm2giB3PqokiqyydyqYTPLcCQIKSkp0TdMNRh3KVk7rqRM6U785FLlVRG7XLmkc0KWr215OY+22K3QA==}
+  '@jsonjoy.com/fs-snapshot@4.57.5':
+    resolution: {integrity: sha512-oAUUlG+E4uBw5sFERdMu3FRqt0hEM6jVCIKWkj194xiWppfShAqbMK5G3PahBXfGiTtlJjYErUWDbX3UhQhldw==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -4945,7 +4966,7 @@ packages:
   '@projectstorm/react-canvas-core@6.7.4':
     resolution: {integrity: sha512-sY32kT//gQe5aw6RHkmKrbzBq9iWyfwyvvfRTplGPE1ll3zOBVCjbf3tdfw6vATCden+WR0TmirtBo2j3exiBg==}
     peerDependencies:
-      lodash: '>=4.18.0'
+      lodash: 4.18.1
       react: 16.* || 17.*
 
   '@projectstorm/react-canvas-core@7.0.3':
@@ -4954,7 +4975,7 @@ packages:
   '@projectstorm/react-diagrams-core@6.7.4':
     resolution: {integrity: sha512-AeqH1u58Ugk8mif/GgLEUeOMmTPaWDpl1isA1OJHCPGMbvAytRfv5mrGMvG2E+pYDB29BQ4Yo2z9/TbAy6/nvA==}
     peerDependencies:
-      lodash: '>=4.18.0'
+      lodash: 4.18.1
       react: 18.*
       resize-observer-polyfill: ^1.5.1
 
@@ -4966,7 +4987,7 @@ packages:
     peerDependencies:
       '@emotion/react': ^11.*
       '@emotion/styled': ^11.*
-      lodash: '>=4.18.0'
+      lodash: 4.18.1
       react: 18.*
 
   '@projectstorm/react-diagrams-defaults@7.1.3':
@@ -4976,7 +4997,7 @@ packages:
     resolution: {integrity: sha512-mB8YaRkNF6gdTlYvL0Cxc6m6XLwh7wvmjIsiEO6kW3j1uSvH7R7Gbl/iDYOdc0zUMqH9+pD+M064tWC4oAXa9A==}
     peerDependencies:
       dagre: ^0.8.5
-      lodash: '>=4.18.0'
+      lodash: 4.18.1
       pathfinding: ^0.4.18
       paths-js: ^0.4.11
       react: 18.*
@@ -5578,20 +5599,20 @@ packages:
   '@sinonjs/fake-timers@10.3.0':
     resolution: {integrity: sha512-V4BG07kuYSUkTCSBHG8G8TNhM+F19jXFWnQtzj+we8DrkpSBCee9Z3Ms8yiGer/dlmhe35/Xdgyo3/0rQKg7YA==}
 
-  '@smithy/core@3.25.0':
-    resolution: {integrity: sha512-TTD6el7tvKyafkXBf7XO3jLOE+qVxOTrLjp/fEGiV3BMfUHK/LfdYlQO9YgZvzxC7kqA3H/IhJXNqQgnbgjb7A==}
+  '@smithy/core@3.24.6':
+    resolution: {integrity: sha512-wBXDRup6UU97VKyaiRo8AssnfStPtG0oAAfpq/bC0a1YYau8pM86YB4kM6ccoVi1mS8l/UHbn9oDM+7uozr/ug==}
     engines: {node: '>=18.0.0'}
 
-  '@smithy/eventstream-codec@4.4.0':
-    resolution: {integrity: sha512-fON1WZ+FGrHt/nLH290DoH47tYLK1kiAn+reMnc5P19IbxLZTZbrJi05Kv1Tjekinxrs4f5c0SA2eicLzy+rog==}
+  '@smithy/eventstream-codec@4.3.6':
+    resolution: {integrity: sha512-Ussyv240JxwQP8AmkYdm26wGP/1I8QmIv0ZosgDJDlSzD73FEdj1BOpXMc06VrxX5KxTKhadFNomT2SWutUnpg==}
     engines: {node: '>=18.0.0'}
 
   '@smithy/is-array-buffer@2.2.0':
     resolution: {integrity: sha512-GGP3O9QFD24uGeAXYUjwSTXARoqpZykHadOmA8G5vfJPK0/DC67qa//0qvqrJzL1xc8WQWX7/yc7fwudjPHPhA==}
     engines: {node: '>=14.0.0'}
 
-  '@smithy/types@4.15.0':
-    resolution: {integrity: sha512-Z5TAOxygoFvybJV3igo5SloFflSokHx2hu1eFA+DxDTcn+FtKxUSui+rbTRG1pAafMA888Z3MVvCWUuvCrTXjg==}
+  '@smithy/types@4.14.3':
+    resolution: {integrity: sha512-YupL0ZWmFtJexUN2cHzkvvF/b9pKrtAIfT1o7/oY/Ppu8IYeZ+lDPM5vZdQJaSeA132dJCqojjGC9NhXeF71VQ==}
     engines: {node: '>=18.0.0'}
 
   '@smithy/util-buffer-from@2.2.0':
@@ -5602,8 +5623,8 @@ packages:
     resolution: {integrity: sha512-R8Rdn8Hy72KKcebgLiv8jQcQkXoLMOGGv5uI1/k0l+snqkOzQ1R0ChUBCxWMlBsFMekWjq0wRudIweFs7sKT5A==}
     engines: {node: '>=14.0.0'}
 
-  '@smithy/util-utf8@4.4.0':
-    resolution: {integrity: sha512-dMvQY14daYwEfKR+/ACROrUwJ5onUue7d9o4KJo4gaecn5eVzxlCbSeU9GSh0ojFpIiI1bpnJJxO1wY2VXDEtQ==}
+  '@smithy/util-utf8@4.3.6':
+    resolution: {integrity: sha512-tAa4sePYB7mlJzdYbdBqdv37KwFKWixmM/r3ihcI0HFOVjf+a5oGvtcLXcGm4S1bY4DFsLAIOHgjubtp+oRufw==}
     engines: {node: '>=18.0.0'}
 
   '@standard-schema/spec@1.1.0':
@@ -6858,14 +6879,14 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
-  '@tanstack/react-virtual@3.14.3':
-    resolution: {integrity: sha512-k/cnHPVaOfn46hSbiY6n4Dzf4QjCGWSF40zR5QIIYUqPAjpA6TN7InfYmcMiDVQGP2iUn9xsRbAl8u1v3UmeVQ==}
+  '@tanstack/react-virtual@3.14.2':
+    resolution: {integrity: sha512-IpWnmCLvuymRfeeLNVXIzNEYBFLpd3drVIS91sqV78VTZFyldlChkOocZRCPp1B+Wnk09bcLNme8WaMU/9/9bQ==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  '@tanstack/virtual-core@3.17.1':
-    resolution: {integrity: sha512-VZyW2Uiml5tmBZwPGrSD3Sz73OxzljQMCmzYHsUTPEuTsERf5xwa+uWb01xEzkz3ZSYTjj8NEb/mKHvgKxyZdA==}
+  '@tanstack/virtual-core@3.17.0':
+    resolution: {integrity: sha512-gOxY/hFkPh/XQYhnThBHzkbkX3Ed+z/iushyz+R+JAr213aXxUDgQoTgTdrDpBSRsjFM73P/KfUyWmaF9WHMkQ==}
 
   '@testing-library/dom@10.4.0':
     resolution: {integrity: sha512-pemlzrSESWbdAloYml3bAJMEfNh1Z7EduzqPKprCH5S341frlpYnUEW0H72dLxa6IsYr+mPno20GiSm+h9dEdQ==}
@@ -8301,11 +8322,8 @@ packages:
   aws4fetch@1.0.20:
     resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
 
-  axios@1.15.2:
-    resolution: {integrity: sha512-wLrXxPtcrPTsNlJmKjkPnNPK2Ihe0hn0wGSaTEiHRPxwjvJwT3hKmXF4dpqxmPO9SoNb2FsYXj/xEo0gHN+D5A==}
-
-  axios@1.18.0:
-    resolution: {integrity: sha512-E32NzpYKp++W7XRe52rHiXV2ehxmh3wbdgO7MHeFM+vqxLBYHzt0ElkiImtOBxtOmyp0yoC8C6uESVV84Y2/hw==}
+  axios@1.16.0:
+    resolution: {integrity: sha512-6hp5CwvTPlN2A31g5dxnwAX0orzM7pmCRDLnZSX772mv8WDqICwFjowHuPs04Mc8deIld1+ejhtaMn5vp6b+1w==}
 
   azure-devops-node-api@12.5.0:
     resolution: {integrity: sha512-R5eFskGvOm3U/GzeAuxRkUsAl0hrAwGgWn6zAd2KrZmrEhWZVqLew4OOupbQlXUuojUzpGtq62SmdhJ06N88og==}
@@ -8672,8 +8690,8 @@ packages:
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
-  baseline-browser-mapping@2.10.37:
-    resolution: {integrity: sha512-girxaJ7WZssDOFhzCGZTDKoTa1gk6A1TbflaYTpykLJ4UU9Fz9kx1aREM8JCuoVHbL8X8T/mJg7w2oYSq72Oig==}
+  baseline-browser-mapping@2.10.33:
+    resolution: {integrity: sha512-bA6+tcSLpz2tIEdDXZPpPTIuxBcC4+w6SieaYyfigIa4h8GlFxbA17v22Vx3JUtuZQj9SgOsnbK+aTBzyDyEuw==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -10271,8 +10289,8 @@ packages:
     engines: {node: '>=0.10.0'}
     hasBin: true
 
-  electron-to-chromium@1.5.373:
-    resolution: {integrity: sha512-G2Hym8JIf/QreuseqkDibgH8Ci8KfJzqGDKdakbhSx9UltwRBH2cBLAWU/lBX0sCdv0TlhyxQyDCnSfxgMWsjA==}
+  electron-to-chromium@1.5.366:
+    resolution: {integrity: sha512-OlRuhb688YTCzzU3gXPLn6nGyd+F+53INE1qaKKlu6kETErE8FYsyDh0XqXEU+uBRn0MpCzz2vfNwORhkap8qg==}
 
   element-resize-detector@1.2.4:
     resolution: {integrity: sha512-Fl5Ftk6WwXE0wqCgNoseKWndjzZlDCwuPTcoVZfCP9R3EHQF8qUtr3YUPNETegRBOKqQKPW3n4kiIWngGi8tKg==}
@@ -10960,8 +10978,8 @@ packages:
     resolution: {integrity: sha512-dVsPA/UwQ8+2uoFe5GHtiBMu48dWLTdsuEd7CKGlZlD78r1TTWBvDuFaFGKCo/ZfEr95Uk56vZoX86OsHkUeIg==}
     deprecated: flatten is deprecated in favor of utility frameworks such as lodash.
 
-  flow-parser@0.318.0:
-    resolution: {integrity: sha512-66vPPqpjOcroUke2vbiyRNS87lbTi7ib80CM9lsn45qymGHPL4nrdY9FKo0TvtrFFqHQErfB/BJeqVkEnWeK/g==}
+  flow-parser@0.316.0:
+    resolution: {integrity: sha512-LPYw2hWIj6BI/854eY47jBJVN4gmrIK0kL/EY2xgPmu83Ho37no0mkhDgG6GOX25YxtaXJw5sMkMed2bKntcog==}
     engines: {node: '>=0.4.0'}
 
   flush-write-stream@1.1.1:
@@ -13515,8 +13533,8 @@ packages:
     resolution: {integrity: sha512-UERzLsxzllchadvbPs5aolHh65ISpKpM+ccLbOJ8/vvpBKmAWf+la7dXFy7Mr0ySHbdHrFv5kGFCUHHe6GFEmw==}
     engines: {node: '>= 4.0.0'}
 
-  memfs@4.57.7:
-    resolution: {integrity: sha512-YZPphUQZSRGk6ddPlsNuMbztrLwsbUATFNZcqKscSbSJZ4g0+Y3vSZLJ/rfnGZaB1FFhC7SrywZXev6i8lnHgg==}
+  memfs@4.57.5:
+    resolution: {integrity: sha512-qT8bQJyjF6+DsDI9X1yMwUyIkYHrZI8D2PaWjze8aUUbGUkcNlxppcRZF/0VWesIPHtgx6T2mLx3qPmTQxUd6A==}
     peerDependencies:
       tslib: '2'
 
@@ -17721,8 +17739,8 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
-  undici@7.28.0:
-    resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
+  undici@7.27.0:
+    resolution: {integrity: sha512-+t2Z/GwkZQDtu00813aP66ygViGtPHKhhoFZpQKpKrE+9jIgES+Zw+mFNaDWOVRKiuJjuqKHzD3B1sfGg8+ZOQ==}
     engines: {node: '>=20.18.1'}
 
   unfetch@4.2.0:
@@ -18019,6 +18037,10 @@ packages:
 
   uuid@11.1.1:
     resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
+    hasBin: true
+
+  uuid@14.0.0:
+    resolution: {integrity: sha512-Qo+uWgilfSmAhXCMav1uYFynlQO7fMFiMVZsQqZRMIXp0O7rR7qjkj+cPvBHLgBqi960QCoo/PH2/6ZtVqKvrg==}
     hasBin: true
 
   uuid@3.4.0:
@@ -18861,8 +18883,8 @@ snapshots:
       '@ai-sdk/anthropic': 3.0.64(zod@4.1.8)
       '@ai-sdk/provider': 3.0.8
       '@ai-sdk/provider-utils': 4.0.21(zod@4.1.8)
-      '@smithy/eventstream-codec': 4.4.0
-      '@smithy/util-utf8': 4.4.0
+      '@smithy/eventstream-codec': 4.3.6
+      '@smithy/util-utf8': 4.3.6
       aws4fetch: 1.0.20
       zod: 4.1.8
 
@@ -18923,18 +18945,18 @@ snapshots:
   '@aws-crypto/crc32@5.2.0':
     dependencies:
       '@aws-crypto/util': 5.2.0
-      '@aws-sdk/types': 3.973.13
+      '@aws-sdk/types': 3.973.10
       tslib: 2.8.1
 
   '@aws-crypto/util@5.2.0':
     dependencies:
-      '@aws-sdk/types': 3.973.13
+      '@aws-sdk/types': 3.973.10
       '@smithy/util-utf8': 2.3.0
       tslib: 2.8.1
 
-  '@aws-sdk/types@3.973.13':
+  '@aws-sdk/types@3.973.10':
     dependencies:
-      '@smithy/types': 4.15.0
+      '@smithy/types': 4.14.3
       tslib: 2.8.1
 
   '@azu/format-text@1.0.2': {}
@@ -20900,14 +20922,14 @@ snapshots:
 
   '@headlessui/react@1.7.18(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
-      '@tanstack/react-virtual': 3.14.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@tanstack/react-virtual': 3.14.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       client-only: 0.0.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
   '@headlessui/react@1.7.18(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@tanstack/react-virtual': 3.14.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@tanstack/react-virtual': 3.14.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       client-only: 0.0.1
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
@@ -20917,7 +20939,7 @@ snapshots:
       '@floating-ui/react': 0.26.28(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@react-aria/focus': 3.22.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@react-aria/interactions': 3.28.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@tanstack/react-virtual': 3.14.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@tanstack/react-virtual': 3.14.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       use-sync-external-store: 1.6.0(react@18.2.0)
@@ -21284,161 +21306,161 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@jsonjoy.com/fs-core@4.57.7':
+  '@jsonjoy.com/fs-core@4.57.5':
     dependencies:
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
       thingies: 2.6.0(tslib@2.1.0)
 
-  '@jsonjoy.com/fs-core@4.57.7(tslib@2.1.0)':
+  '@jsonjoy.com/fs-core@4.57.5(tslib@2.1.0)':
     dependencies:
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
       thingies: 2.6.0(tslib@2.1.0)
       tslib: 2.1.0
     optional: true
 
-  '@jsonjoy.com/fs-core@4.57.7(tslib@2.8.1)':
+  '@jsonjoy.com/fs-core@4.57.5(tslib@2.8.1)':
     dependencies:
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.8.1)
       thingies: 2.6.0(tslib@2.8.1)
       tslib: 2.8.1
 
-  '@jsonjoy.com/fs-fsa@4.57.7':
+  '@jsonjoy.com/fs-fsa@4.57.5':
     dependencies:
-      '@jsonjoy.com/fs-core': 4.57.7
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-core': 4.57.5
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
       thingies: 2.6.0(tslib@2.1.0)
 
-  '@jsonjoy.com/fs-fsa@4.57.7(tslib@2.1.0)':
+  '@jsonjoy.com/fs-fsa@4.57.5(tslib@2.1.0)':
     dependencies:
-      '@jsonjoy.com/fs-core': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-core': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
       thingies: 2.6.0(tslib@2.1.0)
       tslib: 2.1.0
     optional: true
 
-  '@jsonjoy.com/fs-fsa@4.57.7(tslib@2.8.1)':
+  '@jsonjoy.com/fs-fsa@4.57.5(tslib@2.8.1)':
     dependencies:
-      '@jsonjoy.com/fs-core': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.8.1)
+      '@jsonjoy.com/fs-core': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.8.1)
       thingies: 2.6.0(tslib@2.8.1)
       tslib: 2.8.1
 
-  '@jsonjoy.com/fs-node-builtins@4.57.7(tslib@2.1.0)':
+  '@jsonjoy.com/fs-node-builtins@4.57.5(tslib@2.1.0)':
     dependencies:
       tslib: 2.1.0
 
-  '@jsonjoy.com/fs-node-builtins@4.57.7(tslib@2.8.1)':
+  '@jsonjoy.com/fs-node-builtins@4.57.5(tslib@2.8.1)':
     dependencies:
       tslib: 2.8.1
 
-  '@jsonjoy.com/fs-node-to-fsa@4.57.7':
+  '@jsonjoy.com/fs-node-to-fsa@4.57.5':
     dependencies:
-      '@jsonjoy.com/fs-fsa': 4.57.7
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-fsa': 4.57.5
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
 
-  '@jsonjoy.com/fs-node-to-fsa@4.57.7(tslib@2.1.0)':
+  '@jsonjoy.com/fs-node-to-fsa@4.57.5(tslib@2.1.0)':
     dependencies:
-      '@jsonjoy.com/fs-fsa': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-fsa': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
       tslib: 2.1.0
     optional: true
 
-  '@jsonjoy.com/fs-node-to-fsa@4.57.7(tslib@2.8.1)':
+  '@jsonjoy.com/fs-node-to-fsa@4.57.5(tslib@2.8.1)':
     dependencies:
-      '@jsonjoy.com/fs-fsa': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.8.1)
+      '@jsonjoy.com/fs-fsa': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.8.1)
       tslib: 2.8.1
 
-  '@jsonjoy.com/fs-node-utils@4.57.7(tslib@2.1.0)':
+  '@jsonjoy.com/fs-node-utils@4.57.5(tslib@2.1.0)':
     dependencies:
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
       tslib: 2.1.0
 
-  '@jsonjoy.com/fs-node-utils@4.57.7(tslib@2.8.1)':
+  '@jsonjoy.com/fs-node-utils@4.57.5(tslib@2.8.1)':
     dependencies:
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.8.1)
       tslib: 2.8.1
 
-  '@jsonjoy.com/fs-node@4.57.7':
+  '@jsonjoy.com/fs-node@4.57.5':
     dependencies:
-      '@jsonjoy.com/fs-core': 4.57.7
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-print': 4.57.7
-      '@jsonjoy.com/fs-snapshot': 4.57.7
+      '@jsonjoy.com/fs-core': 4.57.5
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-print': 4.57.5
+      '@jsonjoy.com/fs-snapshot': 4.57.5
       glob-to-regex.js: 1.2.0(tslib@2.1.0)
       thingies: 2.6.0(tslib@2.1.0)
 
-  '@jsonjoy.com/fs-node@4.57.7(tslib@2.1.0)':
+  '@jsonjoy.com/fs-node@4.57.5(tslib@2.1.0)':
     dependencies:
-      '@jsonjoy.com/fs-core': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-print': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-snapshot': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-core': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-print': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-snapshot': 4.57.5(tslib@2.1.0)
       glob-to-regex.js: 1.2.0(tslib@2.1.0)
       thingies: 2.6.0(tslib@2.1.0)
       tslib: 2.1.0
     optional: true
 
-  '@jsonjoy.com/fs-node@4.57.7(tslib@2.8.1)':
+  '@jsonjoy.com/fs-node@4.57.5(tslib@2.8.1)':
     dependencies:
-      '@jsonjoy.com/fs-core': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-print': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-snapshot': 4.57.7(tslib@2.8.1)
+      '@jsonjoy.com/fs-core': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-print': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-snapshot': 4.57.5(tslib@2.8.1)
       glob-to-regex.js: 1.2.0(tslib@2.8.1)
       thingies: 2.6.0(tslib@2.8.1)
       tslib: 2.8.1
 
-  '@jsonjoy.com/fs-print@4.57.7':
+  '@jsonjoy.com/fs-print@4.57.5':
     dependencies:
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
       tree-dump: 1.1.0(tslib@2.1.0)
 
-  '@jsonjoy.com/fs-print@4.57.7(tslib@2.1.0)':
+  '@jsonjoy.com/fs-print@4.57.5(tslib@2.1.0)':
     dependencies:
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
       tree-dump: 1.1.0(tslib@2.1.0)
       tslib: 2.1.0
     optional: true
 
-  '@jsonjoy.com/fs-print@4.57.7(tslib@2.8.1)':
+  '@jsonjoy.com/fs-print@4.57.5(tslib@2.8.1)':
     dependencies:
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.8.1)
       tree-dump: 1.1.0(tslib@2.8.1)
       tslib: 2.8.1
 
-  '@jsonjoy.com/fs-snapshot@4.57.7':
+  '@jsonjoy.com/fs-snapshot@4.57.5':
     dependencies:
       '@jsonjoy.com/buffers': 17.67.0(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
       '@jsonjoy.com/json-pack': 17.67.0
       '@jsonjoy.com/util': 17.67.0(tslib@2.1.0)
 
-  '@jsonjoy.com/fs-snapshot@4.57.7(tslib@2.1.0)':
+  '@jsonjoy.com/fs-snapshot@4.57.5(tslib@2.1.0)':
     dependencies:
       '@jsonjoy.com/buffers': 17.67.0(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
       '@jsonjoy.com/json-pack': 17.67.0(tslib@2.1.0)
       '@jsonjoy.com/util': 17.67.0(tslib@2.1.0)
       tslib: 2.1.0
     optional: true
 
-  '@jsonjoy.com/fs-snapshot@4.57.7(tslib@2.8.1)':
+  '@jsonjoy.com/fs-snapshot@4.57.5(tslib@2.8.1)':
     dependencies:
       '@jsonjoy.com/buffers': 17.67.0(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.8.1)
       '@jsonjoy.com/json-pack': 17.67.0(tslib@2.8.1)
       '@jsonjoy.com/util': 17.67.0(tslib@2.8.1)
       tslib: 2.8.1
@@ -22841,22 +22863,22 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@smithy/core@3.25.0':
+  '@smithy/core@3.24.6':
     dependencies:
       '@aws-crypto/crc32': 5.2.0
-      '@smithy/types': 4.15.0
+      '@smithy/types': 4.14.3
       tslib: 2.8.1
 
-  '@smithy/eventstream-codec@4.4.0':
+  '@smithy/eventstream-codec@4.3.6':
     dependencies:
-      '@smithy/core': 3.25.0
+      '@smithy/core': 3.24.6
       tslib: 2.8.1
 
   '@smithy/is-array-buffer@2.2.0':
     dependencies:
       tslib: 2.8.1
 
-  '@smithy/types@4.15.0':
+  '@smithy/types@4.14.3':
     dependencies:
       tslib: 2.8.1
 
@@ -22870,9 +22892,9 @@ snapshots:
       '@smithy/util-buffer-from': 2.2.0
       tslib: 2.8.1
 
-  '@smithy/util-utf8@4.4.0':
+  '@smithy/util-utf8@4.3.6':
     dependencies:
-      '@smithy/core': 3.25.0
+      '@smithy/core': 3.24.6
       tslib: 2.8.1
 
   '@standard-schema/spec@1.1.0': {}
@@ -27200,7 +27222,7 @@ snapshots:
       '@swagger-api/apidom-core': 1.11.2
       '@swagger-api/apidom-error': 1.11.2
       '@types/ramda': 0.30.2
-      axios: 1.18.0
+      axios: 1.16.0
       minimatch: 10.2.5
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
@@ -27232,7 +27254,6 @@ snapshots:
       '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.11.2
     transitivePeerDependencies:
       - debug
-      - supports-color
 
   '@swaggerexpert/cookie@2.0.2':
     dependencies:
@@ -27285,19 +27306,19 @@ snapshots:
       '@tanstack/query-core': 5.77.1
       react: 18.2.0
 
-  '@tanstack/react-virtual@3.14.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@tanstack/react-virtual@3.14.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
-      '@tanstack/virtual-core': 3.17.1
+      '@tanstack/virtual-core': 3.17.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
-  '@tanstack/react-virtual@3.14.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@tanstack/react-virtual@3.14.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@tanstack/virtual-core': 3.17.1
+      '@tanstack/virtual-core': 3.17.0
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
 
-  '@tanstack/virtual-core@3.17.1': {}
+  '@tanstack/virtual-core@3.17.0': {}
 
   '@testing-library/dom@10.4.0':
     dependencies:
@@ -29114,23 +29135,13 @@ snapshots:
 
   aws4fetch@1.0.20: {}
 
-  axios@1.15.2:
+  axios@1.16.0:
     dependencies:
       follow-redirects: 1.16.0(debug@3.2.7)
       form-data: 4.0.6
       proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
-
-  axios@1.18.0:
-    dependencies:
-      follow-redirects: 1.16.0(debug@3.2.7)
-      form-data: 4.0.6
-      https-proxy-agent: 5.0.1
-      proxy-from-env: 2.1.0
-    transitivePeerDependencies:
-      - debug
-      - supports-color
 
   azure-devops-node-api@12.5.0:
     dependencies:
@@ -29820,7 +29831,7 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  baseline-browser-mapping@2.10.37: {}
+  baseline-browser-mapping@2.10.33: {}
 
   basic-auth@2.0.1:
     dependencies:
@@ -30037,26 +30048,26 @@ snapshots:
 
   browserslist@1.7.7:
     dependencies:
-      caniuse-db: 1.0.30001799
-      electron-to-chromium: 1.5.373
+      caniuse-db: 1.0.30001795
+      electron-to-chromium: 1.5.366
 
   browserslist@2.11.3:
     dependencies:
-      caniuse-lite: 1.0.30001799
-      electron-to-chromium: 1.5.373
+      caniuse-lite: 1.0.30001793
+      electron-to-chromium: 1.5.366
 
   browserslist@4.14.2:
     dependencies:
-      caniuse-lite: 1.0.30001799
-      electron-to-chromium: 1.5.373
+      caniuse-lite: 1.0.30001793
+      electron-to-chromium: 1.5.366
       escalade: 3.2.0
       node-releases: 1.1.77
 
   browserslist@4.28.2:
     dependencies:
-      baseline-browser-mapping: 2.10.37
-      caniuse-lite: 1.0.30001799
-      electron-to-chromium: 1.5.373
+      baseline-browser-mapping: 2.10.33
+      caniuse-lite: 1.0.30001793
+      electron-to-chromium: 1.5.366
       node-releases: 2.0.47
       update-browserslist-db: 1.2.3(browserslist@4.28.2)
 
@@ -30436,7 +30447,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 7.28.0
+      undici: 7.27.0
       whatwg-mimetype: 4.0.0
 
   chokidar@1.7.0:
@@ -31783,7 +31794,7 @@ snapshots:
     dependencies:
       jake: 10.9.4
 
-  electron-to-chromium@1.5.373: {}
+  electron-to-chromium@1.5.366: {}
 
   element-resize-detector@1.2.4:
     dependencies:
@@ -32742,7 +32753,7 @@ snapshots:
 
   flatten@1.0.3: {}
 
-  flow-parser@0.318.0: {}
+  flow-parser@0.316.0: {}
 
   flush-write-stream@1.1.1:
     dependencies:
@@ -35511,7 +35522,7 @@ snapshots:
       '@babel/register': 7.29.7(@babel/core@7.29.6)
       babel-core: 7.0.0-bridge.0(@babel/core@7.29.6)
       chalk: 4.1.2
-      flow-parser: 0.318.0
+      flow-parser: 0.316.0
       graceful-fs: 4.2.11
       micromatch: 4.0.8
       neo-async: 2.6.2
@@ -36369,32 +36380,32 @@ snapshots:
     dependencies:
       fs-monkey: 1.1.0
 
-  memfs@4.57.7:
+  memfs@4.57.5:
     dependencies:
-      '@jsonjoy.com/fs-core': 4.57.7
-      '@jsonjoy.com/fs-fsa': 4.57.7
-      '@jsonjoy.com/fs-node': 4.57.7
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-to-fsa': 4.57.7
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-print': 4.57.7
-      '@jsonjoy.com/fs-snapshot': 4.57.7
+      '@jsonjoy.com/fs-core': 4.57.5
+      '@jsonjoy.com/fs-fsa': 4.57.5
+      '@jsonjoy.com/fs-node': 4.57.5
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-to-fsa': 4.57.5
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-print': 4.57.5
+      '@jsonjoy.com/fs-snapshot': 4.57.5
       '@jsonjoy.com/json-pack': 1.21.0
       '@jsonjoy.com/util': 1.9.0(tslib@2.1.0)
       glob-to-regex.js: 1.2.0(tslib@2.1.0)
       thingies: 2.6.0(tslib@2.1.0)
       tree-dump: 1.1.0(tslib@2.1.0)
 
-  memfs@4.57.7(tslib@2.1.0):
+  memfs@4.57.5(tslib@2.1.0):
     dependencies:
-      '@jsonjoy.com/fs-core': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-fsa': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-to-fsa': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-print': 4.57.7(tslib@2.1.0)
-      '@jsonjoy.com/fs-snapshot': 4.57.7(tslib@2.1.0)
+      '@jsonjoy.com/fs-core': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-fsa': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-to-fsa': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-print': 4.57.5(tslib@2.1.0)
+      '@jsonjoy.com/fs-snapshot': 4.57.5(tslib@2.1.0)
       '@jsonjoy.com/json-pack': 1.21.0(tslib@2.1.0)
       '@jsonjoy.com/util': 1.9.0(tslib@2.1.0)
       glob-to-regex.js: 1.2.0(tslib@2.1.0)
@@ -36403,16 +36414,16 @@ snapshots:
       tslib: 2.1.0
     optional: true
 
-  memfs@4.57.7(tslib@2.8.1):
+  memfs@4.57.5(tslib@2.8.1):
     dependencies:
-      '@jsonjoy.com/fs-core': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-fsa': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-builtins': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-to-fsa': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-node-utils': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-print': 4.57.7(tslib@2.8.1)
-      '@jsonjoy.com/fs-snapshot': 4.57.7(tslib@2.8.1)
+      '@jsonjoy.com/fs-core': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-fsa': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-builtins': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-to-fsa': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-node-utils': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-print': 4.57.5(tslib@2.8.1)
+      '@jsonjoy.com/fs-snapshot': 4.57.5(tslib@2.8.1)
       '@jsonjoy.com/json-pack': 1.21.0(tslib@2.8.1)
       '@jsonjoy.com/util': 1.9.0(tslib@2.8.1)
       glob-to-regex.js: 1.2.0(tslib@2.8.1)
@@ -40880,7 +40891,6 @@ snapshots:
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     transitivePeerDependencies:
       - debug
-      - supports-color
 
   swagger-ui-react@5.22.0(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
@@ -40922,7 +40932,6 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - debug
-      - supports-color
 
   symbol-tree@3.2.4: {}
 
@@ -41836,7 +41845,7 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici@7.28.0: {}
+  undici@7.27.0: {}
 
   unfetch@4.2.0: {}
 
@@ -42173,6 +42182,8 @@ snapshots:
   uuid-browser@3.1.0: {}
 
   uuid@11.1.1: {}
+
+  uuid@14.0.0: {}
 
   uuid@3.4.0: {}
 
@@ -42570,7 +42581,7 @@ snapshots:
   webpack-dev-middleware@7.4.5(tslib@2.1.0)(webpack@5.104.1):
     dependencies:
       colorette: 2.0.20
-      memfs: 4.57.7(tslib@2.1.0)
+      memfs: 4.57.5(tslib@2.1.0)
       mime-types: 3.0.2
       on-finished: 2.4.1
       range-parser: 1.2.1
@@ -42584,7 +42595,7 @@ snapshots:
   webpack-dev-middleware@7.4.5(tslib@2.8.1)(webpack@5.104.1):
     dependencies:
       colorette: 2.0.20
-      memfs: 4.57.7(tslib@2.8.1)
+      memfs: 4.57.5(tslib@2.8.1)
       mime-types: 3.0.2
       on-finished: 2.4.1
       range-parser: 1.2.1
@@ -42597,7 +42608,7 @@ snapshots:
   webpack-dev-middleware@7.4.5(webpack@5.104.1):
     dependencies:
       colorette: 2.0.20
-      memfs: 4.57.7
+      memfs: 4.57.5
       mime-types: 3.0.2
       on-finished: 2.4.1
       range-parser: 1.2.1

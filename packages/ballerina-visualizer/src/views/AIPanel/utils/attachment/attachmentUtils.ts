@@ -51,3 +51,30 @@ export const readFileAsText = (file: File): Promise<string> => {
         reader.readAsText(file);
     });
 };
+
+/**
+ * Helper to check if a file is an image based on MIME type.
+ */
+export const isImageFile = (file: File): boolean => {
+    return file.type.startsWith('image/');
+};
+
+/**
+ * Read image file as base64 data URL.
+ */
+export const readFileAsBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            if (typeof reader.result === "string") {
+                resolve(reader.result);
+            } else {
+                reject(new Error("File content is not a string."));
+            }
+        };
+
+        reader.onerror = () => reject(new Error("Error reading the image file."));
+        reader.readAsDataURL(file);
+    });
+};

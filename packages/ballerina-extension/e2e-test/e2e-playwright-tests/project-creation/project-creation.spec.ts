@@ -62,17 +62,12 @@ export default function createTests() {
 
             console.log('Filling integration create form');
 
-            const projectName = "testProject";
             const integrationName = "testIntegration";
             await form.fill({
                 values: {
                     'Integration Name*': {
                         type: 'input',
                         value: integrationName,
-                    },
-                    "Project Name*": {
-                        type: 'input',
-                        value: projectName,
                     }
                 },
             });

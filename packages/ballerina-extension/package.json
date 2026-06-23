@@ -1232,14 +1232,14 @@
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f247"
+                    "fontCharacter": "\\f249"
                 }
             },
             "ballerina-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1bf"
+                    "fontCharacter": "\\f1c1"
                 }
             },
             "ballerina-source-view": {
@@ -1253,7 +1253,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f21e"
+                    "fontCharacter": "\\f220"
                 }
             },
             "ballerina-cached-rounded": {
@@ -1351,7 +1351,7 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1c4"
+                    "fontCharacter": "\\f1c6"
                 }
             },
             "distro-file-submodule": {
@@ -1430,7 +1430,7 @@
         "copyLS": "node scripts/copy-ls.js",
         "provisionLS": "node scripts/copy-ls.js --fallback-download",
         "copyGrammar": "del-cli ./grammar/ballerina-grammar && copyfiles -u 3 \"../ballerina-grammar/syntaxes/*\" ./grammar/ballerina-grammar/syntaxes/",
-        "build": "pnpm run copyGrammar && pnpm run compile && pnpm run lint && pnpm run postbuild",
+        "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "pnpm run provisionLS && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
         "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../ballerina-visualizer/build/images/* resources/jslibs/images && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs && copyfiles -f ../graphql/build/*.js resources/jslibs"
@@ -1440,12 +1440,12 @@
         "@ai-sdk/anthropic": "3.0.64",
         "@ai-sdk/google-vertex": "4.0.94",
         "@iarna/toml": "2.2.5",
+        "ballerina-grammar": "workspace:*",
+        "ballerina-language-server": "workspace:*",
         "@types/lodash": "4.14.200",
         "@vscode/test-electron": "2.5.2",
         "@vscode/vsce": "3.7.1",
         "@wso2/ballerina-core": "workspace:*",
-        "ballerina-grammar": "workspace:*",
-        "ballerina-language-server": "workspace:*",
         "@wso2/copilot-utilities": "workspace:*",
         "@wso2/ballerina-visualizer": "workspace:*",
         "@wso2/font-wso2-vscode": "workspace:*",
@@ -1461,7 +1461,7 @@
         "glob": "11.1.0",
         "handlebars": "4.7.9",
         "jwt-decode": "4.0.0",
-        "lodash": "4.17.23",
+        "lodash": "4.18.1",
         "monaco-languageclient": "0.13.1-next.9",
         "zustand": "5.0.5",
         "node-fetch": "3.3.2",
@@ -1470,7 +1470,7 @@
         "protobufjs": "7.6.3",
         "source-map-support": "0.5.21",
         "unzipper": "0.12.3",
-        "uuid": "11.1.1",
+        "uuid": "14.0.0",
         "vscode-debugadapter": "1.51.0",
         "vscode-debugprotocol": "1.51.0",
         "vscode-extension-telemetry": "0.1.7",
@@ -1495,7 +1495,7 @@
         "@types/vscode": "1.100.0",
         "@types/vscode-notebook-renderer": "1.72.2",
         "adm-zip": "0.5.16",
-        "axios": "1.15.2",
+        "axios": "1.16.0",
         "chai": "4.3.10",
         "copyfiles": "2.4.1",
         "cross-env": "7.0.3",

@@ -19,11 +19,15 @@
 import { ApiCallNodeModel } from "../components/nodes/ApiCallNode";
 import { BaseNodeModel } from "../components/nodes/BaseNode";
 import { ButtonNodeModel } from "../components/nodes/ButtonNode";
+import { CallActivityNodeModel } from "../components/nodes/CallActivityNode";
 import { CommentNodeModel } from "../components/nodes/CommentNode";
 import { DraftNodeModel } from "../components/nodes/DraftNode/DraftNodeModel";
 import { EmptyNodeModel } from "../components/nodes/EmptyNode";
 import { IfNodeModel } from "../components/nodes/IfNode/IfNodeModel";
+import { SendDataNodeModel } from "../components/nodes/SendDataNode";
 import { StartNodeModel } from "../components/nodes/StartNode/StartNodeModel";
+import { WaitDataNodeModel } from "../components/nodes/WaitDataNode";
+import { WorkflowRunNodeModel } from "../components/nodes/WorkflowRunNode";
 import { WhileNodeModel } from "../components/nodes/WhileNode";
 import { EndNodeModel } from "../components/nodes/EndNode";
 
@@ -35,6 +39,10 @@ export type NodeModel =
     | WhileNodeModel
     | StartNodeModel
     | ApiCallNodeModel
+    | WorkflowRunNodeModel
+    | CallActivityNodeModel
+    | SendDataNodeModel
+    | WaitDataNodeModel
     | CommentNodeModel
     | ButtonNodeModel
     | EndNodeModel;

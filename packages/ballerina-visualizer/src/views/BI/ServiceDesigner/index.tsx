@@ -392,8 +392,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             setIsFtpService(service.moduleName === "ftp");
             setIsHttpService(service.moduleName === "http");
             setIsMcpService(service.moduleName === "mcp");
-            setIsCdcService(service.moduleName === "mssql" || service.moduleName === "postgresql"
-                || service.moduleName === "mysql");
+            setIsCdcService(service.moduleName === "mssql" || service.moduleName === "postgresql");
         }
 
         // Extract object methods if available (for service classes)

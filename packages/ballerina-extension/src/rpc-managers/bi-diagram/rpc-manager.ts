@@ -49,6 +49,8 @@ import {
     BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
+    WorkflowDataRequest,
+    WorkflowDataResponse,
     BISourceCodeRequest,
     BISourceCodeResponse,
     BISuggestedFlowModelRequest,
@@ -169,6 +171,8 @@ import {
     IWso2PlatformExtensionAPI,
     ICreateNewIntegrationCmdParams,
     ICreateNewIntegrationCmdIntegrations,
+    resolveIntegrationType,
+    AUTOMATION_WITH_LISTENER_WARNING,
 } from "@wso2/wso2-platform-core";
 import {
     ShellExecution,
@@ -405,6 +409,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { artifactType: DIRECTORY_MAP.DATA_MAPPER };
             case 'NP_FUNCTION_DEFINITION':
                 return { artifactType: DIRECTORY_MAP.NP_FUNCTION };
+            case 'WORKFLOW':
+                return { artifactType: DIRECTORY_MAP.WORKFLOW };
+            case 'ACTIVITY':
+                return { artifactType: DIRECTORY_MAP.ACTIVITY };
             // Add other cases as needed
             default:
                 return undefined;
@@ -1294,11 +1302,25 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             return undefined;
         }
 
-        if (integrationTypes.length === 1) {
-            return integrationTypes[0];
+        const resolution = resolveIntegrationType(integrationTypes);
+
+        if (resolution.kind === "autoPick") {
+            return resolution.scope as SCOPE;
         }
 
-        const selectedScope = await window.showQuickPick(integrationTypes, {
+        if (resolution.kind === "autoPickWithWarning") {
+            const choice = await window.showWarningMessage(
+                AUTOMATION_WITH_LISTENER_WARNING,
+                { modal: true },
+                "Continue",
+            );
+            if (choice !== "Continue") {
+                return undefined;
+            }
+            return resolution.scope as SCOPE;
+        }
+
+        const selectedScope = await window.showQuickPick(resolution.choices, {
             placeHolder: 'You have different types of artifacts within this integration. Select the artifact type to be deployed'
         });
 
@@ -2132,6 +2154,19 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 resolve(res);
             }).catch((error) => {
                 console.log(">>> error searching", error);
+                reject(error);
+            });
+        });
+    }
+
+    async getAllData(params: WorkflowDataRequest): Promise<WorkflowDataResponse> {
+        return new Promise((resolve, reject) => {
+            console.log(">>> requesting workflowManager/getAllData from ls", params);
+            StateMachine.langClient().getAllData(params).then((res) => {
+                console.log(">>> workflowManager/getAllData response from ls", res);
+                resolve(res);
+            }).catch((error) => {
+                console.log(">>> error fetching workflow data", error);
                 reject(error);
             });
         });
