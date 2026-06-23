@@ -1410,15 +1410,24 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 eventHandler({ type: "abort", command: Command.Agent });
             }
         } else {
-            // ── Single-package project (existing behavior) ───────────────
+            // ── Single-package project ───────────────────────────────────
             const stages = getEnhancementStages();
             injectResumePreamble(projectRoot, stages);
             console.log(`[MigrationEnhancement] Starting wizard migration agent (${stages.length} stages) – projectRoot: ${projectRoot}, sourcePath: ${sourcePath ?? 'none'}`);
             debugLogger.logMilestone(`Run start — single package (wizard), model: ${_selectedModelId}, projectRoot: ${projectRoot}`);
 
+            // Suppress per-stage "stop" events emitted by AgentExecutor at the end of each
+            // stage — without this, the first stage's stop sets terminalRef=true in the webview
+            // and all subsequent migration_progress events are silently dropped, leaving the
+            // progress bar stuck at 0%. The real final stop is emitted explicitly below.
+            const singleStageHandler = (event: ChatNotify) => {
+                if (event.type === 'stop') { return; }
+                eventHandler(event);
+            };
+
             await runStagesForPackage({
                 projectRoot, packagePath: projectRoot, sourcePath, stages,
-                eventHandler, abortController: _migrationAbortController,
+                eventHandler: singleStageHandler, abortController: _migrationAbortController,
                 fromAIChat, stageIdPrefix: "wizard-migration",
                 useExistingTempPath: true, debugLogger,
                 transcriptWriter, packageRelPath: "",
@@ -1438,6 +1447,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 }
                 debugLogger.logMilestone("Run complete — single package succeeded (wizard)");
                 console.log("[MigrationEnhancement] Wizard migration agent completed all stages successfully.");
+                eventHandler({ type: 'stop', command: Command.Agent });
             } else {
                 debugLogger.logMilestone("Run aborted by user (wizard, single-package)");
             }
