@@ -33,7 +33,11 @@ export class ProjectExplorer {
      * followed by the ", " separator, so it works on old and new VS Code.
      */
     public static treeItemSelector(label: string): string {
-        return `div[role="treeitem"][aria-label="${label}"], div[role="treeitem"][aria-label^="${label}, "]`;
+        // Escape backslashes and double quotes so labels that themselves
+        // contain quotes (e.g. `RabbitMQ Event Integration - "myQueue"`) don't
+        // produce a malformed double-quoted CSS attribute selector.
+        const escaped = label.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        return `div[role="treeitem"][aria-label="${escaped}"], div[role="treeitem"][aria-label^="${escaped}, "]`;
     }
 
     public async init() {
