@@ -97,7 +97,7 @@ export default function createTests() {
             const projectExplorer = new ProjectExplorer(page.page);
             await projectExplorer.init().catch(() => undefined);
             await page.page
-                .locator(`div[role="treeitem"][aria-label='${DEFAULT_PROJECT_NAME}']`)
+                .locator(ProjectExplorer.treeItemSelector(DEFAULT_PROJECT_NAME))
                 .first()
                 .waitFor({ timeout: 90000 });
 
