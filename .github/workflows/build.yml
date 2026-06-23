@@ -128,6 +128,7 @@ jobs:
           # makes every entry except the first start with ' ' and never match.
           skip-dirs: 'common/temp,submodules,packages/ballerina-language-server/**/src/test/resources,packages/ballerina-language-server/**/src/test/data'
           ignore-unfixed: true
+          trivyignores: .trivyignore,submodules/wso2-vscode-extensions/.trivyignore
 
   ExtTest_Ballerina:
     name: Run Ballerina extension tests
