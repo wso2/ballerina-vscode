@@ -47,7 +47,7 @@ async function waitForWorkspaceTree(firstItem: string) {
     const projectExplorer = new ProjectExplorer(page.page);
     await projectExplorer.init().catch(() => undefined);
     await page.page
-        .locator(`div[role="treeitem"][aria-label='${firstItem}']`)
+        .locator(ProjectExplorer.treeItemSelector(firstItem))
         .first()
         .waitFor({ timeout: 90000 });
 }
