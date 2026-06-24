@@ -20,8 +20,66 @@ import {
     WorkflowManagementRequest,
     WorkflowManagementResponse,
 } from "@wso2/ballerina-core";
+import * as fs from 'fs';
+import * as path from 'path';
+import { parse, stringify } from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
+
+/**
+ * Adds the `[ballerina.workflow.management]` configuration block to Config.toml,
+ * preserving any other configuration already present.
+ */
+function addWorkflowManagementConfigToml(projectPath: string): void {
+    const configPath = path.join(projectPath, 'Config.toml');
+    let config: Record<string, any> = {};
+
+    if (fs.existsSync(configPath)) {
+        try {
+            config = parse(fs.readFileSync(configPath, 'utf-8')) as Record<string, any>;
+        } catch (error) {
+            console.error('[WorkflowManagement] Error reading Config.toml:', error);
+        }
+    }
+
+    if (!config.ballerina) { config.ballerina = {}; }
+    if (!config.ballerina.workflow) { config.ballerina.workflow = {}; }
+
+    config.ballerina.workflow.management = {
+        ...(config.ballerina.workflow.management ?? {}),
+        enableManagementApi: true,
+        port: 8234,
+        enableBasicAuth: false,
+    };
+
+    fs.writeFileSync(configPath, stringify(config), 'utf-8');
+}
+
+/**
+ * Removes the `[ballerina.workflow.management]` block from Config.toml, cleaning up
+ * any parent tables that become empty as a result.
+ */
+function removeWorkflowManagementConfigToml(projectPath: string): void {
+    const configPath = path.join(projectPath, 'Config.toml');
+    if (!fs.existsSync(configPath)) {
+        return;
+    }
+
+    try {
+        const config = parse(fs.readFileSync(configPath, 'utf-8')) as Record<string, any>;
+
+        if (config.ballerina?.workflow?.management) {
+            delete config.ballerina.workflow.management;
+
+            if (Object.keys(config.ballerina.workflow).length === 0) { delete config.ballerina.workflow; }
+            if (Object.keys(config.ballerina).length === 0) { delete config.ballerina; }
+        }
+
+        fs.writeFileSync(configPath, stringify(config), 'utf-8');
+    } catch (error) {
+        console.error('[WorkflowManagement] Error removing workflow management config from Config.toml:', error);
+    }
+}
 
 export class WorkflowManagementServiceRpcManager implements WorkflowManagementServiceAPI {
 
@@ -45,6 +103,7 @@ export class WorkflowManagementServiceRpcManager implements WorkflowManagementSe
             if (res?.textEdits && Object.keys(res.textEdits).length > 0) {
                 await updateSourceCode({ textEdits: res.textEdits, description: 'Enable Workflow Management' });
             }
+            addWorkflowManagementConfigToml(projectPath);
             const result = await context.langClient.isWorkflowManagementEnabled({ projectPath });
             return result as WorkflowManagementResponse;
         } catch (error) {
@@ -61,6 +120,7 @@ export class WorkflowManagementServiceRpcManager implements WorkflowManagementSe
             if (res?.textEdits && Object.keys(res.textEdits).length > 0) {
                 await updateSourceCode({ textEdits: res.textEdits, description: 'Disable Workflow Management' });
             }
+            removeWorkflowManagementConfigToml(projectPath);
             const result = await context.langClient.isWorkflowManagementEnabled({ projectPath });
             return result as WorkflowManagementResponse;
         } catch (error) {
