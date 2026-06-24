@@ -1835,12 +1835,13 @@ const AIChat: React.FC = () => {
                         </ApprovalOverlay>
                     )}
                     <Header>
-                        {loginMethod === LoginMethod.ANTHROPIC_KEY || loginMethod === LoginMethod.AWS_BEDROCK || loginMethod === LoginMethod.VERTEX_AI ? (
+                        {loginMethod === LoginMethod.ANTHROPIC_KEY || loginMethod === LoginMethod.AWS_BEDROCK || loginMethod === LoginMethod.VERTEX_AI || loginMethod === LoginMethod.ANTHROPIC_AWS ? (
                             <AuthProviderChip>
                                 <UsageBadge>
                                     <span className="codicon codicon-key" style={{ fontSize: 11 }} />
                                     {loginMethod === LoginMethod.ANTHROPIC_KEY ? "Anthropic (own key)"
                                         : loginMethod === LoginMethod.AWS_BEDROCK ? "AWS Bedrock (own key)"
+                                        : loginMethod === LoginMethod.ANTHROPIC_AWS ? "Anthropic AWS (own key)"
                                         : "Vertex AI (own key)"}
                                 </UsageBadge>
                             </AuthProviderChip>

@@ -1489,6 +1489,7 @@
     },
     "dependencies": {
         "@ai-sdk/amazon-bedrock": "4.0.83",
+        "@ai-sdk/anthropic-aws": "1.0.3",
         "@ai-sdk/anthropic": "3.0.64",
         "@ai-sdk/google-vertex": "4.0.94",
         "@iarna/toml": "2.2.5",

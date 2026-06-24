@@ -82,7 +82,8 @@ function supportsCompaction(loginMethod: LoginMethod): boolean {
     // support the `compact-2026-01-12` beta, so server-side compaction is disabled there.
     return loginMethod === LoginMethod.ANTHROPIC_KEY
         || loginMethod === LoginMethod.BI_INTEL
-        || loginMethod === LoginMethod.VERTEX_AI;
+        || loginMethod === LoginMethod.VERTEX_AI
+        || loginMethod === LoginMethod.ANTHROPIC_AWS;
 }
 
 function buildCompactionProviderOptions(loginMethod: LoginMethod, floorTokens: number) {

@@ -631,7 +631,7 @@ export const approvalOverlayState: NotificationType<ApprovalOverlayState> = { me
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
-    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' | 'vertexAiFlow' | 'validatingVertexAiCredentials' } // hierarchical substates
+    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' | 'vertexAiFlow' | 'validatingVertexAiCredentials' | 'anthropicAwsFlow' | 'validatingAnthropicAwsCredentials' | 'awsUnifiedFlow' } // hierarchical substates
     | 'Authenticated'       // (ready, main view)
     | 'Disabled';           // (optional: if AI Chat is globally unavailable)
 
@@ -644,6 +644,9 @@ export enum AIMachineEventType {
     SUBMIT_AWS_CREDENTIALS = 'SUBMIT_AWS_CREDENTIALS',
     AUTH_WITH_VERTEX_AI = 'AUTH_WITH_VERTEX_AI',
     SUBMIT_VERTEX_AI_CREDENTIALS = 'SUBMIT_VERTEX_AI_CREDENTIALS',
+    AUTH_WITH_ANTHROPIC_AWS = 'AUTH_WITH_ANTHROPIC_AWS',
+    SUBMIT_ANTHROPIC_AWS_CREDENTIALS = 'SUBMIT_ANTHROPIC_AWS_CREDENTIALS',
+    AUTH_WITH_AWS = 'AUTH_WITH_AWS',
     LOGOUT = 'LOGOUT',
     SILENT_LOGOUT = "SILENT_LOGOUT",
     COMPLETE_AUTH = 'COMPLETE_AUTH',
@@ -669,6 +672,17 @@ export type AIMachineEventMap = {
         projectId: string;
         location: string;
         keyFile: string;
+    };
+    [AIMachineEventType.AUTH_WITH_ANTHROPIC_AWS]: undefined;
+    [AIMachineEventType.AUTH_WITH_AWS]: undefined;
+    [AIMachineEventType.SUBMIT_ANTHROPIC_AWS_CREDENTIALS]: {
+        region: string;
+        workspaceId: string;
+        authMode: 'sigv4' | 'apikey';
+        accessKeyId?: string;
+        secretAccessKey?: string;
+        sessionToken?: string;
+        apiKey?: string;
     };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;
@@ -880,7 +894,9 @@ export enum LoginMethod {
     BI_INTEL = 'biIntel',
     ANTHROPIC_KEY = 'anthropic_key',
     AWS_BEDROCK = 'aws_bedrock',
-    VERTEX_AI = 'vertex_ai'
+    VERTEX_AI = 'vertex_ai',
+    ANTHROPIC_AWS = 'anthropic_aws',
+    AWS_UNIFIED = 'aws_unified'
 }
 
 export interface BIIntelSecrets {
@@ -905,6 +921,16 @@ export interface VertexAiSecrets {
     keyFile: string;
 }
 
+export interface AnthropicAwsSecrets {
+    region: string;
+    workspaceId: string;
+    authMode: 'sigv4' | 'apikey';
+    accessKeyId?: string;
+    secretAccessKey?: string;
+    sessionToken?: string;
+    apiKey?: string;
+}
+
 export type AuthCredentials =
     | {
         loginMethod: LoginMethod.BI_INTEL;
@@ -921,6 +947,10 @@ export type AuthCredentials =
     | {
         loginMethod: LoginMethod.VERTEX_AI;
         secrets: VertexAiSecrets;
+    }
+    | {
+        loginMethod: LoginMethod.ANTHROPIC_AWS;
+        secrets: AnthropicAwsSecrets;
     };
 
 export interface AIUserToken {

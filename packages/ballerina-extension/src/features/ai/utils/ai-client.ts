@@ -17,12 +17,13 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { LanguageModel, ModelMessage, JSONValue } from "ai";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
+import { createAnthropicAws } from "@ai-sdk/anthropic-aws";
 import { createVertexAnthropic } from "@ai-sdk/google-vertex/anthropic";
-import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, getVertexAiCredentials } from "../../../utils/ai/auth";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, getVertexAiCredentials, getAnthropicAwsCredentials } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../utils";
 import { LLM_API_BASE_PATH } from "../constants";
-import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets } from "@wso2/ballerina-core";
+import { AIMachineEventType, AnthropicKeySecrets, AnthropicAwsSecrets, LoginMethod, BIIntelSecrets } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-haiku-4-5-20251001";
 export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-6";
@@ -231,6 +232,19 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
             }
 
             return vertexAnthropic(vertexModelId);
+        } else if (loginMethod === LoginMethod.ANTHROPIC_AWS) {
+            const awsCredentials = await getAnthropicAwsCredentials();
+            if (!awsCredentials) {
+                throw new Error('Claude Platform on AWS credentials not found');
+            }
+
+            const { region, workspaceId, authMode, accessKeyId, secretAccessKey, sessionToken, apiKey } = awsCredentials as AnthropicAwsSecrets;
+            const effectiveMode = authMode ?? 'sigv4';
+            const anthropicAws = effectiveMode === 'apikey'
+                ? createAnthropicAws({ region, workspaceId, apiKey })
+                : createAnthropicAws({ region, workspaceId, accessKeyId, secretAccessKey, sessionToken });
+
+            return anthropicAws(model);
         } else {
             throw new Error(`Unsupported login method: ${loginMethod}`);
         }
@@ -259,6 +273,7 @@ export const getProviderCacheControl = async (): Promise<ProviderCacheOptions> =
     switch (loginMethod) {
         case LoginMethod.AWS_BEDROCK:
             return { bedrock: { cachePoint: { type: 'default' } } };
+        case LoginMethod.ANTHROPIC_AWS:
         case LoginMethod.VERTEX_AI:
         case LoginMethod.ANTHROPIC_KEY:
         case LoginMethod.BI_INTEL:
