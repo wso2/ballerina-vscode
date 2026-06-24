@@ -44,6 +44,7 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
@@ -104,32 +105,33 @@ public class WorkflowManagementService implements ExtendedLanguageServerService 
                     return response;
                 }
                 // Prefer functions.bal, fall back to main.bal, otherwise create functions.bal.
+                // Note: workspaceManager.document() throws for a non-existent path (it cannot
+                // resolve the package root), so existence is checked with Files.exists() first.
                 Path sourceRoot = project.sourceRoot();
                 Path functionsPath = sourceRoot.resolve(FUNCTIONS_BAL);
                 Path mainPath = sourceRoot.resolve(MAIN_BAL);
-                Optional<Document> functionsDoc = workspaceManager.document(functionsPath);
-                Optional<Document> mainDoc = workspaceManager.document(mainPath);
 
                 Path targetPath;
-                Optional<Document> targetDoc;
-                if (functionsDoc.isPresent()) {
+                boolean targetExists;
+                if (Files.exists(functionsPath)) {
                     targetPath = functionsPath;
-                    targetDoc = functionsDoc;
-                } else if (mainDoc.isPresent()) {
+                    targetExists = true;
+                } else if (Files.exists(mainPath)) {
                     targetPath = mainPath;
-                    targetDoc = mainDoc;
+                    targetExists = true;
                 } else {
                     targetPath = functionsPath;
-                    targetDoc = Optional.empty();
+                    targetExists = false;
                 }
 
+                Optional<Document> targetDoc = targetExists ? workspaceManager.document(targetPath) : Optional.empty();
                 TextEdit edit;
-                if (targetDoc.isEmpty()) {
-                    edit = new TextEdit(PositionUtil.toRange(LineRange.from(targetPath.getFileName().toString(),
-                            LinePosition.from(0, 0), LinePosition.from(0, 0))), IMPORT_STMT.formatted());
-                } else {
+                if (targetDoc.isPresent()) {
                     Node node = targetDoc.get().syntaxTree().rootNode();
                     edit = new TextEdit(PositionUtil.toRange(node.lineRange().startLine()), IMPORT_STMT.formatted());
+                } else {
+                    edit = new TextEdit(PositionUtil.toRange(LineRange.from(targetPath.getFileName().toString(),
+                            LinePosition.from(0, 0), LinePosition.from(0, 0))), IMPORT_STMT.formatted());
                 }
                 textEdits.put(targetPath.toString(), List.of(edit));
             } catch (Throwable e) {
