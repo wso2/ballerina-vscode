@@ -239,7 +239,7 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
     const workflowName = getWorkflowName(
         (workflowProperty?.value as string | undefined) ?? connectionValue ?? fallbackWorkflowValue
     );
-    const nodeTitle = dataName ? `Sent to ${dataName}` : "Send Data";
+    const nodeTitle = dataName ? `Send to ${dataName}` : "Send Data";
     const canViewWorkflow = Boolean(workflowName);
 
     useEffect(() => {
