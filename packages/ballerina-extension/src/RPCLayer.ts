@@ -42,6 +42,7 @@ import { registerSequenceDiagramRpcHandlers } from './rpc-managers/sequence-diag
 import { registerDataMapperRpcHandlers } from './rpc-managers/data-mapper/rpc-handler';
 import { registerTestManagerRpcHandlers } from './rpc-managers/test-manager/rpc-handler';
 import { registerIcpServiceRpcHandlers } from './rpc-managers/icp-service/rpc-handler';
+import { registerWorkflowManagementServiceRpcHandlers } from './rpc-managers/workflow-management-service/rpc-handler';
 import { extension } from './BalExtensionContext';
 import { registerAgentChatRpcHandlers } from './rpc-managers/agent-chat/rpc-handler';
 import { ChatPanel } from './views/agent-chat/webview';
@@ -99,6 +100,7 @@ export class RPCLayer {
         registerTestManagerRpcHandlers(RPCLayer._messenger);
         registerAiAgentRpcHandlers(RPCLayer._messenger);
         registerIcpServiceRpcHandlers(RPCLayer._messenger);
+        registerWorkflowManagementServiceRpcHandlers(RPCLayer._messenger);
         registerAgentChatRpcHandlers(RPCLayer._messenger);
         registerPlatformExtRpcHandlers(RPCLayer._messenger);
 
