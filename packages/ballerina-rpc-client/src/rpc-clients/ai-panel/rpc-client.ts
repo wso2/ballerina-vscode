@@ -122,8 +122,6 @@ import {
     enableSkillFromChat,
     cancelSkillEnable,
     parseSkillFile,
-    getSkillsEnabled,
-    setSkillsEnabled,
     GetSkillsResponse,
     AddSkillRequest,
     ToggleSkillRequest,
@@ -132,7 +130,6 @@ import {
     SkillEnableCancelRequest,
     ParseSkillFileRequest,
     ParseSkillFileResponse,
-    SetSkillsEnabledRequest,
     listMcpServers,
     setMcpServerEnabled,
     openMcpConfig,
@@ -427,14 +424,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     parseSkillFile(params: ParseSkillFileRequest): Promise<ParseSkillFileResponse> {
         return this._messenger.sendRequest(parseSkillFile, HOST_EXTENSION, params);
-    }
-
-    getSkillsEnabled(): Promise<boolean> {
-        return this._messenger.sendRequest(getSkillsEnabled, HOST_EXTENSION);
-    }
-
-    setSkillsEnabled(params: SetSkillsEnabledRequest): Promise<void> {
-        return this._messenger.sendRequest(setSkillsEnabled, HOST_EXTENSION, params);
     }
 
     listMcpServers(): Promise<McpServerStatusDTO[]> {

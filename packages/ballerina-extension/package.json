@@ -269,14 +269,40 @@
                         "Trace request/response messages with parameters and content"
                     ]
                 },
+                "ballerina.copilot.enableMcpTools": {
+                    "type": "boolean",
+                    "default": false,
+                    "scope": "window",
+                    "description": "Enable Model Context Protocol (MCP) tool support in the WSO2 Integrator Copilot."
+                },
+                "ballerina.copilot.skills": {
+                    "type": "object",
+                    "scope": "resource",
+                    "default": {
+                        "disabled": [],
+                        "enabled": []
+                    },
+                    "description": "Copilot skill enable/disable state. 'disabled' lists skill IDs that are turned off; 'enabled' lists opt-in skill IDs that are explicitly turned on."
+                },
+                "ballerina.copilot.mcp": {
+                    "type": "object",
+                    "scope": "window",
+                    "default": {
+                        "disabledServers": [],
+                        "enabledServers": []
+                    },
+                    "description": "MCP server enable/disable overrides. Keys are 'scope:name' identifiers (e.g. 'user:myServer'). Managed automatically by the Copilot UI."
+                },
                 "ballerina.copilot.checkpoints.enabled": {
                     "type": "boolean",
                     "default": true,
+                    "scope": "resource",
                     "description": "Enable checkpoint mechanism for copilot chat to restore previous states."
                 },
                 "ballerina.copilot.checkpoints.maxCount": {
                     "type": "number",
                     "default": 3,
+                    "scope": "resource",
                     "description": "Maximum number of checkpoints to keep."
                 },
                 "ballerina.copilot.checkpoints.ignorePatterns": {
@@ -299,22 +325,20 @@
                         "**/*.tar",
                         "**/*.gz"
                     ],
+                    "scope": "resource",
                     "description": "File patterns to ignore when creating checkpoints."
                 },
                 "ballerina.copilot.checkpoints.maxSnapshotSize": {
                     "type": "number",
                     "default": 52428800,
+                    "scope": "resource",
                     "description": "Maximum snapshot size in bytes (default: 50MB)."
                 },
-                "ballerina.ai.showContextUsage": {
+                "ballerina.copilot.showContextUsage": {
                     "type": "boolean",
                     "default": false,
+                    "scope": "resource",
                     "description": "Show context usage indicator in the AI chat input footer."
-                },
-                "ballerina.copilot.enableMcpTools": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable Model Context Protocol (MCP) tool support in the WSO2 Integrator Copilot."
                 }
             }
         },

@@ -742,9 +742,6 @@ export interface DeleteMcpServerRequest {
 export interface SetMcpToolsEnabledRequest {
     enabled: boolean;
 }
-export interface SetSkillsEnabledRequest {
-    enabled: boolean;
-}
 /** Per-scope parse / read errors for `mcp.json` files. Both fields are optional — missing means OK. */
 export interface McpLoadErrorsDTO {
     user?: string;

@@ -60,7 +60,6 @@ import {
     SkillEnableRequest,
     SkillEnableCancelRequest,
     SkillEnableStage,
-    SetSkillsEnabledRequest,
     SkillEntry,
     SkillTier,
     ParseSkillFileRequest,
@@ -118,7 +117,6 @@ import { addToIntegration, searchDocumentation } from "./utils";
 
 import { createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
 import { REGISTERED_SKILLS } from '../../features/ai/agent/skills/index';
-import { buildProjectSkillsConfigPath } from '../../features/ai/agent/skills/context';
 import { scanProjectSkills, scanUserSkills, readUserSkillContent, readProjectSkillContent, parseSkillMd } from '../../features/ai/agent/tools/skill-tool/skill-reader';
 import * as unzipper from 'unzipper';
 import {
@@ -128,7 +126,6 @@ import {
     writeProjectSkill,
     deleteUserSkill,
     deleteProjectSkill,
-    GLOBAL_SKILLS_CONFIG_PATH,
 } from '../../features/ai/agent/tools/skill-tool/skill-writer';
 import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExecutor';
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
@@ -785,7 +782,7 @@ User reverted the last made changes. The files have been restored to the state b
     }
 
     async getShowContextUsage(): Promise<boolean> {
-        return workspace.getConfiguration('ballerina').get<boolean>('ai.showContextUsage', false);
+        return workspace.getConfiguration('ballerina.copilot').get<boolean>('showContextUsage', false);
     }
 
     async getUsage(): Promise<UsageResponse | undefined> {
@@ -921,14 +918,6 @@ User reverted the last made changes. The files have been restored to the state b
 
     // ── Skills helpers ────────────────────────────────────────────────────────
 
-    /** Returns the config file path for the given skill tier. */
-    private resolveSkillsConfigPath(tier: SkillTier, projectRootPath: string | null): string {
-        if (tier === SkillTier.PROJECT && projectRootPath) {
-            return buildProjectSkillsConfigPath(projectRootPath);
-        }
-        return GLOBAL_SKILLS_CONFIG_PATH;
-    }
-
     /** Extracts the bare skill name from a prefixed id such as "user/foo" → "foo". */
     private extractBareSkillName(skillId: string): string {
         const slash = skillId.indexOf('/');
@@ -988,11 +977,9 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getSkills(): Promise<GetSkillsResponse> {
         const projectRootPath = resolveProjectRootPath();
-        const globalConfig = getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH);
-        const projectConfigPath = projectRootPath ? buildProjectSkillsConfigPath(projectRootPath) : null;
-        const projectConfig = projectConfigPath ? getSkillsConfig(projectConfigPath) : { disabledSkills: [], enabledSkills: [] };
-        const allDisabled = new Set([...globalConfig.disabledSkills, ...projectConfig.disabledSkills]);
-        const allEnabled = new Set([...globalConfig.enabledSkills, ...projectConfig.enabledSkills]);
+        const config = getSkillsConfig(projectRootPath);
+        const allDisabled = new Set(config.disabledSkills);
+        const allEnabled  = new Set(config.enabledSkills);
 
         return {
             skills: [
@@ -1021,11 +1008,15 @@ User reverted the last made changes. The files have been restored to the state b
 
     async toggleSkill(params: ToggleSkillRequest): Promise<boolean> {
         try {
-            const configPath = this.resolveSkillsConfigPath(params.tier, resolveProjectRootPath());
             const builtinSkill = params.tier === SkillTier.BUILTIN
                 ? REGISTERED_SKILLS.find(s => s.name === params.skillId)
                 : undefined;
-            setSkillEnabled(configPath, params.skillId, params.enabled, builtinSkill?.default === false);
+            const projectRootPath = resolveProjectRootPath();
+            // USER skills always go to global user settings.
+            // BUILTIN and PROJECT skills use workspace settings when in a project context.
+            const scope: 'user' | 'workspace' =
+                params.tier !== SkillTier.USER && !!projectRootPath ? 'workspace' : 'user';
+            await setSkillEnabled(params.skillId, params.enabled, builtinSkill?.default === false, scope);
             return true;
         } catch (error) {
             console.error('[Skills] toggleSkill failed:', error);
@@ -1054,15 +1045,12 @@ User reverted the last made changes. The files have been restored to the state b
         try {
             const projectRootPath = resolveProjectRootPath();
             const builtinSkill = REGISTERED_SKILLS.find(s => s.name === params.skillId);
+            const isUserSkill = !builtinSkill && scanUserSkills().some(s => s.name === params.skillId);
+            const resolvedScope = !isUserSkill && !!projectRootPath ? 'workspace' : 'user';
             if (builtinSkill?.default === false) {
-                if (projectRootPath) {
-                    setSkillEnabled(buildProjectSkillsConfigPath(projectRootPath), params.skillId, true, true);
-                }
+                await setSkillEnabled(params.skillId, true, true, resolvedScope);
             } else {
-                setSkillEnabled(GLOBAL_SKILLS_CONFIG_PATH, params.skillId, true);
-                if (projectRootPath) {
-                    setSkillEnabled(buildProjectSkillsConfigPath(projectRootPath), params.skillId, true);
-                }
+                await setSkillEnabled(params.skillId, true, false, resolvedScope);
             }
             sendSkillEnableNotification({ type: "skill_enable_event", requestId: params.requestId, stage: SkillEnableStage.ENABLED, skillName: params.skillId, skillId: params.skillId } as any);
             approvalManager.resolveSkillEnable(params.requestId, true);
@@ -1159,13 +1147,6 @@ User reverted the last made changes. The files have been restored to the state b
         return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableMcpTools', false);
     }
 
-    async getSkillsEnabled(): Promise<boolean> {
-        return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableSkills', true);
-    }
-
-    async setSkillsEnabled(params: SetSkillsEnabledRequest): Promise<void> {
-        await workspace.getConfiguration('ballerina').update('copilot.enableSkills', !!params?.enabled, ConfigurationTarget.Global);
-    }
 
     async getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
         return { hasWorkspace: !!resolveProjectRootPath() && vscode.workspace.isTrusted };
@@ -1271,9 +1252,8 @@ User reverted the last made changes. The files have been restored to the state b
     }
 
     async setMcpToolsEnabled(params: SetMcpToolsEnabledRequest): Promise<void> {
-        await workspace.getConfiguration('ballerina').update('copilot.enableMcpTools', !!params?.enabled, ConfigurationTarget.Global);
-        // The existing onDidChangeConfiguration listener in activator.ts handles
-        // setup/teardown of the manager and pushes config_change + mcpServersChanged.
+        await workspace.getConfiguration('ballerina')
+            .update('copilot.enableMcpTools', !!params?.enabled, ConfigurationTarget.Global);
     }
 
     async getAgentsMdFileInfo(): Promise<AgentsMdFileInfoDTO> {
