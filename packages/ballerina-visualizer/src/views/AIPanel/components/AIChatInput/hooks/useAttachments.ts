@@ -17,20 +17,21 @@
  */
 
 import { useState, useRef, ChangeEvent } from "react";
-import { Attachment, Command } from "@wso2/ballerina-core";
+import { Attachment, Command, SkillCommand } from "@wso2/ballerina-core";
 
 export interface AttachmentOptions {
     multiple: boolean;
-    acceptResolver: (command: Command | null) => string;
-    handleAttachmentSelection: (e: ChangeEvent<HTMLInputElement>, command: Command | null) => Promise<Attachment[]>;
+    acceptResolver: (command: Command | null, skillCommand?: SkillCommand) => string;
+    handleAttachmentSelection: (e: ChangeEvent<HTMLInputElement>, command: Command | null, skillCommand?: SkillCommand) => Promise<Attachment[]>;
 }
 
 interface UseAttachmentsProps {
     attachmentOptions: AttachmentOptions;
     activeCommand: Command | null;
+    activeSkillCommand?: SkillCommand;
 }
 
-export function useAttachments({ attachmentOptions, activeCommand }: UseAttachmentsProps) {
+export function useAttachments({ attachmentOptions, activeCommand, activeSkillCommand }: UseAttachmentsProps) {
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -43,7 +44,7 @@ export function useAttachments({ attachmentOptions, activeCommand }: UseAttachme
 
     // handle user file selection
     async function onAttachmentSelection(e: React.ChangeEvent<HTMLInputElement>) {
-        const results = await attachmentOptions.handleAttachmentSelection(e, activeCommand);
+        const results = await attachmentOptions.handleAttachmentSelection(e, activeCommand, activeSkillCommand);
         setAttachments((prev) => {
             const updated = [...prev];
             results.forEach((newFile) => {

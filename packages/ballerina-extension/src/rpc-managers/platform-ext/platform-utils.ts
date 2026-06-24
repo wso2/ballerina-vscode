@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { SyntaxTree } from "@wso2/ballerina-core";
+import { isSamePath, SyntaxTree } from "@wso2/ballerina-core";
 import { ModulePart, STKindChecker, CaptureBindingPattern } from "@wso2/syntax-tree";
 import * as vscode from "vscode";
 import * as fs from "fs";
@@ -118,7 +118,7 @@ export const addConnection = async (
     },
 ): Promise<{ connName: string; connFileUri: Uri }> => {
     const matchingBalProj = StateMachine.context().projectStructure?.projects?.find(
-        (item) => item.projectPath === StateMachine.context().projectPath,
+        (item) => isSamePath(item.projectPath, StateMachine.context().projectPath),
     );
     if (!matchingBalProj) {
         throw new Error(`Failed to find bal project for :${StateMachine.context().projectPath}`);

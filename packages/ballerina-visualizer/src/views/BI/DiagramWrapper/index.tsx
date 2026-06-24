@@ -24,7 +24,7 @@ import { BISequenceDiagram } from "../SequenceDiagram";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
-import { CodeData, DIRECTORY_MAP, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, FocusFlowDiagramView, FunctionModel, LineRange, ParentMetadata, ProjectStructureArtifactResponse, Protocol, SHARED_COMMANDS } from "@wso2/ballerina-core";
+import { CodeData, DIRECTORY_MAP, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, FocusFlowDiagramView, FunctionModel, isSamePath, LineRange, ParentMetadata, ProjectStructureArtifactResponse, Protocol, SHARED_COMMANDS } from "@wso2/ballerina-core";
 import { VisualizerLocation, NodePosition } from "@wso2/ballerina-core";
 import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
@@ -316,7 +316,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         }
         const functionModel = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({ filePath: filePath, codedata: codeData });
         const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
-        const project = projectStructure.projects.find(project => project.projectPath === visualizerLocation.projectPath);
+        const project = projectStructure.projects.find(project => isSamePath(project.projectPath, visualizerLocation.projectPath));
         const services = project?.directoryMap[DIRECTORY_MAP.SERVICE] || [];
         const selectedService = services.find(
             service => service.path === filePath && servicePositionWithinArtifact(service.position, servicePosition)
@@ -379,6 +379,32 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             return;
         }
 
+        if (isWorkflow) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BIWorkflowForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    position: position || currentPosition,
+                }
+            });
+            return;
+        }
+
+        if (isActivity) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BIActivityForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    position: position || currentPosition,
+                }
+            });
+            return;
+        }
+
         const context: VisualizerLocation = {
             view:
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
@@ -397,6 +423,8 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isRemote = parentMetadata?.kind === "Remote Function";
     let isAgent = parentMetadata?.kind === "AI Chat Agent" && parentMetadata?.label === "chat";
     let isInitFunction = parentMetadata?.kind === "Function" && parentMetadata?.label === "init";
+    let isWorkflow = parentMetadata?.kind === "Workflow";
+    let isActivity = parentMetadata?.kind === "Activity";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 
     const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
@@ -510,10 +538,28 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const activeTryItOption =
         tryItDropdownOptions.find((option) => option.value === selectedTryItOption) ?? tryItDropdownOptions[0];
 
+    // HACK: This need to be fixed from getFlowModel API 
+    const getWorkflowTitleFromSource = () => {
+        if (parentMetadata?.kind !== "Function" || !parentMetadata?.sourceCode) {
+            return undefined;
+        }
+
+        const normalizedSource = parentMetadata.sourceCode.trimStart();
+        if (normalizedSource.startsWith("@workflow:Activity")) {
+            return "Workflow Activity";
+        }
+        if (normalizedSource.startsWith("@workflow:Process")) {
+            return "Workflow";
+        }
+        return undefined;
+    };
+
     // Calculate title based on conditions
     const getTitle = () => {
         if (isNPFunction) return "Natural Function";
         if (isAutomation) return "Automation";
+        const workflowTitle = getWorkflowTitleFromSource();
+        if (workflowTitle) return workflowTitle;
         if (parentCodedata?.sourceCode.includes("@ai:AgentTool")) return "Agent Tool";
         if ((parentCodedata?.sourceCode.includes("@test:Config")) && parentCodedata?.sourceCode.includes("\"evaluations\"")) return "AI Evaluation";
         if (parentCodedata?.sourceCode.includes("@test:Config")) return "Test";

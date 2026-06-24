@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState } from "react";
 import { View, ViewContent } from "@wso2/ui-toolkit";
-import { SCOPE, TriggerModelsResponse } from "@wso2/ballerina-core";
+import { isSamePath, SCOPE, TriggerModelsResponse } from "@wso2/ballerina-core";
 
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -53,7 +53,7 @@ export function ComponentListView(props: ComponentListViewProps) {
         });
 
         rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
-            const project = res.projects.find(project => project.projectPath === projectPath);
+            const project = res.projects.find(project => isSamePath(project.projectPath, projectPath));
             if (project) {
                 setIsLibrary(project.isLibrary ?? false);
             }

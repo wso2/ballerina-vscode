@@ -16,11 +16,10 @@
  * under the License.
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     SourceFile,
-    MappingParameters,
     LLMDiagnostics,
     DiagnosticEntry,
     AIPanelPrompt,
@@ -29,7 +28,6 @@ import {
     ChatNotify,
     DocumentationGeneratorIntermediaryState,
     OperationType,
-    ExtendedDataMapperMetadata,
     DocGenerationRequest,
     DocGenerationType,
     FileChanges,
@@ -53,7 +51,7 @@ import { StreamEntry, StreamItem } from "../AgentStreamView/types";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
 import CheckpointSeparator from "../CheckpointSeparator";
-import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, SkillEntry, TaskApprovalRequest } from "@wso2/ballerina-core";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, AuthProviderChip, UsageBadge, ApprovalOverlay, OverlayMessage, OverlayCloseButton } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
@@ -80,6 +78,10 @@ import CommonApprovalFooter from "./Footer/CommonApprovalFooter";
 import ClarifyFooter from "./Footer/ClarifyFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
+import { McpManagerPanel } from "../../McpManagerPanel";
+
+/** Full-page panels reachable from the chat. The chat itself is the empty stack. */
+export type PanelRoute = "settings" | "mcp" | "skills";
 import WelcomeMessage from "./Welcome";
 import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isContainsSyntaxError } from "./utils/utils";
 
@@ -89,6 +91,7 @@ import { SegmentType, splitContent } from "./segment";
 import { MigrationContextCard } from "../MigrationContextCard";
 import { ActiveMigrationSession } from "@wso2/ballerina-rpc-client";
 import { ReviewBar } from "../ReviewBar";
+import SkillsManager from "../SkillsManager";
 
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
@@ -130,6 +133,39 @@ const CompactionNotice: React.FC<{ children: React.ReactNode }> = ({ children })
     </CompactionNoticeContainer>
 );
 
+const UsageLimitNoticeContainer = styled.div`
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 8px 20px 0;
+    padding: 8px 10px;
+    border: 1px solid var(--vscode-inputValidation-warningBorder, var(--vscode-panel-border));
+    border-radius: 6px;
+    background: var(--vscode-inputValidation-warningBackground, var(--vscode-textCodeBlock-background));
+    color: var(--vscode-foreground);
+    font-size: 12px;
+    line-height: 1.5;
+
+    .codicon {
+        flex-shrink: 0;
+        font-size: 14px;
+        line-height: 18px;
+        color: var(--vscode-inputValidation-warningForeground, var(--vscode-charts-yellow, var(--vscode-foreground)));
+    }
+
+    a {
+        color: var(--vscode-textLink-foreground);
+        font-weight: 600;
+        word-break: break-all;
+        text-decoration: none;
+
+        &:hover {
+            color: var(--vscode-textLink-activeForeground);
+            text-decoration: underline;
+        }
+    }
+`;
+
 // ── Agent stream serialization ────────────────────────────────────────────────
 
 function serializeStream(entries: StreamEntry[], existingContent: string): string {
@@ -150,6 +186,18 @@ function appendToLastEntry(entries: StreamEntry[], item: StreamItem): StreamEntr
     if (entries.length === 0) return [{ description: "", items: [item] }];
     const last = entries[entries.length - 1];
     return [...entries.slice(0, -1), { ...last, items: [...last.items, item] }];
+}
+
+const SCAFFOLD_DONE_PREFIX = "ballerina.scaffold.done:";
+
+// Stable, non-crypto hash for keying scaffold runs by (prompt + steps).
+function scaffoldKeyHash(text: string, hiddenContext: string | undefined): string {
+    const input = text + "\0" + (hiddenContext ?? "");
+    let h = 5381;
+    for (let i = 0; i < input.length; i++) {
+        h = ((h << 5) + h + input.charCodeAt(i)) | 0;
+    }
+    return (h >>> 0).toString(36);
 }
 
 const AIChat: React.FC = () => {
@@ -199,7 +247,14 @@ const AIChat: React.FC = () => {
         useState<DocumentationGeneratorIntermediaryState | null>(null);
     const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
 
-    const [showSettings, setShowSettings] = useState(false);
+    // Panel navigation stack. [] = chat; the top of the stack is the visible
+    // panel. Back pops one level, so the same panel returns to wherever it was
+    // opened from (e.g. MCP manager → chat when opened from the chip, or → settings
+    // when opened from the Customize Copilot section).
+    const [panelStack, setPanelStack] = useState<PanelRoute[]>([]);
+    const activePanel = panelStack[panelStack.length - 1];
+    const pushPanel = (route: PanelRoute) => setPanelStack(s => [...s, route]);
+    const popPanel = () => setPanelStack(s => s.slice(0, -1));
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isWebToolsEnabled, setIsWebToolsEnabled] = useState(false);
     const userWebSearchPreferenceRef = useRef(false);
@@ -239,8 +294,10 @@ const AIChat: React.FC = () => {
         breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number };
     } | null>(null);
     const [showContextUsage, setShowContextUsage] = useState(false);
+    const [mcpToolsEnabled, setMcpToolsEnabled] = useState(false);
 
     const [runningServices, setRunningServices] = useState<RunningServiceInfo[]>([]);
+    const [skills, setSkills] = useState<SkillEntry[]>([]);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -252,6 +309,7 @@ const AIChat: React.FC = () => {
     const messagesRef = useRef<any>([]);
 
     const isErrorChunkReceivedRef = useRef(false);
+    const activeScaffoldKeyRef = useRef<string | null>(null);
 
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
@@ -279,7 +337,7 @@ const AIChat: React.FC = () => {
             rpcClient
                 .getAiPanelRpcClient()
                 .getDefaultPrompt()
-                .then((defaultPrompt: AIPanelPrompt) => {
+                .then(async (defaultPrompt: AIPanelPrompt) => {
                     if (defaultPrompt) {
                         // Extract CodeContext from both command-template metadata and text-type direct param
                         const codeCtx = defaultPrompt.type === 'command-template'
@@ -299,6 +357,23 @@ const AIChat: React.FC = () => {
                             setFooterInputPlaceholder(textPrompt.inputPlaceholder ?? null);
 
                             if (defaultPrompt.autoSubmit && defaultPrompt.text.trim().length > 0) {
+                                // Devant scaffold gate: when the extension was launched with INITIAL_SCAFFOLD_PROMPT,
+                                // never auto-execute the same scaffold twice on this env URL (localStorage scoped per origin).
+                                // Fail open — if the RPC errors for any reason, behave as if env is unset.
+                                const isScaffoldEnv = await rpcClient
+                                    .getAiPanelRpcClient()
+                                    .isScaffoldEnvActive()
+                                    .catch(() => false);
+                                if (isScaffoldEnv) {
+                                    const key = SCAFFOLD_DONE_PREFIX + scaffoldKeyHash(defaultPrompt.text, defaultPrompt.hiddenContext);
+                                    if (localStorage.getItem(key) === "1") {
+                                        // Already executed in a previous session for this env+spec.
+                                        // Drop the cached prompt so it isn't re-served on next panel mount.
+                                        rpcClient.getAiPanelRpcClient().clearInitialPrompt();
+                                        return;
+                                    }
+                                    activeScaffoldKeyRef.current = key;
+                                }
                                 void handleSend({
                                     input: [{ content: defaultPrompt.text }],
                                     attachments: [],
@@ -346,10 +421,10 @@ const AIChat: React.FC = () => {
         const hours = Math.floor((seconds % 86400) / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
         const parts: string[] = [];
-        if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
-        if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-        if (mins > 0) parts.push(`${mins} minute${mins > 1 ? 's' : ''}`);
-        return parts.length > 0 ? parts.join(', ') : 'less than a minute';
+        if (days > 0) parts.push(`${days}d`);
+        if (hours > 0) parts.push(`${hours}h`);
+        if (mins > 0) parts.push(`${mins}m`);
+        return parts.length > 0 ? parts.join(' ') : 'less than a minute';
     };
 
     const fetchUsage = async () => {
@@ -381,8 +456,17 @@ const AIChat: React.FC = () => {
 
     useEffect(() => { fetchUsage(); fetchLoginMethod(); }, []);
 
+    const refreshSkills = useCallback(() => {
+        rpcClient.getAiPanelRpcClient().getSkills().then(res => setSkills(res.skills));
+    }, [rpcClient]);
+
+    useEffect(function fetchSkills() {
+        refreshSkills();
+    }, [refreshSkills]);
+
     useEffect(() => {
         rpcClient.getAiPanelRpcClient().getShowContextUsage().then(setShowContextUsage).catch(() => {});
+        rpcClient.getAiPanelRpcClient().getMcpToolsEnabled().then(setMcpToolsEnabled).catch(() => {});
     }, []);
 
     const handleCheckpointRestore = async (checkpointId: string) => {
@@ -799,6 +883,31 @@ const AIChat: React.FC = () => {
                 return msgs;
             });
 
+        } else if (type === "skill_enable_event") {
+            const evt = response as any;
+            const enableData = {
+                requestId: evt.requestId,
+                stage: evt.stage,
+                skillName: evt.skillName,
+                skillId: evt.skillId,
+            };
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
+                const entries = parseStream(last.content);
+                let found = false;
+                let updated = entries.map(entry => {
+                    const idx = entry.items.findIndex(item => item.kind === "skill_enable" && (item.data as any)?.requestId === enableData.requestId);
+                    if (idx === -1) return entry;
+                    found = true;
+                    return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "skill_enable" as const, data: enableData } : item) };
+                });
+                if (!found) updated = appendToLastEntry(entries, { kind: "skill_enable", data: enableData });
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
+            });
+
         } else if (type === "diagnostics") {
             currentDiagnosticsRef.current = response.diagnostics;
 
@@ -866,6 +975,8 @@ const AIChat: React.FC = () => {
         } else if (type === "config_change") {
             if ((response as any).key === 'showContextUsage') {
                 setShowContextUsage((response as any).value);
+            } else if ((response as any).key === 'mcpToolsEnabled') {
+                setMcpToolsEnabled((response as any).value);
             }
 
         } else if (type === "stop") {
@@ -878,9 +989,14 @@ const AIChat: React.FC = () => {
             setIsMigrationEnhancementRunning(false);
             fetchUsage();
             setAgentMode(AgentMode.Edit);
+            if (activeScaffoldKeyRef.current && !isErrorChunkReceivedRef.current) {
+                localStorage.setItem(activeScaffoldKeyRef.current, "1");
+            }
+            activeScaffoldKeyRef.current = null;
 
         } else if (type === "abort") {
             console.log("Received abort signal");
+            activeScaffoldKeyRef.current = null;
             setIsWebToolsEnabled(userWebSearchPreferenceRef.current);
             setWebToolApprovalRequest(null);
             const abortItem: StreamItem = { kind: "text", text: "*[Request interrupted by user]*" };
@@ -919,6 +1035,17 @@ const AIChat: React.FC = () => {
         } else if (type === "error") {
             console.log("Received error signal");
             const errorContent = response.content;
+
+            if (response.code === "usage_limit") {
+                setIsUsageExceeded(true);
+                fetchUsage();
+                setIsCompacting(false);
+                setIsCodeLoading(false);
+                setIsLoading(false);
+                isErrorChunkReceivedRef.current = true;
+                return;
+            }
+
             const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${errorContent}</error>`;
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
@@ -1001,19 +1128,18 @@ const AIChat: React.FC = () => {
     }, [isReqFileExists]);
 
     useEffect(() => {
-        // Step 2: Scroll into view when messages state changes or review bar appears
-        // Use a small delay when the review bar just appeared to let the DOM settle
-        const doScroll = () => {
-            if (messagesEndRef.current) {
-                messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
-            }
+        const scrollToEnd = (behavior: ScrollBehavior) => {
+            messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
         };
-        if (hasActiveReview) {
-            setTimeout(doScroll, 50);
-        } else {
-            doScroll();
+        scrollToEnd("smooth");
+        // Once the turn settles the layout keeps growing (review/restore bar,
+        // markdown + code highlighting), so smooth-scroll lands on a stale
+        // bottom — snap to the true end after that late growth.
+        if (!isLoading && !isCodeLoading) {
+            const t = setTimeout(() => scrollToEnd("auto"), 120);
+            return () => clearTimeout(t);
         }
-    }, [messages, hasActiveReview]);
+    }, [messages, hasActiveReview, isLoading, isCodeLoading]);
 
     async function handleSendQuery(content: {
         input: Input[];
@@ -1036,6 +1162,11 @@ const AIChat: React.FC = () => {
                 updateLastMessage((lastContent) =>
                     lastContent + `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">Generation stopped by the user</error>`
                 );
+            } else if (error?.name === "UsageLimitError" || error?.statusCode === 429) {
+                setIsUsageExceeded(true);
+                fetchUsage();
+                isErrorChunkReceivedRef.current = true;
+                activeScaffoldKeyRef.current = null;
             } else {
                 updateLastMessage((lastContent) => {
                     if (error && "message" in error) {
@@ -1158,6 +1289,13 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
+            if (metadata?.selectedSkillId) {
+                const existing = hiddenContextRef.current ? `${hiddenContextRef.current}\n` : "";
+                const argsClause = metadata.selectedSkillArgs
+                    ? ` and args="${metadata.selectedSkillArgs}"`
+                    : '';
+                hiddenContextRef.current = `${existing}The user has explicitly selected the "${metadata.selectedSkillId}" skill. You MUST call invoke_skill with skillName="${metadata.selectedSkillId}"${argsClause} and apply its rules. Invoke it immediately before you begin the work the skill governs (for example, right before editing the relevant file), not as a separate up-front step.`;
+            }
             await processAgentGeneration(parsedInput.text, attachments);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
@@ -1198,47 +1336,6 @@ const AIChat: React.FC = () => {
                             );
                             await processAgentGeneration(
                                 useCase, attachments, "CODE_FOR_USER_REQUIREMENT"
-                            );
-                            break;
-                    }
-                    break;
-                }
-                case Command.DataMap: {
-                    switch (parsedInput.templateId) {
-                        case "mappings-for-records":
-                            // TODO: Update this to use the LS API for validating function names
-                            const invalidPattern = /[<>\/\(\)\{\}\[\]\\!@#$%^&*+=|;:'",.?`~]/;
-                            if (invalidPattern.test(parsedInput.placeholderValues.functionName)) {
-                                throw new Error("Please provide a valid function name without special characters.");
-                            }
-
-                            await processMappingParameters(
-                                {
-                                    inputRecord: parsedInput.placeholderValues.inputRecords
-                                        .split(",")
-                                        .map((item) => item.trim()),
-                                    outputRecord: parsedInput.placeholderValues.outputRecord,
-                                    functionName: parsedInput.placeholderValues.functionName,
-                                },
-                                metadata as ExtendedDataMapperMetadata,
-                                attachments
-                            );
-                            break;
-                        case "mappings-for-function":
-                            await processMappingParameters(
-                                {
-                                    inputRecord: [],
-                                    outputRecord: "",
-                                    functionName: parsedInput.placeholderValues.functionName,
-                                },
-                                metadata as ExtendedDataMapperMetadata,
-                                attachments
-                            );
-                            break;
-                        case "inline-mappings":
-                            await processInlineMappingParameters(
-                                metadata as ExtendedDataMapperMetadata,
-                                attachments
                             );
                             break;
                     }
@@ -1377,28 +1474,6 @@ const AIChat: React.FC = () => {
         }
     }
 
-    async function processMappingParameters(
-        parameters: MappingParameters,
-        metadata?: ExtendedDataMapperMetadata,
-        attachments?: Attachment[]
-    ) {
-        await rpcClient.getAiPanelRpcClient().generateMappingCode({
-            parameters,
-            metadata,
-            attachments
-        });
-    }
-
-    async function processInlineMappingParameters(
-        metadata: ExtendedDataMapperMetadata,
-        attachments?: Attachment[]
-    ) {
-        await rpcClient.getAiPanelRpcClient().generateInlineMappingCode({
-            metadata,
-            attachments
-        });
-    }
-
     async function processContextTypeCreation(attachments: Attachment[]) {
         if (!attachments || attachments.length === 0) {
             throw new Error(`Missing attachment`);
@@ -1458,6 +1533,7 @@ const AIChat: React.FC = () => {
         const fileAttatchments = attachments.map((file) => ({
             fileName: file.name,
             content: file.content,
+            mimeType: file?.mimeType,
         }));
 
         const currentCodeContext = codeContextRef.current;
@@ -1486,7 +1562,7 @@ const AIChat: React.FC = () => {
     }
 
     async function handleSettings() {
-        setShowSettings(true);
+        pushPanel("settings");
     }
 
     async function handleClearChat(): Promise<void> {
@@ -1725,7 +1801,7 @@ const AIChat: React.FC = () => {
     }
     return (
         <>
-            {!showSettings && (
+            {panelStack.length === 0 && (
                 <AIChatView style={{ position: "relative" }}>
                     {approvalOverlay.show && (
                         <ApprovalOverlay>
@@ -1759,22 +1835,17 @@ const AIChat: React.FC = () => {
                             </AuthProviderChip>
                         ) : (
                             <AuthProviderChip>
-                                Remaining Usage:
+                                Usage:
                                 {usage?.resetsIn === -1 ? (
                                     <Tooltip content="Subject to fair usage policy.">
                                         <UsageBadge>Unlimited</UsageBadge>
                                     </Tooltip>
+                                ) : !usage ? (
+                                    <UsageBadge>N/A</UsageBadge>
                                 ) : (
-                                    <UsageBadge>
-                                        {!usage ? "N/A"
-                                            : isUsageExceeded ? "Exceeded"
-                                            : `${Math.round(usage.remainingUsagePercentage)}%`}
-                                    </UsageBadge>
-                                )}
-                                {usage && usage.resetsIn !== -1 && (
-                                    <span style={{ fontSize: 10, opacity: 0.7 }} title={formatResetsInExact(usage.resetsIn)}>
-                                        Resets in: {formatResetsIn(usage.resetsIn)}
-                                    </span>
+                                    <Tooltip content={`Resets in ${formatResetsInExact(usage.resetsIn)}`}>
+                                        <UsageBadge>{isUsageExceeded ? "100%" : `${Math.round(100 - usage.remainingUsagePercentage)}%`}</UsageBadge>
+                                    </Tooltip>
                                 )}
                             </AuthProviderChip>
                         )}
@@ -2137,6 +2208,16 @@ const AIChat: React.FC = () => {
                         })()}
                         <div ref={messagesEndRef} />
                     </main>
+                    {isUsageExceeded && (
+                        <UsageLimitNoticeContainer>
+                            <span className="codicon codicon-warning" role="img" aria-hidden="true" />
+                            <span>
+                                You've reached your Integrator Copilot usage limit
+                                {usage && usage.resetsIn !== -1 ? `, which resets in ${formatResetsIn(usage.resetsIn)}` : ""}.
+                                {/* TODO: add a quota request portal link here once available. */}
+                            </span>
+                        </UsageLimitNoticeContainer>
+                    )}
                     {(() => {
                         const lastAssistantMsg = [...otherMessages].reverse().find(m => m.role === "Copilot");
                         const lastStream = lastAssistantMsg ? parseStream(lastAssistantMsg.content) : [];
@@ -2154,6 +2235,23 @@ const AIChat: React.FC = () => {
                                 />
                             );
                         }
+
+                        const activeSkillEnableItem = lastStreamItems.find(
+                            (item: StreamItem) => item.kind === "skill_enable" && (item as any).data?.stage === "prompting"
+                        ) as { kind: "skill_enable"; data: { requestId: string; skillName: string; skillId: string } } | undefined;
+
+                        if (activeSkillEnableItem) {
+                            const { requestId, skillName, skillId } = activeSkillEnableItem.data;
+                            return (
+                                <CommonApprovalFooter
+                                    type="skill_enable"
+                                    skillName={skillName}
+                                    onEnable={() => rpcClient.getAiPanelRpcClient().enableSkillFromChat({ requestId, skillId })}
+                                    onSkip={() => rpcClient.getAiPanelRpcClient().cancelSkillEnable({ requestId })}
+                                />
+                            );
+                        }
+
                         if (webToolApprovalRequest) {
                             return (
                                 <CommonApprovalFooter
@@ -2211,17 +2309,24 @@ const AIChat: React.FC = () => {
                             onToggleWebSearch={handleToggleWebSearch}
                             disabled={isUsageExceeded}
                             contextUsage={showContextUsage ? contextUsage : null}
+                            mcpToolsEnabled={mcpToolsEnabled}
+                            onOpenMcpManager={() => pushPanel("mcp")}
                             runningServicesPanel={{
                                 services: runningServices,
                                 onStopService: handleStopRunningService,
                                 onStopAll: handleStopAllRunningServices,
                             }}
+                            skills={skills}
                         />
                         );
                     })()}
                 </AIChatView>
             )}
-            {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}
+            {activePanel === "settings" && (
+                <SettingsPanel onClose={popPanel} onNavigate={pushPanel} mcpToolsEnabled={mcpToolsEnabled} />
+            )}
+            {activePanel === "mcp" && <McpManagerPanel onClose={popPanel} />}
+            {activePanel === "skills" && <SkillsManager onClose={popPanel} onSkillsChange={refreshSkills} />}
         </>
     );
 };

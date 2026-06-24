@@ -28,7 +28,7 @@ import { BallerinaExtension, ExtendedLangClient, } from "../../core";
 import path from 'path';
 import { runHandler } from './runner';
 import { startWatchingWorkspace } from './discover';
-import { ExecutorPositionsResponse, ExecutorPosition, BallerinaProject } from '@wso2/ballerina-core';
+import { ExecutorPositionsResponse, ExecutorPosition, BallerinaProject, isPathInside, isSamePath } from '@wso2/ballerina-core';
 
 enum EXEC_POSITION_TYPE {
   SOURCE = 'source',
@@ -90,7 +90,7 @@ async function updateTestTree(document: TextDocument) {
   }
   await setCurrentProjectRoot(document.uri);
   // if project changed
-  if (currentProjectRoot !== projectRoot) {
+  if (!isSamePath(currentProjectRoot, projectRoot)) {
     startWatchingWorkspace(testController);
 
   } else {
@@ -115,11 +115,11 @@ export async function createTests(uri: Uri) {
     await setCurrentProjectRoot(uri);
   }
 
-  if (!uri.fsPath.startsWith(projectRoot)) {
+  if (!isPathInside(projectRoot, uri.fsPath)) {
     return;
   }
 
-  if (currentProjectRoot && currentProjectRoot !== projectRoot) {
+  if (currentProjectRoot && !isSamePath(currentProjectRoot, projectRoot)) {
     testController.items.forEach(item => {
       testController.items.delete(item.id);
     });

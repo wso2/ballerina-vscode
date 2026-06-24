@@ -63,7 +63,14 @@ type WebToolProps = {
     onDeny: () => void;
 };
 
-type CommonApprovalFooterProps = PlanCompletionProps | WebToolProps;
+type SkillEnableProps = {
+    type: "skill_enable";
+    skillName: string;
+    onEnable: () => void;
+    onSkip: () => void;
+};
+
+type CommonApprovalFooterProps = PlanCompletionProps | WebToolProps | SkillEnableProps;
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -89,6 +96,26 @@ const CommonApprovalFooter: React.FC<CommonApprovalFooterProps> = (props) => {
                     <WebToolActions>
                         <ActionButton onClick={onAllow}>Allow</ActionButton>
                         <ActionButton variant="secondary" onClick={onDeny}>Deny</ActionButton>
+                    </WebToolActions>
+                </FooterBox>
+            </FooterContainer>
+        );
+    }
+
+    if (props.type === "skill_enable") {
+        const { skillName, onEnable, onSkip } = props;
+        return (
+            <FooterContainer>
+                <FooterBox>
+                    <WebToolHeader>
+                        <span className="codicon codicon-extensions" />
+                        Skill Disabled
+                    </WebToolHeader>
+                    <WebToolContent>{skillName}</WebToolContent>
+                    <FooterDivider />
+                    <WebToolActions>
+                        <ActionButton onClick={onEnable}>Enable skill</ActionButton>
+                        <ActionButton variant="secondary" onClick={onSkip}>Continue without it</ActionButton>
                     </WebToolActions>
                 </FooterBox>
             </FooterContainer>

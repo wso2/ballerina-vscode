@@ -55,6 +55,9 @@ import { RunningServicesManager } from './tools/running-service-manager';
 import { createHurlTool, HURL_TOOL_NAME } from './tools/hurl-tool';
 import { createWebSearchTool, WEB_SEARCH_TOOL_NAME, createWebFetchTool, WEB_FETCH_TOOL_NAME } from './tools/web-tools';
 import { createClarifyTool, CLARIFY_TOOL } from './tools/clarify';
+import { createSkillTool, SKILL_TOOL_NAME } from './tools/skill-tool';
+import { REGISTERED_SKILLS } from './skills';
+import { getMcpTools } from './mcp';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -137,5 +140,7 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [WEB_SEARCH_TOOL_NAME]: createWebSearchTool(eventHandler, webSearchEnabled),
         [WEB_FETCH_TOOL_NAME]: createWebFetchTool(eventHandler, webSearchEnabled),
         [CLARIFY_TOOL]: createClarifyTool(eventHandler),
+        [SKILL_TOOL_NAME]: createSkillTool(REGISTERED_SKILLS, projectRootPath, eventHandler),
+        ...getMcpTools(eventHandler),
     };
 }

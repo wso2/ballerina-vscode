@@ -17,7 +17,7 @@
  */
 import * as vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
-import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, PROJECT_KIND, ProjectInfo, ProjectStructure, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
+import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, isSamePath, PROJECT_KIND, ProjectInfo, ProjectStructure, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
 import { StateMachine } from "../stateMachine";
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
@@ -83,6 +83,8 @@ async function buildProjectArtifactsStructure(
             [DIRECTORY_MAP.NP_FUNCTION]: [],
             [DIRECTORY_MAP.AGENTS]: [],
             [DIRECTORY_MAP.LOCAL_CONNECTORS]: [],
+            [DIRECTORY_MAP.WORKFLOW]: [],
+            [DIRECTORY_MAP.ACTIVITY]: [],
         }
     };
     const designArtifacts = await langClient.getProjectArtifacts({ projectPath });
@@ -137,7 +139,7 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
             ?.filter(child => child?.projectPath !== undefined)
             ?.filter(
                 child => !currentProjectStructure.projects
-                    ?.some(project => project.projectPath === child.projectPath)
+                    ?.some(project => isSamePath(project.projectPath, child.projectPath))
             ).map(child => child.projectPath) ?? [];
 
         // Check if the active project exists in the current structure.
@@ -177,11 +179,19 @@ async function traverseComponents(artifacts: Artifacts, projectPath: string, res
     response.directoryMap[DIRECTORY_MAP.SERVICE].push(...await getComponents(artifacts[ARTIFACT_TYPE.EntryPoints], projectPath, DIRECTORY_MAP.SERVICE, "http-service"));
     response.directoryMap[DIRECTORY_MAP.LISTENER].push(...await getComponents(artifacts[ARTIFACT_TYPE.Listeners], projectPath, DIRECTORY_MAP.LISTENER, "http-service"));
     response.directoryMap[DIRECTORY_MAP.FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Functions], projectPath, DIRECTORY_MAP.FUNCTION, "function"));
+    response.directoryMap[DIRECTORY_MAP.WORKFLOW].push(...await getComponents(artifacts[ARTIFACT_TYPE.Workflows], projectPath, DIRECTORY_MAP.WORKFLOW, "workflow"));
+    response.directoryMap[DIRECTORY_MAP.ACTIVITY].push(...await getComponents(artifacts[ARTIFACT_TYPE.Workflows], projectPath, DIRECTORY_MAP.ACTIVITY, "task"));
     response.directoryMap[DIRECTORY_MAP.DATA_MAPPER].push(...await getComponents(artifacts[ARTIFACT_TYPE.DataMappers], projectPath, DIRECTORY_MAP.DATA_MAPPER, "dataMapper"));
     response.directoryMap[DIRECTORY_MAP.CONNECTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Connections], projectPath, DIRECTORY_MAP.CONNECTION, "connection"));
     response.directoryMap[DIRECTORY_MAP.TYPE].push(...await getComponents(artifacts[ARTIFACT_TYPE.Types], projectPath, DIRECTORY_MAP.TYPE, "type"));
     response.directoryMap[DIRECTORY_MAP.CONFIGURABLE].push(...await getComponents(artifacts[ARTIFACT_TYPE.Configurations], projectPath, DIRECTORY_MAP.CONFIGURABLE, "config"));
     response.directoryMap[DIRECTORY_MAP.NP_FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.NaturalFunctions], projectPath, DIRECTORY_MAP.NP_FUNCTION, "function"));
+}
+
+function dedupeArtifactsById(artifacts: ProjectStructureArtifactResponse[]): ProjectStructureArtifactResponse[] {
+    const uniqueArtifacts = new Map<string, ProjectStructureArtifactResponse>();
+    artifacts.forEach((artifact) => uniqueArtifacts.set(artifact.id, artifact));
+    return Array.from(uniqueArtifacts.values());
 }
 
 async function getComponents(
@@ -335,6 +345,11 @@ function getDirectoryMapKeyAndIcon(artifact: BaseArtifact, artifactCategoryKey: 
             return { mapKey: DIRECTORY_MAP.LISTENER, icon: "http-service" }; // Base icon, getEntryValue might refine
         case ARTIFACT_TYPE.Functions:
             return { mapKey: DIRECTORY_MAP.FUNCTION, icon: "function" };
+        case ARTIFACT_TYPE.Workflows:
+            if (artifact.type === DIRECTORY_MAP.ACTIVITY) {
+                return { mapKey: DIRECTORY_MAP.ACTIVITY, icon: "task" };
+            }
+            return { mapKey: DIRECTORY_MAP.WORKFLOW, icon: "workflow" };
         case ARTIFACT_TYPE.DataMappers:
             return { mapKey: DIRECTORY_MAP.DATA_MAPPER, icon: "dataMapper" };
         case ARTIFACT_TYPE.Connections:
@@ -364,7 +379,7 @@ function processDeletion(artifact: BaseArtifact, artifactCategoryKey: string, pr
     if (mapping) {
         try {
             const projectPath = StateMachine.context().projectPath;
-            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+            const project = projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
             project.directoryMap[mapping.mapKey] =
                 project.directoryMap[mapping.mapKey]?.filter(value => value.id !== artifact.id) ?? [];
         } catch (error) {
@@ -390,7 +405,7 @@ async function processAddition(artifact: BaseArtifact, artifactCategoryKey: stri
             const projectPath = StateMachine.context().projectPath;
             const entryValue = await getEntryValue(artifact, projectPath, mapping.icon);
 
-            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+            const project = projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
             // Ensure the array exists before pushing
             if (!project.directoryMap[mapping.mapKey]) {
                 project.directoryMap[mapping.mapKey] = [];
@@ -421,7 +436,7 @@ async function processUpdate(artifact: BaseArtifact, artifactCategoryKey: string
         try {
             const projectPath = StateMachine.context().projectPath;
             const entryValue = await getEntryValue(artifact, projectPath, mapping.icon);
-            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+            const project = projectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
             // Ensure the array exists
             if (!project.directoryMap[mapping.mapKey]) {
                 project.directoryMap[mapping.mapKey] = [];
@@ -477,7 +492,7 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
     const results = await Promise.all(promises);
 
     const projectPath = StateMachine.context().projectPath;
-    const project = currentProjectStructure.projects.find(project => project.projectPath === projectPath);
+    const project = currentProjectStructure.projects.find(project => isSamePath(project.projectPath, projectPath));
     try {
         if (project) {
             for (const key of Object.keys(project.directoryMap)) {
@@ -560,11 +575,12 @@ function getCustomEntryNodeIcon(type: string) {
             return "bi-mssql";
         case "postgresql":
             return "bi-postgresql";
-        case "mysql":
-            return "bi-mysql";
         case "trigger.shopify":
         case "shopify":
             return "bi-shopify";
+        case "trigger.hubspot":
+        case "hubspot":
+            return "bi-hubspot";
         default:
             return "bi-globe";
     }

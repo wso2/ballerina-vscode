@@ -19,7 +19,7 @@
 
 import path from "path";
 import { StateMachine } from "../../stateMachine";
-import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode, ProjectInfo, PROJECT_KIND } from "@wso2/ballerina-core";
+import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode, ProjectInfo, PROJECT_KIND, isPathInside } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
 import { Position, Range, TestController, Uri, TestItem, commands } from "vscode";
 import { getWorkspaceRoot, getCurrentProjectRoot } from "../../utils/project-utils";
@@ -195,7 +195,7 @@ export async function handleFileChange(ballerinaExtInstance: BallerinaExtension,
     // Check if this file belongs to a child project in a workspace
     if (isWorkspace) {
         for (const child of projectInfo.children) {
-            if (uri.path.startsWith(child.projectPath)) {
+            if (isPathInside(child.projectPath, uri.fsPath)) {
                 targetProjectPath = child.projectPath;
                 break;
             }
@@ -233,7 +233,7 @@ export async function handleFileDelete(uri: Uri, testController: TestController)
     // Check if this file belongs to a child project in a workspace
     if (projectInfo?.children?.length > 0) {
         for (const child of projectInfo.children) {
-            if (uri.path.startsWith(child.projectPath)) {
+            if (isPathInside(child.projectPath, uri.fsPath)) {
                 targetProjectPath = child.projectPath;
                 break;
             }

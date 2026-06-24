@@ -32,7 +32,7 @@ const DEFAULT_NONE_SELECTED_VALUE = "__none__";
 export const EnumEditor = (props: EnumEditorProps) => {
     // Ensure value is in items, otherwise use first item's value
     const itemsList = useMemo(() => {
-        const baseItems = props.items.length > 0 ? props.items : props.field.itemOptions;
+        const baseItems = props.items.length > 0 ? props.items : (props.field.itemOptions ?? []);
         return [
             ...baseItems,
             {

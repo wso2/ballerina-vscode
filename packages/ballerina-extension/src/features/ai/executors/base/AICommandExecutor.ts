@@ -20,7 +20,7 @@ import { ExecutionContext, Command } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from '../../utils/events';
 import { chatStateStorage, ChatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
 import { getTempProject, cleanupTempProject } from '../../utils/project/temp-project';
-import { getErrorMessage } from '../../utils/ai-utils';
+import { buildChatError } from '../../utils/ai-utils';
 import { MigrationDebugLogger } from '../../migration/debug-logger';
 
 /**
@@ -182,7 +182,7 @@ export abstract class AICommandExecutor<TParams = any> {
             throw error;
         } finally {
             // Stage 6: Always clear active execution on completion (success or error)
-            chatStateStorage.clearActiveExecution(projectRootPath, threadId);
+        chatStateStorage.clearActiveExecution(projectRootPath, threadId);
         }
     }
 
@@ -312,13 +312,10 @@ export abstract class AICommandExecutor<TParams = any> {
             });
         } else {
             // Regular error - emit error event
-            const errorMsg = getErrorMessage(error);
-            console.error(`[AICommandExecutor] Error in ${this.getCommandType()}:`, errorMsg, error);
+            const chatError = buildChatError(error);
+            console.error(`[AICommandExecutor] Error in ${this.getCommandType()}:`, chatError.content, error);
 
-            this.config.eventHandler({
-                type: "error",
-                content: errorMsg
-            });
+            this.config.eventHandler(chatError);
         }
 
         // Attempt cleanup on error, but never delete an existingTempPath —

@@ -23,7 +23,7 @@ import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { SCOPE, ArtifactData, DataMapperMetadata } from "./interfaces/shared-types";
-import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment, SkillEnableStage } from "./rpc-types/ai-panel/interfaces";
 
 export { SCOPE };
 export type { ArtifactData, DataMapperMetadata };
@@ -85,6 +85,8 @@ export enum MACHINE_VIEW {
     BIMainFunctionForm = "Add Automation SKIP",
     BIFunctionForm = "Add Function SKIP",
     BIAgentToolForm = "Add Agent Tool SKIP",
+    BIWorkflowForm = "Add Workflow SKIP",
+    BIActivityForm = "Add Workflow Activity SKIP",
     BINPFunctionForm = "Add Natural Function SKIP",
     BITestFunctionForm = "Add Test Function SKIP",
     BIAIEvaluationForm = "AI Evaluation SKIP",
@@ -353,6 +355,7 @@ export type ChatNotify =
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
     | ClarifyEvent
+    | SkillEnableEvent
     | ChatComponentEvent
     | PlanUpdated
     | CompactionStartEvent
@@ -402,9 +405,12 @@ export interface SaveChat {
     messageId: string;
 }
 
+export type ChatErrorCode = "usage_limit";
+
 export interface ChatError {
     type: "error";
     content: string;
+    code?: ChatErrorCode;
 }
 
 export interface ToolCall {
@@ -529,6 +535,14 @@ export interface ClarifyEvent {
     answers?: Array<{ question: string; answers: string[] }>;
 }
 
+export interface SkillEnableEvent {
+    type: "skill_enable_event";
+    requestId: string;
+    stage: SkillEnableStage;
+    skillName: string;
+    skillId: string;
+}
+
 export interface ChatComponentEvent {
     type: "chat_component";
     id?: string;
@@ -565,7 +579,7 @@ export interface CompactionDisabledEvent {
 /** Fired when a VS Code configuration setting relevant to the AI panel changes */
 export interface ConfigChangeEvent {
     type: 'config_change';
-    key: 'showContextUsage';
+    key: 'showContextUsage' | 'mcpToolsEnabled';
     value: boolean;
 }
 
@@ -729,6 +743,8 @@ export interface GenerationMetadata {
     commandType?: string;
     /** C15/M07: Compaction metadata if this generation was created by compaction */
     compactionMetadata?: GenerationCompactionMetadata;
+    /** Hash of AGENTS.md content injected this turn (or "removed" sentinel after a removal note). */
+    agentsMdLastReadHash?: string;
 }
 
 /**

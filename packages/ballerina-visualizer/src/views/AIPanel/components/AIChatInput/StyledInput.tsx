@@ -224,12 +224,14 @@ export const StyledInputComponent = forwardRef<StyledInputRef, StyledInputProps>
                 rawValue,
                 badgeType,
                 suffixText,
+                overlapText: customOverlapText,
                 ...rest
             }: {
                 displayText: string;
                 rawValue?: string;
                 badgeType?: ChatBadgeType;
                 suffixText?: string;
+                overlapText?: string;
                 [key: string]: any;
             }) => {
                 if (!divRef.current) return;
@@ -247,7 +249,7 @@ export const StyledInputComponent = forwardRef<StyledInputRef, StyledInputProps>
                     html: badgeHTML,
                     suffixText,
                     removeOverlapAtCursor,
-                    overlapText: displayText, // if partial overlap is relevant
+                    overlapText: customOverlapText ?? displayText,
                     onChange: (val) => {
                         setInternalContent(val.text);
                         onChange?.(val);

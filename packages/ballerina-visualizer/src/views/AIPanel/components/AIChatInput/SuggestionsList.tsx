@@ -16,9 +16,16 @@
  * under the License.
  */
 
-import { RefObject, MouseEvent } from "react";
+import React, { RefObject, MouseEvent } from "react";
 import styled from "@emotion/styled";
 import { Suggestion, SuggestionType } from "./hooks/useCommands";
+import { SkillTier } from "@wso2/ballerina-core";
+
+const SKILL_TIER_DISPLAY: Record<string, string> = {
+    [SkillTier.BUILTIN]: "Built-in skills",
+    [SkillTier.PROJECT]: "Project skills",
+    [SkillTier.USER]: "User skills",
+};
 
 const SuggestionsListContainer = styled.ul`
     position: absolute;
@@ -104,6 +111,19 @@ const CommandDescription = styled.span`
     font-size: 11px;
     opacity: 0.7;
     font-family: var(--vscode-font-family);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
+
+const SkillGroupHeader = styled.div`
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--vscode-descriptionForeground);
+    padding: 6px 8px 2px;
+    font-family: var(--vscode-font-family);
 `;
 
 interface SuggestionsListProps {
@@ -124,6 +144,8 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
     if (suggestions.length === 0) {
         return null;
     }
+
+    let lastSkillTier: string | null = null;
 
     return (
         <SuggestionsListContainer role="listbox">
@@ -151,6 +173,38 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                                 )}
                             </CommandTextGroup>
                         </CommandItem>
+                    );
+                }
+
+                if (suggestion.type === SuggestionType.Skill) {
+                    const showHeader = suggestion.skillTier !== lastSkillTier;
+                    lastSkillTier = suggestion.skillTier;
+                    return (
+                        <React.Fragment key={suggestion.text + index}>
+                            {showHeader && (
+                                <SkillGroupHeader>
+                                    {SKILL_TIER_DISPLAY[suggestion.skillTier] ?? suggestion.skillTier}
+                                </SkillGroupHeader>
+                            )}
+                            <CommandItem
+                                ref={isActive ? activeSuggestionRef : null}
+                                active={isActive}
+                                onClick={() => onSuggestionClick(suggestion)}
+                                onMouseDown={onSuggestionMouseDown}
+                                role="option"
+                                aria-selected={isActive}
+                            >
+                                <CommandIconBox active={isActive}>
+                                    <span className="codicon codicon-lightbulb-sparkle" />
+                                </CommandIconBox>
+                                <CommandTextGroup>
+                                    <CommandName>{suggestion.text}</CommandName>
+                                    {suggestion.skillTrigger && (
+                                        <CommandDescription>{suggestion.skillTrigger}</CommandDescription>
+                                    )}
+                                </CommandTextGroup>
+                            </CommandItem>
+                        </React.Fragment>
                     );
                 }
 
