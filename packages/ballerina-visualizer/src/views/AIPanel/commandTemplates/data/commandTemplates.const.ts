@@ -45,46 +45,6 @@ export const commandTemplates = {
     //         ],
     //     },
     // ],
-    [Command.DataMap]: [
-        {
-            id: TemplateId.MappingsForRecords,
-            text: 'generate mappings using input as <recordname(s)> and output as <recordname> using the <functionname> function',
-            placeholders: [
-                {
-                    id: 'inputRecords',
-                    text: '<recordname(s)>',
-                    multiline: false,
-                },
-                {
-                    id: 'outputRecord',
-                    text: '<recordname>',
-                    multiline: false,
-                },
-                {
-                    id: 'functionName',
-                    text: '<functionname>',
-                    multiline: false,
-                },
-            ],
-        },
-        {
-            id: TemplateId.MappingsForFunction,
-            text: 'generate mappings for the <functionname> function',
-            placeholders: [
-                {
-                    id: 'functionName',
-                    text: '<functionname>',
-                    multiline: false,
-                }
-            ],
-        },
-        {
-            id: TemplateId.InlineMappings,
-            text: 'generate mappings using record fields and external values',
-            placeholders: [],
-            defaultVisibility: false
-        },
-    ],
     [Command.TypeCreator]: [
         {
             id: TemplateId.TypesForAttached,

@@ -17,6 +17,7 @@
 import {
     ChatEntry,
     ChatError,
+    ChatErrorCode,
     ChatNotify,
     ChatStart,
     DiagnosticEntry,
@@ -38,6 +39,7 @@ import {
 } from "@wso2/ballerina-core";
 import { ModelMessage } from "ai";
 import { MessageRole } from "./ai-types";
+import { USAGE_LIMIT_EXCEEDED_MESSAGE } from "./ai-client";
 import { RPCLayer } from "../../../RPCLayer";
 import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import { MigrationPanelWebview } from "../../../views/migration-panel/webview";
@@ -211,12 +213,8 @@ export function sendMessageStopNotification(command: Command): void {
     sendAIPanelNotification(msg);
 }
 
-export function sendErrorNotification(errorMessage: string): void {
-    const msg: ChatError = {
-        type: "error",
-        content: errorMessage,
-    };
-    sendAIPanelNotification(msg);
+export function sendErrorNotification(error: ChatError): void {
+    sendAIPanelNotification(error);
 }
 
 export function sendMessageStartNotification(): void {
@@ -315,6 +313,10 @@ export function sendClarifyNotification(event: ChatNotify & { type: "clarify_eve
     sendAIPanelNotification(event);
 }
 
+export function sendSkillEnableNotification(event: ChatNotify & { type: "skill_enable_event" }): void {
+    sendAIPanelNotification(event);
+}
+
 export function sendWebToolToggleNotification(active: boolean): void {
     RPCLayer._messenger.sendNotification(
         webToolToggle,
@@ -351,7 +353,7 @@ export function sendUsageMetricsNotification(
     sendAIPanelNotification({ type: "usage_metrics", usage, breakdown });
 }
 
-export function sendConfigChangeNotification(key: 'showContextUsage', value: boolean): void {
+export function sendConfigChangeNotification(key: 'showContextUsage' | 'mcpToolsEnabled', value: boolean): void {
     sendAIPanelNotification({ type: 'config_change', key, value });
 }
 
@@ -366,7 +368,7 @@ export function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
         // Standard Error objects have a .message property
         if (error.name === "UsageLimitError") {
-            return "Usage limit exceeded.";
+            return USAGE_LIMIT_EXCEEDED_MESSAGE;
         }
         if (error.name === "AI_RetryError") {
             return "An error occurred connecting with the AI service. Please try again later.";
@@ -404,7 +406,7 @@ export function getErrorMessage(error: unknown): string {
     ) {
         // Check if it has a statusCode property indicating 429
         if ("statusCode" in error && (error as any).statusCode === 429) {
-            return "Usage limit exceeded.";
+            return USAGE_LIMIT_EXCEEDED_MESSAGE;
         }
         return (error as { message: string }).message;
     }
@@ -414,6 +416,29 @@ export function getErrorMessage(error: unknown): string {
     } catch {
         return String(error);
     }
+}
+
+export function getErrorCode(error: unknown): ChatErrorCode | undefined {
+    if (
+        typeof error === "object" &&
+        error !== null &&
+        ((error as any).name === "UsageLimitError" || (error as any).statusCode === 429)
+    ) {
+        return "usage_limit";
+    }
+    return undefined;
+}
+
+/**
+ * Build a ChatError event from a thrown value, tagging it with a code so the
+ * frontend can route it (e.g. usage_limit -> persistent banner, not inline box).
+ */
+export function buildChatError(error: unknown): ChatError {
+    return {
+        type: "error",
+        content: getErrorMessage(error),
+        code: getErrorCode(error),
+    };
 }
 
 export function isHttpPayloadContext(context: PayloadContext): context is HttpPayloadContext {

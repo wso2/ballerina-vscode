@@ -27,7 +27,7 @@ import {
     InlineCardSubtitle
 } from "./styles";
 import { Button, Confirm } from "@wso2/ui-toolkit";
-import { RunningServiceInfo } from "@wso2/ballerina-core";
+import { RunningServiceInfo, isSamePath, normalizeProjectPath } from "@wso2/ballerina-core";
 
 const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
 // ── Styled components ─────────────────────────────────────────────────────────
@@ -470,14 +470,14 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
             if (services.length > 0) {
                 const currentServices:RunningServiceInfo[] = await rpcClient.getAiPanelRpcClient().getRunningServices();
                 const activeServices = currentServices.filter((s) => !s.exited);
-                const initialPackagePaths = Array.from(new Set(services.map(s => s.packagePath)));
+                const initialPackagePaths = Array.from(new Set(services.map(s => normalizeProjectPath(s.packagePath))));
                 const stoppedServices: RunningServiceTarget[] = [];
                 for (const initialPath of initialPackagePaths) {
                     // packagePath is the service identity within a temp workspace, so duplicate
                     // values are intentionally treated as the same restart target.
-                    const matchingTargets = services.filter(s => s.packagePath === initialPath);
+                    const matchingTargets = services.filter(s => isSamePath(s.packagePath, initialPath));
                     // If none of those targets are active, restart the last matching target.
-                    const isAnyTargetActive = matchingTargets.some(target => activeServices.some(service => service.packagePath === target.fullPackagePath));
+                    const isAnyTargetActive = matchingTargets.some(target => activeServices.some(service => isSamePath(service.packagePath, target.fullPackagePath)));
                     if (!isAnyTargetActive) {
                         stoppedServices.push(matchingTargets[matchingTargets.length - 1]);
                     }

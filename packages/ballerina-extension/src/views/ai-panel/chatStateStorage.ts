@@ -126,6 +126,7 @@ function toPersistedGeneration(gen: Generation): PersistedGeneration {
             compactionMetadata: gen.metadata.compactionMetadata
                 ? toPersistedCompactionMetadata(gen.metadata.compactionMetadata)
                 : undefined,
+            agentsMdLastReadHash: gen.metadata.agentsMdLastReadHash,
         },
         hasCheckpoint: !!gen.checkpoint,
         plan: gen.plan ? toPersistedPlan(gen.plan) : undefined,
@@ -167,6 +168,7 @@ function fromPersistedGeneration(pg: PersistedGeneration): Generation {
                     isCompactedGeneration: pg.metadata.compactionMetadata.isCompactedGeneration,
                 }
                 : undefined,
+            agentsMdLastReadHash: pg.metadata.agentsMdLastReadHash,
         },
         checkpoint: undefined, // Loaded on demand from separate file
         plan: pg.plan
@@ -540,6 +542,7 @@ export class ChatStateStorage {
                 operationType: metadata.operationType,
                 generationType: metadata.generationType || 'agent',
                 commandType: metadata.commandType,
+                agentsMdLastReadHash: metadata.agentsMdLastReadHash,
             },
         };
 

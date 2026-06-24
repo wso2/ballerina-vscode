@@ -19,7 +19,7 @@
 
 import { commands, TestItem, window, workspace, WorkspaceEdit, Uri, Range } from "vscode";
 import { openView, StateMachine, history } from "../../stateMachine";
-import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, Annotation, ValueProperty, GetTestFunctionResponse, ComponentInfo } from "@wso2/ballerina-core";
+import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, Annotation, ValueProperty, GetTestFunctionResponse, ComponentInfo, isSamePath } from "@wso2/ballerina-core";
 import { isTestFunctionItem } from "./discover";
 import path from "path";
 import { promises as fs } from 'fs';
@@ -336,7 +336,7 @@ async function findProjectPath(filePath?: string): Promise<string | undefined> {
     if (filePath) {
         const projectRoot = await findBallerinaPackageRoot(filePath);
         if (projectRoot) {
-            if (!projectPath || projectRoot !== projectPath) {
+            if (!projectPath || !isSamePath(projectRoot, projectPath)) {
                 await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
             }
             return projectRoot;

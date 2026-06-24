@@ -17,7 +17,7 @@
 import { GenerateOpenAPIRequest, Command } from "@wso2/ballerina-core";
 import { streamText } from "ai";
 import { getAnthropicClient, ANTHROPIC_HAIKU, getProviderCacheControl } from "../utils/ai-client";
-import { getErrorMessage, populateHistory } from "../utils/ai-utils";
+import { buildChatError, populateHistory } from "../utils/ai-utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../utils/events";
 import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
 import { createExecutorConfig, resolveProjectRootPath } from "../agent/index";
@@ -62,7 +62,7 @@ export async function generateOpenAPISpecCore(
             case "error": {
                 const error = part.error;
                 console.error("Error during OpenAPI generation:", error);
-                eventHandler({ type: "error", content: getErrorMessage(error) });
+                eventHandler(buildChatError(error));
                 break;
             }
             case "finish": {
@@ -102,7 +102,7 @@ export async function generateOpenAPISpec(params: GenerateOpenAPIRequest): Promi
             eventHandler({ type: "abort", command: Command.OpenAPI });
         } else {
             console.error("Error during openapi generation:", error);
-            eventHandler({ type: "error", content: getErrorMessage(error) });
+            eventHandler(buildChatError(error));
         }
     } finally {
         // Clear active execution

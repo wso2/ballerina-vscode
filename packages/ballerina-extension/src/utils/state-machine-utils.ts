@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { DIRECTORY_MAP, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, HistoryEntry, MACHINE_VIEW, ProjectStructureArtifactResponse, SyntaxTreeResponse, UpdatedArtifactsResponse } from "@wso2/ballerina-core";
+import { DIRECTORY_MAP, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, HistoryEntry, isSamePath, MACHINE_VIEW, ProjectStructureArtifactResponse, SyntaxTreeResponse, UpdatedArtifactsResponse } from "@wso2/ballerina-core";
 import { NodePosition, STKindChecker, STNode, traversNode } from "@wso2/syntax-tree";
 import { StateMachine, openView } from "../stateMachine";
 import { Uri } from "vscode";
@@ -52,7 +52,7 @@ export async function getView(documentUri: string, position: NodePosition, proje
 async function checkForServiceClassFunctions(documentUri: string, position: NodePosition, projectPath: string) {
     const currentProjectArtifacts = StateMachine.context().projectStructure;
     if (currentProjectArtifacts) {
-        const project = currentProjectArtifacts.projects.find(project => project.projectPath === projectPath);
+        const project = currentProjectArtifacts.projects.find(project => isSamePath(project.projectPath, projectPath));
         for (const dir of project.directoryMap[DIRECTORY_MAP.TYPE]) {
             if (dir.path === documentUri && isPositionWithinBlock(position, dir.position)) {
                 const req = getSTByRangeReq(documentUri, position);
@@ -271,7 +271,7 @@ function getViewByArtifacts(documentUri: string, position: NodePosition, project
     const currentProjectArtifacts = StateMachine.context().projectStructure;
     if (currentProjectArtifacts) {
         // Iterate through each category in the directory map
-        const project = currentProjectArtifacts.projects.find(project => project.projectPath === projectPath);
+        const project = currentProjectArtifacts.projects.find(project => isSamePath(project.projectPath, projectPath));
         for (const [key, directory] of Object.entries(project.directoryMap)) {
             // Check each artifact in the category
             for (const dir of directory) {

@@ -18,7 +18,7 @@
 
 import { Command } from "@wso2/ballerina-core";
 import { Tag } from "../../../commandTemplates/models/tag.model";
-import { injectTags } from "../../../commandTemplates/utils/utils";
+import { injectTags, injectSkillTags } from "../../../commandTemplates/utils/utils";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 
 interface UseFooterLogicParams {
@@ -72,7 +72,7 @@ export const useFooterLogic = ({
         //     }))
         // );
 
-        // === Command.DataMap ===
+        // === data-map skill ===
         const recordNames = (await rpcClient.getBIDiagramRpcClient().getRecordNames()).mentions;
         const recordTags: Tag[] = recordNames.map((recordName) => ({
             display: `@${recordName}`,
@@ -80,12 +80,12 @@ export const useFooterLogic = ({
             injected: true,
             kind: "placeholder-specific",
         }));
-        injectTags(Command.DataMap, "mappings-for-records", "inputRecords", recordTags);
-        injectTags(Command.DataMap, "mappings-for-records", "outputRecord", recordTags);
+        injectSkillTags('data-map', "mappings-for-records", "inputRecords", recordTags);
+        injectSkillTags('data-map', "mappings-for-records", "outputRecord", recordTags);
 
         const functionNames = (await rpcClient.getBIDiagramRpcClient().getFunctionNames()).mentions;
-        injectTags(
-            Command.DataMap,
+        injectSkillTags(
+            'data-map',
             "mappings-for-function",
             "functionName",
             functionNames.map((functionName) => ({

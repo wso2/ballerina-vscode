@@ -20,7 +20,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { DIRECTORY_MAP, EVENT_TYPE, HistoryEntry, MACHINE_VIEW, VisualizerLocation, WorkspaceTypeResponse } from "@wso2/ballerina-core";
+import { DIRECTORY_MAP, EVENT_TYPE, HistoryEntry, isSamePath, MACHINE_VIEW, VisualizerLocation, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 
 const NavContainer = styled.div`
     display: flex;
@@ -197,7 +197,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             try {
                 const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
                 const project =
-                    projectStructure.projects.find((p) => p.projectPath === projectPath) ??
+                    projectStructure.projects.find((p) => isSamePath(p.projectPath, projectPath)) ??
                     projectStructure.projects[0];
 
                 const service = project?.directoryMap[DIRECTORY_MAP.SERVICE]?.find(

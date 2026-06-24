@@ -44,8 +44,6 @@ import {
     generateAgent,
     GenerateAgentCodeRequest,
     generateContextTypes,
-    generateInlineMappingCode,
-    generateMappingCode,
     generateOpenAPI,
     GenerateOpenAPIRequest,
     getActiveTempDir,
@@ -53,6 +51,7 @@ import {
     getChatMessages,
     getCheckpoints,
     getDefaultPrompt,
+    isScaffoldEnvActive,
     getDriftDiagnosticContents,
     getFromDocumentation,
     getGeneratedDocumentation,
@@ -65,14 +64,12 @@ import {
     isUserAuthenticated,
     isWorkspaceProject,
     markAlertShown,
-    MetadataWithAttachments,
     openAIPanel,
     openChatWindowWithCommand,
     openFileDiff,
     OpenFileDiffRequest,
     PlanApprovalRequest,
     ProcessContextTypeCreationRequest,
-    ProcessMappingParametersRequest,
     PromptEnhancementRequest,
     promptForLogin,
     promptGithubAuthorize,
@@ -106,6 +103,40 @@ import {
     runService,
     RunServiceRequest,
     getDefaultVertexCredsPath,
+    getSkills,
+    addSkill,
+    toggleSkill,
+    deleteSkill,
+    enableSkillFromChat,
+    cancelSkillEnable,
+    parseSkillFile,
+    getSkillsEnabled,
+    setSkillsEnabled,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
+    SkillEnableRequest,
+    SkillEnableCancelRequest,
+    ParseSkillFileRequest,
+    SetSkillsEnabledRequest,
+    listMcpServers,
+    setMcpServerEnabled,
+    SetMcpServerEnabledRequest,
+    openMcpConfig,
+    addMcpServer,
+    AddMcpServerRequest,
+    updateMcpServer,
+    UpdateMcpServerRequest,
+    deleteMcpServer,
+    DeleteMcpServerRequest,
+    setMcpToolsEnabled,
+    SetMcpToolsEnabledRequest,
+    getMcpToolsEnabled,
+    getMcpWorkspaceContext,
+    getMcpLoadErrors,
+    OpenMcpConfigRequest,
+    getAgentsMdFileInfo,
+    openOrCreateAgentsMd,
 } from "@wso2/ballerina-core";
 import { workspace } from 'vscode';
 import { Messenger } from "vscode-messenger";
@@ -119,12 +150,11 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getLoginMethod, () => rpcManger.getLoginMethod());
     messenger.onRequest(isPlatformExtensionAvailable, () => rpcManger.isPlatformExtensionAvailable());
     messenger.onRequest(getDefaultPrompt, () => rpcManger.getDefaultPrompt());
+    messenger.onRequest(isScaffoldEnvActive, () => rpcManger.isScaffoldEnvActive());
     messenger.onRequest(getAIMachineSnapshot, () => rpcManger.getAIMachineSnapshot());
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
     messenger.onNotification(openChatWindowWithCommand, () => rpcManger.openChatWindowWithCommand());
     messenger.onNotification(generateContextTypes, (args: ProcessContextTypeCreationRequest) => rpcManger.generateContextTypes(args));
-    messenger.onNotification(generateMappingCode, (args: ProcessMappingParametersRequest) => rpcManger.generateMappingCode(args));
-    messenger.onNotification(generateInlineMappingCode, (args: MetadataWithAttachments) => rpcManger.generateInlineMappingCode(args));
     messenger.onRequest(getServiceNames, () => rpcManger.getServiceNames());
     messenger.onRequest(promptGithubAuthorize, () => rpcManger.promptGithubAuthorize());
     messenger.onRequest(isCopilotSignedIn, () => rpcManger.isCopilotSignedIn());
@@ -182,6 +212,27 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(stopRunningService, (args: StopRunningServiceRequest) => rpcManger.stopRunningService(args));
     messenger.onRequest(runService, (args: RunServiceRequest) => rpcManger.runService(args));
     messenger.onRequest(getDefaultVertexCredsPath, () => rpcManger.getDefaultVertexCredsPath());
+    messenger.onRequest(getSkills, () => rpcManger.getSkills());
+    messenger.onRequest(addSkill, (args: AddSkillRequest) => rpcManger.addSkill(args));
+    messenger.onRequest(toggleSkill, (args: ToggleSkillRequest) => rpcManger.toggleSkill(args));
+    messenger.onRequest(deleteSkill, (args: DeleteSkillRequest) => rpcManger.deleteSkill(args));
+    messenger.onRequest(enableSkillFromChat, (args: SkillEnableRequest) => rpcManger.enableSkillFromChat(args));
+    messenger.onRequest(cancelSkillEnable, (args: SkillEnableCancelRequest) => rpcManger.cancelSkillEnable(args));
+    messenger.onRequest(parseSkillFile, (args: ParseSkillFileRequest) => rpcManger.parseSkillFile(args));
+    messenger.onRequest(getSkillsEnabled, () => rpcManger.getSkillsEnabled());
+    messenger.onRequest(setSkillsEnabled, (args: SetSkillsEnabledRequest) => rpcManger.setSkillsEnabled(args));
+    messenger.onRequest(listMcpServers, () => rpcManger.listMcpServers());
+    messenger.onRequest(setMcpServerEnabled, (args: SetMcpServerEnabledRequest) => rpcManger.setMcpServerEnabled(args));
+    messenger.onRequest(openMcpConfig, (args: OpenMcpConfigRequest) => rpcManger.openMcpConfig(args));
+    messenger.onRequest(addMcpServer, (args: AddMcpServerRequest) => rpcManger.addMcpServer(args));
+    messenger.onRequest(updateMcpServer, (args: UpdateMcpServerRequest) => rpcManger.updateMcpServer(args));
+    messenger.onRequest(deleteMcpServer, (args: DeleteMcpServerRequest) => rpcManger.deleteMcpServer(args));
+    messenger.onRequest(setMcpToolsEnabled, (args: SetMcpToolsEnabledRequest) => rpcManger.setMcpToolsEnabled(args));
+    messenger.onRequest(getMcpToolsEnabled, () => rpcManger.getMcpToolsEnabled());
+    messenger.onRequest(getMcpWorkspaceContext, () => rpcManger.getMcpWorkspaceContext());
+    messenger.onRequest(getMcpLoadErrors, () => rpcManger.getMcpLoadErrors());
+    messenger.onRequest(getAgentsMdFileInfo, () => rpcManger.getAgentsMdFileInfo());
+    messenger.onRequest(openOrCreateAgentsMd, () => rpcManger.openOrCreateAgentsMd());
 
     // Push updates to the webview whenever the set of running services changes.
     runningServicesManager.onChange = (services) => {

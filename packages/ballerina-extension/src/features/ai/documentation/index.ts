@@ -22,7 +22,7 @@ import {
     createDocumentationGenMessages
 } from "./prompts";
 import { CopilotEventHandler, createWebviewEventHandler } from "../utils/events";
-import { getErrorMessage } from "../utils/ai-utils";
+import { buildChatError } from "../utils/ai-utils";
 import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
 import { createExecutorConfig, resolveProjectRootPath } from "../agent/index";
 
@@ -71,7 +71,7 @@ export async function generateDocumentationCore(
             case "error": {
                 const error = part.error;
                 console.error("Error during documentation generation:", error);
-                eventHandler({ type: "error", content: getErrorMessage(error) });
+                eventHandler(buildChatError(error));
                 break;
             }
             case "finish": {
@@ -124,7 +124,7 @@ export async function generateDocumentation(params: DocumentationGenerationReque
             eventHandler({ type: "abort", command: Command.Doc });
         } else {
             console.error("Error during documentation generation:", error);
-            eventHandler({ type: "error", content: getErrorMessage(error) });
+            eventHandler(buildChatError(error));
         }
     } finally {
         // Clear active execution

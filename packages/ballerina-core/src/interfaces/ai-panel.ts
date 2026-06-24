@@ -18,7 +18,6 @@
 
 export enum Command {
     // Tests = '/tests',
-    DataMap = '/datamap',
     TypeCreator = '/typecreator',
     // Healthcare = '/healthcare',
     Ask = '/ask',
@@ -29,6 +28,10 @@ export enum Command {
     // Compact = '/compact'
 }
 
+export enum SkillCommand {
+    DataMap = 'data-map',
+}
+
 export enum TemplateId {
     // Shared
     Wildcard = 'wildcard',
@@ -36,11 +39,6 @@ export enum TemplateId {
     // Command.Tests
     TestsForService = 'tests-for-service',
     TestsForFunction = 'tests-for-function',
-
-    // Command.DataMap
-    MappingsForRecords = 'mappings-for-records',
-    MappingsForFunction = 'mappings-for-function',
-    InlineMappings = 'inline-mappings',
 
     // Command.TypeCreator
     TypesForAttached = 'types-for-attached',

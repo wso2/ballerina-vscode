@@ -32,10 +32,8 @@ import {
     GetModuleDirParams,
     LLMDiagnostics,
     LoginMethod,
-    MetadataWithAttachments,
     OpenFileDiffRequest,
     ProcessContextTypeCreationRequest,
-    ProcessMappingParametersRequest,
     PromptEnhancementRequest,
     PromptEnhancementResponse,
     RequirementSpecification,
@@ -55,7 +53,37 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    GetSkillsResponse,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
+    SkillEnableRequest,
+    SkillEnableCancelRequest,
+    SkillEnableStage,
+    SetSkillsEnabledRequest,
+    SkillEntry,
+    SkillTier,
+    ParseSkillFileRequest,
+    ParseSkillFileResponse,
+    McpServerStatusDTO,
+    SetMcpServerEnabledRequest,
+    AddMcpServerRequest,
+    AddMcpServerResponse,
+    OpenMcpConfigRequest,
+    McpWorkspaceContextResponse,
+    UpdateMcpServerRequest,
+    DeleteMcpServerRequest,
+    SetMcpToolsEnabledRequest,
+    McpLoadErrorsDTO,
+    AgentsMdFileInfoDTO,
 } from "@wso2/ballerina-core";
+import {
+    getAgentsMdFileInfo as getAgentsMdFileInfoImpl,
+    openOrCreateAgentsMd as openOrCreateAgentsMdImpl,
+} from "../../features/ai/agent/agents-md";
+import { ConfigurationTarget } from "vscode";
+import { getMcpClientManager, ensureMcpConfigFileExists, writeMcpServer, updateMcpServer, deleteMcpServer } from "../../features/ai/agent/mcp";
+import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged } from "../../RPCLayer";
 import * as os from "os";
 import * as fs from 'fs';
 import path from "path";
@@ -73,7 +101,7 @@ import { generateDocumentationForService } from "../../features/ai/documentation
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { BACKEND_URL } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-import { sendChatComponentNotification, sendSaveChatNotification } from "../../features/ai/utils/ai-utils";
+import { sendChatComponentNotification, sendSaveChatNotification, sendSkillEnableNotification } from "../../features/ai/utils/ai-utils";
 import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/feedback";
 import { sendGenerationDiscardTelemetry, sendGenerationKeptTelemetry } from "../../features/ai/utils/generation-response";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
@@ -89,17 +117,47 @@ import {
 import { addToIntegration, searchDocumentation } from "./utils";
 
 import { createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
+import { REGISTERED_SKILLS } from '../../features/ai/agent/skills/index';
+import { buildProjectSkillsConfigPath } from '../../features/ai/agent/skills/context';
+import { scanProjectSkills, scanUserSkills, readUserSkillContent, readProjectSkillContent, parseSkillMd } from '../../features/ai/agent/tools/skill-tool/skill-reader';
+import * as unzipper from 'unzipper';
+import {
+    getSkillsConfig,
+    setSkillEnabled,
+    writeUserSkill,
+    writeProjectSkill,
+    deleteUserSkill,
+    deleteProjectSkill,
+    GLOBAL_SKILLS_CONFIG_PATH,
+} from '../../features/ai/agent/tools/skill-tool/skill-writer';
 import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExecutor';
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
-import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
-import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
 import { executeRun } from "../../features/ai/agent/tools/ballerina-run";
+
+/** Validate an MCP server config DTO. Returns an error message or null on success. */
+function validateMcpServerConfig(cfg: any): string | null {
+    if (!cfg || (cfg.type !== "stdio" && cfg.type !== "http")) {
+        return "Invalid server config.";
+    }
+    if (cfg.type === "stdio" && (typeof cfg.command !== "string" || !cfg.command.trim())) {
+        return "Command is required for stdio servers.";
+    }
+    if (cfg.type === "http") {
+        if (typeof cfg.url !== "string" || !cfg.url.trim()) {
+            return "URL is required for HTTP servers.";
+        }
+        try { new URL(cfg.url); } catch {
+            return "URL is not a valid URL.";
+        }
+    }
+    return null;
+}
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -141,6 +199,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async clearInitialPrompt(): Promise<void> {
         extension.aiChatDefaultPrompt = undefined;
+    }
+
+    async isScaffoldEnvActive(): Promise<boolean> {
+        return !!(process.env.INITIAL_SCAFFOLD_PROMPT && process.env.INITIAL_SCAFFOLD_STEPS);
     }
 
     async getServiceNames(): Promise<TestGenerationMentions> {
@@ -323,38 +385,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         } catch (error) {
             console.error(">>> Failed to add files to the project", error);
             return false; //silently fail for timeout issues.
-        }
-    }
-
-    async generateMappingCode(params: ProcessMappingParametersRequest): Promise<void> {
-        try {
-            // Create config using factory function
-            const config = createExecutorConfig(params, {
-                command: Command.DataMap,
-                chatStorageEnabled: true,  // Enable chat storage for checkpoint support
-                cleanupStrategy: 'immediate',  // DataMapper uses immediate cleanup,
-            });
-
-            await new FunctionMappingExecutor(config).run();
-        } catch (error) {
-            console.error('[RPC Manager] Error in generateMappingCode:', error);
-            throw error;
-        }
-    }
-
-    async generateInlineMappingCode(params: MetadataWithAttachments): Promise<void> {
-        try {
-            // Create config using factory function
-            const config = createExecutorConfig(params, {
-                command: Command.DataMap,
-                chatStorageEnabled: true,  // Enable chat storage for checkpoint support
-                cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
-            });
-
-            await new InlineMappingExecutor(config).run();
-        } catch (error) {
-            console.error('[RPC Manager] Error in generateInlineMappingCode:', error);
-            throw error;
         }
     }
 
@@ -862,6 +892,385 @@ User reverted the last made changes. The files have been restored to the state b
             return adcPath;
         }
         return "";
+    }
+
+    // ── Skills helpers ────────────────────────────────────────────────────────
+
+    /** Returns the config file path for the given skill tier. */
+    private resolveSkillsConfigPath(tier: SkillTier, projectRootPath: string | null): string {
+        if (tier === SkillTier.PROJECT && projectRootPath) {
+            return buildProjectSkillsConfigPath(projectRootPath);
+        }
+        return GLOBAL_SKILLS_CONFIG_PATH;
+    }
+
+    /** Extracts the bare skill name from a prefixed id such as "user/foo" → "foo". */
+    private extractBareSkillName(skillId: string): string {
+        const slash = skillId.indexOf('/');
+        return slash !== -1 ? skillId.slice(slash + 1) : skillId;
+    }
+
+    private buildBuiltinSkillEntries(allDisabled: Set<string>, allEnabled: Set<string>): SkillEntry[] {
+        return REGISTERED_SKILLS.map(s => {
+            let enabled: boolean;
+            if (s.optional === false) {
+                enabled = true;
+            } else if (s.default === false) {
+                enabled = allEnabled.has(s.name);
+            } else {
+                enabled = !allDisabled.has(s.name);
+            }
+            return {
+                id: s.name,
+                name: s.name,
+                trigger: s.trigger,
+                tier: SkillTier.BUILTIN,
+                enabled,
+                optional: s.optional,
+                commandTemplates: s.commandTemplates,
+                skillCommand: s.skillCommand,
+            };
+        });
+    }
+
+    private buildProjectSkillEntries(projectRootPath: string, allDisabled: Set<string>): SkillEntry[] {
+        return scanProjectSkills(projectRootPath).map(s => {
+            const content = readProjectSkillContent(projectRootPath, s.name);
+            return {
+                id: s.name,
+                name: s.name,
+                trigger: s.trigger,
+                body: content?.content !== content?.trigger ? content?.content : undefined,
+                tier: SkillTier.PROJECT,
+                enabled: !allDisabled.has(s.name),
+            };
+        });
+    }
+
+    private buildUserSkillEntries(allDisabled: Set<string>): SkillEntry[] {
+        return scanUserSkills().map(s => {
+            const content = readUserSkillContent(s.name);
+            return {
+                id: s.name,
+                name: s.name,
+                trigger: s.trigger,
+                body: content?.content !== content?.trigger ? content?.content : undefined,
+                tier: SkillTier.USER,
+                enabled: !allDisabled.has(s.name),
+            };
+        });
+    }
+
+    async getSkills(): Promise<GetSkillsResponse> {
+        const projectRootPath = resolveProjectRootPath();
+        const globalConfig = getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH);
+        const projectConfigPath = projectRootPath ? buildProjectSkillsConfigPath(projectRootPath) : null;
+        const projectConfig = projectConfigPath ? getSkillsConfig(projectConfigPath) : { disabledSkills: [], enabledSkills: [] };
+        const allDisabled = new Set([...globalConfig.disabledSkills, ...projectConfig.disabledSkills]);
+        const allEnabled = new Set([...globalConfig.enabledSkills, ...projectConfig.enabledSkills]);
+
+        return {
+            skills: [
+                ...this.buildBuiltinSkillEntries(allDisabled, allEnabled),
+                ...(projectRootPath ? this.buildProjectSkillEntries(projectRootPath, allDisabled) : []),
+                ...this.buildUserSkillEntries(allDisabled),
+            ],
+        };
+    }
+
+    async addSkill(params: AddSkillRequest): Promise<boolean> {
+        try {
+            if (params.tier === SkillTier.USER) {
+                writeUserSkill(params.name, params.trigger, params.body);
+            } else {
+                const projectRootPath = resolveProjectRootPath();
+                if (!projectRootPath) { return false; }
+                writeProjectSkill(projectRootPath, params.name, params.trigger, params.body);
+            }
+            return true;
+        } catch (error) {
+            console.error('[Skills] addSkill failed:', error);
+            return false;
+        }
+    }
+
+    async toggleSkill(params: ToggleSkillRequest): Promise<boolean> {
+        try {
+            const configPath = this.resolveSkillsConfigPath(params.tier, resolveProjectRootPath());
+            const builtinSkill = params.tier === SkillTier.BUILTIN
+                ? REGISTERED_SKILLS.find(s => s.name === params.skillId)
+                : undefined;
+            setSkillEnabled(configPath, params.skillId, params.enabled, builtinSkill?.default === false);
+            return true;
+        } catch (error) {
+            console.error('[Skills] toggleSkill failed:', error);
+            return false;
+        }
+    }
+
+    async deleteSkill(params: DeleteSkillRequest): Promise<boolean> {
+        try {
+            const bareName = this.extractBareSkillName(params.skillId);
+            if (params.tier === SkillTier.USER) {
+                deleteUserSkill(bareName);
+            } else {
+                const projectRootPath = resolveProjectRootPath();
+                if (!projectRootPath) { return false; }
+                deleteProjectSkill(projectRootPath, bareName);
+            }
+            return true;
+        } catch (error) {
+            console.error('[Skills] deleteSkill failed:', error);
+            return false;
+        }
+    }
+
+    async enableSkillFromChat(params: SkillEnableRequest): Promise<boolean> {
+        try {
+            const projectRootPath = resolveProjectRootPath();
+            const builtinSkill = REGISTERED_SKILLS.find(s => s.name === params.skillId);
+            if (builtinSkill?.default === false) {
+                if (projectRootPath) {
+                    setSkillEnabled(buildProjectSkillsConfigPath(projectRootPath), params.skillId, true, true);
+                }
+            } else {
+                setSkillEnabled(GLOBAL_SKILLS_CONFIG_PATH, params.skillId, true);
+                if (projectRootPath) {
+                    setSkillEnabled(buildProjectSkillsConfigPath(projectRootPath), params.skillId, true);
+                }
+            }
+            sendSkillEnableNotification({ type: "skill_enable_event", requestId: params.requestId, stage: SkillEnableStage.ENABLED, skillName: params.skillId, skillId: params.skillId } as any);
+            approvalManager.resolveSkillEnable(params.requestId, true);
+            return true;
+        } catch (error) {
+            console.error('[Skills] enableSkillFromChat failed:', error);
+            approvalManager.resolveSkillEnable(params.requestId, false);
+            return false;
+        }
+    }
+
+    async cancelSkillEnable(params: SkillEnableCancelRequest): Promise<void> {
+        const skillId = approvalManager.getSkillEnableId(params.requestId) ?? '';
+        sendSkillEnableNotification({ type: "skill_enable_event", requestId: params.requestId, stage: SkillEnableStage.SKIPPED, skillName: skillId, skillId } as any);
+        approvalManager.resolveSkillEnable(params.requestId, false);
+    }
+
+    async parseSkillFile(params: ParseSkillFileRequest): Promise<ParseSkillFileResponse> {
+        try {
+            const ext = path.extname(params.fileName).toLowerCase();
+
+            if (ext === '.md') {
+                const { name, trigger, content } = parseSkillMd(params.fileContent);
+                if (!name || !trigger) {
+                    return { error: 'Missing name or description in YAML front matter.' };
+                }
+                return { name, trigger, body: content !== trigger ? content : undefined };
+            }
+
+            if (ext === '.zip' || ext === '.skill') {
+                const buf = Buffer.from(params.fileContent, 'base64');
+                const zip = await unzipper.Open.buffer(buf);
+                const entry = zip.files.find((f: any) => path.basename(f.path).toUpperCase() === 'SKILL.MD');
+                if (!entry) {
+                    return { error: 'No SKILL.md found inside the archive.' };
+                }
+                const raw = (await entry.buffer()).toString('utf-8');
+                const { name, trigger, content } = parseSkillMd(raw);
+                if (!name || !trigger) {
+                    return { error: 'Missing name or description in SKILL.md.' };
+                }
+                return { name, trigger, body: content !== trigger ? content : undefined };
+            }
+
+            return { error: 'Unsupported file type. Use .md, .zip, or .skill.' };
+        } catch (err: any) {
+            return { error: err?.message ?? 'Failed to parse skill file.' };
+        }
+    }
+
+    async listMcpServers(): Promise<McpServerStatusDTO[]> {
+        const manager = getMcpClientManager();
+        if (!manager) {
+            return [];
+        }
+        try {
+            await manager.refresh();
+        } catch (err) {
+            console.warn('[mcp] listMcpServers refresh failed:', err);
+        }
+        return manager.listServers();
+    }
+
+    async setMcpServerEnabled(params: SetMcpServerEnabledRequest): Promise<void> {
+        const manager = getMcpClientManager();
+        if (!manager) {
+            return;
+        }
+        const scope = params.scope ?? "user";
+        await manager.setEnabled(scope, params.name, params.enabled);
+        notifyMcpServersChanged(manager.listServers());
+    }
+
+    async openMcpConfig(params: OpenMcpConfigRequest): Promise<void> {
+        const scope = params?.scope ?? "user";
+        let workspacePath: string | undefined;
+        if (scope === "workspace") {
+            workspacePath = resolveProjectRootPath() || undefined;
+            if (!workspacePath) {
+                vscode.window.showWarningMessage("No project is open — cannot edit project MCP config.");
+                return;
+            }
+            if (!vscode.workspace.isTrusted) {
+                vscode.window.showWarningMessage("This project is not trusted. Trust this project from the workspace trust prompt to enable project-scope MCP servers.");
+                return;
+            }
+        }
+        const filePath = ensureMcpConfigFileExists(scope, workspacePath);
+        const doc = await vscode.workspace.openTextDocument(filePath);
+        await vscode.window.showTextDocument(doc, { preview: false });
+    }
+
+    async getMcpToolsEnabled(): Promise<boolean> {
+        return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableMcpTools', false);
+    }
+
+    async getSkillsEnabled(): Promise<boolean> {
+        return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableSkills', true);
+    }
+
+    async setSkillsEnabled(params: SetSkillsEnabledRequest): Promise<void> {
+        await workspace.getConfiguration('ballerina').update('copilot.enableSkills', !!params?.enabled, ConfigurationTarget.Global);
+    }
+
+    async getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
+        return { hasWorkspace: !!resolveProjectRootPath() && vscode.workspace.isTrusted };
+    }
+
+    async getMcpLoadErrors(): Promise<McpLoadErrorsDTO> {
+        const manager = getMcpClientManager();
+        if (!manager) {
+            return {};
+        }
+        return manager.getLoadErrors();
+    }
+
+    async addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {
+        const name = (params?.name ?? "").trim();
+        if (!name) {
+            return { success: false, error: "Server name is required." };
+        }
+        if (!/^[a-zA-Z0-9_.-]{1,64}$/.test(name)) {
+            return { success: false, error: "Use letters, digits, _, ., or - only (max 64 chars)." };
+        }
+        const cfg = params?.config;
+        const cfgError = validateMcpServerConfig(cfg);
+        if (cfgError) {
+            return { success: false, error: cfgError };
+        }
+        const scope = params.scope ?? "user";
+        let workspacePath: string | undefined;
+        if (scope === "workspace") {
+            workspacePath = resolveProjectRootPath() || undefined;
+            if (!workspacePath) {
+                return { success: false, error: "No project is open — cannot add a project-scope server." };
+            }
+            if (!vscode.workspace.isTrusted) {
+                return { success: false, error: "This project is not trusted. Trust this project from the workspace trust prompt to enable project-scope MCP servers." };
+            }
+        }
+        try {
+            writeMcpServer(name, cfg, scope, workspacePath);
+        } catch (err: any) {
+            return { success: false, error: err?.message ?? String(err) };
+        }
+        await this.refreshAndNotify();
+        return { success: true };
+    }
+
+    async updateMcpServer(params: UpdateMcpServerRequest): Promise<AddMcpServerResponse> {
+        const name = (params?.name ?? "").trim();
+        if (!name) {
+            return { success: false, error: "Server name is required." };
+        }
+        const cfg = params?.config;
+        const cfgError = validateMcpServerConfig(cfg);
+        if (cfgError) {
+            return { success: false, error: cfgError };
+        }
+        const scope = params.scope ?? "user";
+        let workspacePath: string | undefined;
+        if (scope === "workspace") {
+            workspacePath = resolveProjectRootPath() || undefined;
+            if (!workspacePath) {
+                return { success: false, error: "No project is open — cannot update a project-scope server." };
+            }
+            if (!vscode.workspace.isTrusted) {
+                return { success: false, error: "This project is not trusted. Trust this project from the workspace trust prompt to enable project-scope MCP servers." };
+            }
+        }
+        try {
+            updateMcpServer(name, cfg, scope, workspacePath);
+        } catch (err: any) {
+            return { success: false, error: err?.message ?? String(err) };
+        }
+        await this.refreshAndNotify();
+        return { success: true };
+    }
+
+    async deleteMcpServer(params: DeleteMcpServerRequest): Promise<AddMcpServerResponse> {
+        const name = (params?.name ?? "").trim();
+        if (!name) {
+            return { success: false, error: "Server name is required." };
+        }
+        const scope = params.scope ?? "user";
+        let workspacePath: string | undefined;
+        if (scope === "workspace") {
+            workspacePath = resolveProjectRootPath() || undefined;
+            if (!workspacePath) {
+                return { success: false, error: "No project is open." };
+            }
+            // Note: deleting an entry from an already-cloned untrusted .mcp.json is harmless,
+            // so we don't require trust here.
+        }
+        try {
+            deleteMcpServer(name, scope, workspacePath);
+        } catch (err: any) {
+            return { success: false, error: err?.message ?? String(err) };
+        }
+        const manager = getMcpClientManager();
+        if (manager) {
+            await manager.deleteServerOverride(scope, name);
+        }
+        await this.refreshAndNotify();
+        return { success: true };
+    }
+
+    async setMcpToolsEnabled(params: SetMcpToolsEnabledRequest): Promise<void> {
+        await workspace.getConfiguration('ballerina').update('copilot.enableMcpTools', !!params?.enabled, ConfigurationTarget.Global);
+        // The existing onDidChangeConfiguration listener in activator.ts handles
+        // setup/teardown of the manager and pushes config_change + mcpServersChanged.
+    }
+
+    async getAgentsMdFileInfo(): Promise<AgentsMdFileInfoDTO> {
+        return getAgentsMdFileInfoImpl();
+    }
+
+    async openOrCreateAgentsMd(): Promise<void> {
+        await openOrCreateAgentsMdImpl();
+    }
+
+    private async refreshAndNotify(): Promise<void> {
+        const manager = getMcpClientManager();
+        if (!manager) {
+            return;
+        }
+        try {
+            await manager.refresh();
+            notifyMcpServersChanged(manager.listServers());
+            notifyMcpLoadErrorsChanged(manager.getLoadErrors());
+        } catch (err) {
+            console.warn('[mcp] post-write refresh failed:', err);
+        }
     }
 
 }

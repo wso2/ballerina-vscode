@@ -27,6 +27,9 @@ import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets } 
 export const ANTHROPIC_HAIKU = "claude-haiku-4-5-20251001";
 export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-6";
 
+// TODO: add a quota request portal link once available so users can request more quota.
+export const USAGE_LIMIT_EXCEEDED_MESSAGE = "Usage limit exceeded.";
+
 type AnthropicModel =
     | typeof ANTHROPIC_HAIKU
     | typeof ANTHROPIC_SONNET_4;
@@ -135,7 +138,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         // Handle usage limit exceeded
         if (response.status === 429) {
             console.log("Usage limit exceeded (429)");
-            const error = new Error("Usage limit exceeded.");
+            const error = new Error(USAGE_LIMIT_EXCEEDED_MESSAGE);
             error.name = "UsageLimitError";
             (error as any).statusCode = 429;
             throw error;

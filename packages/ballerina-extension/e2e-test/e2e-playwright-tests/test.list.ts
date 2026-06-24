@@ -42,6 +42,8 @@ async function withTimeout<T>(operation: Promise<T>, timeoutMs: number, timeoutM
 import automation from './automation/automation.spec';
 import automationFlowNodes from './automation/flow-nodes.spec';
 import automationRun from './automation-run/automation-run.spec';
+import runConflict from './run-conflict/run-conflict.spec';
+import runConcurrent from './run-concurrent/run-concurrent.spec';
 import automationDebug from './automation-debug/automation-debug.spec';
 import expressionEditor from './expression-editor/expression-editor.spec';
 
@@ -115,6 +117,12 @@ test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
 
     // <----Automation Run Test---->
     test.describe(automationRun);
+
+    // <----Run Conflict (Same-Integration Restart) Test---->
+    test.describe(runConflict);
+
+    // <----Concurrent Run Test---->
+    test.describe(runConcurrent);
 
     // <----Expression Editor Test---->
     test.describe(expressionEditor);

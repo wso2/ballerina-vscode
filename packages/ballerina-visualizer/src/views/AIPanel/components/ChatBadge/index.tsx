@@ -21,6 +21,7 @@ import React from "react";
 export enum ChatBadgeType {
     Command = "command",
     Tag = "tag",
+    Skill = "skill",
 }
 
 interface ChatBadgeProps {
@@ -29,13 +30,27 @@ interface ChatBadgeProps {
     badgeType: ChatBadgeType;
 }
 
+const BADGE_STYLES: Record<ChatBadgeType, React.CSSProperties> = {
+    [ChatBadgeType.Command]: {
+        backgroundColor: "var(--vscode-toolbar-hoverBackground)",
+        color: "var(--vscode-icon-foreground)",
+    },
+    [ChatBadgeType.Tag]: {
+        backgroundColor: "var(--vscode-toolbar-hoverBackground)",
+        color: "var(--vscode-icon-foreground)",
+    },
+    [ChatBadgeType.Skill]: {
+        backgroundColor: "var(--vscode-badge-background)",
+        color: "var(--vscode-badge-foreground)",
+    },
+};
+
 const ChatBadge: React.FC<ChatBadgeProps> = ({ children, rawValue, badgeType }) => {
     return (
         <div
             contentEditable={false}
             style={{
-                backgroundColor: "var(--vscode-toolbar-hoverBackground)",
-                color: "var(--vscode-icon-foreground)",
+                ...BADGE_STYLES[badgeType],
                 padding: "4px 0",
                 borderRadius: "4px",
                 display: "inline-flex",

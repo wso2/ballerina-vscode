@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "@emotion/styled";
 import { VSCodeTextField, VSCodeButton, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { GetRecordConfigRequest, Property, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, getPrimaryInputType } from "@wso2/ballerina-core";
@@ -546,6 +546,9 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
     const { fileName, configValue, typeValue, onChange, disabled: parentDisabled } = props;
 
     const [recordConfig, setRecordConfig] = useState<TypeField | null>(null);
+    // Package coordinates of the configurable's type, captured when building the getRecordConfig
+    // request and reused for the generateValue (getRecordSource) call so the backend can resolve imports.
+    const codedataRef = useRef<RecordSourceGenRequest["codedata"]>(undefined);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
@@ -590,6 +593,7 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
                 },
                 typeConstraint: typeValue.value as string,
             };
+            codedataRef.current = request.codedata;
             const response = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
             console.log('recordConfig', response);
 
@@ -675,9 +679,14 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
         if (recordConfig) {
             setIsSaving(true);
             try {
+                // The configurable's type (the type the generated value is assigned to) is sent
+                // as the optional typeConstraint so the backend can derive the correct value.
+                const typeConstraint = typeValue?.value as string;
                 const request: RecordSourceGenRequest = {
                     filePath: fileName,
-                    type: withOnlyFilledFields(recordConfig)
+                    type: withOnlyFilledFields(recordConfig),
+                    ...(typeConstraint ? { typeConstraint } : {}),
+                    ...(codedataRef.current ? { codedata: codedataRef.current } : {})
                 };
                 const response: RecordSourceGenResponse = await rpcClient.getBIDiagramRpcClient().getRecordSource(request);
                 console.log('>>> recordSourceResponse', response);
