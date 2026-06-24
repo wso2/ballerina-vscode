@@ -17,12 +17,30 @@
  */
 
 import { ExtendedPage } from "@wso2/playwright-vscode-tester";
-import { BI_SIDEBAR_VIEW_ID } from "./constants";
+import { BI_INTEGRATOR_LABEL, BI_SIDEBAR_VIEW_ID } from "./constants";
 
 /**
  * Wait until BI extension sidebar tree container is available.
+ *
+ * After a window reload the BI view container is not guaranteed to be the
+ * active viewlet — newer VS Code versions don't reliably restore the last
+ * open view, so its DOM is absent and a passive wait would time out. We first
+ * actively open the WSO2 Integrator activity-bar view (mirroring how
+ * ProjectExplorer.init() opens it), then wait for its pane to attach.
  */
 export async function waitForBISidebarTreeView(page: ExtendedPage, timeout: number = 30000): Promise<void> {
+    try {
+        const activityTab = page.page.locator(`[role="tab"][aria-label="${BI_INTEGRATOR_LABEL}"]`).first();
+        await activityTab.waitFor({ state: 'visible', timeout: Math.min(timeout, 15000) });
+        const isActive = await activityTab.evaluate((el) => el.classList.contains('checked')).catch(() => false);
+        if (!isActive) {
+            await activityTab.click();
+        }
+    } catch {
+        // Activity tab not ready yet; fall through to selector polling below,
+        // which throws with a detailed error if the view never appears.
+    }
+
     const selectors = [
         `div.composite.viewlet#${BI_SIDEBAR_VIEW_ID} div.monaco-pane-view`,
         `div.composite.viewlet[id^="${BI_SIDEBAR_VIEW_ID}"] div.monaco-pane-view`,
