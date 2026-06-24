@@ -21,7 +21,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { debounce } from "lodash";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useFormContext } from "../../context";
-import { buildRequiredRule, capitalize, getPropertyFromFormField, mapDiagnosticsServerityToFormSeverity } from "./utils";
+import { buildRequiredRule, capitalize, getFriendlyIdentifierMessage, getPropertyFromFormField, mapDiagnosticsServerityToFormSeverity } from "./utils";
 import { FormField } from "../Form/types";
 export interface IdentifierFieldProps {
     field: FormField;
@@ -62,10 +62,10 @@ export function IdentifierField(props: IdentifierFieldProps) {
             });
             if (response.diagnostics.length > 0) {
                 const rawDiagnostic = response.diagnostics[0];
-                setFormDiagnostics([{ message: rawDiagnostic.message, severity: mapDiagnosticsServerityToFormSeverity(rawDiagnostic.severity) }]);
+                setFormDiagnostics([{ message: getFriendlyIdentifierMessage(rawDiagnostic.message, field.label), severity: mapDiagnosticsServerityToFormSeverity(rawDiagnostic.severity) }]);
                 const errorDiagnostic = response.diagnostics.find((d) => d.severity === 1);
                 if (errorDiagnostic) {
-                    setError(field.key, { type: "identifier_diagnostic", message: errorDiagnostic.message });
+                    setError(field.key, { type: "identifier_diagnostic", message: getFriendlyIdentifierMessage(errorDiagnostic.message, field.label) });
                 } else {
                     clearErrors(field.key);
                 }

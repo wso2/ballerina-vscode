@@ -495,6 +495,22 @@ export function FunctionForm(props: FunctionFormProps) {
             flowNode.properties.parameters.metadata.description = "Define the inputs for the agent tool. These are the parameters that AI agents will use when calling this tool.";
         }
 
+        // Workflow creation form: keep it minimal and capture only what the user needs up front
+        // (Name, Description, Input Type). Hide Public (shareable workflows are not encouraged yet),
+        // Return Type and Return Type Description. The return type defaults to `error?` (set by the
+        // LS WorkflowBuilder) and can be edited later from the workflow function definition.
+        if (isWorkflow) {
+            if (flowNode.properties?.isPublic) {
+                flowNode.properties.isPublic.hidden = true;
+            }
+            if (flowNode.properties?.type) {
+                flowNode.properties.type.hidden = true;
+            }
+            if (flowNode.properties?.typeDescription) {
+                flowNode.properties.typeDescription.hidden = true;
+            }
+        }
+
         setFunctionNode(flowNode);
         setIsLoading(false);
         console.log("Function Node: ", flowNode);

@@ -23,7 +23,7 @@ import { useFormContext } from "../../context";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { debounce } from "lodash";
-import { buildRequiredRule, getPropertyFromFormField } from "./utils";
+import { buildRequiredRule, getFriendlyIdentifierMessage, getPropertyFromFormField } from "./utils";
 
 const EditRow = styled.div`
     display: flex;
@@ -211,7 +211,7 @@ export function IdentifierEditor(props: IdentifierEditorProps) {
         });
 
         if (response.diagnostics.length > 0) {
-            setIdentifierErrorMsg(response.diagnostics[0].message);
+            setIdentifierErrorMsg(getFriendlyIdentifierMessage(response.diagnostics[0].message, field.label));
             setIsIdentifierValid(false);
         } else {
             setIdentifierErrorMsg("");
