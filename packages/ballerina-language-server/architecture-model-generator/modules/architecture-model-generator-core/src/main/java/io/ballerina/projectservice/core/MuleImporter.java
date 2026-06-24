@@ -39,6 +39,7 @@ public class MuleImporter {
     private static final String PARAM_PROJECT_NAME = "projectName";
     private static final String PARAM_SOURCE_PATH = "sourcePath";
     private static final String PARAM_FORCE_VERSION = "forceVersion";
+    private static final String PARAM_KEEP_STRUCTURE = "keepStructure";
     private static final String PARAM_MULE_MULTI_ROOT = "multiRoot";
     private static final String PARAM_STATE_CALLBACK = "stateCallback";
     private static final String PARAM_LOG_CALLBACK = "logCallback";
@@ -55,6 +56,8 @@ public class MuleImporter {
         if (forceVersion != null) {
             args.put(PARAM_FORCE_VERSION, forceVersion);
         }
+        boolean keepStructure = Boolean.parseBoolean(parameters.getOrDefault("keepStructure", "false"));
+        args.put(PARAM_KEEP_STRUCTURE, keepStructure);
         boolean isMultiRoot = Boolean.parseBoolean(parameters.getOrDefault("multiRoot", "false"));
         args.put(PARAM_MULE_MULTI_ROOT, isMultiRoot);
         args.put(PARAM_STATE_CALLBACK, stateCallback);
