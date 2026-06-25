@@ -15,7 +15,8 @@
 // under the License.
 
 import { ProjectSkillMeta } from './types';
-import { getDisabledBuiltIns, REGISTERED_SKILLS } from './index';
+import { REGISTERED_SKILLS } from './registry';
+import { getDisabledBuiltIns } from './index';
 import { scanProjectSkills, scanUserSkills } from '../tools/skill-tool/skill-reader';
 import { getSkillsConfig } from '../tools/skill-tool/skill-writer';
 

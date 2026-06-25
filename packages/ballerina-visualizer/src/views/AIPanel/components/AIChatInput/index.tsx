@@ -340,17 +340,30 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                         case "text":
                             inputRef.current?.insertTextAtCursor({ text: updatedContent.text });
                             break;
-                        case "skill":
-                            inputRef.current?.insertBadgeAtCursor({
-                                displayText: `/${updatedContent.skillName}`,
-                                rawValue: updatedContent.skillId,
-                                badgeType: ChatBadgeType.Skill,
-                                suffixText: " ",
-                            });
-                            if (updatedContent.args) {
-                                inputRef.current?.insertTextAtCursor({ text: updatedContent.args });
+                        case "skill": {
+                            const skillEntry = skills?.find(s => s.id === updatedContent.skillId);
+                            if (skillEntry && skillEntry.commandTemplates?.length) {
+                                await insertSkill(skillEntry);
+                                if (updatedContent.args) {
+                                    inputRef.current?.insertTextAtCursor({
+                                        text: updatedContent.args,
+                                        templateInserted: true,
+                                        ...(updatedContent.tagParams && { tagParams: updatedContent.tagParams }),
+                                    });
+                                }
+                            } else {
+                                inputRef.current?.insertBadgeAtCursor({
+                                    displayText: `/${updatedContent.skillName}`,
+                                    rawValue: updatedContent.skillId,
+                                    badgeType: ChatBadgeType.Skill,
+                                    suffixText: " ",
+                                });
+                                if (updatedContent.args) {
+                                    inputRef.current?.insertTextAtCursor({ text: updatedContent.args });
+                                }
                             }
                             break;
+                        }
                         default:
                             break;
                     }
