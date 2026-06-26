@@ -1333,7 +1333,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                     [...completedPackages], pkgRelPath, 0, true,
                 );
 
-                const totalStagesOverall = packagePaths.length * 4 + 1; // 4 per pkg + 1 workspace validation
+                const totalStagesOverall = packagePaths.length * stages.length + 1; // stages per pkg + 1 workspace validation
                 try {
                     await runStagesForPackage({
                         projectRoot, packagePath: fullPkgPath, sourcePath, stages,
@@ -1344,7 +1344,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                         packageIndex: pkgIdx,
                         totalPackages: packagePaths.length,
                         packageName: pkgName,
-                        stageOffset: pkgIdx * 4,
+                        stageOffset: pkgIdx * stages.length,
                         totalStagesOverall,
                     });
                     completedPackages.add(pkgRelPath);
@@ -1450,6 +1450,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 eventHandler({ type: 'stop', command: Command.Agent });
             } else {
                 debugLogger.logMilestone("Run aborted by user (wizard, single-package)");
+                eventHandler({ type: "abort", command: Command.Agent });
             }
         }
     } catch (error) {

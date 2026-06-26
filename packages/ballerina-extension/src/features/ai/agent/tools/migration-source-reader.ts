@@ -151,7 +151,7 @@ function emitToolResult(
     eventHandler({
         type: 'tool_result',
         toolName,
-        toolOutput: { success, ...extra },
+        toolOutput: { ...extra, success },
     });
 }
 

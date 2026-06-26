@@ -139,6 +139,8 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { lab
         case "web_search": return { label: toolInput?.query ? "Searching the web:" : "Searching the web...", detail: toolInput?.query };
         case "web_fetch":  return { label: toolInput?.url ? "Fetching from web:" : "Fetching from web...", detail: toolInput?.url };
         case "invoke_skill": return { label: toolInput?.skillName ? `Loading skill: ${toolInput.skillName}` : "Loading skill..." };
+        case "migration_source_list": return { label: toolInput?.directory_path ? "Listing source:" : "Listing source directory...", detail: toolInput?.directory_path };
+        case "migration_source_read": return { label: toolInput?.file_path ? "Reading source:" : "Reading source file...", detail: toolInput?.file_path };
         default: return { label: "Working..." };
     }
 }
@@ -190,6 +192,8 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
         case "web_search": return { label: hint ? "Web search:" : "Web search completed", detail: hint };
         case "web_fetch":  return { label: hint ? "Web fetch:" : "Web fetch completed",  detail: hint };
         case "invoke_skill": return { label: toolOutput?.found ? `Using skill: ${toolOutput.skillName}` : `Skill not found: ${toolOutput?.message ?? ""}` };
+        case "migration_source_list": return { label: toolOutput?.success ? "Source listed:" : "Failed to list source", detail: toolOutput?.directory_path };
+        case "migration_source_read": return { label: toolOutput?.success ? "Source read:" : "Failed to read source", detail: toolOutput?.file_path };
         default: return { label: "Done" };
     }
 }
