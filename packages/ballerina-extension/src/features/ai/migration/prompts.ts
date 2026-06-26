@@ -107,15 +107,16 @@ export function getPerProjectEnhancementStages(
     packageIndex: number,
     totalPackages: number,
     crossPackageManifest: string,
+    keepStructure: boolean = false,
 ): EnhancementStage[] {
     const preamble = getPerProjectPreamble(
         packageName, packagePath, packageIndex, totalPackages, crossPackageManifest,
     );
-    const shared = preamble + "\n\n" + getSharedEnhancementContext();
+    const shared = preamble + "\n\n" + getSharedEnhancementContext(keepStructure);
     return [
         {
             name: `[${packageName}] Stage 1 — Fidelity Check & TODO Resolution`,
-            prompt: shared + "\n\n" + getStage1Prompt(),
+            prompt: shared + "\n\n" + getStage1Prompt(keepStructure),
             agentLimits: { maxSteps: 200, maxOutputTokens: 16384 },
         },
         {
@@ -161,7 +162,7 @@ You are enhancing **package ${packageIndex + 1} of ${totalPackages}**: \`${packa
 // Shared context — included at the top of every stage prompt
 // ---------------------------------------------------------------------------
 
-function getSharedEnhancementContext(): string {
+function getSharedEnhancementContext(keepStructure: boolean = false): string {
     return `You are enhancing a Ballerina project that was automatically migrated from an external integration
 platform (e.g. MuleSoft Mule 3/4, TIBCO BusinessWorks, or similar) by a static code migration tool. The tool
 produced a structurally valid Ballerina package (or workspace with multiple packages) but left \`// TODO\` and
@@ -190,10 +191,9 @@ These rules are **non-negotiable**. Violating any of them means the enhancement 
 5. **No empty files.** Never create a file that contains only comments or is empty.
 6. **Code over commentary.** Your text output between tool calls should be 1–2 sentences of progress.
    If you are writing more than 3 sentences without a tool call, stop and make an edit instead.
-7. **\`file_write\` is ONLY for new files.** Files like \`functions.bal\`, \`data_mappings.bal\`, \`main.bal\`,
-   \`configs.bal\`, \`types.bal\` etc. that appear in the initial project source ALREADY EXIST. You must use
-   \`file_edit\` / \`file_multi_edit\` to modify them. Use \`file_write\` only when creating a file that has
-   no content yet (e.g. an entirely new \`.bal\` file the migration tool did not produce).
+7. **\`file_write\` is ONLY for new files.** ${keepStructure
+    ? `All \`.bal\` files that correspond to original source files ALREADY EXIST. Use \`file_edit\` / \`file_multi_edit\` to modify them. Use \`file_write\` only for a file that does not exist yet.`
+    : `Files like \`functions.bal\`, \`data_mappings.bal\`, \`main.bal\`, \`configs.bal\`, \`types.bal\` etc. that appear in the initial project source ALREADY EXIST. You must use \`file_edit\` / \`file_multi_edit\` to modify them. Use \`file_write\` only when creating a file that has no content yet (e.g. an entirely new \`.bal\` file the migration tool did not produce).`}
 8. **Never write a "Summary" or "Remaining Work" section.** Do not output a final summary of completed
    and remaining work. Just keep editing files until every TODO is resolved.
 
@@ -237,7 +237,17 @@ no room for the actual implementation work. Read just-in-time, edit immediately.
 
 ## Project Structure Awareness
 
-### Default BI file structure
+${keepStructure ? `### Original Source File Structure Preserved
+
+This project was migrated with **\`--keep-structure\`** enabled. Each \`.bal\` file corresponds directly
+to one original source file (e.g. \`order-flow.xml\` → \`order-flow.bal\`).
+
+The BI standard layout (\`functions.bal\`, \`main.bal\`, \`data_mappings.bal\`, etc.) does NOT apply here.
+**Do NOT reorganize, rename, or merge files into the BI layout.**
+
+When adding missing constructs (Phase C), put them in the \`.bal\` file whose name matches the source
+file that defines the construct. Use \`migration_source_list\` in Phase A to map source files to their
+\`.bal\` counterparts.` : `### Default BI file structure
 | File | Contents |
 |---|---|
 | \`main.bal\` | HTTP/scheduler listeners, services, class definitions |
@@ -248,7 +258,7 @@ no room for the actual implementation work. Read just-in-time, edit immediately.
 | \`configs.bal\` | \`configurable\` variables |
 | \`connections.bal\` | Connector client/connection initialisations |
 | \`internal_types.bal\` | Shared internal types |
-| \`todo.bal\` | Constructs the tool could not map |
+| \`todo.bal\` | Constructs the tool could not map |`}
 
 ### Config.toml
 Every \`configurable\` variable must have a corresponding entry in \`Config.toml\`.
@@ -290,7 +300,7 @@ Process one package at a time. Read other packages for context but only modify t
 // Stage 1 — Fidelity Check + Resolve TODO/FIXME Comments
 // ---------------------------------------------------------------------------
 
-function getStage1Prompt(): string {
+function getStage1Prompt(keepStructure: boolean = false): string {
     return `## Your Task — Stage 1: Fidelity Check + Resolve TODO/FIXME Comments
 
 Your sole focus: resolve every TODO/FIXME in source files (excluding \`tests/\`). A later stage handles
@@ -309,7 +319,9 @@ diagnostics, tests, and documentation.
 
 **Phase B: Resolve TODOs file by file**
 
-Process files in this order: \`todo.bal\` → \`main.bal\` → \`functions.bal\` → \`data_mappings.bal\` → other \`.bal\` files.
+${keepStructure
+    ? `Start with \`todo.bal\` if present, then process each \`.bal\` file that contains TODOs in the order shown in the initial message.`
+    : `Process files in this order: \`todo.bal\` → \`main.bal\` → \`functions.bal\` → \`data_mappings.bal\` → other \`.bal\` files.`}
 
 For each file:
 1. Scan the file content (already in the initial message) for \`// TODO\` and \`// FIXME\` comments.
@@ -324,7 +336,9 @@ For each file:
 **Phase C: Fidelity-gap implementation**
 
 Using the notes from Phase A, implement any source constructs that were silently dropped by the migration
-tool. Read the specific source file, then add the corresponding Ballerina code to the appropriate \`.bal\` file.
+tool. Read the specific source file, then ${keepStructure
+    ? `add the corresponding Ballerina code to the \`.bal\` file whose name matches the source file defining that construct (e.g. \`my-flow.xml\` → \`my-flow.bal\`). If no matching \`.bal\` file exists yet, create one with \`file_write\`.`
+    : `add the corresponding Ballerina code to the appropriate \`.bal\` file.`}
 
 **Phase D: Clean up todo.bal**
 

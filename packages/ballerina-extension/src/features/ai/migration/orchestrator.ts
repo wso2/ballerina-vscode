@@ -901,16 +901,19 @@ export function getMigrationHistoryMessages(): Array<{ role: string; content: st
 let _wizardProjectRoot: string | undefined;
 /** The original source path for the wizard enhancement. */
 let _wizardSourcePath: string | undefined;
+/** Whether the wizard ran with --keep-structure, preserving the original source file layout. */
+let _wizardKeepStructure: boolean = false;
 
 /**
  * Called by the RPC manager after `createBIProjectFromMigration` returns the
  * project root (when `aiFeatureUsed === true`).  Stores the project
  * root so the wizard enhancement can be kicked off from the webview.
  */
-export function setWizardProjectRoot(projectRoot: string, sourcePath?: string): void {
-    console.log('[orchestrator] setWizardProjectRoot called. projectRoot:', projectRoot, 'sourcePath:', sourcePath);
+export function setWizardProjectRoot(projectRoot: string, sourcePath?: string, keepStructure?: boolean): void {
+    console.log('[orchestrator] setWizardProjectRoot called. projectRoot:', projectRoot, 'sourcePath:', sourcePath, 'keepStructure:', keepStructure);
     _wizardProjectRoot = projectRoot;
     _wizardSourcePath = sourcePath;
+    _wizardKeepStructure = keepStructure ?? false;
 }
 
 /**
@@ -1318,7 +1321,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 const fullPkgPath = path.join(projectRoot, pkgRelPath);
                 const pkgName = readPackageName(fullPkgPath) ?? pkgRelPath;
                 const manifest = buildCrossPackageManifest(projectRoot, packagePaths, pkgRelPath);
-                const stages = getPerProjectEnhancementStages(pkgName, pkgRelPath, pkgIdx, packagePaths.length, manifest);
+                const stages = getPerProjectEnhancementStages(pkgName, pkgRelPath, pkgIdx, packagePaths.length, manifest, _wizardKeepStructure);
                 if (!resumeInjected) {
                     injectResumePreamble(projectRoot, stages);
                     resumeInjected = true;
@@ -1520,6 +1523,7 @@ export function openMigratedProject(): void {
     // Clear the wizard state
     _wizardProjectRoot = undefined;
     _wizardSourcePath = undefined;
+    _wizardKeepStructure = false;
 
     commands.executeCommand('vscode.openFolder', Uri.file(projectRoot));
 }
