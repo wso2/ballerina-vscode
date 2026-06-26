@@ -193,7 +193,7 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
         case "web_fetch":  return { label: hint ? "Web fetch:" : "Web fetch completed",  detail: hint };
         case "invoke_skill": return { label: toolOutput?.found ? `Using skill: ${toolOutput.skillName}` : `Skill not found: ${toolOutput?.message ?? ""}` };
         case "migration_source_list": return { label: toolOutput?.success ? "Source listed:" : "Failed to list source", detail: toolOutput?.directory_path };
-        case "migration_source_read": return { label: toolOutput?.success ? "Source read:" : "Failed to read source", detail: toolOutput?.file_path };
+        case "migration_source_read": return { label: toolOutput?.success ? (toolOutput?.file_path ? "Source read:" : "Source read") : "Failed to read source", detail: toolOutput?.file_path };
         default: return { label: "Done" };
     }
 }
