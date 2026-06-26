@@ -3118,6 +3118,183 @@
           "kind": "SERVICE_DESCRIPTION"
         }
       ]
+    },
+    {
+      "name": "sap.jco",
+      "version": "2.0.1",
+      "serviceTypeSkipList": [],
+      "serviceDeclaration": {
+        "displayName": "SAP JCo Event Integration",
+        "description": "Create a service to handle IDocs or RFC calls from SAP via the JCo listener",
+        "optionalTypeDescriptor": 0,
+        "typeDescriptorLabel": "Service Type",
+        "typeDescriptorDescription": "The type of SAP service to handle",
+        "typeDescriptorDefaultValue": "",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 1,
+        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
+        "kind": "event"
+      },
+      "serviceTypes": {
+        "IDocService": {
+          "name": "IDocService",
+          "description": "Handles incoming IDocs from SAP",
+          "functions": [
+            {
+              "name": "onReceive",
+              "description": "Invoked when an IDoc is received from the SAP system",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "optional": 0,
+              "parameters": [
+                {
+                  "name": "iDoc",
+                  "label": "IDoc",
+                  "description": "The IDoc payload received from SAP",
+                  "kind": "REQUIRED",
+                  "type": "xml",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onError",
+              "description": "Invoked when an error occurs during IDoc processing",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "'error",
+                  "label": "Error",
+                  "description": "The error that occurred",
+                  "kind": "REQUIRED",
+                  "type": "error",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 0,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "RfcService": {
+          "name": "RfcService",
+          "description": "Handles RFC function calls from SAP",
+          "functions": [
+            {
+              "name": "onCall",
+              "description": "Invoked synchronously when SAP calls a function module registered on this server",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "jco:RfcRecord|xml|error",
+              "returnError": 0,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "optional": 0,
+              "parameters": [
+                {
+                  "name": "functionName",
+                  "label": "Function Name",
+                  "description": "The name of the RFC function module being called",
+                  "kind": "REQUIRED",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "parameters",
+                  "label": "Parameters",
+                  "description": "The RFC parameters passed by SAP",
+                  "kind": "REQUIRED",
+                  "type": "jco:RfcParameters",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onError",
+              "description": "Invoked when an error occurs during RFC processing",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "'error",
+                  "label": "Error",
+                  "description": "The error that occurred",
+                  "kind": "REQUIRED",
+                  "type": "error",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 0,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "initForm": {
+        "basePath": {
+          "label": "Service Type",
+          "description": "The type of SAP service to handle",
+          "defaultValue": "IDocService",
+          "placeholder": "IDocService",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "jco:GenericServiceType",
+              "options": [
+                {
+                  "label": "IDocService",
+                  "value": "IDocService"
+                },
+                {
+                  "label": "RfcService",
+                  "value": "RfcService"
+                }
+              ]
+            }
+          ],
+          "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
+        }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "serviceType",
+          "displayName": "Service Type",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     }
   ]
 }

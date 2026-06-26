@@ -20,7 +20,7 @@ import { DevantScopes } from "@wso2/wso2-platform-core";
 
 const INTEGRATION_API_MODULES: ReadonlySet<string> = new Set(["http", "graphql", "tcp"]);
 const EVENT_INTEGRATION_MODULES: ReadonlySet<string> = new Set([
-    "kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb", "mssql", "mysql", "postgresql",
+    "kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb", "mssql", "mysql", "postgresql", "sap.jco",
 ]);
 const FILE_INTEGRATION_MODULES: ReadonlySet<string> = new Set(["ftp", "file"]);
 const AI_AGENT_MODULE = "ai";
