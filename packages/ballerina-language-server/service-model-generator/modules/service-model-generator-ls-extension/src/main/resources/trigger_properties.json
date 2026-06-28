@@ -128,16 +128,6 @@
     ],
     "triggerName": "Shopify"
   },
-  "16": {
-    "name": "trigger.hubspot",
-    "orgName": "ballerinax",
-    "packageName": "trigger.hubspot",
-    "keywords": [
-      "hubspot",
-      "event"
-    ],
-    "triggerName": "HubSpot"
-  },
   "13": {
     "name": "mssql",
     "orgName": "ballerinax",
@@ -168,5 +158,15 @@
       "cdc",
       "event"
     ]
+  },
+  "16": {
+    "name": "trigger.hubspot",
+    "orgName": "ballerinax",
+    "packageName": "trigger.hubspot",
+    "keywords": [
+      "hubspot",
+      "event"
+    ],
+    "triggerName": "HubSpot"
   }
 }
