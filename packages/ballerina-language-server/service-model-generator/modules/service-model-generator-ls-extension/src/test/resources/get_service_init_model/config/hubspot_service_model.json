@@ -6,7 +6,7 @@
   "moduleName": "trigger.hubspot",
   "response": {
     "serviceInitModel": {
-      "id": "20",
+      "id": "21",
       "displayName": "HubSpot Event Integration",
       "description": "Create a service to handle events from HubSpot",
       "orgName": "ballerinax",
