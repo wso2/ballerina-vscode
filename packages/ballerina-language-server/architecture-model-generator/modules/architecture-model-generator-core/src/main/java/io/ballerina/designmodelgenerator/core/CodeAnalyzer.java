@@ -152,8 +152,17 @@ public class CodeAnalyzer extends NodeVisitor {
     public void visit(ServiceDeclarationNode serviceDeclarationNode) {
         Optional<Symbol> serviceSymbol = this.semanticModel.symbol(serviceDeclarationNode);
         String displayName = null;
+        String serviceType = null;
         if (serviceSymbol.isPresent()) {
-            displayName = getDisplayName(((ServiceDeclarationSymbol) serviceSymbol.get()).annotAttachments());
+            ServiceDeclarationSymbol serviceDeclarationSymbol = (ServiceDeclarationSymbol) serviceSymbol.get();
+            displayName = getDisplayName(serviceDeclarationSymbol.annotAttachments());
+            Optional<TypeSymbol> typeDescriptor = serviceDeclarationSymbol.typeDescriptor();
+            if (serviceDeclarationNode.typeDescriptor().isPresent()
+                    && typeDescriptor.isPresent() && typeDescriptor.get().getModule().isPresent()) {
+                TypeSymbol typeSymbol = typeDescriptor.get();
+                serviceType = CommonUtils.getTypeSignature(typeSymbol,
+                        CommonUtils.ModuleInfo.from(typeSymbol.getModule().get().id()));
+            }
         }
         String absoluteResourcePath = String.join("", serviceDeclarationNode.absoluteResourcePath()
                 .stream().map(Node::toSourceCode).toList());
@@ -161,6 +170,7 @@ public class CodeAnalyzer extends NodeVisitor {
         String sortText = lineRange.fileName() + lineRange.startLine().line();
         IntermediateModel.ServiceModel serviceModel = new IntermediateModel.ServiceModel(
                 displayName, absoluteResourcePath, sortText, getLocation(lineRange));
+        serviceModel.serviceType = serviceType;
         this.currentServiceModel = serviceModel;
         intermediateModel.serviceModelMap.put(String.valueOf(lineRange.hashCode()), serviceModel);
 

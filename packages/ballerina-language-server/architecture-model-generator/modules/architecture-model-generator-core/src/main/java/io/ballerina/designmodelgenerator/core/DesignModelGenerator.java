@@ -189,7 +189,8 @@ public class DesignModelGenerator {
             if (size > 0) {
                 Listener listener = allAttachedListeners.get(0);
                 service.setIcon(listener.getIcon());
-                service.setType(getServiceType(listener.getType()));
+                service.setType(serviceModel.serviceType != null ? serviceModel.serviceType
+                        : getServiceType(listener.getType()));
                 for (int i = 0; i < size; i++) {
                     listener = allAttachedListeners.get(i);
                     listener.getAttachedServices().add(service.getUuid());
