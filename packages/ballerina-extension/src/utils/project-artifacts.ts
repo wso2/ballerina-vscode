@@ -584,6 +584,7 @@ function getCustomEntryNodeIcon(type: string) {
         case "hubspot":
             return "bi-hubspot";
         case "trigger.twilio":
+        case "twilio":
             return "bi-twilio";
         default:
             return "bi-globe";
