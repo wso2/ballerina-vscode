@@ -573,6 +573,8 @@ function getCustomEntryNodeIcon(type: string) {
             return "bi-solace";
         case "mssql":
             return "bi-mssql";
+        case "mysql":
+            return "bi-mysql";
         case "postgresql":
             return "bi-postgresql";
         case "trigger.shopify":
@@ -581,6 +583,8 @@ function getCustomEntryNodeIcon(type: string) {
         case "trigger.hubspot":
         case "hubspot":
             return "bi-hubspot";
+        case "trigger.twilio":
+            return "bi-twilio";
         default:
             return "bi-globe";
     }
