@@ -146,11 +146,12 @@ function emitToolResult(
     eventHandler: CopilotEventHandler,
     toolName: string,
     success: boolean,
+    extra?: Record<string, unknown>,
 ): void {
     eventHandler({
         type: 'tool_result',
         toolName,
-        toolOutput: { success },
+        toolOutput: { ...extra, success },
     });
 }
 
@@ -184,7 +185,7 @@ export function createMigrationSourceListTool(
             const validation = validateSourcePath(dirPath, sourcePath);
             if (!validation.valid) {
                 const result = { success: false, message: validation.error! };
-                emitToolResult(eventHandler, MIGRATION_SOURCE_LIST_TOOL, false);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_LIST_TOOL, false, { directory_path: dirPath });
                 return result;
             }
 
@@ -192,14 +193,14 @@ export function createMigrationSourceListTool(
 
             if (!fs.existsSync(fullPath)) {
                 const result = { success: false, message: `Directory not found: '${dirPath}'.` };
-                emitToolResult(eventHandler, MIGRATION_SOURCE_LIST_TOOL, false);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_LIST_TOOL, false, { directory_path: dirPath });
                 return result;
             }
 
             const stat = fs.statSync(fullPath);
             if (!stat.isDirectory()) {
                 const result = { success: false, message: `'${dirPath}' is not a directory.` };
-                emitToolResult(eventHandler, MIGRATION_SOURCE_LIST_TOOL, false);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_LIST_TOOL, false, { directory_path: dirPath });
                 return result;
             }
 
@@ -208,7 +209,7 @@ export function createMigrationSourceListTool(
                 entries = fs.readdirSync(fullPath, { withFileTypes: true });
             } catch (error) {
                 const result = { success: false, message: `Cannot read directory: '${dirPath}'.` };
-                emitToolResult(eventHandler, MIGRATION_SOURCE_LIST_TOOL, false);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_LIST_TOOL, false, { directory_path: dirPath });
                 return result;
             }
 
@@ -233,7 +234,10 @@ export function createMigrationSourceListTool(
 
             console.log(`[MigrationSourceList] Listed ${listing.length} entries in: ${dirPath}`);
 
-            emitToolResult(eventHandler, MIGRATION_SOURCE_LIST_TOOL, true);
+            emitToolResult(eventHandler, MIGRATION_SOURCE_LIST_TOOL, true, {
+                directory_path: dirPath,
+                count: listing.length,
+            });
             return { success: true, message: header + body };
         },
     });
@@ -274,14 +278,14 @@ export function createMigrationSourceReadTool(
             // Validate path
             const pathValidation = validateSourcePath(file_path, sourcePath);
             if (!pathValidation.valid) {
-                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false, { file_path });
                 return { success: false, message: pathValidation.error! };
             }
 
             // Validate extension / filename
             const fileName = path.basename(file_path);
             if (!isAllowedFile(fileName)) {
-                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false, { file_path });
                 return {
                     success: false,
                     message: `File type not supported for reading. Allowed extensions: ${[...VALID_SOURCE_EXTENSIONS].join(', ')}`,
@@ -291,13 +295,13 @@ export function createMigrationSourceReadTool(
             const fullPath = path.resolve(sourcePath, file_path);
 
             if (!fs.existsSync(fullPath)) {
-                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false, { file_path });
                 return { success: false, message: `File not found: '${file_path}'.` };
             }
 
             const stat = fs.statSync(fullPath);
             if (!stat.isFile()) {
-                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false, { file_path });
                 return { success: false, message: `'${file_path}' is not a file.` };
             }
 
@@ -306,7 +310,7 @@ export function createMigrationSourceReadTool(
             try {
                 content = fs.readFileSync(fullPath, 'utf-8');
             } catch (error) {
-                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false, { file_path });
                 return { success: false, message: `Cannot read file: '${file_path}'.` };
             }
 
@@ -317,7 +321,7 @@ export function createMigrationSourceReadTool(
 
             // Handle empty file
             if (content.trim().length === 0) {
-                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, true);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, true, { file_path });
                 return { success: true, message: `File '${file_path}' is empty.` };
             }
 
@@ -327,14 +331,14 @@ export function createMigrationSourceReadTool(
             // Handle ranged read
             if (offset !== undefined && limit !== undefined) {
                 if (offset < 1 || offset > totalLines) {
-                    emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false);
+                    emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false, { file_path });
                     return {
                         success: false,
                         message: `Invalid offset ${offset}. File has ${totalLines} lines.`,
                     };
                 }
                 if (limit < 1) {
-                    emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false);
+                    emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, false, { file_path });
                     return { success: false, message: `Invalid limit ${limit}. Must be at least 1.` };
                 }
 
@@ -347,7 +351,7 @@ export function createMigrationSourceReadTool(
                 console.log(
                     `[MigrationSourceRead] Read lines ${offset}-${endIndex} from: ${file_path}`,
                 );
-                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, true);
+                emitToolResult(eventHandler, MIGRATION_SOURCE_READ_TOOL, true, { file_path });
                 return {
                     success: true,
                     message: `Read lines ${offset} to ${endIndex} from '${file_path}' (${endIndex - startIndex} lines).\nContent:\n${rangedContent}`,

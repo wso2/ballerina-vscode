@@ -361,7 +361,29 @@ export type ChatNotify =
     | CompactionStartEvent
     | CompactionEndEvent
     | CompactionDisabledEvent
-    | ConfigChangeEvent;
+    | ConfigChangeEvent
+    | MigrationProgressEvent;
+
+/** Structured progress event emitted by the migration orchestrator at each stage boundary. */
+export interface MigrationProgressEvent {
+    type: "migration_progress";
+    /** 0-based index of the package currently being enhanced. */
+    currentPackageIndex: number;
+    /** Total number of packages in the workspace (1 for single-package projects). */
+    totalPackages: number;
+    /** Display name of the package currently being enhanced (empty for single-package). */
+    currentPackageName: string;
+    /** 0-based stage index within the current package. */
+    currentStageIndex: number;
+    /** Total stages in this package (4 for regular packages, 1 for workspace validation). */
+    totalStagesInPackage: number;
+    /** Short human-readable stage label (e.g. "Fidelity Check", "Diagnostics"). */
+    currentStageName: string;
+    /** Cumulative completed stage count across all packages — numerator for progress %. */
+    completedStagesOverall: number;
+    /** Total stage count across all packages — denominator for progress %. */
+    totalStagesOverall: number;
+}
 
 export interface ChatStart {
     type: "start";
