@@ -192,7 +192,7 @@ These rules are **non-negotiable**. Violating any of them means the enhancement 
 6. **Code over commentary.** Your text output between tool calls should be 1–2 sentences of progress.
    If you are writing more than 3 sentences without a tool call, stop and make an edit instead.
 7. **\`file_write\` is ONLY for new files.** ${keepStructure
-    ? `All \`.bal\` files that correspond to original source files ALREADY EXIST. Use \`file_edit\` / \`file_multi_edit\` to modify them. Use \`file_write\` only for a file that does not exist yet.`
+    ? `Most \`.bal\` files that correspond to original source files should already exist. Use \`file_edit\` / \`file_multi_edit\` to modify them. Use \`file_write\` only if a required matching \`.bal\` file is missing from the migration output.`
     : `Files like \`functions.bal\`, \`data_mappings.bal\`, \`main.bal\`, \`configs.bal\`, \`types.bal\` etc. that appear in the initial project source ALREADY EXIST. You must use \`file_edit\` / \`file_multi_edit\` to modify them. Use \`file_write\` only when creating a file that has no content yet (e.g. an entirely new \`.bal\` file the migration tool did not produce).`}
 8. **Never write a "Summary" or "Remaining Work" section.** Do not output a final summary of completed
    and remaining work. Just keep editing files until every TODO is resolved.
@@ -239,15 +239,16 @@ no room for the actual implementation work. Read just-in-time, edit immediately.
 
 ${keepStructure ? `### Original Source File Structure Preserved
 
-This project was migrated with **\`--keep-structure\`** enabled. Each \`.bal\` file corresponds directly
-to one original source file (e.g. \`order-flow.xml\` → \`order-flow.bal\`).
+This project was migrated with **\`--keep-structure\`** enabled. Each \`.bal\` file corresponds
+to one original source file. The source filename and its directory path are encoded into the \`.bal\`
+filename — for example, MuleSoft's \`foo/bar.xml\` becomes \`foo_bar.bal\`; TIBCO may use a similar
+but different encoding. **Do not assume the \`.bal\` filename exactly matches the source filename.**
 
 The BI standard layout (\`functions.bal\`, \`main.bal\`, \`data_mappings.bal\`, etc.) does NOT apply here.
 **Do NOT reorganize, rename, or merge files into the BI layout.**
 
-When adding missing constructs (Phase C), put them in the \`.bal\` file whose name matches the source
-file that defines the construct. Use \`migration_source_list\` in Phase A to map source files to their
-\`.bal\` counterparts.` : `### Default BI file structure
+When identifying which \`.bal\` file corresponds to a source file, use \`migration_source_list\` and
+\`file_list\` together in Phase A — compare the two lists rather than guessing by name.` : `### Default BI file structure
 | File | Contents |
 |---|---|
 | \`main.bal\` | HTTP/scheduler listeners, services, class definitions |
@@ -337,7 +338,7 @@ For each file:
 
 Using the notes from Phase A, implement any source constructs that were silently dropped by the migration
 tool. Read the specific source file, then ${keepStructure
-    ? `add the corresponding Ballerina code to the \`.bal\` file whose name matches the source file defining that construct (e.g. \`my-flow.xml\` → \`my-flow.bal\`). If no matching \`.bal\` file exists yet, create one with \`file_write\`.`
+    ? `add the corresponding Ballerina code to the \`.bal\` file that corresponds to the source file (use \`migration_source_list\` and \`file_list\` to identify the correct file — names are not an exact match). If no matching \`.bal\` file exists, create one with \`file_write\`.`
     : `add the corresponding Ballerina code to the appropriate \`.bal\` file.`}
 
 **Phase D: Clean up todo.bal**
