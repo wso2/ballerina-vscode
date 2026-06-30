@@ -45,7 +45,7 @@
         "id": "34897",
         "metadata": {
           "label": "loadSystemZone",
-          "description": "Load the default time zone of the system.\n```ballerina\ntime:Zone|time:Error zone = time:loadSystemZone();\n```",
+          "description": "Loads the default time zone of the system.\n```ballerina\ntime:Zone|time:Error zone = time:loadSystemZone();\n```",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
         },
         "codedata": {

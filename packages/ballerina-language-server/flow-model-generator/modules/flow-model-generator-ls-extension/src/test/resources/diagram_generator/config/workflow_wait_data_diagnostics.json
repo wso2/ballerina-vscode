@@ -119,7 +119,7 @@
                 "typeMembers": [
                   {
                     "type": "Duration",
-                    "packageInfo": "ballerina:time:2.8.0",
+                    "packageInfo": "ballerina:time:2.8.1",
                     "packageName": "time",
                     "kind": "RECORD_TYPE",
                     "selected": false
