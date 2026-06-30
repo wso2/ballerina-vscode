@@ -47,6 +47,7 @@ import {
 import { EntryNodeModel } from "./nodes/EntryNode";
 import { ListenerNodeModel } from "./nodes/ListenerNode";
 import { ConnectionNodeModel } from "./nodes/ConnectionNode";
+import { ENTRY_NODE_HEIGHT } from "../resources/constants";
 
 export type GroupKey = "Query" | "Subscription" | "Mutation";
 export const PREVIEW_COUNT = 2;
@@ -281,7 +282,9 @@ export function Diagram(props: DiagramProps) {
         const sortedWorkflows = sortItems(project.workflows || []) as CDWorkflow[];
         sortedWorkflows.forEach((workflow) => {
             const workflowNode = new EntryNodeModel(workflow, "workflow");
+            workflowNode.setPosition(0, startY);
             nodes.push(workflowNode);
+            startY += ENTRY_NODE_HEIGHT + 16;
             // workflows currently have no connections to link
         });
 
