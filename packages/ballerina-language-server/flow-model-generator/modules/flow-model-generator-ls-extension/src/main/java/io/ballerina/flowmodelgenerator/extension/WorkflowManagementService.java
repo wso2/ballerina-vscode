@@ -18,6 +18,8 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ImportOrgNameNode;
@@ -25,6 +27,7 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.flowmodelgenerator.extension.request.CreateFilesRequest;
 import io.ballerina.flowmodelgenerator.extension.response.CommonSourceResponse;
 import io.ballerina.flowmodelgenerator.extension.response.ICPEnabledResponse;
@@ -32,6 +35,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
+import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -86,6 +90,31 @@ public class WorkflowManagementService implements ExtendedLanguageServerService 
             try {
                 Project project = this.workspaceManager.loadProject(Path.of(request.projectPath()));
                 response.setEnabled(hasManagementImport(project.currentPackage()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    /**
+     * Determines whether workflow management should be enabled automatically (e.g. when ICP is
+     * being enabled). Returns {@code true} only when management is not already enabled, ICP is
+     * enabled, and the integration contains at least one {@code @workflow:Workflow} function. This
+     * keys off the presence of workflow functions, not workflow imports, so it stays {@code false}
+     * for integrations that merely import the workflow module without defining a workflow.
+     */
+    @JsonRequest
+    public CompletableFuture<ICPEnabledResponse> shouldEnableWorkflowManagementByDefault(CreateFilesRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            ICPEnabledResponse response = new ICPEnabledResponse();
+            try {
+                Project project = this.workspaceManager.loadProject(Path.of(request.projectPath()));
+                Package pkg = project.currentPackage();
+                boolean shouldEnable = !hasManagementImport(pkg)
+                        && ICPEnablerService.isIcpEnabled(pkg)
+                        && hasWorkflowFunction(pkg);
+                response.setEnabled(shouldEnable);
             } catch (Throwable e) {
                 response.setError(e);
             }
@@ -178,6 +207,19 @@ public class WorkflowManagementService implements ExtendedLanguageServerService 
             NodeList<ImportDeclarationNode> imports = root.imports();
             for (ImportDeclarationNode importNode : imports) {
                 if (validOrg(importNode) && validModuleName(importNode)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasWorkflowFunction(Package pkg) {
+        PackageCompilation compilation = pkg.getCompilation();
+        for (Module module : pkg.modules()) {
+            SemanticModel semanticModel = compilation.getSemanticModel(module.moduleId());
+            for (Symbol symbol : semanticModel.moduleSymbols()) {
+                if (WorkflowUtil.isWorkflowFunction(symbol)) {
                     return true;
                 }
             }
