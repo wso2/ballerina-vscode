@@ -1414,7 +1414,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
             }
         } else {
             // ── Single-package project ───────────────────────────────────
-            const stages = getEnhancementStages();
+            const stages = getEnhancementStages(_wizardKeepStructure);
             injectResumePreamble(projectRoot, stages);
             console.log(`[MigrationEnhancement] Starting wizard migration agent (${stages.length} stages) – projectRoot: ${projectRoot}, sourcePath: ${sourcePath ?? 'none'}`);
             debugLogger.logMilestone(`Run start — single package (wizard), model: ${_selectedModelId}, projectRoot: ${projectRoot}`);

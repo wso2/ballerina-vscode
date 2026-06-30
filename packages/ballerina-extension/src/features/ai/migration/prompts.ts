@@ -37,12 +37,12 @@ export interface EnhancementStage {
  * The orchestrator runs each stage sequentially, giving each stage a **fresh
  * context window** so the agent never runs out of context mid-work.
  */
-export function getEnhancementStages(): EnhancementStage[] {
-    const shared = getSharedEnhancementContext();
+export function getEnhancementStages(keepStructure: boolean = false): EnhancementStage[] {
+    const shared = getSharedEnhancementContext(keepStructure);
     return [
         {
             name: "Stage 1 — Fidelity Check & TODO Resolution",
-            prompt: shared + "\n\n" + getStage1Prompt(),
+            prompt: shared + "\n\n" + getStage1Prompt(keepStructure),
             agentLimits: { maxSteps: 200, maxOutputTokens: 16384 },
         },
         {
@@ -203,7 +203,7 @@ These rules are **non-negotiable**. Violating any of them means the enhancement 
 
 **This is the most important workflow rule.** Do NOT read all original source files upfront. Instead:
 
-1. Pick one \`.bal\` file that has TODOs/FIXMEs (start with \`main.bal\`, then \`functions.bal\`, then others).
+1. Pick one \`.bal\` file that has TODOs/FIXMEs (${keepStructure ? 'prioritize files with the most TODOs' : 'start with `main.bal`, then `functions.bal`, then others'}).
 2. For each TODO in that file, read **only** the specific original source file related to that TODO
    (using \`migration_source_read\`). Do not read unrelated source files.
 3. Implement the fix using \`file_edit\` / \`file_multi_edit\`.
