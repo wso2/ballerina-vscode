@@ -26,6 +26,20 @@ export class ProjectExplorer {
         this.explorer = this.page.getByRole('tree').locator('div').first();
     }
 
+    /**
+     * Builds a tree-item selector that tolerates VS Code appending a
+     * ", <description>" suffix to the aria-label (behaviour introduced in
+     * newer VS Code versions). Matches either the exact label or the label
+     * followed by the ", " separator, so it works on old and new VS Code.
+     */
+    public static treeItemSelector(label: string): string {
+        // Escape backslashes and double quotes so labels that themselves
+        // contain quotes (e.g. `RabbitMQ Event Integration - "myQueue"`) don't
+        // produce a malformed double-quoted CSS attribute selector.
+        const escaped = label.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        return `div[role="treeitem"][aria-label="${escaped}"], div[role="treeitem"][aria-label^="${escaped}, "]`;
+    }
+
     public async init() {
         const wso2IntegratorActivityTab = this.page.locator(`[role="tab"][aria-label="${BI_INTEGRATOR_LABEL}"]`).first();
         const isChecked = await wso2IntegratorActivityTab.evaluate((el) => el.classList.contains('checked'));
@@ -38,7 +52,7 @@ export class ProjectExplorer {
         let currentItem;
         for (let i = 0; i < path.length; i++) {
 
-            currentItem = this.explorer.locator(`div[role="treeitem"][aria-label='${path[i]}']`);
+            currentItem = this.explorer.locator(ProjectExplorer.treeItemSelector(path[i]));
             await currentItem.waitFor({ timeout: 5000 });
         }
         return currentItem;
@@ -46,7 +60,7 @@ export class ProjectExplorer {
 
     public async goToOverview(projectName: string) {
         // wait for 1s
-        const projectExplorerRoot = this.explorer.locator(`div[role="treeitem"][aria-label="${projectName}"]`);
+        const projectExplorerRoot = this.explorer.locator(ProjectExplorer.treeItemSelector(projectName));
         await projectExplorerRoot.waitFor();
         await projectExplorerRoot.hover();
         const locator = this.explorer.getByLabel('Open View');

@@ -142,6 +142,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             .getProjectStructure()
             .then((res) => {
                 const projectInfo = res.projects.find(project => isSamePath(project.projectPath, props.projectPath));
+                if (!projectInfo) {
+                    setIsLoading(false);
+                    return;
+                }
                 integrationCategory.current = `${props.org}/${projectInfo.projectName}`;
                 setIsLoading(true);
                 getConfigVariables(true);

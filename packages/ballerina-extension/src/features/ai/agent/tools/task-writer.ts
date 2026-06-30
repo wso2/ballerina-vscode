@@ -40,7 +40,7 @@ const TaskWriteInputSchema = z.object({
     isPlanApproval: z.boolean().optional().describe(
         "Set to true when submitting the initial plan or a revised plan. " +
         "This shows the full task list to the user and waits for plan approval before execution begins. " +
-        "Use this on the very first TaskWrite call, and again if the user requests plan changes."
+        `Use this on the very first ${TASK_WRITE_TOOL_NAME} call, and again if the user requests plan changes.`
     ),
     requestReview: z.boolean().optional().describe(
         "Set to true after completing a meaningful milestone (e.g. finishing a logical unit of work) " +

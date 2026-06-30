@@ -1,5 +1,9 @@
 #!/usr/bin/env sh
 
+# Load nvm so node is available when husky runs with a restricted PATH
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" --no-use
+
 # Validate strict versioning in package.json files
 echo "🔍 Validating package.json versions..."
 

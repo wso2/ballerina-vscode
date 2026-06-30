@@ -1,4 +1,4 @@
-name: Release VSIX
+name: Release Extension
 
 on:
   workflow_dispatch:
@@ -7,8 +7,16 @@ on:
         required: true
         type: boolean
         default: true
+      lsSource:
+        description: 'LS source: local builds the LS from source in this repo; download fetches it from a GitHub release tag'
+        type: choice
+        required: false
+        default: 'local'
+        options:
+          - 'local'
+          - 'download'
       ballerinaLsTag:
-        description: 'Override Ballerina LS download tag (latest, prerelease, v1.5.0). Overrides isPreRelease for LS download.'
+        description: 'Release tag to download the LS from (only used when lsSource=download; e.g. latest, prerelease, v1.5.0)'
         type: string
         required: false
         default: ''
@@ -31,6 +39,7 @@ jobs:
     with:
       runOnAWS: true
       isPreRelease: ${{ inputs.isPreRelease }}
+      lsSource: ${{ inputs.lsSource }}
       ballerinaLsTag: ${{ inputs.ballerinaLsTag }}
       enableCache: false
       ballerina: true
@@ -41,6 +50,9 @@ jobs:
     name: Release VSIX
     needs: Build
     timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: codebuild-ballerina-vscode-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Restore build
@@ -68,29 +80,114 @@ jobs:
         id: vsix
         run: |
           file=$(ls ballerina-[0-9]*.[0-9]*.[0-9]*.vsix)
-          version=$(basename "$file" .vsix)
-          echo "$version"
-          echo "version=$version" >> $GITHUB_OUTPUT
+          vsixName=$(basename "$file" .vsix)
+          numericVersion="${vsixName#ballerina-}"
+          echo "version=$vsixName" >> $GITHUB_OUTPUT
+          echo "numericVersion=$numericVersion" >> $GITHUB_OUTPUT
+
+      - name: Initiate release thread
+        run: |
+          RELEASE_TYPE=${{ inputs.isPreRelease == true && 'Pre-release' || 'Release' }}
+          body=$(cat << EOF
+          {
+            "thread": {"threadKey": "ballerina-release-${{ github.run_id }}"},
+            "cards": [
+              {
+                "header": {
+                  "title": "Ballerina v${{ steps.vsix.outputs.numericVersion }} $RELEASE_TYPE",
+                  "subtitle": "${{ github.ref_name }} · triggered by ${{ github.actor }}"
+                },
+                "sections": [
+                  {
+                    "widgets": [
+                      {
+                        "keyValue": {
+                          "topLabel": "Status",
+                          "content": "Release workflow started",
+                          "button": {
+                            "textButton": {
+                              "text": "View Workflow",
+                              "onClick": {
+                                "openLink": {
+                                  "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+          EOF
+          )
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            "${{ secrets.EDITOR_TEAM_CHAT_API }}&messageReplyOption=REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD" \
+            -d "$body"
 
       - name: Create a release in wso2/ballerina-vscode repo
         uses: ./.github/actions/release
         with:
           repo: wso2/ballerina-vscode
           name: ballerina
-          token: ${{ secrets.CHOREO_BOT_TOKEN }}
-          chatAPI: ${{ secrets.BI_TEAM_CHAT_API }}
+          chatAPI: ${{ secrets.EDITOR_TEAM_CHAT_API }}
+          threadKey: ballerina-release-${{ github.run_id }}
+
+      - name: BI Team Release Announcement
+        run: |
+          body=$(cat << EOF
+          {
+            "cards": [
+              {
+                "header": {
+                  "title": "Ballerina v${{ steps.vsix.outputs.numericVersion }} Released",
+                  "subtitle": "VS Code Extension"
+                },
+                "sections": [
+                  {
+                    "widgets": [
+                      {
+                        "keyValue": {
+                          "topLabel": "Release",
+                          "content": "v${{ steps.vsix.outputs.numericVersion }}",
+                          "button": {
+                            "textButton": {
+                              "text": "Download",
+                              "onClick": {
+                                "openLink": {
+                                  "url": "https://github.com/${{ github.repository }}/releases/tag/v${{ steps.vsix.outputs.numericVersion }}"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+          EOF
+          )
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            "${{ secrets.BI_TEAM_CHAT_API }}" \
+            -d "$body"
 
       - name: Create PR and notify
         uses: ./.github/actions/pr
         with:
           version: ${{ steps.vsix.outputs.version }}
           isPreRelease: ${{ github.event.inputs.isPreRelease }}
-          bot_username: ${{ secrets.CHOREO_BOT_USERNAME }}
-          bot_email: ${{ secrets.CHOREO_BOT_EMAIL }}
-          bot_token: ${{ secrets.CHOREO_BOT_TOKEN }}
           ref_name: ${{ github.ref_name }}
           ballerina: true
-          chatAPI: ${{ secrets.TOOLING_TEAM_CHAT_API }}
+          chatAPI: ${{ secrets.EDITOR_TEAM_CHAT_API }}
+          threadKey: ballerina-release-${{ github.run_id }}
 
   Notify:
     needs: [Release]
@@ -105,5 +202,6 @@ jobs:
         with:
           title: "Release Build Failed"
           run_id: ${{ github.run_id }}
-          chat_api: ${{ secrets.TOOLING_TEAM_CHAT_API }}
+          chat_api: ${{ secrets.EDITOR_TEAM_CHAT_API }}
           repository: ${{ github.repository }}
+          thread_key: ballerina-release-${{ github.run_id }}

@@ -268,9 +268,12 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const canViewProjectFunction =
         hasViewRange &&
         model.node.codedata.node === "FUNCTION_CALL" &&
-        model.node.codedata.org === project?.org;
+        model.node.codedata.org === project?.org &&
+        Boolean(model.node.properties?.view?.value);
     const canViewWorkflowRunFunction = model.node.codedata.node === "WORKFLOW_RUN" && Boolean(workflowStartFunctionName);
     const canViewFunction = canViewProjectFunction || canViewWorkflowRunFunction;
+    const canOpenDataMapper =
+        model.node.codedata.node === "DATA_MAPPER_CALL" && Boolean(model.node.properties?.view?.value);
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (readOnly) {
@@ -340,6 +343,13 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
         viewFunction();
+    };
+
+    const handleOnOpenDataMapperClick = () => {
+        if (readOnly) {
+            return;
+        }
+        openDataMapper();
     };
 
     const openDataMapper = async () => {
@@ -488,6 +498,21 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                                 >
                                     <Icon
                                         name="bi-open-in"
+                                        sx={{ width: 16, height: 16 }}
+                                        iconSx={{ fontSize: 16 }}
+                                    />
+                                </NodeStyles.MenuButton>
+                            </Tooltip>
+                        )}
+                        {canOpenDataMapper && (
+                            <Tooltip content="View data mapper">
+                                <NodeStyles.MenuButton
+                                    buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                                    appearance="icon"
+                                    onClick={handleOnOpenDataMapperClick}
+                                >
+                                    <Icon
+                                        name="bi-function-flow"
                                         sx={{ width: 16, height: 16 }}
                                         iconSx={{ fontSize: 16 }}
                                     />

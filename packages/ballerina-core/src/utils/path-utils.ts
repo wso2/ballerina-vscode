@@ -66,5 +66,9 @@ export function isPathInside(parent: string | undefined | null, child: string | 
         return true;
     }
     const normalizedChild = normalizeProjectPath(child);
+    // Roots ("/" or "c:\") keep their trailing separator after normalization
+    if (normalizedParent.endsWith("/") || normalizedParent.endsWith("\\")) {
+        return normalizedChild.startsWith(normalizedParent);
+    }
     return normalizedChild.startsWith(normalizedParent + "/") || normalizedChild.startsWith(normalizedParent + "\\");
 }

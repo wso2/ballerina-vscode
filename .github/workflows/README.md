@@ -32,16 +32,14 @@ Each has `defaults.run.working-directory: packages/ballerina-language-server` in
 
 ## Required GitHub secrets
 
-- `packageUser` / `packagePAT` — LS Gradle (GitHub Packages, `read:packages` scope)
-- `BALLERINA_BOT_USERNAME` / `BALLERINA_BOT_TOKEN` — LS publish workflow
+- `BALLERINA_BOT_USERNAME` / `BALLERINA_BOT_EMAIL` / `BALLERINA_BOT_TOKEN` — LS publish workflow (git identity + write to `ballerina-platform` packages + releases)
 - `BALLERINA_CENTRAL_ACCESS_TOKEN` — LS publish to Ballerina Central
-- `CHOREO_BOT_TOKEN` / `CHOREO_BOT_EMAIL` / `CHOREO_BOT_USERNAME` — release-vsix, sync-main
 - `VSCE_TOKEN` — publish-vsix → VSCode Marketplace
 - `OPENVSX_TOKEN` — publish-vsix → OpenVSX
-- `BI_TEAM_CHAT_API` — release/daily notifications
-- `TOOLING_TEAM_CHAT_API` — failure notifications
-- `CLOUD_EDITOR_BUILDER_REPO` / `CLOUD_EDITOR_BUILDER_REPO_TOKEN` — optional cloud-editor dispatch on stable release
-- `BALLERINA_AUTH_*` / `BALLERINA_DEV_COPLIOT_*` / `COPILOT_*` / `APPINSIGHTS_INSTRUMENTATION_KEY` — passed through to the build composite action
+- `BI_TEAM_CHAT_API` — daily build success + release announcements (pre-release and final)
+- `EDITOR_TEAM_CHAT_API` — threaded release progress, build/sync failures
+- `CLOUD_EDITOR_BUILDER_REPO` / `CLOUD_EDITOR_BUILDER_REPO_TOKEN` — optional cross-repo dispatch on stable release (publish-vsix)
+- `COPILOT_ROOT_URL` / `COPILOT_DEV_ROOT_URL` / `APPINSIGHTS_INSTRUMENTATION_KEY` — passed through to the build composite action
 
 Configure these in the new repo's settings before triggering anything.
 

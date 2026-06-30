@@ -18,7 +18,7 @@
 
 import { ChangeEvent } from "react";
 import { DataMapperAttachment } from "./dataMapperAttachment";
-import { Attachment, Command } from "@wso2/ballerina-core";
+import { Attachment, Command, SkillCommand } from "@wso2/ballerina-core";
 import { GeneralAttachment } from "./generalAttachment";
 
 /**
@@ -58,7 +58,7 @@ const TEXT_AND_IMAGE_TYPES = [...TEXT_BASED_TYPES, ...IMAGE_TYPES];
 /**
  * Allowed file types for commands expecting documents/images.
  */
-const DOCUMENT_TYPES = [
+export const DOCUMENT_TYPES = [
     "text/plain",
     "text/csv",
     "image/jpeg",
@@ -70,11 +70,14 @@ const DOCUMENT_TYPES = [
 ];
 
 /**
- * Returns a list of valid file types for a given command.
+ * Returns a list of valid file types for a given command or skill command.
  */
-export const getFileTypesForCommand = (command: Command | null): string[] => {
+export const getFileTypesForCommand = (command: Command | null, skillCommand?: SkillCommand): string[] => {
+    switch (skillCommand) {
+        case SkillCommand.DataMap:
+            return DOCUMENT_TYPES;
+    }
     switch (command) {
-        case Command.DataMap:
         case Command.TypeCreator:
             return DOCUMENT_TYPES;
         default:
@@ -85,33 +88,24 @@ export const getFileTypesForCommand = (command: Command | null): string[] => {
 /**
  * Utility to build the string for the 'accept' attribute of <input type="file" />.
  */
-export const acceptResolver = (command: Command | null): string => {
-    if (!command) {
-        return TEXT_AND_IMAGE_TYPES.join(",");
-    }
-    return getFileTypesForCommand(command).join(",");
+export const acceptResolver = (command: Command | null, skillCommand?: SkillCommand): string => {
+    return getFileTypesForCommand(command, skillCommand).join(",");
 };
 
 /**
- * Dynamically selects an attachment handler based on the command,
+ * Dynamically selects an attachment handler based on the command or skill command,
  * then processes and returns the results of uploading the file(s).
  */
 export const handleAttachmentSelection = async (
     e: ChangeEvent<HTMLInputElement>,
-    command: Command | null
+    command: Command | null,
+    skillCommand?: SkillCommand
 ): Promise<Attachment[]> => {
 
-    let attachmentHandler;
+    const usesDocumentHandler = skillCommand === SkillCommand.DataMap || command === Command.TypeCreator;
+    const attachmentHandler = usesDocumentHandler
+        ? new DataMapperAttachment()
+        : new GeneralAttachment(command);
 
-    switch (command) {
-        case Command.DataMap:
-        case Command.TypeCreator:
-            attachmentHandler = new DataMapperAttachment(command);
-            break;
-        default:
-            attachmentHandler = new GeneralAttachment(command);
-    }
-
-    const results = await attachmentHandler.handleFileAttach(e);
-    return results;
+    return attachmentHandler.handleFileAttach(e);
 };

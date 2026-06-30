@@ -127,9 +127,19 @@ export default function createTests() {
             await typeUtils.verifyTypeNodeExists(serviceClassName);
             await typeUtils.verifyTypeLink(serviceClassName, 'employeeDetails', recordName);
 
-            // Verify the generated types.bal matches testOutput.bal
+            // Verify the generated types.bal matches testOutput.bal. The fixture is
+            // written against attempt 1; on retries, identifiers are suffixed with
+            // the attempt number to avoid clashing with leftover types, so
+            // substitute the expected identifiers to match.
             const expectedFilePath = path.join(__dirname, 'testOutput.bal');
-            await verifyGeneratedSource('types.bal', expectedFilePath);
+            const substitutions = testAttempt === 1 ? undefined : {
+                'Role1': enumName,
+                'Id1': unionName,
+                'Organization1': organizationName,
+                'Employee1': recordName,
+                'Project1': serviceClassName,
+            };
+            await verifyGeneratedSource('types.bal', expectedFilePath, substitutions);
 
         });
     });

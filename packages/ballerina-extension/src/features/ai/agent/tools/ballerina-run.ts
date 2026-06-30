@@ -23,6 +23,8 @@ import { CopilotEventHandler } from '../../utils/events';
 import { extension } from '../../../../BalExtensionContext';
 import { RunningServicesManager, spawnProcess, killProcessGroup } from './running-service-manager';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
+import { BALLERINA_GET_LOGS_TOOL_NAME } from './ballerina-get-logs';
+import { BALLERINA_STOP_TOOL_NAME } from './ballerina-stop';
 import { resolvePackageBasePath } from './path-utils';
 import { getRunCommand } from '../../../project/cmds/cmd-runner';
 import { integrateAndClearModifiedFiles } from '../utils';
@@ -52,7 +54,7 @@ export function createBallerinaRunTool(
 **Prerequisites:** The project must compile cleanly. Always run \`${DIAGNOSTICS_TOOL_NAME}\` first and resolve all compilation errors before invoking this tool.
 
 **Modes:**
-- \`service\`: Starts a long-running service. Returns immediately with a \`taskId\`. Use \`getServiceLogs\` to check output and \`stopBallerinaService\` to stop it.
+- \`service\`: Starts a long-running service. Returns immediately with a \`taskId\`. Use \`${BALLERINA_GET_LOGS_TOOL_NAME}\` to check output and \`${BALLERINA_STOP_TOOL_NAME}\` to stop it.
 - \`main\`: Runs a main function to completion. Waits for the program to exit and returns its output.
 
 **Timeout for main programs:** Always set a generous timeout based on the code complexity (e.g., loops, delays, data processing). The default 120s is a safe choice — do not use small timeouts unless the program is trivially simple.
@@ -154,7 +156,7 @@ export async function executeRun(
             status: "started",
             taskId,
             output: readyResult.logs,
-            message: "Service is running. Use getServiceLogs to check further output, stopBallerinaService to stop it.",
+            message: `Service is running. Use ${BALLERINA_GET_LOGS_TOOL_NAME} to check further output, ${BALLERINA_STOP_TOOL_NAME} to stop it.`,
         };
     }
 

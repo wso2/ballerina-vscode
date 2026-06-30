@@ -33,6 +33,24 @@
         "wso2.hurl-client"
     ],
     "contributes": {
+        "taskDefinitions": [
+            {
+                "type": "ballerina-run",
+                "properties": {
+                    "projectRoot": {
+                        "type": "string",
+                        "description": "Resolved path of the Ballerina integration being run. Part of the task identity so each integration runs as its own task."
+                    },
+                    "instanceId": {
+                        "type": "string",
+                        "description": "Unique id per launch. Part of the task identity so a force-started run never collides with the still-terminating previous instance."
+                    }
+                },
+                "required": [
+                    "projectRoot"
+                ]
+            }
+        ],
         "languages": [
             {
                 "id": "ballerina",
@@ -292,6 +310,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Show context usage indicator in the AI chat input footer."
+                },
+                "ballerina.copilot.enableMcpTools": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable Model Context Protocol (MCP) tool support in the WSO2 Integrator Copilot."
                 }
             }
         },
@@ -1239,7 +1262,7 @@
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1c1"
+                    "fontCharacter": "\\f1c0"
                 }
             },
             "ballerina-source-view": {
@@ -1253,7 +1276,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f220"
+                    "fontCharacter": "\\f21f"
                 }
             },
             "ballerina-cached-rounded": {
@@ -1351,7 +1374,7 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1c6"
+                    "fontCharacter": "\\f1c5"
                 }
             },
             "distro-file-submodule": {
@@ -1440,6 +1463,7 @@
         "@ai-sdk/anthropic": "3.0.64",
         "@ai-sdk/google-vertex": "4.0.94",
         "@iarna/toml": "2.2.5",
+        "@modelcontextprotocol/sdk": "1.29.0",
         "ballerina-grammar": "workspace:*",
         "ballerina-language-server": "workspace:*",
         "@types/lodash": "4.14.200",
@@ -1467,7 +1491,7 @@
         "node-fetch": "3.3.2",
         "node-schedule": "2.1.1",
         "portfinder": "1.0.32",
-        "protobufjs": "7.5.8",
+        "protobufjs": "7.6.3",
         "source-map-support": "0.5.21",
         "unzipper": "0.12.3",
         "uuid": "14.0.0",
@@ -1502,7 +1526,7 @@
         "decache": "4.6.2",
         "express": "4.22.1",
         "istanbul": "0.4.5",
-        "js-yaml": "4.1.1",
+        "js-yaml": "4.2.0",
         "keytar": "7.9.0",
         "kill-port": "2.0.1",
         "mocha": "10.2.0",

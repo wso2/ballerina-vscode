@@ -18,7 +18,7 @@
 
 import { Command } from "@wso2/ballerina-core";
 import { CommandTemplates } from "../data/commandTemplates.const";
-import { placeholderTags } from "../data/placeholderTags.const";
+import { placeholderTags, skillPlaceholderTags } from "../data/placeholderTags.const";
 import { PlaceholderDefinition } from "../models/placeholder.model";
 import { Tag } from "../models/tag.model";
 import { TemplateDefinition } from "../models/template.model";
@@ -28,7 +28,9 @@ export const getAllCommands = (templates: CommandTemplates): Command[] => {
 }
 
 export const getPublicCommands = (templates: CommandTemplates): Command[] => {
-    return Object.keys(templates).filter((cmd) => cmd !== Command.Agent) as Command[];
+    return Object.keys(templates).filter(
+        (cmd) => cmd !== Command.Agent
+    ) as Command[];
 }
 
 export const getCommand = (input: string): Command | undefined => {
@@ -40,7 +42,7 @@ export const getTemplateDefinitionsByCommand = (
     templates: CommandTemplates,
     command: Command
 ): TemplateDefinition[] => {
-    const raw = templates[command] as unknown as unknown[];
+    const raw = templates[command as keyof CommandTemplates] as unknown as unknown[];
 
     return raw.filter(isValidTemplateDefinition);
 }
@@ -50,7 +52,7 @@ export const getTemplateTextById = (
     command: Command,
     templateId: string
 ): string | undefined => {
-    const defs = templates[command];
+    const defs = templates[command as keyof CommandTemplates];
     const found = defs.find((tpl) => tpl.id === templateId);
     return found?.text;
 };
@@ -63,7 +65,7 @@ export const getTemplateById = (
 }
 
 export const upsertTemplate = (commandTemplates: CommandTemplates, command: Command, newTemplate: TemplateDefinition) => {
-    const templates = commandTemplates[command] as unknown as TemplateDefinition[];
+    const templates = commandTemplates[command as keyof CommandTemplates] as unknown as TemplateDefinition[];
     const index = templates.findIndex(t => t.id === newTemplate.id);
 
     if (index !== -1) {
@@ -78,7 +80,7 @@ export const removeTemplate = (
     command: Command,
     templateId: string
 ) => {
-    const templates = commandTemplates[command] as unknown as TemplateDefinition[];
+    const templates = commandTemplates[command as keyof CommandTemplates] as unknown as TemplateDefinition[];
 
     const index = templates.findIndex(t => t.id === templateId);
     if (index !== -1) {
@@ -92,7 +94,7 @@ export const injectTags = (
     placeholderId: string,
     tags: Tag[]
 ): void => {
-    const commandMap = placeholderTags[command];
+    const commandMap = placeholderTags[command as keyof typeof placeholderTags];
     if (!commandMap || !(templateId in commandMap)) return;
 
     const templateMap = commandMap[templateId as keyof typeof commandMap];
@@ -118,7 +120,7 @@ export const getTags = (
     templateId: string,
     placeholderId: string
 ): Tag[] | undefined => {
-    const commandMap = placeholderTags[command];
+    const commandMap = placeholderTags[command as keyof typeof placeholderTags];
     if (!commandMap) return undefined;
 
     const templateMap = commandMap[templateId as keyof typeof commandMap];
@@ -127,6 +129,38 @@ export const getTags = (
     const tags = templateMap[placeholderId as keyof typeof templateMap] as Tag[] | undefined;
     return tags;
 }
+
+export const injectSkillTags = (
+    skillId: string,
+    templateId: string,
+    placeholderId: string,
+    tags: Tag[]
+): void => {
+    const skillMap = skillPlaceholderTags[skillId];
+    if (!skillMap || !(templateId in skillMap)) return;
+
+    const templateMap = skillMap[templateId];
+    if (!templateMap || !(placeholderId in templateMap)) return;
+
+    const placeholderTagsList = templateMap[placeholderId];
+
+    for (let i = placeholderTagsList.length - 1; i >= 0; i--) {
+        if (placeholderTagsList[i].injected) {
+            placeholderTagsList.splice(i, 1);
+        }
+    }
+
+    const existingValues = new Set(placeholderTagsList.map(tag => tag.value));
+    placeholderTagsList.push(...tags.filter(tag => !existingValues.has(tag.value)));
+};
+
+export const getSkillTags = (
+    skillId: string,
+    templateId: string,
+    placeholderId: string
+): Tag[] | undefined => {
+    return skillPlaceholderTags[skillId]?.[templateId]?.[placeholderId];
+};
 
 // HELPERS
 function isValidPlaceholder(placeholder: any): placeholder is PlaceholderDefinition {

@@ -124,12 +124,18 @@ export default function createTests() {
                 }
             });
 
-            // Click the add Else Block 
-            // Click the "Add Else Block" button in the If configuration UI before saving
-            // The "Add Else Block" is not a button, but a div with text.
-            // So select it by its text using .getByText or .locator, and click it.
+            // Dismiss the expression helper popup triggered by the CodeMirror fill: the first
+            // Escape closes the completion tooltip, the second the helper pane itself.
+            await page.page.keyboard.press('Escape');
+            await page.page.waitForTimeout(300);
+            await page.page.keyboard.press('Escape');
+            await page.page.waitForTimeout(300);
+
+            // Click the add Else Block
+            // The "Add Else Block" is not a button, but a div with text. The helper pane can
+            // linger over it on CI, so bypass the pointer-interception check.
             const addElseBlockDiv = artifactWebView.getByText('Add Else Block', { exact: true });
-            await addElseBlockDiv.click();
+            await addElseBlockDiv.click({ force: true });
             await artifactWebView.getByRole('button', { name: 'Save' }).click();
             await page.page.waitForTimeout(1000);
 
@@ -154,8 +160,8 @@ export default function createTests() {
                 values: {
                     'msg': {
                         type: 'cmEditor',
-                        value: 'Equal',
-                        additionalProps: { switchMode: 'primary-mode', clickLabel: true, window: global.window }
+                        value: '"Equal"',
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
@@ -177,8 +183,8 @@ export default function createTests() {
                 values: {
                     'msg': {
                         type: 'cmEditor',
-                        value: 'Not Equal',
-                        additionalProps: { switchMode: 'primary-mode', clickLabel: true, window: global.window }
+                        value: '"Not Equal"',
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });

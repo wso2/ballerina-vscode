@@ -58,6 +58,38 @@ export async function selectPackageOrPrompt(
     return await promptPackageSelection(availablePackages, placeHolder);
 }
 
+export interface IntegrationPickItem {
+    name: string;
+    projectPath: string;
+}
+
+/**
+ * Like selectPackageOrPrompt, but shows the integration NAME as the quickpick
+ * label (with the project path demoted to the description) instead of the
+ * full path. Returns the selected integration's project path.
+ */
+export async function selectIntegrationOrPrompt(
+    integrations: IntegrationPickItem[],
+    placeHolder?: string
+): Promise<string | undefined> {
+    if (integrations.length === 0) {
+        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        return;
+    }
+    if (integrations.length === 1) {
+        return integrations[0].projectPath;
+    }
+    const picked = await window.showQuickPick(
+        integrations.map((integration) => ({
+            label: integration.name,
+            description: integration.projectPath,
+            projectPath: integration.projectPath
+        })),
+        { placeHolder: placeHolder || "Select an integration", ignoreFocusOut: false }
+    );
+    return picked?.projectPath;
+}
+
 export function needsProjectDiscovery(
     projectInfo: ProjectInfo,
     projectRoot: string | undefined,

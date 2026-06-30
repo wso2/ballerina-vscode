@@ -1,4 +1,4 @@
-name: Build and run Tests
+name: Build
 
 on:
   workflow_call:
@@ -35,8 +35,17 @@ on:
         type: boolean
         required: false
         default: false
+      runLSTests:
+        type: boolean
+        required: false
+        default: false
+      lsSource:
+        description: LS source — local (build from source) or download (fetch from release tag)
+        type: string
+        required: false
+        default: 'local'
       ballerinaLsTag:
-        description: Override Ballerina LS download tag (latest, prerelease, v1.5.0)
+        description: Release tag to download the LS from when lsSource=download (latest, prerelease, v1.5.0)
         type: string
         required: false
         default: ''
@@ -92,22 +101,12 @@ jobs:
         uses: ./.github/actions/build
         with:
           isPreRelease: ${{ inputs.isPreRelease }}
+          lsSource: ${{ inputs.lsSource }}
           ballerinaLsTag: ${{ inputs.ballerinaLsTag }}
           enableCache: ${{ inputs.enableCache }}
           enableLSCache: ${{ !inputs.isReleaseBuild }}
           ballerina: ${{ inputs.ballerina }}
           version: ${{ inputs.version }}
-          token: ${{ secrets.CHOREO_BOT_TOKEN }}
-          BALLERINA_AUTH_ORG: ${{ secrets.BALLERINA_AUTH_ORG }}
-          BALLERINA_AUTH_CLIENT_ID: ${{ secrets.BALLERINA_AUTH_CLIENT_ID }}
-          # NOTE: input keys (left) use the corrected COPILOT spelling;
-          # secret names (right) keep the COPLIOT typo to match what's
-          # configured on the org. Rename the org secrets and update the
-          # right side when convenient.
-          BALLERINA_DEV_COPILOT_ROOT_URL: ${{ secrets.BALLERINA_DEV_COPLIOT_ROOT_URL }}
-          BALLERINA_DEV_COPILOT_AUTH_ORG: ${{ secrets.BALLERINA_DEV_COPLIOT_AUTH_ORG }}
-          BALLERINA_DEV_COPILOT_AUTH_CLIENT_ID: ${{ secrets.BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID }}
-          BALLERINA_DEV_COPILOT_AUTH_REDIRECT_URL: ${{ secrets.BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL }}
           COPILOT_ROOT_URL: ${{ secrets.COPILOT_ROOT_URL }}
           COPILOT_DEV_ROOT_URL: ${{ secrets.COPILOT_DEV_ROOT_URL }}
           APPINSIGHTS_INSTRUMENTATION_KEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATION_KEY }}
@@ -129,6 +128,7 @@ jobs:
           # makes every entry except the first start with ' ' and never match.
           skip-dirs: 'common/temp,submodules,packages/ballerina-language-server/**/src/test/resources,packages/ballerina-language-server/**/src/test/data'
           ignore-unfixed: true
+          trivyignores: .trivyignore,submodules/wso2-vscode-extensions/.trivyignore
 
   ExtTest_Ballerina:
     name: Run Ballerina extension tests
@@ -331,3 +331,30 @@ jobs:
           path: |
             packages/ballerina-extension/e2e-test/data/new-project/**
           retention-days: 5
+
+  LSTest_Ballerina:
+    name: Run Ballerina LS tests (${{ matrix.os }})
+    timeout-minutes: 60
+    if: ${{ inputs.runLSTests }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Enable long paths for Git
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --system core.longpaths true
+
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Run LS tests
+        uses: ./.github/actions/ls-test
+        with:
+          cache-branch: ${{ github.ref_name }}
+          package-user: ${{ github.actor }}
+          package-pat: ${{ secrets.GITHUB_TOKEN }}

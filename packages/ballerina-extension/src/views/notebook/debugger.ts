@@ -76,7 +76,12 @@ export class NotebookDebuggerController {
             debugTests: false,
             tests: [],
             configEnv: undefined,
-            capabilities: { supportsReadOnlyEditors: true }
+            capabilities: { supportsReadOnlyEditors: true },
+            // Marks the session as a notebook cell run: exempt from the
+            // integration run registry and the restart guard (#1012). The
+            // session NAME cannot be used for this — getModifiedConfigs
+            // overwrites it with the script's basename.
+            notebookDebug: true
         };
         return debugConfig;
     }

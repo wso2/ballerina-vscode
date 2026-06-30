@@ -1,0 +1,18 @@
+# Trivy ignore file for known vulnerabilities with no available fix.
+# Format: CVE-ID or vulnerability ID
+#
+# Only list findings here when the upstream author has released NO fix
+# (trivy reports an empty "Fixed Version"). Anything with a fix version
+# must instead be bumped via globalOverrides in
+# common/config/rush/pnpm-config.json. Keep entries in sync with the
+# submodule's submodules/wso2-vscode-extensions/.trivyignore.
+
+# cors-anywhere@0.4.4 — direct devDependency (local CORS proxy used in dev
+# only, never built or shipped). SSRF is inherent to the tool and no fix has
+# been released by the author. https://github.com/wso2/vscode-extensions/issues/550
+CVE-2020-36851
+
+# elliptic@6.6.1 — transitive dep of the browserify crypto stack
+# (create-ecdh / browserify-sign). No fix released by the author; 6.6.1 is
+# the latest published version.
+CVE-2025-14505

@@ -32,7 +32,7 @@ import { openView, StateMachine } from "../../stateMachine";
 import * as path from "path";
 import { TracerMachine } from "../tracing";
 import { VisualizerWebview } from "../../views/visualizer/webview";
-import { selectPackageOrPrompt } from "../../utils/command-utils";
+import { selectIntegrationOrPrompt } from "../../utils/command-utils";
 
 const UNUSED_IMPORT_ERR_CODE = "BCE2002";
 
@@ -51,9 +51,13 @@ export async function prepareAndGenerateConfig(
     if (needsPackageSelection) {
         try {
             const packages = StateMachine.context().projectInfo?.children;
-            const packageList = packages?.map((child) => child.projectPath) ?? [];
+            // Show integration NAMES in the picker (paths only as descriptions).
+            const integrationItems = packages?.map((child) => ({
+                name: child.name,
+                projectPath: child.projectPath
+            })) ?? [];
 
-            const selectedPackage = await selectPackageOrPrompt(packageList, "Select an integration to run");
+            const selectedPackage = await selectIntegrationOrPrompt(integrationItems, "Select an integration to run");
             if (!selectedPackage) {
                 return false;
             }

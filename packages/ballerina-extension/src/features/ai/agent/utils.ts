@@ -379,8 +379,10 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
  * @param tempProjectPath The temporary project directory path
  * @returns Formatted XML string with file content and context
  */
-export function formatCodeContext(codeContext: CodeContext, tempProjectPath: string): string {
-    const absolutePath = path.join(tempProjectPath, codeContext.filePath);
+export function formatCodeContext(codeContext: CodeContext, tempProjectPath: string = ''): string {
+    const absolutePath = tempProjectPath
+        ? path.join(tempProjectPath, codeContext.filePath)
+        : codeContext.filePath;
 
     if (!fs.existsSync(absolutePath)) {
         console.warn(`[formatCodeContext] File not found in temp project: ${absolutePath}`);
