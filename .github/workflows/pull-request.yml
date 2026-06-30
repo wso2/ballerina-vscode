@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.filter.outputs.build }}
+      ls: ${{ steps.filter.outputs.ls }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -40,6 +41,8 @@ jobs:
               - '.github/workflows/pull-request.yml'
               - '.github/workflows/build.yml'
               - '.github/actions/**'
+            ls:
+              - 'packages/ballerina-language-server/**'
 
   build:
     name: Build
@@ -50,4 +53,4 @@ jobs:
     with:
       runOnAWS: ${{ contains(github.event.pull_request.labels.*.name, 'Runner/AWS') }}
       runBalE2ETests: ${{ contains(github.event.pull_request.labels.*.name, 'Checks/Run Ballerina UI Tests') || github.base_ref == 'stable/ballerina' }}
-      runLSTests: ${{ contains(github.event.pull_request.labels.*.name, 'Checks/Run LS Tests') }}
+      runLSTests: ${{ contains(github.event.pull_request.labels.*.name, 'Checks/Run LS Tests') || needs.changes.outputs.ls == 'true' }}
