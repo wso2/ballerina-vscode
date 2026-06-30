@@ -39,8 +39,11 @@ export function IdentifierField(props: IdentifierFieldProps) {
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
 
     useEffect(() => {
-        setFormDiagnostics(field.diagnostics);
-    }, [field.diagnostics]);
+        setFormDiagnostics(field.diagnostics?.map((diagnostic) => ({
+            ...diagnostic,
+            message: getFriendlyIdentifierMessage(diagnostic.message, field.label)
+        })));
+    }, [field.diagnostics, field.label]);
 
     // Sync external field value changes to the form (e.g., when a sibling field's onValueChange updates the value)
     useEffect(() => {

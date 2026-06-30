@@ -850,7 +850,7 @@ export function PackageOverview(props: PackageOverviewProps) {
 
         rpcClient
             .getWorkflowManagementRpcClient()
-            .isWorkflowManagementEnabled({ projectPath: '' })
+            .isWorkflowManagementEnabled({ projectPath })
             .then((res) => {
                 setWorkflowMgmtEnabled(res.enabled);
             });
@@ -966,12 +966,12 @@ export function PackageOverview(props: PackageOverviewProps) {
 
     const handleWorkflowManagement = (wfEnabled: boolean) => {
         if (wfEnabled) {
-            rpcClient.getWorkflowManagementRpcClient().addWorkflowManagement({ projectPath: '' })
+            rpcClient.getWorkflowManagementRpcClient().addWorkflowManagement({ projectPath })
                 .then((res) => {
                     setWorkflowMgmtEnabled(res.enabled ?? true);
                 });
         } else {
-            rpcClient.getWorkflowManagementRpcClient().disableWorkflowManagement({ projectPath: '' })
+            rpcClient.getWorkflowManagementRpcClient().disableWorkflowManagement({ projectPath })
                 .then((res) => {
                     setWorkflowMgmtEnabled(res.enabled ?? false);
                 });

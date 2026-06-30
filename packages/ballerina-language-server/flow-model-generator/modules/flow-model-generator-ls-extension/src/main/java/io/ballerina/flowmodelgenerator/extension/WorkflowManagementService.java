@@ -50,6 +50,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -186,8 +187,8 @@ public class WorkflowManagementService implements ExtendedLanguageServerService 
                     for (ImportDeclarationNode importNode : root.imports()) {
                         if (validOrg(importNode) && validModuleName(importNode)) {
                             Path path = project.sourceRoot().resolve(importNode.lineRange().fileName());
-                            textEdits.put(path.toString(), List.of(new TextEdit(
-                                    PositionUtil.toRange(importNode.location().lineRange()), "")));
+                            textEdits.computeIfAbsent(path.toString(), key -> new ArrayList<>()).add(new TextEdit(
+                                    PositionUtil.toRange(importNode.location().lineRange()), ""));
                         }
                     }
                 }

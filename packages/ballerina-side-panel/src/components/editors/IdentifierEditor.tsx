@@ -136,12 +136,12 @@ export function IdentifierEditor(props: IdentifierEditorProps) {
     const { register, setValue, getValues } = form;
     const [isEditing, setIsEditing] = useState(false);
     const [tempValue, setTempValue] = useState(field.value || "");
-    const [identifierErrorMsg, setIdentifierErrorMsg] = useState<string>(field.diagnostics?.map((diagnostic) => diagnostic.message).join("\n"));
+    const [identifierErrorMsg, setIdentifierErrorMsg] = useState<string>(field.diagnostics?.map((diagnostic) => getFriendlyIdentifierMessage(diagnostic.message, field.label)).join("\n"));
     const [isIdentifierValid, setIsIdentifierValid] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState(false);
     const saveButtonClicked = useRef(false);
 
-    const errorMsg = field.diagnostics?.map((diagnostic) => diagnostic.message).join("\n");
+    const errorMsg = field.diagnostics?.map((diagnostic) => getFriendlyIdentifierMessage(diagnostic.message, field.label)).join("\n");
 
     const startEditing = () => {
         const currentFormValue = getValues(field.key);

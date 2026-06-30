@@ -38,7 +38,9 @@ function addWorkflowManagementConfigToml(projectPath: string): void {
         try {
             config = parse(fs.readFileSync(configPath, 'utf-8')) as Record<string, any>;
         } catch (error) {
-            console.error('[WorkflowManagement] Error reading Config.toml:', error);
+            // Abort rather than overwriting an unparseable Config.toml with a partial config.
+            console.error('[WorkflowManagement] Error reading Config.toml, skipping update:', error);
+            return;
         }
     }
 

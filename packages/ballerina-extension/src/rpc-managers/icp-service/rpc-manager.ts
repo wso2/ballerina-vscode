@@ -292,7 +292,11 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
                     const shouldEnableWfMgmt = await context.langClient
                         .shouldEnableWorkflowManagementByDefault(param) as WorkflowManagementResponse;
                     if (shouldEnableWfMgmt?.enabled) {
-                        await new WorkflowManagementServiceRpcManager().addWorkflowManagement(param);
+                        const wfMgmtResult = await new WorkflowManagementServiceRpcManager()
+                            .addWorkflowManagement(param);
+                        if (!wfMgmtResult?.enabled) {
+                            console.log('[ICP] Auto-enable of Workflow Management did not take effect:', wfMgmtResult);
+                        }
                     }
                 } catch (wfError) {
                     console.log('[ICP] Failed to auto-enable Workflow Management:', wfError);
