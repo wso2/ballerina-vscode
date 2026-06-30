@@ -24,6 +24,7 @@ import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { AddPanel, Container } from "./styles";
 import { AutomationPanel } from "./AutomationPanel";
+import { WorkflowPanel } from "./WorkflowPanel";
 import { EventIntegrationPanel } from "./EventIntegrationPanel";
 import { FileIntegrationPanel } from "./FileIntegrationPanel";
 import { IntegrationAPIPanel } from "./IntegrationApiPanel";
@@ -90,6 +91,7 @@ export function ComponentListView(props: ComponentListViewProps) {
                         {!isLibrary && (
                             <>
                                 <AutomationPanel scope={scope} />
+                                <WorkflowPanel />
                                 <AIAgentPanel scope={scope} triggers={triggers} />
                                 <IntegrationAPIPanel scope={scope} />
                                 <EventIntegrationPanel triggers={triggers} scope={scope} />

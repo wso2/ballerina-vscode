@@ -24,6 +24,7 @@ export enum SCOPE {
     FILE_INTEGRATION = "file-integration",
     AI_AGENT = "ai-agent",
     MCP = "mcp-server",
+    WORKFLOW = "workflow",
     LIBRARY = "library",
     ANY = "any"
 }

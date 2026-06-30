@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import {
     EVENT_TYPE,
     MACHINE_VIEW,
+    DIRECTORY_MAP,
     CDModel,
     CDService,
     NodePosition,
@@ -28,6 +29,7 @@ import {
     CDListener,
     CDResourceFunction,
     CDFunction,
+    CDWorkflow,
     FlowNode,
     ProjectStructure,
 } from "@wso2/ballerina-core";
@@ -130,8 +132,29 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
         }
     };
 
-    const handleGoToConnection = async (connection: CDConnection) => {
-        await rpcClient.getVisualizerRpcClient().openView({
+    const handleGoToWorkflow = (workflow: CDWorkflow) => {
+        if (!workflow.location) {
+            return;
+        }
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.BIDiagram,
+                documentUri: workflow.location.filePath,
+                position: {
+                    startLine: workflow.location.startLine.line,
+                    startColumn: workflow.location.startLine.offset,
+                    endLine: workflow.location.endLine.line,
+                    endColumn: workflow.location.endLine.offset,
+                },
+                identifier: workflow.symbol,
+                artifactType: DIRECTORY_MAP.WORKFLOW,
+            },
+        });
+    };
+
+    const handleGoToConnection = (connection: CDConnection) => {
+        rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.EditConnectionWizard,
@@ -180,7 +203,7 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
         }
     };
 
-    const handleDeleteComponent = async (component: CDListener | CDService | CDAutomation | CDConnection, nodeType?: string) => {
+    const handleDeleteComponent = async (component: CDListener | CDService | CDAutomation | CDConnection | CDWorkflow, nodeType?: string) => {
         console.log(">>> delete component", component);
         setIsDeleting(true);
         try {
@@ -242,6 +265,7 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
                             onServiceSelect={handleGoToService}
                             onFunctionSelect={handleGoToFunction}
                             onAutomationSelect={handleGoToAutomation}
+                            onWorkflowSelect={handleGoToWorkflow}
                             onConnectionSelect={handleGoToConnection}
                             onDeleteComponent={handleDeleteComponent}
                             onCleanupTestServices={

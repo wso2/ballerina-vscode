@@ -16,13 +16,13 @@
  * under the License.
  */
 
-import { CDAutomation, CDService } from "@wso2/ballerina-core";
+import { CDAutomation, CDService, CDWorkflow } from "@wso2/ballerina-core";
 import { ConnectionNodeModel } from "../components/nodes/ConnectionNode";
 import { EntryNodeModel } from "../components/nodes/EntryNode";
 import { ListenerNodeModel } from "../components/nodes/ListenerNode";
 
 export type NodeModel = ListenerNodeModel | EntryNodeModel | ConnectionNodeModel;
 
-export type EntryPointType = "service" | "automation";
+export type EntryPointType = "service" | "automation" | "workflow";
 
-export type EntryPoint = CDService | CDAutomation;
+export type EntryPoint = CDService | CDAutomation | CDWorkflow;
