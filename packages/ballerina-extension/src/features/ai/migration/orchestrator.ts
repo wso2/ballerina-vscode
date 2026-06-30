@@ -81,6 +81,7 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
         const currentPackageMatch = content.match(/currentPackage\s*=\s*"([^"]+)"/);
         const currentStageMatch = content.match(/currentStage\s*=\s*(\d+)/);
         const multiProjectMatch = content.match(/multiProject\s*=\s*(true|false)/);
+        const keepStructureMatch = content.match(/keepStructure\s*=\s*(true|false)/);
 
         // Parse completedPackages array
         const completedPackagesMatch = content.match(/completedPackages\s*=\s*\[([^\]]*)\]/);
@@ -100,6 +101,7 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
             currentPackage: currentPackageMatch?.[1],
             currentStage: currentStageMatch ? parseInt(currentStageMatch[1], 10) : undefined,
             multiProject: multiProjectMatch ? multiProjectMatch[1] === "true" : undefined,
+            keepStructure: keepStructureMatch ? keepStructureMatch[1] === "true" : undefined,
         };
     } catch {
         return null;
@@ -118,6 +120,7 @@ export function writeEnhanceToml(
     currentPackage?: string,
     currentStage?: number,
     multiProject?: boolean,
+    keepStructure?: boolean,
 ): void {
     const dir = path.join(projectRoot, AI_MIGRATION_DIR);
     if (!fs.existsSync(dir)) {
@@ -138,12 +141,15 @@ export function writeEnhanceToml(
     if (currentStage !== undefined) {
         content += `currentStage = ${currentStage}\n`;
     }
-    // When multiProject is not explicitly provided, preserve the existing value from disk.
-    const effectiveMultiProject = multiProject !== undefined
-        ? multiProject
-        : readEnhanceToml(projectRoot)?.multiProject;
+    // When multiProject / keepStructure are not explicitly provided, preserve existing values from disk.
+    const existing = multiProject === undefined || keepStructure === undefined ? readEnhanceToml(projectRoot) : undefined;
+    const effectiveMultiProject = multiProject !== undefined ? multiProject : existing?.multiProject;
     if (effectiveMultiProject !== undefined) {
         content += `multiProject = ${effectiveMultiProject}\n`;
+    }
+    const effectiveKeepStructure = keepStructure !== undefined ? keepStructure : existing?.keepStructure;
+    if (effectiveKeepStructure) {
+        content += `keepStructure = true\n`;
     }
     fs.writeFileSync(filePath, content);
 }
@@ -230,6 +236,7 @@ export async function startMigrationEnhancement(): Promise<void> {
         // triggered by the AI Chat via wizardEnhancementReady().
         _wizardProjectRoot = projectRoot;
         _wizardSourcePath = existing?.sourcePath;
+        _wizardKeepStructure = existing?.keepStructure ?? false;
     }
 
     // Mark the session as active (panel is already open when called from AI Chat)
@@ -1512,10 +1519,11 @@ export function openMigratedProject(): void {
     const aiFeatureUsed = data?.aiFeatureUsed ?? true;
     const sourcePath = data?.sourcePath ?? _wizardSourcePath;
 
-    // If the AI agent was running (paused by user), the toml already reflects fullyEnhanced=false
+    // If the AI agent was running (paused by user), the toml already reflects fullyEnhanced=false.
+    // Also persist keepStructure so the resume flow can restore it after a window reload.
     const wasRunning = _migrationAbortController !== undefined;
-    if (wasRunning && data && !data.fullyEnhanced) {
-        writeEnhanceToml(projectRoot, aiFeatureUsed, false, sourcePath);
+    if ((wasRunning || _wizardKeepStructure) && data && !data.fullyEnhanced) {
+        writeEnhanceToml(projectRoot, aiFeatureUsed, false, sourcePath, undefined, undefined, undefined, undefined, _wizardKeepStructure || undefined);
     }
 
     scheduleMigrationEnhancement(aiFeatureUsed, projectRoot, sourcePath);
