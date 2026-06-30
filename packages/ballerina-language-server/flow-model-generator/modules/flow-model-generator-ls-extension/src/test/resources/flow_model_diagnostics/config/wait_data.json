@@ -334,7 +334,7 @@
     "metadata": {
       "label": "Wait for Data",
       "description": "Wait for workflow data to be received",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.4.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.5.0.png"
     },
     "codedata": {
       "node": "WAIT_DATA",
@@ -343,7 +343,7 @@
       "packageName": "workflow",
       "object": "Context",
       "symbol": "await",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "lineRange": {
         "fileName": "functions.bal",
         "startLine": {
