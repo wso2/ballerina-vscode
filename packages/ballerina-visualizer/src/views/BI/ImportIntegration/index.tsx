@@ -112,6 +112,7 @@ export function ImportIntegration() {
                 projects: migratedProjects,
                 aiFeatureUsed: aiFeatureUsed,
                 sourcePath: importParams?.importSourcePath,
+                keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
             };
             rpcClient.getMigrateIntegrationRpcClient().migrateProject(params);
 
