@@ -20,6 +20,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { Uri, ViewColumn, Webview } from "vscode";
 import { RPCLayer } from "../../RPCLayer";
+import { DefaultServer } from "../../webview-communication/DefaultServer";
 import { debounce } from "lodash";
 import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } from "../../utils/webview-utils";
 import { extension } from "../../BalExtensionContext";
@@ -47,6 +48,10 @@ export class VisualizerWebview {
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         this._panel.webview.html = this.getWebviewContent(this._panel.webview);
         RPCLayer.create(this._panel);
+        // Attach the BI migrated-forms WS-manager bridge (proxy mode) to this panel,
+        // so the federated project/import forms can talk to the extension over the
+        // giga-bridge transport in the standalone visualizer.
+        this._disposables.push(DefaultServer.getInstance().registerVisualizerPanel(this._panel));
 
         // Handle the text change and diagram update with rpc notification
         const sendUpdateNotificationToWebview = debounce(async (refreshTreeView?: boolean) => {
