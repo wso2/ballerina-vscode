@@ -3180,7 +3180,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 1,
-              "optional": 1,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "'error",
@@ -3245,7 +3245,7 @@
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 1,
-              "optional": 1,
+              "optional": 0,
               "parameters": [
                 {
                   "name": "'error",

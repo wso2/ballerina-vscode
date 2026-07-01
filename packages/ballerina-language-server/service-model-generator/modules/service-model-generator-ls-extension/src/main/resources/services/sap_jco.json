@@ -1,5 +1,5 @@
 {
-  "id": "20",
+  "id": "22",
   "displayName": "SAP JCo Event Integration",
   "description": "Create a service to handle IDocs or RFC calls from SAP via the JCo listener",
   "orgName": "ballerinax",
@@ -75,120 +75,12 @@
                   "optional": false,
                   "advanced": false
                 },
-                "gwhost": {
+                "serverOrAdvancedConfig": {
                   "metadata": {
-                    "label": "Gateway Host",
-                    "description": "SAP gateway host to register the server with"
+                    "label": "Server Configuration",
+                    "description": "Choose between structured server configuration or raw JCo properties"
                   },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_CONFIG_FIELD"
-                  },
-                  "placeholder": "sap-gw.example.com",
-                  "value": "",
-                  "types": [
-                    {
-                      "fieldType": "TEXT",
-                      "ballerinaType": "string",
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "string",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false
-                },
-                "gwserv": {
-                  "metadata": {
-                    "label": "Gateway Service",
-                    "description": "SAP gateway service name or port number"
-                  },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_CONFIG_FIELD"
-                  },
-                  "placeholder": "3300",
-                  "value": "",
-                  "types": [
-                    {
-                      "fieldType": "TEXT",
-                      "ballerinaType": "string",
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "string",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false
-                },
-                "progid": {
-                  "metadata": {
-                    "label": "Program ID",
-                    "description": "Program ID registered in the SAP system via transaction SM59"
-                  },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_CONFIG_FIELD"
-                  },
-                  "placeholder": "JCO_LISTENER",
-                  "value": "",
-                  "types": [
-                    {
-                      "fieldType": "TEXT",
-                      "ballerinaType": "string",
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "string",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false
-                },
-                "connectionCount": {
-                  "metadata": {
-                    "label": "Connection Count",
-                    "description": "Maximum number of concurrent RFC connections (default: 2)"
-                  },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_CONFIG_FIELD"
-                  },
-                  "placeholder": "2",
-                  "value": "2",
-                  "types": [
-                    {
-                      "fieldType": "NUMBER",
-                      "ballerinaType": "int",
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "int",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": true,
-                  "advanced": false
-                },
-                "repositoryDestination": {
-                  "metadata": {
-                    "label": "Repository Destination",
-                    "description": "RFC destination used to fetch metadata from the SAP system"
-                  },
-                  "value": "1",
+                  "value": "0",
                   "types": [
                     {
                       "fieldType": "CHOICE"
@@ -197,50 +89,8 @@
                   "choices": [
                     {
                       "metadata": {
-                        "label": "Destination ID",
-                        "description": "Reference an already-initialised JCo client destination by its ID"
-                      },
-                      "value": "true",
-                      "types": [
-                        {
-                          "fieldType": "FORM"
-                        }
-                      ],
-                      "enabled": false,
-                      "editable": true,
-                      "optional": false,
-                      "advanced": false,
-                      "properties": {
-                        "repoDestId": {
-                          "metadata": {
-                            "label": "Destination ID",
-                            "description": "The destination ID of an already-initialised JCo client"
-                          },
-                          "placeholder": "MY_SAP_DEST",
-                          "value": "",
-                          "types": [
-                            {
-                              "fieldType": "TEXT",
-                              "ballerinaType": "string",
-                              "selected": true
-                            },
-                            {
-                              "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
-                              "selected": false
-                            }
-                          ],
-                          "enabled": true,
-                          "editable": true,
-                          "optional": false,
-                          "advanced": false
-                        }
-                      }
-                    },
-                    {
-                      "metadata": {
-                        "label": "SAP Credentials",
-                        "description": "Provide SAP connection credentials directly"
+                        "label": "ServerConfig",
+                        "description": "Provide SAP gateway and connection details"
                       },
                       "value": "true",
                       "types": [
@@ -253,12 +103,15 @@
                       "optional": false,
                       "advanced": false,
                       "properties": {
-                        "ashost": {
+                        "gwhost": {
                           "metadata": {
-                            "label": "Application Server Host",
-                            "description": "SAP application server host name"
+                            "label": "Gateway Host",
+                            "description": "SAP gateway host to register the server with"
                           },
-                          "placeholder": "sap.example.com",
+                          "codedata": {
+                            "argType": "LISTENER_PARAM_CONFIG_FIELD"
+                          },
+                          "placeholder": "sap-gw.example.com",
                           "value": "",
                           "types": [
                             {
@@ -277,12 +130,15 @@
                           "optional": false,
                           "advanced": false
                         },
-                        "sysnr": {
+                        "gwserv": {
                           "metadata": {
-                            "label": "System Number",
-                            "description": "SAP system number"
+                            "label": "Gateway Service",
+                            "description": "SAP gateway service name or port number"
                           },
-                          "placeholder": "00",
+                          "codedata": {
+                            "argType": "LISTENER_PARAM_CONFIG_FIELD"
+                          },
+                          "placeholder": "3300",
                           "value": "",
                           "types": [
                             {
@@ -301,12 +157,15 @@
                           "optional": false,
                           "advanced": false
                         },
-                        "jcoClient": {
+                        "progid": {
                           "metadata": {
-                            "label": "Client Number",
-                            "description": "SAP client number"
+                            "label": "Program ID",
+                            "description": "Program ID registered in the SAP system via transaction SM59"
                           },
-                          "placeholder": "100",
+                          "codedata": {
+                            "argType": "LISTENER_PARAM_CONFIG_FIELD"
+                          },
+                          "placeholder": "JCO_LISTENER",
                           "value": "",
                           "types": [
                             {
@@ -325,47 +184,323 @@
                           "optional": false,
                           "advanced": false
                         },
-                        "user": {
+                        "connectionCount": {
                           "metadata": {
-                            "label": "User",
-                            "description": "SAP logon user name"
+                            "label": "Connection Count",
+                            "description": "Maximum number of concurrent RFC connections (default: 2)"
                           },
-                          "placeholder": "admin",
-                          "value": "",
+                          "codedata": {
+                            "argType": "LISTENER_PARAM_CONFIG_FIELD"
+                          },
+                          "placeholder": "2",
+                          "value": "2",
                           "types": [
                             {
-                              "fieldType": "TEXT",
-                              "ballerinaType": "string",
+                              "fieldType": "NUMBER",
+                              "ballerinaType": "int",
                               "selected": true
                             },
                             {
                               "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
+                              "ballerinaType": "int",
                               "selected": false
+                            }
+                          ],
+                          "enabled": true,
+                          "editable": true,
+                          "optional": true,
+                          "advanced": false
+                        },
+                        "repositoryDestination": {
+                          "metadata": {
+                            "label": "Repository Destination",
+                            "description": "Repository destination used to look up RFC and IDoc metadata"
+                          },
+                          "value": "1",
+                          "types": [
+                            {
+                              "fieldType": "CHOICE"
+                            }
+                          ],
+                          "choices": [
+                            {
+                              "metadata": {
+                                "label": "Destination ID",
+                                "description": "Reference an already-initialised JCo client destination by its ID"
+                              },
+                              "value": "true",
+                              "types": [
+                                {
+                                  "fieldType": "FORM"
+                                }
+                              ],
+                              "enabled": false,
+                              "editable": true,
+                              "optional": false,
+                              "advanced": false,
+                              "properties": {
+                                "repoDestId": {
+                                  "metadata": {
+                                    "label": "Destination ID",
+                                    "description": "The destination ID of an already-initialised JCo client"
+                                  },
+                                  "placeholder": "MY_SAP_DEST",
+                                  "value": "",
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": true
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "enabled": true,
+                                  "editable": true,
+                                  "optional": false,
+                                  "advanced": false
+                                }
+                              }
+                            },
+                            {
+                              "metadata": {
+                                "label": "Destination Configurations",
+                                "description": "Provide SAP connection credentials directly"
+                              },
+                              "value": "true",
+                              "types": [
+                                {
+                                  "fieldType": "FORM"
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": true,
+                              "optional": false,
+                              "advanced": false,
+                              "properties": {
+                                "ashost": {
+                                  "metadata": {
+                                    "label": "Application Server Host",
+                                    "description": "SAP application server host name"
+                                  },
+                                  "placeholder": "sap.example.com",
+                                  "value": "",
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": true
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "enabled": true,
+                                  "editable": true,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                "sysnr": {
+                                  "metadata": {
+                                    "label": "System Number",
+                                    "description": "SAP system number"
+                                  },
+                                  "placeholder": "00",
+                                  "value": "",
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": true
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "enabled": true,
+                                  "editable": true,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                "jcoClient": {
+                                  "metadata": {
+                                    "label": "Client Number",
+                                    "description": "SAP client number"
+                                  },
+                                  "placeholder": "100",
+                                  "value": "",
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": true
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "enabled": true,
+                                  "editable": true,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                "user": {
+                                  "metadata": {
+                                    "label": "User",
+                                    "description": "SAP logon user name"
+                                  },
+                                  "placeholder": "admin",
+                                  "value": "",
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": true
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "enabled": true,
+                                  "editable": true,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                "passwd": {
+                                  "metadata": {
+                                    "label": "Password",
+                                    "description": "SAP logon password"
+                                  },
+                                  "placeholder": "",
+                                  "value": "",
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": true
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "enabled": true,
+                                  "editable": true,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                "lang": {
+                                  "metadata": {
+                                    "label": "Language",
+                                    "description": "SAP logon language (e.g. EN)"
+                                  },
+                                  "placeholder": "EN",
+                                  "value": "",
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": true
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "enabled": true,
+                                  "editable": true,
+                                  "optional": true,
+                                  "advanced": false
+                                },
+                                "group": {
+                                  "metadata": {
+                                    "label": "Group",
+                                    "description": "SAP logon group for message server load balancing"
+                                  },
+                                  "placeholder": "",
+                                  "value": "",
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": true
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "enabled": true,
+                                  "editable": true,
+                                  "optional": true,
+                                  "advanced": false
+                                }
+                              }
                             }
                           ],
                           "enabled": true,
                           "editable": true,
                           "optional": false,
                           "advanced": false
-                        },
-                        "passwd": {
+                        }
+                      }
+                    },
+                    {
+                      "metadata": {
+                        "label": "AdvancedConfig",
+                        "description": "Provide raw JCo properties as key-value pairs"
+                      },
+                      "value": "true",
+                      "types": [
+                        {
+                          "fieldType": "FORM"
+                        }
+                      ],
+                      "enabled": false,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false,
+                      "properties": {
+                        "advancedConfig": {
                           "metadata": {
-                            "label": "Password",
-                            "description": "SAP logon password"
+                            "label": "JCo Properties",
+                            "description": "SAP JCo server properties as key-value pairs (e.g. jco.server.gwhost)"
                           },
-                          "placeholder": "",
-                          "value": "",
+                          "codedata": {
+                            "argType": "LISTENER_PARAM_REQUIRED"
+                          },
                           "types": [
                             {
-                              "fieldType": "TEXT",
+                              "fieldType": "REPEATABLE_MAP",
                               "ballerinaType": "string",
+                              "template": {
+                                "types": [
+                                  {
+                                    "fieldType": "TEXT",
+                                    "ballerinaType": "string",
+                                    "selected": true
+                                  }
+                                ],
+                                "optional": false,
+                                "editable": true,
+                                "advanced": false,
+                                "hidden": false
+                              },
                               "selected": true
-                            },
-                            {
-                              "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
-                              "selected": false
                             }
                           ],
                           "enabled": true,
@@ -381,32 +516,49 @@
                   "optional": false,
                   "advanced": false
                 },
-                "serverName": {
+                "advancedConfigurations": {
                   "metadata": {
-                    "label": "Server Name",
-                    "description": "Unique name to register this server with the JCo framework (defaults to a generated UUID)"
+                    "label": "Advanced Configurations",
+                    "description": ""
                   },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-                  },
-                  "placeholder": "",
-                  "value": "",
                   "types": [
                     {
-                      "fieldType": "TEXT",
-                      "ballerinaType": "string",
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "string",
+                      "fieldType": "GROUP_SECTION",
                       "selected": false
                     }
                   ],
                   "enabled": true,
-                  "editable": true,
-                  "optional": true,
-                  "advanced": false
+                  "editable": false,
+                  "advanced": false,
+                  "properties": {
+                    "serverName": {
+                      "metadata": {
+                        "label": "Server Name",
+                        "description": "Unique name to register this server with the JCo framework (defaults to a generated UUID)"
+                      },
+                      "codedata": {
+                        "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+                      },
+                      "placeholder": "",
+                      "value": "",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "ballerinaType": "string",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": true,
+                      "advanced": false
+                    }
+                  }
                 }
               }
             }

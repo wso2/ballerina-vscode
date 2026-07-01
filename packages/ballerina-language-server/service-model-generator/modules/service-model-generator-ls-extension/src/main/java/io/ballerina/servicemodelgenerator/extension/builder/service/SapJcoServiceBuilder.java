@@ -19,6 +19,8 @@
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Qualifier;
@@ -69,6 +71,7 @@ import java.util.logging.Logger;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_CONFIG_FIELD;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getArgList;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
@@ -88,6 +91,8 @@ public class SapJcoServiceBuilder extends AbstractServiceBuilder {
     private static final String SAP_JCO_SERVICE_MODEL_LOCATION = "services/sap_jco.json";
     private static final String KEY_CONFIGURE_LISTENER = "configureListener";
     private static final String KEY_LISTENER_CONFIG = "listenerConfig";
+    private static final String KEY_SERVER_OR_ADVANCED_CONFIG = "serverOrAdvancedConfig";
+    private static final String KEY_ADVANCED_CONFIG = "advancedConfig";
     private static final String KEY_REPO_DESTINATION = "repositoryDestination";
     private static final String KEY_REPO_DEST_ID = "repoDestId";
     private static final String DISPLAY_LABEL = "SAP JCo";
@@ -98,6 +103,8 @@ public class SapJcoServiceBuilder extends AbstractServiceBuilder {
     private static final String FIELD_JCO_CLIENT = "jcoClient";
     private static final String FIELD_USER = "user";
     private static final String FIELD_PASSWD = "passwd";
+    private static final String FIELD_LANG = "lang";
+    private static final String FIELD_GROUP = "group";
 
     @Override
     public String kind() {
@@ -195,10 +202,13 @@ public class SapJcoServiceBuilder extends AbstractServiceBuilder {
         applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
         Map<String, Value> properties = serviceInitModel.getProperties();
 
-        // 2. Unwrap GROUP_SECTION wrappers (e.g. listenerConfig) into the flat map
+        // 2. Unwrap GROUP_SECTION wrappers (e.g. listenerConfig, advancedConfigurations) into the flat map
         unwrapGroupSections(properties);
 
-        // 3. Determine whether an existing listener was selected
+        // 3. Flatten the serverOrAdvancedConfig CHOICE into individual properties
+        applyServerOrAdvancedConfigProperty(properties);
+
+        // 4. Determine whether an existing listener was selected
         boolean useExisting = ListenerUtil.shouldUseExistingListener(properties);
         Optional<String> existingListenerName = ListenerUtil.getExistingListenerName(properties);
         properties.remove(KEY_EXISTING_LISTENER);
@@ -222,6 +232,84 @@ public class SapJcoServiceBuilder extends AbstractServiceBuilder {
         }
 
         return getServiceDeclarationEdits(context, listenerDTO);
+    }
+
+    /**
+     * Processes the serverOrAdvancedConfig CHOICE property.
+     * For ServerConfig: promotes sub-properties (gwhost, gwserv, etc.) to the flat map.
+     * For AdvancedConfig: builds a map&lt;string&gt; literal with quoted keys and injects it
+     * as a LISTENER_PARAM_REQUIRED so it becomes the entire first positional arg to new().
+     */
+    private void applyServerOrAdvancedConfigProperty(Map<String, Value> properties) {
+        Value choice = properties.remove(KEY_SERVER_OR_ADVANCED_CONFIG);
+        if (choice == null || choice.getChoices() == null || choice.getChoices().isEmpty()) {
+            return;
+        }
+
+        Value selected = choice.getChoices().stream()
+                .filter(Value::isEnabled)
+                .findFirst()
+                .orElseGet(() -> choice.getChoices().getFirst());
+
+        Map<String, Value> choiceProps = selected.getProperties();
+        if (choiceProps == null) {
+            return;
+        }
+
+        if (choiceProps.containsKey(KEY_ADVANCED_CONFIG)) {
+            // AdvancedConfig branch: build a map<string> literal with quoted string keys
+            // (JCo property keys like "jco.server.gwhost" contain dots and cannot be
+            // used as unquoted Ballerina record field names)
+            Value advCfg = choiceProps.get(KEY_ADVANCED_CONFIG);
+            String mapLiteral = buildAdvancedConfigMapLiteral(advCfg);
+            Value injected = new Value.ValueBuilder()
+                    .value(mapLiteral)
+                    .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION)))
+                    .enabled(true)
+                    .editable(false)
+                    .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_REQUIRED))
+                    .build();
+            properties.put(KEY_ADVANCED_CONFIG, injected);
+        } else {
+            // ServerConfig branch: promote sub-properties for normal field-by-field processing
+            properties.putAll(choiceProps);
+        }
+    }
+
+    /**
+     * Builds a Ballerina map&lt;string&gt; literal from a REPEATABLE_MAP Value.
+     * Uses quoted string keys so that JCo property names (e.g. "jco.server.gwhost")
+     * are valid even though they cannot be used as Ballerina record field identifiers.
+     */
+    private String buildAdvancedConfigMapLiteral(Value advancedConfigValue) {
+        if (advancedConfigValue == null) {
+            return "{}";
+        }
+        Gson gson = new Gson();
+        JsonElement element = gson.toJsonTree(advancedConfigValue);
+        if (!element.isJsonObject()) {
+            return "{}";
+        }
+        JsonElement valueEl = element.getAsJsonObject().get("value");
+        if (valueEl == null || !valueEl.isJsonObject()) {
+            return "{}";
+        }
+        JsonObject valueMap = valueEl.getAsJsonObject();
+        List<String> entries = new ArrayList<>();
+        for (Map.Entry<String, JsonElement> entry : valueMap.entrySet()) {
+            String key = entry.getKey();
+            String val = "";
+            if (entry.getValue().isJsonObject()) {
+                JsonElement inner = entry.getValue().getAsJsonObject().get("value");
+                if (inner != null) {
+                    val = inner.isJsonPrimitive() ? inner.getAsString() : inner.toString();
+                }
+            }
+            if (!key.isBlank() && !val.isBlank()) {
+                entries.add("\"" + key.replace("\"", "\\\"") + "\": \"" + val.replace("\"", "\\\"") + "\"");
+            }
+        }
+        return entries.isEmpty() ? "{}" : "{" + String.join(", ", entries) + "}";
     }
 
     /**
@@ -270,7 +358,8 @@ public class SapJcoServiceBuilder extends AbstractServiceBuilder {
             return "{}";
         }
         List<String> fields = new ArrayList<>();
-        for (String fieldName : List.of(FIELD_ASHOST, FIELD_SYSNR, FIELD_JCO_CLIENT, FIELD_USER, FIELD_PASSWD)) {
+        for (String fieldName : List.of(FIELD_ASHOST, FIELD_SYSNR, FIELD_JCO_CLIENT,
+                FIELD_USER, FIELD_PASSWD, FIELD_LANG, FIELD_GROUP)) {
             Value fieldValue = credProps.get(fieldName);
             if (fieldValue != null && fieldValue.getValue() != null && !fieldValue.getValue().isBlank()) {
                 fields.add(fieldName + ": " + fieldValue.getValue());
@@ -343,28 +432,42 @@ public class SapJcoServiceBuilder extends AbstractServiceBuilder {
                 return config;
             }
 
-            // The first positional argument is the ServerConfig record
+            // The first positional argument is either a ServerConfig record or an AdvancedConfig map<string>.
+            // Detect which variant by checking if the first field key is a string literal (starts with '"').
             for (FunctionArgumentNode argument : arguments) {
                 if (argument instanceof PositionalArgumentNode positionalArg) {
                     if (positionalArg.expression() instanceof MappingConstructorExpressionNode mapping) {
+                        boolean isAdvancedConfig = false;
+                        for (MappingFieldNode f : mapping.fields()) {
+                            if (f instanceof SpecificFieldNode sf) {
+                                isAdvancedConfig = sf.fieldName().toSourceCode().trim().startsWith("\"");
+                                break;
+                            }
+                        }
                         for (MappingFieldNode fieldNode : mapping.fields()) {
                             if (!(fieldNode instanceof SpecificFieldNode field)) {
                                 continue;
                             }
-                            String fieldName = field.fieldName().toSourceCode().trim();
+                            String rawKey = field.fieldName().toSourceCode().trim();
                             String fieldValue = field.valueExpr()
                                     .map(expr -> expr.toSourceCode().trim()).orElse("");
-                            switch (fieldName) {
-                                case "gwhost" -> config.put("gwhost",
-                                        ListenerUtil.buildReadOnlyTextValue("Gateway Host",
-                                                "SAP gateway host", fieldValue));
-                                case "gwserv" -> config.put("gwserv",
-                                        ListenerUtil.buildReadOnlyTextValue("Gateway Service",
-                                                "SAP gateway service", fieldValue));
-                                case "progid" -> config.put("progid",
-                                        ListenerUtil.buildReadOnlyTextValue("Program ID",
-                                                "Program ID registered in SAP", fieldValue));
-                                default -> { }
+                            if (isAdvancedConfig) {
+                                String key = rawKey.startsWith("\"") && rawKey.endsWith("\"")
+                                        ? rawKey.substring(1, rawKey.length() - 1) : rawKey;
+                                config.put(key, ListenerUtil.buildReadOnlyTextValue(key, key, fieldValue));
+                            } else {
+                                switch (rawKey) {
+                                    case "gwhost" -> config.put("gwhost",
+                                            ListenerUtil.buildReadOnlyTextValue("Gateway Host",
+                                                    "SAP gateway host", fieldValue));
+                                    case "gwserv" -> config.put("gwserv",
+                                            ListenerUtil.buildReadOnlyTextValue("Gateway Service",
+                                                    "SAP gateway service", fieldValue));
+                                    case "progid" -> config.put("progid",
+                                            ListenerUtil.buildReadOnlyTextValue("Program ID",
+                                                    "Program ID registered in SAP", fieldValue));
+                                    default -> { }
+                                }
                             }
                         }
                     }
