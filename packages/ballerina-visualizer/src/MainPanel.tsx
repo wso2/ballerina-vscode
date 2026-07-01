@@ -31,6 +31,7 @@ import {
     LinePosition,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { BiWsClientProvider } from "./views/BI/wsManager/WsClientContext";
 import { Global, css } from "@emotion/react";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
@@ -560,7 +561,18 @@ const MainPanel = () => {
                             const { ImportIntegration } = await import("./views/BI/ImportIntegration");
                             if (isStaleNavigation()) return;
                             setShowHome(false);
-                            setViewComponent(<ImportIntegration />);
+                            setViewComponent(
+                                <BiWsClientProvider
+                                    onBack={() =>
+                                        rpcClient.getVisualizerRpcClient().openView({
+                                            type: EVENT_TYPE.OPEN_VIEW,
+                                            location: { view: MACHINE_VIEW.BIWelcome },
+                                        })
+                                    }
+                                >
+                                    <ImportIntegration />
+                                </BiWsClientProvider>
+                            );
                             break;
                         }
                         case MACHINE_VIEW.BIAddProjectForm: {
