@@ -278,6 +278,48 @@ public class ICPEnablerService implements ExtendedLanguageServerService {
         });
     }
 
+    /**
+     * Checks whether ICP is enabled for the given package: the default module imports
+     * {@code ballerinax/wso2.controlplane as _} and {@code Ballerina.toml} contains
+     * {@code [build-options] remoteManagement = true}.
+     *
+     * @param pkg the package to inspect
+     * @return {@code true} if ICP is enabled, {@code false} otherwise
+     */
+    public static boolean isIcpEnabled(Package pkg) {
+        Module defaultModule = pkg.getDefaultModule();
+        boolean hasCorrectImport = false;
+        for (DocumentId documentId : defaultModule.documentIds()) {
+            Document document = defaultModule.document(documentId);
+            ModulePartNode root = document.syntaxTree().rootNode();
+            for (ImportDeclarationNode importNode : root.imports()) {
+                if (validOrg(importNode) && validModuleName(importNode) && validPrefix(importNode)) {
+                    hasCorrectImport = true;
+                    break;
+                }
+            }
+            if (hasCorrectImport) {
+                break;
+            }
+        }
+        if (!hasCorrectImport) {
+            return false;
+        }
+        Optional<BallerinaToml> ballerinaToml = pkg.ballerinaToml();
+        if (ballerinaToml.isEmpty()) {
+            return false;
+        }
+        TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
+        TopLevelNode topLevelNode = tomlTableNode.entries().get("build-options");
+        if (topLevelNode instanceof TomlTableNode buildOptions) {
+            TopLevelNode icpNode = buildOptions.entries().get("remoteManagement");
+            if (icpNode instanceof TomlKeyValueNode keyValueNode) {
+                return keyValueNode.value().toNativeValue().toString().trim().equals("true");
+            }
+        }
+        return false;
+    }
+
     private static boolean validOrg(ImportDeclarationNode importNode) {
         Optional<ImportOrgNameNode> importOrgNameNode = importNode.orgName();
         return importOrgNameNode.isPresent() && importOrgNameNode.get().orgName().text().trim().equals(BALLERINAX);

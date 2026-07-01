@@ -39,7 +39,7 @@ export function WorkflowPanel() {
         <PanelViewMore>
             <TitleWrapper>
                 <Title variant="h2">Workflow</Title>
-                <BodyText>Create and manage workflows for your integration.</BodyText>
+                <BodyText>Create a workflow integration.</BodyText>
             </TitleWrapper>
             <CardGrid>
                 <ButtonCard
