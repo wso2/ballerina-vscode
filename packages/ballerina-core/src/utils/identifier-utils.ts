@@ -19,7 +19,7 @@
 
 import { ComponentInfo } from "../interfaces/ballerina";
 import { BallerinaProjectComponents } from "../interfaces/extended-lang-client";
-import { SCOPE } from "../state-machine-types";
+import { SCOPE } from "../interfaces/shared-types";
 
 /** Modules that map to the INTEGRATION_AS_API scope. */
 const INTEGRATION_API_MODULES: ReadonlySet<string> = new Set(["http", "graphql", "tcp"]);
@@ -37,6 +37,7 @@ const EVENT_INTEGRATION_MODULES: ReadonlySet<string> = new Set([
     "postgresql",
     "trigger.shopify",
     "trigger.twilio",
+    "trigger.hubspot",
     "solace"
 ]);
 

@@ -24,6 +24,7 @@ export type CDModel = {
     connections: CDConnection[];
     listeners: CDListener[];
     services: CDService[];
+    workflows?: CDWorkflow[];
 };
 
 export type CDAutomation = {
@@ -32,6 +33,16 @@ export type CDAutomation = {
     location: CDLocation;
     connections: string[];
     uuid: string;
+};
+
+export type CDWorkflow = {
+    symbol: string;
+    location: CDLocation;
+    attachedServices: string[];
+    attachedFunctions: string[];
+    uuid: string;
+    enableFlowModel: boolean;
+    sortText: string;
 };
 
 export type CDLocation = LineRange & {

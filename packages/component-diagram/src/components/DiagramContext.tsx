@@ -21,6 +21,7 @@ import { CDListener, CDModel, CDService } from "@wso2/ballerina-core";
 import { CDAutomation } from "@wso2/ballerina-core";
 import { CDConnection } from "@wso2/ballerina-core";
 import { CDFunction, CDResourceFunction } from "@wso2/ballerina-core";
+import { CDWorkflow } from "@wso2/ballerina-core";
 export interface DiagramContextState {
     project: CDModel;
     expandedNodes: Set<string>; // Track which nodes are expanded by their UUID
@@ -30,8 +31,9 @@ export interface DiagramContextState {
     onServiceSelect: (service: CDService) => void;
     onFunctionSelect: (func: CDFunction | CDResourceFunction) => void;
     onAutomationSelect: (automation: CDAutomation) => void;
+    onWorkflowSelect?: (workflow: CDWorkflow) => void;
     onConnectionSelect: (connection: CDConnection) => void;
-    onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection, nodeType?: string) => void;
+    onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection | CDWorkflow, nodeType?: string) => void;
     onToggleNodeExpansion: (nodeId: string) => void; // Toggle expansion state of a node
     onToggleGraphQLGroup?: (serviceUuid: string, group: "Query" | "Subscription" | "Mutation") => void;
 }
@@ -45,6 +47,7 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     onServiceSelect: () => {},
     onFunctionSelect: () => {},
     onAutomationSelect: () => {},
+    onWorkflowSelect: () => {},
     onConnectionSelect: () => {},
     onDeleteComponent: () => {},
     onToggleNodeExpansion: () => {},

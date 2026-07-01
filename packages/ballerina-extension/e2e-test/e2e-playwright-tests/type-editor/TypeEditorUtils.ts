@@ -206,9 +206,12 @@ export class TypeEditorUtils {
         await this.waitForElement(menuButton);
         await menuButton.click();
 
+        // The menu can briefly re-render after open on slow runners, detaching the
+        // Edit item between stability check and click. Force the click to bypass
+        // the stability retry that hits the detached node.
         const editMenuItem = this.webView.getByText('Edit', { exact: true });
         await this.waitForElement(editMenuItem);
-        await editMenuItem.click();
+        await editMenuItem.click({ force: true });
 
         // Wait for type editor to load
         const typeEditorContent = this.webView.locator('[data-testid="type-editor-container"]');

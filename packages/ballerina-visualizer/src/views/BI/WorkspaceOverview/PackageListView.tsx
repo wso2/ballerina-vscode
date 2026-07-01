@@ -206,6 +206,7 @@ const getTypeColor = (type: SCOPE): string => {
         [SCOPE.AI_AGENT]: 'var(--vscode-terminal-ansiBlue)',
         [SCOPE.MCP]: 'var(--vscode-terminal-ansiCyan)',
         [SCOPE.LIBRARY]: 'var(--vscode-charts-foreground)',
+        [SCOPE.WORKFLOW]: 'var(--vscode-charts-yellow)',
         [SCOPE.ANY]: 'var(--vscode-charts-gray)'
     };
     return colors[type];
@@ -220,6 +221,7 @@ const getTypeIcon = (type: SCOPE): { name: string; source: 'icon' | 'codicon' } 
         [SCOPE.AI_AGENT]: { name: 'bi-ai-agent', source: 'icon' },
         [SCOPE.MCP]: { name: 'bi-mcp', source: 'icon' },
         [SCOPE.LIBRARY]: { name: 'library', source: 'codicon' },
+        [SCOPE.WORKFLOW]: { name: 'bi-workflow', source: 'icon' },
         [SCOPE.ANY]: { name: 'package', source: 'codicon' }
     };
     return icons[type];
@@ -234,6 +236,7 @@ const getTypeLabel = (type: SCOPE): string => {
         [SCOPE.AI_AGENT]: 'AI Agent',
         [SCOPE.MCP]: 'MCP Server',
         [SCOPE.LIBRARY]: 'Library',
+        [SCOPE.WORKFLOW]: 'Workflow',
         [SCOPE.ANY]: ''
     };
     return labels[type];
@@ -279,12 +282,12 @@ export function PackageListView(props: PackageListViewProps) {
         });
     }, [projectCollection]);
 
-    const handleItemClick = async (itemId: string, event: React.MouseEvent) => {
+    const handleItemClick = (itemId: string, event: React.MouseEvent) => {
         // Don't trigger if clicking on delete button
         if ((event.target as HTMLElement).closest('.delete-button')) {
             return;
         }
-        await rpcClient.getVisualizerRpcClient().openView({
+        rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 projectPath: integrationItems.find((item) => item.id === itemId)?.projectPath,
@@ -294,10 +297,10 @@ export function PackageListView(props: PackageListViewProps) {
         });
     };
 
-    const handleDeleteClick = async (projectPath: string, isLibrary: boolean, event: React.MouseEvent) => {
+    const handleDeleteClick = (projectPath: string, isLibrary: boolean, event: React.MouseEvent) => {
         event.stopPropagation();
         console.log(`Deleting ${isLibrary ? "library" : "integration"}: ${projectPath}`);
-        await rpcClient.getBIDiagramRpcClient().deleteProject({
+        rpcClient.getBIDiagramRpcClient().deleteProject({
             projectPath: projectPath
         });
     };

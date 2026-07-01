@@ -28,6 +28,7 @@ import { LANGUAGE } from "../../../core";
 import { StateMachine } from "../../../stateMachine";
 import { VisualizerWebview } from "../../../views/visualizer/webview";
 import { requiresPackageSelection } from "../../../utils/command-utils";
+import { confirmAndStopActiveRun } from "../integration-runner-state";
 
 function activateRunCmdCommand() {
 
@@ -139,6 +140,13 @@ function activateRunCmdCommand() {
             // }
 
             if (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) {
+                // Per-integration restart guard (#1012): integrations run
+                // concurrently; only re-running this same project prompts to
+                // restart it. (No-op when invoked right after
+                // restartIntegration, which clears its runner state first.)
+                if (await confirmAndStopActiveRun(currentProject.path!) === "cancelled") {
+                    return;
+                }
                 const configPath: string = extension.ballerinaExtInstance.getBallerinaConfigPath();
                 extension.ballerinaExtInstance.setBallerinaConfigPath('');
                 runCommandWithConf(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(),
@@ -146,6 +154,9 @@ function activateRunCmdCommand() {
                     configPath, currentProject.path!
                 );
             } else {
+                if (await confirmAndStopActiveRun(getCurrenDirectoryPath()) === "cancelled") {
+                    return;
+                }
                 runCurrentFile();
             }
 

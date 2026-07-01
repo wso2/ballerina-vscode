@@ -16,11 +16,13 @@
  * under the License.
  */
 
-import { BI_COMMANDS, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, SCOPE, findScopeByModule } from "@wso2/ballerina-core";
+import { BI_COMMANDS, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, SCOPE, findScopeByModule, isSamePath } from "@wso2/ballerina-core";
 import {
     WICommandIds,
     ICommitAndPushCmdParams,
     ICreateNewIntegrationCmdParams,
+    resolveIntegrationType,
+    AUTOMATION_WITH_LISTENER_WARNING,
 } from "@wso2/wso2-platform-core";
 import { BallerinaExtension } from "../../core";
 import { openView, StateMachine } from "../../stateMachine";
@@ -71,7 +73,7 @@ const handleComponentPushToDevant = async () => {
             return;
         }
         const projectStructure = StateMachine.context().projectStructure.projects.find(
-            (proj) => proj.projectPath === projectRoot
+            (proj) => isSamePath(proj.projectPath, projectRoot)
         );
         if (!projectStructure) {
             return;
@@ -93,7 +95,7 @@ const handleComponentPushToDevant = async () => {
             scopeSet.add(SCOPE.AUTOMATION);
         }
 
-        let integrationType: SCOPE;
+        let integrationType: SCOPE | undefined;
 
         if (scopeSet.size === 0) {
             window
@@ -107,12 +109,29 @@ const handleComponentPushToDevant = async () => {
                     }
                 });
             return;
-        } else if (scopeSet.size === 1) {
-            integrationType = [...scopeSet][0];
+        }
+
+        const resolution = resolveIntegrationType([...scopeSet]);
+
+        if (resolution.kind === "autoPick") {
+            integrationType = resolution.scope as SCOPE;
+        } else if (resolution.kind === "autoPickWithWarning") {
+            const choice = await window.showWarningMessage(
+                AUTOMATION_WITH_LISTENER_WARNING,
+                { modal: true },
+                "Continue",
+            );
+            if (choice !== "Continue") {
+                return;
+            }
+            integrationType = resolution.scope as SCOPE;
         } else {
-            const selectedScope = await window.showQuickPick([...scopeSet], {
+            const selectedScope = await window.showQuickPick(resolution.choices, {
                 placeHolder: "Multiple types of artifacts detected. Please select the artifact type to be deployed",
             });
+            if (!selectedScope) {
+                return;
+            }
             integrationType = selectedScope as SCOPE;
         }
 

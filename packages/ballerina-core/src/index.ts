@@ -36,6 +36,7 @@ export * from "./interfaces/performance";
 export * from "./interfaces/extended-lang-client";
 export * from "./interfaces/service";
 export * from "./interfaces/data-mapper";
+export * from "./interfaces/shared-types";
 
 // ------ LS Utils -------->
 export * from "./ls-utils/WSConnection";

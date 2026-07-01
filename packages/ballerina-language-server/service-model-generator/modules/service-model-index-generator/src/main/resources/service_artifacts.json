@@ -3118,6 +3118,1069 @@
           "kind": "SERVICE_DESCRIPTION"
         }
       ]
+    },
+    {
+      "name": "trigger.hubspot",
+      "version": "0.12.0",
+      "serviceTypeSkipList": [],
+      "serviceDeclaration": {
+        "displayName": "HubSpot Event Integration",
+        "description": "Create a service to handle events from HubSpot",
+        "optionalTypeDescriptor": 0,
+        "typeDescriptorLabel": "Event Type",
+        "typeDescriptorDescription": "The event type",
+        "typeDescriptorDefaultValue": "",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 1,
+        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
+        "kind": "event"
+      },
+      "serviceTypes": {
+        "CompanyService": {
+          "name": "CompanyService",
+          "description": "Triggers when a new event related to HubSpot companies is received",
+          "functions": [
+            {
+              "name": "onCompanyCreation",
+              "description": "Triggers when a new company is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCompanyDeletion",
+              "description": "Triggers when a company is deleted",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCompanyPropertychange",
+              "description": "Triggers when a company property is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCompanyAssociationchange",
+              "description": "Triggers when a company association is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCompanyMerge",
+              "description": "Triggers when companies are merged",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCompanyRestore",
+              "description": "Triggers when a company is restored",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "ContactService": {
+          "name": "ContactService",
+          "description": "Triggers when a new event related to HubSpot contacts is received",
+          "functions": [
+            {
+              "name": "onContactCreation",
+              "description": "Triggers when a new contact is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onContactDeletion",
+              "description": "Triggers when a contact is deleted",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onContactPropertychange",
+              "description": "Triggers when a contact property is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onContactAssociationchange",
+              "description": "Triggers when a contact association is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onContactMerge",
+              "description": "Triggers when contacts are merged",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onContactRestore",
+              "description": "Triggers when a contact is restored",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onContactPrivacydeletion",
+              "description": "Triggers when a contact is deleted for privacy (GDPR) reasons",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "ConversationService": {
+          "name": "ConversationService",
+          "description": "Triggers when a new event related to HubSpot conversations is received",
+          "functions": [
+            {
+              "name": "onConversationCreation",
+              "description": "Triggers when a new conversation is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onConversationDeletion",
+              "description": "Triggers when a conversation is deleted",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onConversationPropertychange",
+              "description": "Triggers when a conversation property is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onConversationPrivacydeletion",
+              "description": "Triggers when a conversation is deleted for privacy (GDPR) reasons",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onConversationNewmessage",
+              "description": "Triggers when a new message is received in a conversation",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "DealService": {
+          "name": "DealService",
+          "description": "Triggers when a new event related to HubSpot deals is received",
+          "functions": [
+            {
+              "name": "onDealCreation",
+              "description": "Triggers when a new deal is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onDealDeletion",
+              "description": "Triggers when a deal is deleted",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onDealPropertychange",
+              "description": "Triggers when a deal property is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onDealAssociationchange",
+              "description": "Triggers when a deal association is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onDealMerge",
+              "description": "Triggers when deals are merged",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onDealRestore",
+              "description": "Triggers when a deal is restored",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "TicketService": {
+          "name": "TicketService",
+          "description": "Triggers when a new event related to HubSpot tickets is received",
+          "functions": [
+            {
+              "name": "onTicketCreation",
+              "description": "Triggers when a new ticket is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onTicketDeletion",
+              "description": "Triggers when a ticket is deleted",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onTicketPropertychange",
+              "description": "Triggers when a ticket property is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onTicketAssociationchange",
+              "description": "Triggers when a ticket association is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onTicketMerge",
+              "description": "Triggers when tickets are merged",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onTicketRestore",
+              "description": "Triggers when a ticket is restored",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "ProductService": {
+          "name": "ProductService",
+          "description": "Triggers when a new event related to HubSpot products is received",
+          "functions": [
+            {
+              "name": "onProductCreation",
+              "description": "Triggers when a new product is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onProductDeletion",
+              "description": "Triggers when a product is deleted",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onProductPropertychange",
+              "description": "Triggers when a product property is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onProductMerge",
+              "description": "Triggers when products are merged",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onProductRestore",
+              "description": "Triggers when a product is restored",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "LineItemService": {
+          "name": "LineItemService",
+          "description": "Triggers when a new event related to HubSpot line items is received",
+          "functions": [
+            {
+              "name": "onLineItemCreation",
+              "description": "Triggers when a new line item is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onLineItemDeletion",
+              "description": "Triggers when a line item is deleted",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onLineItemPropertychange",
+              "description": "Triggers when a line item property is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onLineItemAssociationchange",
+              "description": "Triggers when a line item association is changed",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onLineItemMerge",
+              "description": "Triggers when line items are merged",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onLineItemRestore",
+              "description": "Triggers when a line item is restored",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The HubSpot webhook event",
+                  "kind": "REQUIRED",
+                  "type": "hubspot:WebhookEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "initForm": {
+        "basePath": {
+          "label": "Event Type",
+          "description": "The event type",
+          "defaultValue": "CompanyService",
+          "placeholder": "CompanyService",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "hubspot:GenericServiceType",
+              "options": [
+                {
+                  "label": "CompanyService",
+                  "value": "CompanyService"
+                },
+                {
+                  "label": "ContactService",
+                  "value": "ContactService"
+                },
+                {
+                  "label": "ConversationService",
+                  "value": "ConversationService"
+                },
+                {
+                  "label": "DealService",
+                  "value": "DealService"
+                },
+                {
+                  "label": "TicketService",
+                  "value": "TicketService"
+                },
+                {
+                  "label": "ProductService",
+                  "value": "ProductService"
+                },
+                {
+                  "label": "LineItemService",
+                  "value": "LineItemService"
+                }
+              ]
+            }
+          ],
+          "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
+        }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "serviceType",
+          "displayName": "Event Type",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     }
   ]
 }

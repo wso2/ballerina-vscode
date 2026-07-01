@@ -63,6 +63,7 @@ export const FILES = {
 export const VSCODE_COMMANDS = {
     CLOSE_ALL_EDITORS: "workbench.action.closeAllEditors",
     OPEN: "vscode.open",
+    // TODO: Rework the datamap evaluation to drive the data-map SKILL instead of this command.
     AI_GENERATE_MAPPING_CODE_CORE: "ballerina.test.ai.generatemappingCodecore"
 } as const;
 

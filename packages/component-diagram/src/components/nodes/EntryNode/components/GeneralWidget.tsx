@@ -18,10 +18,10 @@
 
 import React, { useState } from "react";
 import { PortWidget } from "@projectstorm/react-diagrams-core";
-import { CDAutomation, CDService } from "@wso2/ballerina-core";
+import { CDAutomation, CDService, CDWorkflow } from "@wso2/ballerina-core";
 import { Item, Menu, MenuItem, Popover, ImageWithFallback, Icon } from "@wso2/ui-toolkit";
 import { useDiagramContext } from "../../../DiagramContext";
-import { HttpIcon, TaskIcon } from "../../../../resources";
+import { ClockIcon, HttpIcon, TaskIcon } from "../../../../resources";
 import { MoreVertIcon } from "../../../../resources/icons/nodes/MoreVertIcon";
 import { getEntryNodeFunctionPortName } from "../../../../utils/diagram";
 import { PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../../Diagram";
@@ -47,8 +47,12 @@ import {
 } from "./styles";
 
 const getNodeTitle = (model: EntryNodeModel) => {
-    if (model.node.displayName) {
-        return model.node.displayName;
+    if (model.type === "workflow") {
+        return (model.node as CDWorkflow).symbol || "";
+    }
+    const serviceOrAutomation = model.node as CDService | CDAutomation;
+    if (serviceOrAutomation.displayName) {
+        return serviceOrAutomation.displayName;
     }
     if ((model.node as CDService).absolutePath) {
         return (model.node as CDService).absolutePath.replace(/\\/g, "");
@@ -59,6 +63,9 @@ const getNodeTitle = (model: EntryNodeModel) => {
 const getNodeDescription = (model: EntryNodeModel) => {
     if (model.type === "automation") {
         return "Automation";
+    }
+    if (model.type === "workflow") {
+        return "Workflow";
     }
     // Service
     if ((model.node as CDService).type) {
@@ -126,12 +133,18 @@ function getCustomEntryNodeIcon(type: string) {
             return <Icon name="bi-file" />;
         case "mssql":
             return <Icon name="bi-mssql" sx={{ color: "#b61d1c" }}/>;
+        case "mysql":
+            return <Icon name="bi-mysql" sx={{ color: "#00758F" }}/>;
         case "postgresql":
             return <Icon name="bi-postgresql" sx={{ color: "#336791" }}/>;
-        case "mysql":
-            return <Icon name="bi-mysql" sx={{ color: "#00678c" }}/>;
+        case "trigger.shopify":
         case "shopify":
             return <Icon name="bi-shopify" sx={{ color: "#95BF47" }} />;
+        case "trigger.hubspot":
+        case "hubspot":
+            return <Icon name="bi-hubspot" sx={{ color: "#FF7A59" }} />;
+        case "trigger.twilio":
+            return <Icon name="bi-twilio" />;
         default:
             return null;
     }
@@ -180,6 +193,7 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     const {
         onServiceSelect,
         onAutomationSelect,
+        onWorkflowSelect,
         onDeleteComponent,
         expandedNodes,
         onToggleNodeExpansion
@@ -190,6 +204,8 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     const handleOnClick = () => {
         if (model.type === "service") {
             onServiceSelect(model.node as CDService);
+        } else if (model.type === "workflow") {
+            onWorkflowSelect?.(model.node as CDWorkflow);
         } else {
             onAutomationSelect(model.node as CDAutomation);
         }
@@ -225,11 +241,13 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     ];
 
     const serviceFunctions = [];
-    if ((model.node as CDService).remoteFunctions?.length > 0) {
-        serviceFunctions.push(...(model.node as CDService).remoteFunctions);
-    }
-    if ((model.node as CDService).resourceFunctions?.length > 0) {
-        serviceFunctions.push(...(model.node as CDService).resourceFunctions);
+    if (model.type !== "workflow") {
+        if ((model.node as CDService).remoteFunctions?.length > 0) {
+            serviceFunctions.push(...(model.node as CDService).remoteFunctions);
+        }
+        if ((model.node as CDService).resourceFunctions?.length > 0) {
+            serviceFunctions.push(...(model.node as CDService).resourceFunctions);
+        }
     }
 
     const isExpanded = expandedNodes.has(model.node.uuid);
@@ -244,6 +262,8 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     const nodeIcon = (() => {
         switch (model.type) {
+            case "workflow":
+                return <ClockIcon />;
             case "automation":
                 return <TaskIcon />;
             case "service":

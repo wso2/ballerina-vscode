@@ -518,6 +518,29 @@ interface StageRunnerOpts {
     transcriptWriter?: TranscriptWriter;
     /** Relative package path used for transcript file layout (empty string for single-package). */
     packageRelPath?: string;
+    // ── Progress tracking (used by wizard to drive the progress bar) ──────────
+    /** 0-based index of this package within the workspace (0 for single-package). */
+    packageIndex?: number;
+    /** Total number of packages in the workspace (1 for single-package). */
+    totalPackages?: number;
+    /** Display name of the package being processed (empty for single-package). */
+    packageName?: string;
+    /** Completed stage count *before* this package starts (offset for the global progress bar). */
+    stageOffset?: number;
+    /** Total stages across all packages — denominator for progress %. */
+    totalStagesOverall?: number;
+}
+
+/** Maps a verbose enhancement stage name to a short UI label. */
+function shortStageName(name: string): string {
+    const stripped = name.replace(/^\[.*?\]\s*/, ""); // remove "[pkgName] " prefix
+    if (stripped.includes("Fidelity Check")) { return "Fidelity Check"; }
+    if (stripped.includes("Diagnostics")) {    return "Diagnostics"; }
+    if (stripped.includes("Test Refinement")) { return "Test Refinement"; }
+    if (stripped.includes("Final Validation")) { return "Final Validation"; }
+    if (stripped.includes("Workspace Validation")) { return "Workspace Validation"; }
+    const dash = stripped.indexOf("—");
+    return dash >= 0 ? stripped.substring(dash + 1).trim() : stripped;
 }
 
 /**
@@ -586,6 +609,21 @@ async function runStagesForPackage(opts: StageRunnerOpts): Promise<void> {
         recordingHandler({
             type: "content_block",
             content: `\n\n---\n\n**Starting ${stage.name}** (${i + 1} of ${stages.length})\n\n`,
+        });
+
+        // Emit structured progress so the wizard can show a progress bar and context row.
+        const stageOffset = opts.stageOffset ?? 0;
+        const totalStagesOverall = opts.totalStagesOverall ?? stages.length;
+        eventHandler({
+            type: "migration_progress",
+            currentPackageIndex: opts.packageIndex ?? 0,
+            totalPackages: opts.totalPackages ?? 1,
+            currentPackageName: opts.packageName ?? "",
+            currentStageIndex: i,
+            totalStagesInPackage: stages.length,
+            currentStageName: shortStageName(stage.name),
+            completedStagesOverall: stageOffset + i,
+            totalStagesOverall,
         });
 
         const stageGenId = `${stageIdPrefix}-stage${i + 1}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -1295,6 +1333,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                     [...completedPackages], pkgRelPath, 0, true,
                 );
 
+                const totalStagesOverall = packagePaths.length * stages.length + 1; // stages per pkg + 1 workspace validation
                 try {
                     await runStagesForPackage({
                         projectRoot, packagePath: fullPkgPath, sourcePath, stages,
@@ -1302,6 +1341,11 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                         fromAIChat, stageIdPrefix: `wizard-${pkgRelPath}`,
                         useExistingTempPath: true, debugLogger,
                         transcriptWriter, packageRelPath: pkgRelPath,
+                        packageIndex: pkgIdx,
+                        totalPackages: packagePaths.length,
+                        packageName: pkgName,
+                        stageOffset: pkgIdx * stages.length,
+                        totalStagesOverall,
                     });
                     completedPackages.add(pkgRelPath);
                     results.push({ packagePath: pkgRelPath, success: true });
@@ -1335,6 +1379,11 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                             fromAIChat, stageIdPrefix: "wizard-workspace-validation",
                             useExistingTempPath: true, debugLogger,
                             transcriptWriter, packageRelPath: "",
+                            packageIndex: packagePaths.length,
+                            totalPackages: packagePaths.length,
+                            packageName: "",
+                            stageOffset: packagePaths.length * 4,
+                            totalStagesOverall: packagePaths.length * 4 + 1,
                         });
                         debugLogger.logMilestone("Workspace validation — completed (wizard)");
                     } catch (wsError) {
@@ -1361,18 +1410,32 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 eventHandler({ type: "abort", command: Command.Agent });
             }
         } else {
-            // ── Single-package project (existing behavior) ───────────────
+            // ── Single-package project ───────────────────────────────────
             const stages = getEnhancementStages();
             injectResumePreamble(projectRoot, stages);
             console.log(`[MigrationEnhancement] Starting wizard migration agent (${stages.length} stages) – projectRoot: ${projectRoot}, sourcePath: ${sourcePath ?? 'none'}`);
             debugLogger.logMilestone(`Run start — single package (wizard), model: ${_selectedModelId}, projectRoot: ${projectRoot}`);
 
+            // Suppress per-stage "stop" events emitted by AgentExecutor at the end of each
+            // stage — without this, the first stage's stop sets terminalRef=true in the webview
+            // and all subsequent migration_progress events are silently dropped, leaving the
+            // progress bar stuck at 0%. The real final stop is emitted explicitly below.
+            const singleStageHandler = (event: ChatNotify) => {
+                if (event.type === 'stop') { return; }
+                eventHandler(event);
+            };
+
             await runStagesForPackage({
                 projectRoot, packagePath: projectRoot, sourcePath, stages,
-                eventHandler, abortController: _migrationAbortController,
+                eventHandler: singleStageHandler, abortController: _migrationAbortController,
                 fromAIChat, stageIdPrefix: "wizard-migration",
                 useExistingTempPath: true, debugLogger,
                 transcriptWriter, packageRelPath: "",
+                packageIndex: 0,
+                totalPackages: 1,
+                packageName: "",
+                stageOffset: 0,
+                totalStagesOverall: stages.length,
             });
 
             if (!_migrationAbortController.signal.aborted) {
@@ -1384,8 +1447,10 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 }
                 debugLogger.logMilestone("Run complete — single package succeeded (wizard)");
                 console.log("[MigrationEnhancement] Wizard migration agent completed all stages successfully.");
+                eventHandler({ type: 'stop', command: Command.Agent });
             } else {
                 debugLogger.logMilestone("Run aborted by user (wizard, single-package)");
+                eventHandler({ type: "abort", command: Command.Agent });
             }
         }
     } catch (error) {

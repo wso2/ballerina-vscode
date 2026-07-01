@@ -19,6 +19,7 @@ import {
     ICPServiceAPI,
     ICPEnabledRequest,
     ICPEnabledResponse,
+    isSamePath,
     TextEdit,
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
@@ -42,7 +43,7 @@ function getIntegrationName(projectPath: string): string {
 
     // title is the integration display name, name is the package name
     if (projectInfo?.children?.length) {
-        const matched = projectInfo.children.find(child => child.projectPath === projectPath);
+        const matched = projectInfo.children.find(child => isSamePath(child.projectPath, projectPath));
         if (matched) {
             return matched.title || matched.name || path.basename(projectPath);
         }

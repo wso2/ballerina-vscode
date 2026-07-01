@@ -22,7 +22,7 @@ import { StateMachine, openView } from '../../stateMachine';
 import { openPopupView, StateMachinePopup } from '../../stateMachinePopup';
 import { hasOpenForm, hasDirtyOpenForm, clearFormState } from '../../rpc-managers/bi-diagram/form-state';
 import { extension } from '../../BalExtensionContext';
-import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, ProjectInfo, SHARED_COMMANDS } from '@wso2/ballerina-core';
+import { BI_COMMANDS, EVENT_TYPE, isSamePath, MACHINE_VIEW, NodePosition, normalizeProjectPath, ProjectInfo, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { buildProjectsStructure } from '../../utils/project-artifacts';
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from '../../utils';
 import { VisualizerWebview } from './webview';
@@ -129,7 +129,7 @@ export function activateSubscriptions() {
                         openView(
                             EVENT_TYPE.OPEN_VIEW,
                             {
-                                projectPath: pathOrItem.resourceUri?.fsPath,
+                                projectPath: pathOrItem.resourceUri ? normalizeProjectPath(pathOrItem.resourceUri.fsPath) : undefined,
                                 view: MACHINE_VIEW.PackageOverview
                             },
                             true
@@ -149,7 +149,7 @@ export function activateSubscriptions() {
                     return;
                 }
 
-                if (!projectPath || projectPath !== projectRoot) {
+                if (!projectPath || !isSamePath(projectPath, projectRoot)) {
                     // Initialize project structure if not already set by finding and loading the Ballerina project root
                     // Can happen when the user opens a directory containing multiple Ballerina projects
                     if (projectRoot) {

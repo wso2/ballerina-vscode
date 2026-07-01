@@ -16,6 +16,8 @@
  * under the License.
  */
 
+import { ThemeColors } from "@wso2/ui-toolkit";
+
 export enum NodeTypes {
     BASE_NODE = "base-node",
     EMPTY_NODE = "empty-node",
@@ -31,6 +33,10 @@ export enum NodeTypes {
     ERROR_NODE = "error-node",
     AGENT_CALL_NODE = "agent-call-node",
     PROMPT_NODE = "prompt-node",
+    WORKFLOW_RUN_NODE = "workflow-run-node",
+    CALL_ACTIVITY_NODE = "call-activity-node",
+    SEND_DATA_NODE = "send-data-node",
+    WAIT_DATA_NODE = "wait-data-node",
 }
 
 export const NODE_LINK = "node-link";
@@ -45,6 +51,54 @@ export const LABEL_HEIGHT = 20;
 export const LABEL_WIDTH = 180;
 
 export const NODE_BORDER_WIDTH = 1.8;
+export const HIGHLIGHT_NODE_BORDER_WIDTH = 2.4;
+// export const HIGHLIGHT_NODE_BORDER_COLOR = "var(--vscode-focusBorder)";
+export const HIGHLIGHT_NODE_BORDER_COLOR = ThemeColors.ON_SURFACE;
+
+// ─── Node Colors ─────────────────────────────────────────────────────────────
+export const NODE_BG_COLOR = ThemeColors.SURFACE_DIM;
+export const NODE_BG_HOVER_COLOR = ThemeColors.PRIMARY_CONTAINER;
+export const NODE_BG_BREAKPOINT_COLOR = ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND;
+export const NODE_TEXT_COLOR = ThemeColors.ON_SURFACE;
+export const NODE_BORDER_COLOR = ThemeColors.ON_SURFACE;
+export const NODE_BORDER_SELECTED_COLOR = ThemeColors.PRIMARY;
+export const NODE_HOVER_GLOW = `0 0 4px 1px ${ThemeColors.PRIMARY}`;
+export const NODE_BORDER_ERROR_COLOR = ThemeColors.ERROR;
+export const NODE_ERROR_COLOR = ThemeColors.ERROR;
+
+// ─── Draft Node Colors ───────────────────────────────────────────────────────
+export const DRAFT_NODE_BG_COLOR = ThemeColors.SECONDARY_CONTAINER;
+export const DRAFT_NODE_BORDER_COLOR = ThemeColors.SECONDARY;
+
+// ─── End Node Colors ─────────────────────────────────────────────────────────
+export const END_NODE_BG_COLOR = ThemeColors.ON_SURFACE;
+
+// ─── Empty Node (add-point circle) Colors ────────────────────────────────────
+export const EMPTY_NODE_ACTIVE_BORDER_COLOR = ThemeColors.ON_SURFACE;
+export const EMPTY_NODE_ACTIVE_BG_COLOR = ThemeColors.PRIMARY_CONTAINER;
+
+// ─── Link Colors ─────────────────────────────────────────────────────────────
+export const LINK_COLOR = ThemeColors.ON_SURFACE_VARIANT;
+export const LINK_HOVERED_COLOR = ThemeColors.PRIMARY;
+export const LINK_DISABLED_COLOR = ThemeColors.OUTLINE_VARIANT;
+
+// ─── Add Button Colors ───────────────────────────────────────────────────────
+export const ADD_BUTTON_COLOR = ThemeColors.ON_SURFACE;
+export const ADD_BUTTON_HOVERED_COLOR = ThemeColors.PRIMARY;
+export const ADD_BUTTON_DISABLED_COLOR = ThemeColors.OUTLINE_VARIANT;
+export const ADD_BUTTON_BG_COLOR = ThemeColors.SURFACE_BRIGHT;
+
+// ─── Canvas Colors ───────────────────────────────────────────────────────────
+export const CANVAS_BG_COLOR = ThemeColors.SURFACE_BRIGHT;
+export const CANVAS_DOT_COLOR = ThemeColors.SURFACE_CONTAINER;
+
+// ─── Panel / Popup Colors ────────────────────────────────────────────────────
+export const PANEL_BG_COLOR = ThemeColors.SURFACE;
+
+// ─── Controls Colors ─────────────────────────────────────────────────────────
+export const CONTROLS_BG_COLOR = ThemeColors.SURFACE;
+export const CONTROLS_DIVIDER_COLOR = ThemeColors.OUTLINE_VARIANT;
+export const CONTROLS_HOVER_BG_COLOR = ThemeColors.SURFACE_CONTAINER;
 
 export const NODE_PADDING = 8;
 
@@ -93,3 +147,11 @@ export const AGENT_NODE_ADD_TOOL_BUTTON_WIDTH = 20;
 // prompt node
 export const PROMPT_NODE_WIDTH = 350;
 export const PROMPT_NODE_HEIGHT = 300;
+
+// wait event node
+export const WAIT_DATA_CORE_WIDTH = 140;
+export const WAIT_DATA_CORE_HEIGHT = 72;
+export const WAIT_DATA_DETAILS_WIDTH = 220;
+export const WAIT_DATA_DETAILS_GAP = 12;
+export const WAIT_DATA_CIRCLE_SIZE = 56;
+export const WAIT_DATA_ARROW_WIDTH = 60;

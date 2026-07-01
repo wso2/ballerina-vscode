@@ -142,7 +142,7 @@ export function genDagreEngine() {
     });
 }
 
-export function sortItems(items: (CDService | CDConnection)[]) {
+export function sortItems<T extends { sortText?: string }>(items: T[]): T[] {
     return [...items].sort((a, b) => {
         if (!a.sortText && !b.sortText) return 0;
         if (!a.sortText) return 1;

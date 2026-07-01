@@ -53,6 +53,7 @@ import { ArgManagerEditor } from "../ParamManager/ArgManager";
 import { DependentTypeEditor } from "./DependentTypeEditor";
 import { FieldFactory } from "./FieldFactory";
 import { GroupSectionEditor } from "./GroupSectionEditor";
+import { ConnectionEditor } from "./ConnectionEditor/ConnectionEditor";
 
 export interface FormFieldEditorProps {
     field: FormField;
@@ -160,6 +161,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 handleNewTypeSelected={handleNewTypeSelected}
             />
         );
+    } else if (fieldInputType.fieldType === "CONNECTION" && field.editable) {
+        return <ConnectionEditor field={field} />;
     } else if (!field.items && fieldInputType.fieldType === "TYPE" && field.editable) {
         return (
             <TypeEditor

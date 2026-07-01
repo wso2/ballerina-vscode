@@ -22,13 +22,8 @@ export * from './context-api';
 export * from './constants';
 
 // Export utilities from focused modules
-export * from './utils/type-utils';
 export * from './utils/temp-project';
 export * from './utils/code-generation';
 export * from './utils/model';
 export * from './utils/model-optimization';
-export * from './utils/extraction';
-export * from './utils/repair';
-export * from './utils/inline-mappings';
 export * from './utils/types-generation';
-export * from './utils/mapping-context';
