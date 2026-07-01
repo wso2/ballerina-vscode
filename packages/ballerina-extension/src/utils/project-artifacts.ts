@@ -581,6 +581,8 @@ function getCustomEntryNodeIcon(type: string) {
         case "trigger.hubspot":
         case "hubspot":
             return "bi-hubspot";
+        case "sap.jco":
+            return "bi-sap";
         default:
             return "bi-globe";
     }

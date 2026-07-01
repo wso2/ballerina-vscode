@@ -38,7 +38,8 @@ const EVENT_INTEGRATION_MODULES: ReadonlySet<string> = new Set([
     "trigger.shopify",
     "trigger.twilio",
     "trigger.hubspot",
-    "solace"
+    "solace",
+    "sap.jco"
 ]);
 
 /** Modules that map to the FILE_INTEGRATION scope. */

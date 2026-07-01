@@ -158,5 +158,18 @@
       "cdc",
       "event"
     ]
+  },
+  "16": {
+    "name": "sap.jco",
+    "orgName": "ballerinax",
+    "packageName": "sap.jco",
+    "keywords": [
+      "sap",
+      "jco",
+      "event",
+      "idoc",
+      "rfc"
+    ],
+    "triggerName": "SAP JCo"
   }
 }
