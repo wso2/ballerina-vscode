@@ -224,6 +224,63 @@ public class TrieNodeTest {
     }
 
     /**
+     * Verifies scheme-scoped removeSubtree removes only the target scheme, leaving other schemes intact.
+     */
+    @Test
+    public void trieNode_removeSubtreeForScheme_keepsOtherSchemes() {
+        TrieNode<String> original = new TrieNode<String>()
+                .insert(segments("workspace", "project"), FILE_SCHEME, "file-project")
+                .insert(segments("workspace", "project"), EXPR_SCHEME, "expr-project")
+                .insert(segments("workspace", "project", "main.bal"), FILE_SCHEME, "file-doc")
+                .insert(segments("workspace", "project", "main.bal"), EXPR_SCHEME, "expr-doc");
+        TrieNode<String> updated = original.removeSubtree(segments("workspace", "project"), EXPR_SCHEME);
+
+        Assert.assertEquals(updated.lookup(segments("workspace", "project"), FILE_SCHEME),
+                Optional.of("file-project"));
+        Assert.assertEquals(updated.lookup(segments("workspace", "project", "main.bal"), FILE_SCHEME),
+                Optional.of("file-doc"));
+        Assert.assertEquals(updated.lookup(segments("workspace", "project"), EXPR_SCHEME), Optional.empty());
+        Assert.assertEquals(updated.lookup(segments("workspace", "project", "main.bal"), EXPR_SCHEME),
+                Optional.empty());
+    }
+
+    /**
+     * Verifies scheme-scoped removeSubtree recurses into deep descendants removing only the target scheme.
+     */
+    @Test
+    public void trieNode_removeSubtreeForScheme_deepDescendants_onlyTargetSchemeRemoved() {
+        TrieNode<String> original = new TrieNode<String>()
+                .insert(segments("workspace", "project"), FILE_SCHEME, "file-project")
+                .insert(segments("workspace", "project", "modules", "auth", "auth.bal"), FILE_SCHEME, "file-auth")
+                .insert(segments("workspace", "project"), EXPR_SCHEME, "expr-project")
+                .insert(segments("workspace", "project", "modules", "auth", "auth.bal"), EXPR_SCHEME, "expr-auth")
+                .insert(segments("workspace", "other"), FILE_SCHEME, "other");
+        TrieNode<String> updated = original.removeSubtree(segments("workspace", "project"), EXPR_SCHEME);
+
+        Assert.assertEquals(updated.lookup(segments("workspace", "project"), FILE_SCHEME),
+                Optional.of("file-project"));
+        Assert.assertEquals(
+                updated.lookup(segments("workspace", "project", "modules", "auth", "auth.bal"), FILE_SCHEME),
+                Optional.of("file-auth"));
+        Assert.assertEquals(updated.lookup(segments("workspace", "project"), EXPR_SCHEME), Optional.empty());
+        Assert.assertEquals(
+                updated.lookup(segments("workspace", "project", "modules", "auth", "auth.bal"), EXPR_SCHEME),
+                Optional.empty());
+        Assert.assertEquals(updated.lookup(segments("workspace", "other"), FILE_SCHEME), Optional.of("other"));
+    }
+
+    /**
+     * Verifies scheme-scoped removeSubtree is a no-op when the target scheme has no entries.
+     */
+    @Test
+    public void trieNode_removeSubtreeForScheme_noEntriesForScheme_returnsSameInstance() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace", "project"), FILE_SCHEME, "file-project");
+
+        Assert.assertSame(root.removeSubtree(segments("workspace", "project"), EXPR_SCHEME), root);
+    }
+
+    /**
      * Verifies insert splits a compressed edge at the divergence point.
      */
     @Test

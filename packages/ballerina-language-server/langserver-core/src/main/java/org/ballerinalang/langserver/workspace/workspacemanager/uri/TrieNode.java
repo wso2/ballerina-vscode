@@ -203,6 +203,20 @@ public final class TrieNode<V> {
         return removeSubtree(prefixSegments, 0);
     }
 
+    /**
+     * Returns a new trie root with all values for the given scheme removed at and below the given
+     * prefix. Values registered under other schemes are left intact.
+     *
+     * @param prefixSegments prefix identifying the subtree root
+     * @param scheme the scheme discriminator — only entries for this scheme are removed
+     * @return new trie root without the removed scheme entries
+     */
+    public @Nonnull TrieNode<V> removeSubtree(@Nonnull String[] prefixSegments, @Nonnull String scheme) {
+        validatePathSegments(prefixSegments);
+        validateScheme(scheme);
+        return removeSubtree(prefixSegments, 0, scheme);
+    }
+
     public TrieNode<V> child(@Nonnull String segment) {
         return children.get(segment);
     }
@@ -302,6 +316,65 @@ public final class TrieNode<V> {
             return this;
         }
         return withUpdatedChild(nextSegment, updatedChild);
+    }
+
+    private TrieNode<V> removeSubtree(String[] prefixSegments, int depth, String scheme) {
+        int matchLength = commonPrefixLength(prefixSegments, depth);
+        if (matchLength < edge.length) {
+            return depth + matchLength == prefixSegments.length ? removeSchemeFromSubtree(scheme) : this;
+        }
+
+        int nextDepth = depth + matchLength;
+        if (nextDepth == prefixSegments.length) {
+            return removeSchemeFromSubtree(scheme);
+        }
+
+        String nextSegment = prefixSegments[nextDepth];
+        TrieNode<V> currentChild = children.get(nextSegment);
+        if (currentChild == null) {
+            return this;
+        }
+
+        TrieNode<V> updatedChild = currentChild.removeSubtree(prefixSegments, nextDepth, scheme);
+        if (updatedChild == currentChild) {
+            return this;
+        }
+        return withUpdatedChild(nextSegment, updatedChild);
+    }
+
+    private TrieNode<V> removeSchemeFromSubtree(String scheme) {
+        V newFileValue = DEFAULT_SCHEME.equals(scheme) ? null : fileValue;
+        Map<String, V> newOverflow = overflowValues;
+        if (!DEFAULT_SCHEME.equals(scheme) && overflowValues != null && overflowValues.containsKey(scheme)) {
+            Map<String, V> updated = new HashMap<>(overflowValues);
+            updated.remove(scheme);
+            newOverflow = updated;
+        }
+
+        Map<String, TrieNode<V>> newChildren = null;
+        for (Map.Entry<String, TrieNode<V>> entry : children.entrySet()) {
+            TrieNode<V> updatedChild = entry.getValue().removeSchemeFromSubtree(scheme);
+            if (updatedChild != entry.getValue()) {
+                if (newChildren == null) {
+                    newChildren = new HashMap<>(children);
+                }
+                if (updatedChild.isEmptyNode()) {
+                    newChildren.remove(entry.getKey());
+                } else {
+                    newChildren.put(entry.getKey(), updatedChild);
+                }
+            }
+        }
+
+        Map<String, TrieNode<V>> finalChildren = newChildren != null ? newChildren : children;
+        boolean valueChanged = newFileValue != fileValue || newOverflow != overflowValues;
+        boolean childrenChanged = newChildren != null;
+
+        if (!valueChanged && !childrenChanged) {
+            return this;
+        }
+
+        return compact(edge, finalChildren, newFileValue, newOverflow);
     }
 
     private boolean isEmptyNode() {
