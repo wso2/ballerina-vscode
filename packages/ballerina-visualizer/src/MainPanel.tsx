@@ -722,6 +722,7 @@ const MainPanel = () => {
                             if (isStaleNavigation()) return;
                             setViewComponent(
                                 <FunctionForm
+                                    key={remountKey}
                                     projectPath={value.projectPath}
                                     filePath={defaultFunctionsFile}
                                     functionName={value?.identifier}

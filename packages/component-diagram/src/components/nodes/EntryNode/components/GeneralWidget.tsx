@@ -231,9 +231,7 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     const menuItems: Item[] = [
         { id: "edit", label: "Edit", onClick: () => handleOnClick() },
-        ...(model.type !== "workflow"
-            ? [{ id: "delete", label: "Delete", onClick: () => onDeleteComponent(model.node) }]
-            : []),
+        { id: "delete", label: "Delete", onClick: () => onDeleteComponent(model.node) },
     ];
 
     const serviceFunctions = [];
