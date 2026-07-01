@@ -6,7 +6,8 @@ type OrderInput record {
 };
 
 @workflow:Workflow
-function orderWorkflow(workflow:Context ctx, OrderInput input) returns error? {
+function orderWorkflow(workflow:Context ctx, OrderInput input) returns json|error {
+    return {};
 }
 
 public function main() {

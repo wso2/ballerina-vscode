@@ -47,11 +47,12 @@ function addWorkflowManagementConfigToml(projectPath: string): void {
     if (!config.ballerina) { config.ballerina = {}; }
     if (!config.ballerina.workflow) { config.ballerina.workflow = {}; }
 
+    const existing = config.ballerina.workflow.management ?? {};
     config.ballerina.workflow.management = {
-        ...(config.ballerina.workflow.management ?? {}),
+        ...existing,
         enableManagementApi: true,
-        port: 8234,
-        enableBasicAuth: false,
+        port: existing.port ?? 8234,
+        enableBasicAuth: existing.enableBasicAuth ?? false,
     };
 
     fs.writeFileSync(configPath, stringify(config), 'utf-8');
