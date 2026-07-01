@@ -133,12 +133,18 @@ function getCustomEntryNodeIcon(type: string) {
             return <Icon name="bi-file" />;
         case "mssql":
             return <Icon name="bi-mssql" sx={{ color: "#b61d1c" }}/>;
+        case "mysql":
+            return <Icon name="bi-mysql" sx={{ color: "#00758F" }}/>;
         case "postgresql":
             return <Icon name="bi-postgresql" sx={{ color: "#336791" }}/>;
+        case "trigger.shopify":
         case "shopify":
             return <Icon name="bi-shopify" sx={{ color: "#95BF47" }} />;
+        case "trigger.hubspot":
         case "hubspot":
             return <Icon name="bi-hubspot" sx={{ color: "#FF7A59" }} />;
+        case "trigger.twilio":
+            return <Icon name="bi-twilio" />;
         default:
             return null;
     }

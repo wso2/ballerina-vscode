@@ -1,24 +1,24 @@
 {
-  "description": "Test getting shopify trigger service init model",
+  "description": "Test getting hubspot trigger service init model",
   "filePath": "sample1/main.bal",
   "orgName": "ballerinax",
-  "pkgName": "trigger.shopify",
-  "moduleName": "trigger.shopify",
+  "pkgName": "trigger.hubspot",
+  "moduleName": "trigger.hubspot",
   "response": {
     "serviceInitModel": {
-      "id": "20",
-      "displayName": "Shopify Event Integration",
-      "description": "Create a service to handle events from a Shopify store",
+      "id": "21",
+      "displayName": "HubSpot Event Integration",
+      "description": "Create a service to handle events from HubSpot",
       "orgName": "ballerinax",
-      "packageName": "trigger.shopify",
-      "moduleName": "trigger.shopify",
-      "version": "1.6.0",
+      "packageName": "trigger.hubspot",
+      "moduleName": "trigger.hubspot",
+      "version": "0.12.0",
       "type": "event",
       "properties": {
         "configureListener": {
           "metadata": {
-            "label": "Configure Shopify Listener",
-            "description": "Select an existing Shopify listener or create a new one"
+            "label": "Configure HubSpot Listener",
+            "description": "Select an existing HubSpot listener or create a new one"
           },
           "placeholder": "",
           "value": "0",
@@ -26,7 +26,7 @@
             {
               "metadata": {
                 "label": "Create new",
-                "description": "Create a new Shopify listener"
+                "description": "Create a new HubSpot listener"
               },
               "placeholder": "true",
               "value": "true",
@@ -34,7 +34,7 @@
                 "listenerConfig": {
                   "metadata": {
                     "label": "Listener Configurations",
-                    "description": "Configure the Shopify listener"
+                    "description": "Configure the HubSpot listener"
                   },
                   "properties": {
                     "listenerVarName": {
@@ -45,13 +45,67 @@
                       "codedata": {
                         "argType": "LISTENER_VAR_NAME"
                       },
-                      "value": "shopifyListener",
-                      "placeholder": "shopifyListener",
+                      "value": "hubspotListener",
+                      "placeholder": "hubspotListener",
                       "types": [
                         {
                           "fieldType": "IDENTIFIER",
                           "ballerinaType": "Listener",
                           "selected": true
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
+                    "clientSecret": {
+                      "metadata": {
+                        "label": "Client Secret",
+                        "description": "The client secret of the HubSpot app used to validate incoming webhook requests"
+                      },
+                      "codedata": {
+                        "argType": "LISTENER_PARAM_CONFIG_FIELD"
+                      },
+                      "placeholder": "",
+                      "value": "",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "ballerinaType": "string",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
+                    "callbackURL": {
+                      "metadata": {
+                        "label": "Callback URL",
+                        "description": "The callback URL registered with the HubSpot app"
+                      },
+                      "codedata": {
+                        "argType": "LISTENER_PARAM_CONFIG_FIELD"
+                      },
+                      "placeholder": "",
+                      "value": "",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "ballerinaType": "string",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
                         }
                       ],
                       "enabled": true,
@@ -77,34 +131,7 @@
                         },
                         {
                           "fieldType": "EXPRESSION",
-                          "ballerinaType": "int",
-                          "selected": false
-                        }
-                      ],
-                      "enabled": true,
-                      "editable": true,
-                      "optional": true,
-                      "advanced": false
-                    },
-                    "apiSecretKey": {
-                      "metadata": {
-                        "label": "API Secret Key",
-                        "description": "The Shopify API secret key used to validate incoming webhook requests"
-                      },
-                      "codedata": {
-                        "argType": "LISTENER_PARAM_CONFIG_FIELD"
-                      },
-                      "placeholder": "",
-                      "value": "",
-                      "types": [
-                        {
-                          "fieldType": "TEXT",
-                          "ballerinaType": "string",
-                          "selected": true
-                        },
-                        {
-                          "fieldType": "EXPRESSION",
-                          "ballerinaType": "string",
+                          "ballerinaType": "http:Listener",
                           "selected": false
                         }
                       ],
@@ -140,7 +167,7 @@
             {
               "metadata": {
                 "label": "Use existing (none available)",
-                "description": "Select an existing Shopify listener"
+                "description": "Select an existing HubSpot listener"
               },
               "placeholder": "true",
               "value": "true",
@@ -148,7 +175,7 @@
                 "listenerConfig": {
                   "metadata": {
                     "label": "Listener Configurations",
-                    "description": "Configure the Shopify listener"
+                    "description": "Configure the HubSpot listener"
                   },
                   "properties": {},
                   "types": [
@@ -189,22 +216,25 @@
         "basePath": {
           "metadata": {
             "label": "Event Type",
-            "description": "Select the type of Shopify events to handle"
+            "description": "Select the type of HubSpot events to handle"
           },
           "codedata": {
             "argType": "SERVICE_TYPE_DESCRIPTOR"
           },
-          "placeholder": "OrdersService",
-          "value": "OrdersService",
+          "placeholder": "CompanyService",
+          "value": "CompanyService",
           "types": [
             {
               "fieldType": "SINGLE_SELECT",
-              "ballerinaType": "shopify:GenericServiceType",
+              "ballerinaType": "hubspot:GenericServiceType",
               "options": [
-                {"label": "Orders", "value": "OrdersService"},
-                {"label": "Customers", "value": "CustomersService"},
-                {"label": "Products", "value": "ProductsService"},
-                {"label": "Fulfillments", "value": "FulfillmentsService"}
+                {"label": "Company", "value": "CompanyService"},
+                {"label": "Contact", "value": "ContactService"},
+                {"label": "Conversation", "value": "ConversationService"},
+                {"label": "Deal", "value": "DealService"},
+                {"label": "Ticket", "value": "TicketService"},
+                {"label": "Product", "value": "ProductService"},
+                {"label": "Line Item", "value": "LineItemService"}
               ],
               "selected": true
             }
