@@ -31,7 +31,6 @@ import {
 } from "@wso2/ballerina-side-panel";
 import { convertNodePropertiesToFormFields, getFormProperties, getImportsForFormFields } from "../../../../utils/bi";
 import { cloneDeep } from "lodash";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
     createNodeWithUpdatedLineRange,
     processFormData,
@@ -110,7 +109,6 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
         footerActionButton
     } = props;
 
-    const { rpcClient } = useRpcContext();
     const [knowledgeBaseFields, setKnowledgeBaseFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [isFormValid, setIsFormValid] = useState(true);
@@ -119,29 +117,7 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
 
     useEffect(() => {
         initializeForm();
-        handleFormOpen();
-        return () => {
-            handleFormClose();
-        };
     }, []);
-
-    const handleFormOpen = () => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .formDidOpen({ filePath: fileName })
-            .then(() => {
-                console.log(">>> Knowledge Base form opened");
-            });
-    };
-
-    const handleFormClose = () => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .formDidClose({ filePath: fileName })
-            .then(() => {
-                console.log(">>> Knowledge Base form closed");
-            });
-    };
 
     const getConnectionKind = (fieldName: string): ConnectionKind | undefined => {
         switch (fieldName) {

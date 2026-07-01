@@ -24,8 +24,6 @@ import {
     AIAgentRequest,
     AIAgentResponse,
     AIAgentToolsUpdateRequest,
-    AIGentToolsRequest,
-    AIGentToolsResponse,
     AIModelsRequest,
     AIModelsResponse,
     AINodesRequest,
@@ -37,7 +35,8 @@ import {
     configureDefaultModelProvider,
     createAIAgent,
     DefaultProviderKind,
-    genTool,
+    genAgentTool,
+    GenAgentToolRequest,
     getAiModuleOrg,
     getAllAgents,
     getAllMemoryManagers,
@@ -100,8 +99,8 @@ export class AiAgentRpcClient implements AIAgentAPI {
         return this._messenger.sendRequest(getMcpTools, HOST_EXTENSION, params);
     }
 
-    genTool(params: AIGentToolsRequest): Promise<AIGentToolsResponse> {
-        return this._messenger.sendRequest(genTool, HOST_EXTENSION, params);
+    genAgentTool(params: GenAgentToolRequest): Promise<AIGentToolsResponse> {
+        return this._messenger.sendRequest(genAgentTool, HOST_EXTENSION, params);
     }
 
     fixMissingImports(): Promise<void> {

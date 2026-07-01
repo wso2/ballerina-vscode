@@ -25,7 +25,7 @@ import io.ballerina.flowmodelgenerator.core.AgentChatServiceGenerator;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
 import io.ballerina.flowmodelgenerator.core.McpClient;
 import io.ballerina.flowmodelgenerator.extension.request.AddAgentChatServiceRequest;
-import io.ballerina.flowmodelgenerator.extension.request.GenToolRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GenAgentToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAiModuleOrgRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllAgentsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllMemoryManagersRequest;
@@ -293,7 +293,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<GenToolResponse> genTool(GenToolRequest request) {
+    public CompletableFuture<GenToolResponse> genAgentTool(GenAgentToolRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             GenToolResponse response = new GenToolResponse();
             try {
@@ -305,9 +305,8 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 }
 
                 AgentsGenerator agentsGenerator = new AgentsGenerator(semanticModel.get());
-                response.setTextEdits(agentsGenerator.genTool(request.flowNode(), request.toolName(),
-                        request.toolParameters(), request.connection(), request.description(), filePath,
-                        this.workspaceManager));
+                response.setTextEdits(agentsGenerator.genAgentTool(request.agentVarName(), request.includeContext(),
+                        request.toolName(), request.description(), filePath, this.workspaceManager));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
