@@ -62,6 +62,7 @@ import {
     isTemplateType,
     DropdownType,
     isDropDownType,
+    InputType,
 } from "@wso2/ballerina-core";
 import {
     HelperPaneVariableInfo,
@@ -74,7 +75,7 @@ import { cloneDeep } from "lodash";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import hljs from "highlight.js";
-import { COMPLETION_ITEM_KIND, CompletionItem, CompletionItemKind, convertCompletionItemKind, FnSignatureDocumentation } from "@wso2/ui-toolkit";
+import { COMPLETION_ITEM_KIND, CompletionItem, CompletionItemKind, convertCompletionItemKind, FnSignatureDocumentation, Icon } from "@wso2/ui-toolkit";
 import { FunctionDefinition, STNode } from "@wso2/syntax-tree";
 import { DocSection } from "../components/ExpressionEditor";
 
@@ -83,6 +84,8 @@ import ballerina from "../languages/ballerina.js";
 import { FUNCTION_REGEX } from "../resources/constants";
 import { ConnectionKind, getConnectionKindConfig } from "../components/ConnectionSelector";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import { handleRepeatableProperty } from "./node-property-utils";
+export { updateNodeProperties } from "./node-property-utils";
 hljs.registerLanguage("ballerina", ballerina);
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
@@ -232,6 +235,17 @@ export function convertFunctionCategoriesToSidePanelCategories(
     return panelCategories;
 }
 
+export function convertAgentCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
+    return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata, iconUrl) => (
+        <ConnectorIcon
+            url={iconUrl}
+            codedata={codedata}
+            fallbackIcon={<Icon name="bi-ai-agent" sx={{ width: 20, height: 20, fontSize: 20 }} />}
+            style={{ width: "20px", height: "20px", fontSize: "20px" }}
+        />
+    ));
+}
+
 export function convertModelProviderCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
     const panelCategories = categories.map((category) => convertDiagramCategoryToSidePanelCategory(category));
     panelCategories.forEach((category) => {
@@ -315,17 +329,171 @@ export function convertMemoryStoreCategoriesToSidePanelCategories(categories: Ca
     });
 }
 
-import {
-    convertNodePropertiesToFormFields,
-    convertNodePropertyToFormField,
-    updateNodeProperties,
-    handleRepeatableProperty,
-} from "./node-property-utils";
-export {
-    convertNodePropertiesToFormFields,
-    convertNodePropertyToFormField,
-    updateNodeProperties,
-} from "./node-property-utils";
+export function convertNodePropertiesToFormFields(
+    nodeProperties: NodeProperties,
+    connections?: FlowNode[],
+    clientName?: string
+): FormField[] {
+    const formFields: FormField[] = [];
+
+    for (const key in nodeProperties) {
+        if (nodeProperties.hasOwnProperty(key)) {
+            const expression = nodeProperties[key as NodePropertyKey];
+            if (expression) {
+                const formField: FormField = convertNodePropertyToFormField(key, expression, connections, clientName);
+
+                if (getPrimaryInputType(expression.types)?.fieldType === "REPEATABLE_PROPERTY") {
+                    handleRepeatableProperty(expression, formField);
+                }
+
+                formFields.push(formField);
+            }
+        }
+    }
+
+    return formFields;
+}
+
+const AI_MODEL_PROVIDER_TYPE = "ai:ModelProvider";
+const MODEL_PROVIDER_SEARCH_KIND = "MODEL_PROVIDER";
+const DEFAULT_MODEL_PROVIDER_EXPR = "check ai:getDefaultModelProvider()";
+export const DEFAULT_MODEL_PROVIDER_ITEM = {
+    id: "ai:getDefaultModelProvider",
+    label: "Default WSO2 Model Provider",
+    value: DEFAULT_MODEL_PROVIDER_EXPR,
+    codedata: { module: "ai", node: "MODEL_PROVIDER" } as any,
+};
+
+// A bare identifier value points at an existing provider (dropdown mode); anything else is an inline expression.
+// The default model provider expression is treated as a selectable value, not an inline expression.
+function isInlineExpressionValue(value: unknown): boolean {
+    if (value === DEFAULT_MODEL_PROVIDER_EXPR) return false;
+    return typeof value === "string" && value.trim() !== "" && !/^[a-zA-Z_][a-zA-Z0-9_']*$/.test(value.trim());
+}
+
+// Render an editable ai:ModelProvider field as the connection-select editor (dropdown + Select/Expression toggle).
+function enrichModelProviderField(formField: FormField, property: Property): void {
+    const isModelProvider = property.types?.some((t) => t.ballerinaType === AI_MODEL_PROVIDER_TYPE);
+    if (!isModelProvider || !formField.editable) {
+        return;
+    }
+    const expressionMode = isInlineExpressionValue(formField.value);
+    formField.type = expressionMode ? "EXPRESSION" : "ACTION_EXPRESSION";
+    formField.types = [
+        { fieldType: "ACTION_EXPRESSION", ballerinaType: AI_MODEL_PROVIDER_TYPE, selected: !expressionMode },
+        { fieldType: "EXPRESSION", selected: expressionMode },
+    ] as InputType[];
+    formField.codedata = {
+        ...(formField.codedata || {}),
+        searchNodesKind: MODEL_PROVIDER_SEARCH_KIND,
+        staticItems: [DEFAULT_MODEL_PROVIDER_ITEM],
+    };
+}
+
+const NEW_CONNECTION_SEARCH_KIND = "NEW_CONNECTION";
+
+// Render a client-connection param (LS marks it via codedata.data.connection) as the connection-select editor.
+function enrichClientConnectionField(formField: FormField, property: Property): void {
+    if (!property.codedata?.data?.connection || !formField.editable) {
+        return;
+    }
+    const connectionType = property.types?.find((t) => t.ballerinaType)?.ballerinaType;
+    const expressionMode = isInlineExpressionValue(formField.value);
+    formField.type = expressionMode ? "EXPRESSION" : "ACTION_EXPRESSION";
+    formField.types = [
+        { fieldType: "ACTION_EXPRESSION", ballerinaType: connectionType, selected: !expressionMode },
+        { fieldType: "EXPRESSION", selected: expressionMode },
+    ] as InputType[];
+    formField.codedata = {
+        ...(formField.codedata || {}),
+        searchNodesKind: NEW_CONNECTION_SEARCH_KIND,
+        connectionType,
+    };
+}
+
+const AI_MEMORY_TYPE = "ai:Memory";
+const MEMORY_SEARCH_KIND = "MEMORY";
+
+// Render an editable ai:Memory field as the connection-select editor (dropdown of existing memory variables +
+// Create New). Mirrors enrichModelProviderField; the "Create New Memory" action is handled by useCreateConnection.
+function enrichMemoryField(formField: FormField, property: Property): void {
+    const isMemory = property.types?.some((t) => t.ballerinaType === AI_MEMORY_TYPE);
+    if (!isMemory || !formField.editable) {
+        return;
+    }
+    const expressionMode = isInlineExpressionValue(formField.value);
+    formField.type = expressionMode ? "EXPRESSION" : "ACTION_EXPRESSION";
+    formField.types = [
+        { fieldType: "ACTION_EXPRESSION", ballerinaType: AI_MEMORY_TYPE, selected: !expressionMode },
+        { fieldType: "EXPRESSION", selected: expressionMode },
+    ] as InputType[];
+    formField.codedata = { ...(formField.codedata || {}), searchNodesKind: MEMORY_SEARCH_KIND };
+}
+
+export function convertNodePropertyToFormField(
+    key: string,
+    property: Property,
+    connections?: FlowNode[],
+    clientName?: string
+): FormField {
+    const formField: FormField = {
+        key,
+        label: property.metadata?.label || "",
+        type: getPrimaryInputType(property.types)?.fieldType ?? "",
+        optional: property.optional,
+        advanced: property.advanced,
+        placeholder: property.placeholder,
+        defaultValue: property.defaultValue as string,
+        editable: isFieldEditable(property, connections, clientName),
+        enabled: true,
+        hidden: property.hidden,
+        documentation: property.metadata?.description || "",
+        value: getFormFieldValue(property, clientName),
+        advanceProps: convertNodePropertiesToFormFields(property.advanceProperties),
+        items: getFormFieldItems(property, connections),
+        itemOptions: property.itemOptions,
+        diagnostics: property.diagnostics?.diagnostics || [],
+        types: property.types,
+        lineRange: property?.codedata?.lineRange,
+        metadata: property.metadata,
+        codedata: property.codedata,
+        imports: property.imports
+    };
+    enrichModelProviderField(formField, property);
+    enrichClientConnectionField(formField, property);
+    enrichMemoryField(formField, property);
+    return formField;
+}
+
+function isFieldEditable(expression: Property, connections?: FlowNode[], clientName?: string) {
+    if (
+        connections &&
+        clientName &&
+        getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" &&
+        expression.metadata.label === "Connection"
+    ) {
+        return false;
+    }
+    return expression.editable;
+}
+
+function getFormFieldValue(expression: Property, clientName?: string) {
+    if (clientName && getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" && expression.metadata.label === "Connection") {
+        return clientName;
+    }
+    return expression.value;
+}
+
+function getFormFieldItems(expression: Property, connections: FlowNode[]): string[] {
+    if (getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" && expression.metadata.label === "Connection") {
+        return connections.map((connection) => connection.properties?.variable?.value as string);
+    } else if (expression.types?.length > 1 && (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT")) {
+        return expression.types?.map(inputType => inputType.ballerinaType) as string[];
+    } else if (expression.types?.length === 1 && isDropDownType(expression.types[0])) {
+        return (expression.types[0] as DropdownType).options.map((option) => option.value);
+    }
+    return undefined;
+}
 
 export function getFormProperties(flowNode: FlowNode): NodeProperties {
     if (flowNode.properties) {
@@ -375,22 +543,6 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             return "Error";
         case SidePanelView.LOADING:
             return "";
-        case SidePanelView.AGENT_MEMORY_MANAGER:
-            return "Configure Memory";
-        case SidePanelView.AGENT_TOOL:
-            return "Configure Tool";
-        case SidePanelView.ADD_TOOL:
-            return "Add Tool";
-        case SidePanelView.ADD_MCP_SERVER:
-            return "Add MCP Server";
-        case SidePanelView.EDIT_MCP_SERVER:
-            return "Edit MCP Server";
-        case SidePanelView.NEW_TOOL:
-            return "Add New Tool";
-        case SidePanelView.NEW_TOOL_FROM_CONNECTION:
-            return "Create Tool from Connection";
-        case SidePanelView.NEW_TOOL_FROM_FUNCTION:
-            return "Create Tool from Function";
         case SidePanelView.FORM:
             if (!activeNode) {
                 return "";
