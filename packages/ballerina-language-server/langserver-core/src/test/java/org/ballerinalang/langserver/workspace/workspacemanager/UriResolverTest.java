@@ -754,6 +754,33 @@ public class UriResolverTest {
         Assert.assertTrue(errors.isEmpty(), "Concurrent reads threw exceptions: " + errors);
     }
 
+    /**
+     * Verifies evictSubtree on an expr: overlay leaves file: scheme entries at the same path intact.
+     */
+    @Test
+    public void evictSubtree_exprOverlay_preservesFileSchemeEntries() {
+        DocumentUri fileRoot = fileUri("/workspace/project");
+        DocumentUri exprRoot = exprUri("/workspace/project");
+        DocumentUri fileDoc = fileUri("/workspace/project/main.bal");
+        DocumentUri exprDoc = exprUri("/workspace/project/main.bal");
+        ResolvedEntry fileRootEntry = new ResolvedEntry.ProjectEntry(mockProject);
+        ResolvedEntry fileDocEntry = new ResolvedEntry.DocumentEntry(mockDocument);
+        ResolvedEntry exprRootEntry = new ResolvedEntry.ProjectEntry(mockProject);
+        ResolvedEntry exprDocEntry = new ResolvedEntry.DocumentEntry(documentOf(moduleOf(mockProject)));
+
+        resolver.register(fileRoot, fileRootEntry);
+        resolver.register(fileDoc, fileDocEntry);
+        resolver.register(exprRoot, exprRootEntry);
+        resolver.register(exprDoc, exprDocEntry);
+
+        resolver.evictSubtree(exprRoot);
+
+        Assert.assertEquals(resolver.resolve(fileRoot, FILE_SCHEME), Optional.of(fileRootEntry));
+        Assert.assertEquals(resolver.resolve(fileDoc, FILE_SCHEME), Optional.of(fileDocEntry));
+        Assert.assertEquals(resolver.resolve(exprRoot, EXPR_SCHEME), Optional.empty());
+        Assert.assertEquals(resolver.resolve(exprDoc, EXPR_SCHEME), Optional.empty());
+    }
+
     private DocumentUri fileUri(String path) {
         return new DocumentUri.FileUri(Path.of(path).toAbsolutePath().normalize().toUri());
     }

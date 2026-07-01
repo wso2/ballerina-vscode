@@ -369,7 +369,7 @@ public final class UriResolver {
      * @param sourceRootUri the source root URI whose subtree should be evicted
      */
     public void evictSubtree(@Nonnull DocumentUri sourceRootUri) {
-        root.set(root.get().removeSubtree(toSegments(sourceRootUri.uri())));
+        root.set(root.get().removeSubtree(toSegments(sourceRootUri.uri()), sourceRootUri.uri().getScheme()));
     }
 
     /**
@@ -448,7 +448,7 @@ public final class UriResolver {
                                 @Nonnull Project newProject) {
         projectIndex.put(projectRootUri, new ResolvedEntry.ProjectEntry(newProject));
         TrieNode<ResolvedEntry> updated = root.get()
-                .removeSubtree(toSegments(projectRootUri.uri()))
+                .removeSubtree(toSegments(projectRootUri.uri()), scheme)
                 .insert(toSegments(projectRootUri.uri()), scheme, new ResolvedEntry.ProjectEntry(newProject));
         root.set(updated);
     }
