@@ -297,6 +297,7 @@ import {
     AIGetPackageVersionResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
+import { emitMigrationToolState, emitMigrationToolLog, emitMigratedProject } from "../features/ai/migration/migrationEvents";
 import { debug, handlePullModuleProgress } from "../utils";
 import { CMP_LS_CLIENT_COMPLETIONS, CMP_LS_CLIENT_DIAGNOSTICS, getMessageObject, sendTelemetryEvent, TM_EVENT_LANG_CLIENT } from "../features/telemetry";
 import { DefinitionParams, InitializeParams, InitializeResult, Location, LocationLink, TextDocumentPositionParams } from 'vscode-languageserver-protocol';
@@ -606,6 +607,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                     { type: "webview", webviewType: VisualizerWebview.viewType },
                     res
                 );
+                emitMigrationToolState(res as any);
             } catch (error) {
                 console.error("Error in MIGRATION_TOOL_STATE handler:", error);
             }
@@ -618,6 +620,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                     { type: "webview", webviewType: VisualizerWebview.viewType },
                     res
                 );
+                emitMigrationToolLog(res as any);
             } catch (error) {
                 console.error("Error in MIGRATION_TOOL_LOG handler:", error);
             }
@@ -630,6 +633,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                     { type: "webview", webviewType: VisualizerWebview.viewType },
                     res
                 );
+                emitMigratedProject(res);
             } catch (error) {
                 console.error("Error in PUSH_MIGRATED_PROJECT handler:", error);
             }
