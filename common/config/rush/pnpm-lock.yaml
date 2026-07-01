@@ -152,6 +152,9 @@ importers:
       '@wso2/trace-visualizer':
         specifier: workspace:*
         version: link:../trace-visualizer
+      '@wso2/webview-giga-bridge':
+        specifier: workspace:*
+        version: link:../../submodules/wso2-vscode-extensions/workspaces/common-libs/vscode-webview-bridge
       '@wso2/wso2-platform-core':
         specifier: workspace:*
         version: link:../../submodules/wso2-vscode-extensions/workspaces/wso2-platform/wso2-platform-core
@@ -918,6 +921,9 @@ importers:
       '@wso2/ui-toolkit':
         specifier: workspace:*
         version: link:../../submodules/wso2-vscode-extensions/workspaces/common-libs/ui-toolkit
+      '@wso2/webview-giga-bridge':
+        specifier: workspace:*
+        version: link:../../submodules/wso2-vscode-extensions/workspaces/common-libs/vscode-webview-bridge
       '@wso2/wso2-platform-core':
         specifier: workspace:*
         version: link:../../submodules/wso2-vscode-extensions/workspaces/wso2-platform/wso2-platform-core
@@ -2641,6 +2647,25 @@ importers:
       vite:
         specifier: 6.0.14
         version: 6.0.14(@types/node@22.15.24)(sass@1.89.0)(terser@5.48.0)(yaml@2.8.3)
+
+  ../../submodules/wso2-vscode-extensions/workspaces/common-libs/vscode-webview-bridge:
+    dependencies:
+      ws:
+        specifier: 8.21.0
+        version: 8.21.0
+    devDependencies:
+      '@types/vscode':
+        specifier: 1.100.0
+        version: 1.100.0
+      '@types/ws':
+        specifier: 8.18.1
+        version: 8.18.1
+      rimraf:
+        specifier: 5.0.5
+        version: 5.0.5
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
 
   ../../submodules/wso2-vscode-extensions/workspaces/wso2-platform/wso2-platform-core:
     dependencies:
@@ -7379,6 +7404,9 @@ packages:
 
   '@types/ws@8.2.1':
     resolution: {integrity: sha512-SqQ+LhVZaJi7c7sYVkjWALDigi/Wy7h7Iu72gkQp8Y8OWw/DddEVBrTSKu86pQftV2+Gm8lYM61hadPKqyaIeg==}
+
+  '@types/ws@8.5.12':
+    resolution: {integrity: sha512-3tPRkv1EtkDpzlgyKyI8pGsGZAGPEaXeu0DOj5DI25Ja91bdAYddYHbADRYVrZMRbfW+1l5YwXVDKohDJNQxkQ==}
 
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -16088,6 +16116,11 @@ packages:
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
     deprecated: Rimraf versions prior to v4 are no longer supported
+    hasBin: true
+
+  rimraf@5.0.5:
+    resolution: {integrity: sha512-CqDakW+hMe/Bz202FPEymy68P+G50RfMQK+Qo5YUqc9SPipvbGjCGKd0RSKEelbsfQuw3g5NZDSrlZZAJurH1A==}
+    engines: {node: '>=14'}
     hasBin: true
 
   rimraf@6.0.1:
@@ -27774,7 +27807,7 @@ snapshots:
   '@types/selenium-webdriver@4.35.6':
     dependencies:
       '@types/node': 22.15.24
-      '@types/ws': 8.2.1
+      '@types/ws': 8.18.1
 
   '@types/semver@7.7.1': {}
 
@@ -27933,6 +27966,10 @@ snapshots:
       '@types/node': 22.15.24
 
   '@types/ws@8.2.1':
+    dependencies:
+      '@types/node': 22.15.24
+
+  '@types/ws@8.5.12':
     dependencies:
       '@types/node': 22.15.24
 
@@ -39717,6 +39754,10 @@ snapshots:
     dependencies:
       glob: 7.2.3
 
+  rimraf@5.0.5:
+    dependencies:
+      glob: 10.5.0
+
   rimraf@6.0.1:
     dependencies:
       glob: 11.1.0
@@ -42647,7 +42688,7 @@ snapshots:
       '@types/serve-index': 1.9.4
       '@types/serve-static': 1.15.10
       '@types/sockjs': 0.3.36
-      '@types/ws': 8.18.1
+      '@types/ws': 8.5.12
       ansi-html-community: 0.0.8
       bonjour-service: 1.4.1
       chokidar: 3.6.0
@@ -42687,7 +42728,7 @@ snapshots:
       '@types/serve-index': 1.9.4
       '@types/serve-static': 1.15.10
       '@types/sockjs': 0.3.36
-      '@types/ws': 8.18.1
+      '@types/ws': 8.5.12
       ansi-html-community: 0.0.8
       bonjour-service: 1.4.1
       chokidar: 3.6.0
@@ -42727,7 +42768,7 @@ snapshots:
       '@types/serve-index': 1.9.4
       '@types/serve-static': 1.15.10
       '@types/sockjs': 0.3.36
-      '@types/ws': 8.18.1
+      '@types/ws': 8.5.12
       ansi-html-community: 0.0.8
       bonjour-service: 1.4.1
       chokidar: 3.6.0
@@ -42768,7 +42809,7 @@ snapshots:
       '@types/serve-index': 1.9.4
       '@types/serve-static': 1.15.10
       '@types/sockjs': 0.3.36
-      '@types/ws': 8.18.1
+      '@types/ws': 8.5.12
       ansi-html-community: 0.0.8
       bonjour-service: 1.4.1
       chokidar: 3.6.0
@@ -42808,7 +42849,7 @@ snapshots:
       '@types/serve-index': 1.9.4
       '@types/serve-static': 1.15.10
       '@types/sockjs': 0.3.36
-      '@types/ws': 8.18.1
+      '@types/ws': 8.5.12
       ansi-html-community: 0.0.8
       bonjour-service: 1.4.1
       chokidar: 3.6.0
