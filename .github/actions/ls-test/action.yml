@@ -40,7 +40,6 @@ runs:
         key: ${{ runner.os }}-ballerina-${{ inputs.cache-branch }}-${{ hashFiles('**/gradle.properties') }}
         restore-keys: |
           ${{ runner.os }}-ballerina-${{ inputs.cache-branch }}-
-          ${{ runner.os }}-ballerina-
 
     - name: Test with Gradle
       shell: bash
