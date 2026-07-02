@@ -259,6 +259,13 @@ export const validateOrgName = (orgName: string): string | null => {
         return `"${orgName}" is a reserved organization name`;
     }
 
+    // Length check must run outside the pattern branch below — an otherwise-valid
+    // identifier that is simply too long passes RESTRICTED_IDENTIFIER_REGEX, so the
+    // in-branch length check was unreachable for exactly the names it should catch.
+    if (orgName.length > ORG_NAME_MAX_LENGTH) {
+        return `Organization name cannot exceed ${ORG_NAME_MAX_LENGTH} characters`;
+    }
+
     // Validate against RestrictedIdentifier pattern
     if (!RESTRICTED_IDENTIFIER_REGEX.test(orgName)) {
         if (!/^[a-zA-Z]/.test(orgName)) {
@@ -272,9 +279,6 @@ export const validateOrgName = (orgName: string): string | null => {
         }
         if (/_[^a-zA-Z0-9]/.test(orgName)) {
             return "Underscore must be followed by at least one letter or digit";
-        }
-        if (orgName.length > ORG_NAME_MAX_LENGTH) {
-            return `Organization name cannot exceed ${ORG_NAME_MAX_LENGTH} characters`;
         }
         return "Organization name can only contain letters (a-z, A-Z), digits (0-9), and underscores";
     }

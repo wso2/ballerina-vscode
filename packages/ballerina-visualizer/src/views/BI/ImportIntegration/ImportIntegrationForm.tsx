@@ -98,9 +98,11 @@ export function ImportIntegrationForm({
         const result = await wsClient.selectFileOrFolderPath();
         if (result?.path) {
             setImportSourcePath(result.path);
-            // Detect directory: no extension in the last path segment
+            // Prefer the authoritative flag from the host picker; fall back to a
+            // filename heuristic only when it is absent. (A dotted directory such
+            // as `project.v1` would otherwise be misdetected as a file.)
             const lastSegment = result.path.split(/[/\\]/).pop() ?? "";
-            setIsDirectorySelected(!lastSegment.includes("."));
+            setIsDirectorySelected(result.isDirectory ?? !lastSegment.includes("."));
             setSourcePathError(null);
         }
     };

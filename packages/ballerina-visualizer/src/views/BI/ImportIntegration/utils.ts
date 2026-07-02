@@ -81,11 +81,11 @@ export const getMigrationDisplayState = (
     showButtonsAfterLogs: !migrationCompleted || (migrationCompleted && !migrationSuccessful)
 });
 
-export const handleMultiProjectReportOpening = (
+export const handleMultiProjectReportOpening = async (
     migrationResponse: ImportIntegrationResponse,
     projects: Array<ProjectMigrationResult>,
     wsClient: BiWsClient
-) => {
+): Promise<void> => {
     // Build a map of project reports from the projects array
     const subProjectReports: { [projectName: string]: string } = {};
 
@@ -98,7 +98,7 @@ export const handleMultiProjectReportOpening = (
     // Store the sub-project reports via RPC so they can be retrieved on link clicks
     if (Object.keys(subProjectReports).length > 0) {
         try {
-            wsClient.storeSubProjectReports({
+            await wsClient.storeSubProjectReports({
                 reports: subProjectReports
             });
             console.log("Stored sub-project reports:", Object.keys(subProjectReports));

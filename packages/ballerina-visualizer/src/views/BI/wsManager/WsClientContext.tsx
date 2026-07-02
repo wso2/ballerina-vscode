@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext, useEffect, useMemo } from "react";
 import { BiWsClient } from "./WsClient";
 import { WebviewTransportBootstrap } from "@wso2/ballerina-core";
 
@@ -47,13 +47,26 @@ interface BiWsClientProviderProps {
  * runs in the Ballerina visualizer and embedded in the integrator.
  */
 export function BiWsClientProvider({ wsClient, bootstrap, onBack, children }: BiWsClientProviderProps) {
-    const value = useMemo<BiWsContextValue>(() => {
-        const client = wsClient ?? new BiWsClient(bootstrap);
-        return {
+    // Create the client from (injected client | bootstrap) only — NOT from `onBack`.
+    // Including `onBack` here would spin up a fresh BiWsClient (and WS connection)
+    // every time the parent passed a new inline `onBack` reference.
+    const client = useMemo(() => wsClient ?? new BiWsClient(bootstrap), [wsClient, bootstrap]);
+
+    // Dispose only a client we created here; an injected client is owned by the caller.
+    useEffect(() => {
+        if (wsClient) {
+            return;
+        }
+        return () => client.dispose();
+    }, [client, wsClient]);
+
+    const value = useMemo<BiWsContextValue>(
+        () => ({
             wsClient: client,
             onBack: onBack ?? (() => client.goBack()),
-        };
-    }, [wsClient, bootstrap, onBack]);
+        }),
+        [client, onBack],
+    );
 
     return <BiWsContext.Provider value={value}>{children}</BiWsContext.Provider>;
 }

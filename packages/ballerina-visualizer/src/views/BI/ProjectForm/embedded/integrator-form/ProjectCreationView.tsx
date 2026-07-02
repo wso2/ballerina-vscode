@@ -330,7 +330,13 @@ export function ProjectCreationView({ onBack, ballerinaUnavailable }: { onBack?:
                 setIsValidating(false);
                 return;
             }
+        } catch (error) {
+            setPathError("An error occurred during validation");
+            setIsValidating(false);
+            return;
+        }
 
+        try {
             const orgHandle = organizations?.find(o => o.handle === formData.orgName)?.handle
                 || sanitizeOrgHandle(formData.orgName);
 
@@ -345,7 +351,8 @@ export function ProjectCreationView({ onBack, ballerinaUnavailable }: { onBack?:
                 projectHandle: projectHandle,
             });
         } catch (error) {
-            setPathError("An error occurred during validation");
+            console.error("Failed to create project:", error);
+            setPathError(error instanceof Error ? error.message : "Failed to create the project");
         } finally {
             setIsValidating(false);
         }

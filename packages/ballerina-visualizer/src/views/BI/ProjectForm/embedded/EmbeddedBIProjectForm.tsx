@@ -76,9 +76,13 @@ export default function EmbeddedBIProjectForm({ wsClient, ballerinaUnavailable, 
             try {
                 const coords: WsCoords = await (wsClient as any).getBiFormWsBootstrap();
                 wsRpc = new EmbeddedWsRpc(coords);
-                if (!cancelled) {
-                    setRpcClient(createCompositeClient(wsClient, wsRpc));
+                if (cancelled) {
+                    // Unmounted while the bootstrap was in flight — dispose the socket we
+                    // just opened rather than leaking it.
+                    wsRpc.dispose();
+                    return;
                 }
+                setRpcClient(createCompositeClient(wsClient, wsRpc));
             } catch (connectError) {
                 if (!cancelled) {
                     setError(

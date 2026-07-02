@@ -257,7 +257,13 @@ export class CommonRpcManager implements CommonRPCAPI {
                 resolve({ path: "" });
             } else {
                 const fileOrFolderPath = selectedFileOrFolder[0].fsPath;
-                resolve({ path: fileOrFolderPath });
+                let isDirectory: boolean | undefined;
+                try {
+                    isDirectory = fs.statSync(fileOrFolderPath).isDirectory();
+                } catch {
+                    // Leave undefined so the caller falls back to its filename heuristic.
+                }
+                resolve({ path: fileOrFolderPath, isDirectory });
             }
         });
     }

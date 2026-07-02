@@ -177,7 +177,10 @@ export function ImportIntegration() {
             activeRunRef.current = null;
         }
         if (step === 3) {
-            // Back from rule-based migration → reset migration state and pull failure
+            // Back from rule-based migration → reset migration state and pull failure.
+            // NOTE: keep `toolPullProgress` — the tool was already pulled at step 0→1, and
+            // the step-3 auto-start effect gates on `toolPullProgress?.success === true`.
+            // Nulling it here would leave migration unable to restart on re-entry.
             migrationStartedRef.current = false;
             setMigrationToolState(null);
             setMigrationToolLogs([]);
@@ -187,8 +190,6 @@ export function ImportIntegration() {
             setMigratedProjects([]);
             setToolPullFailed(false);
             setToolPullFailureMessage(null);
-            setToolPullProgress(null);
-            setPullingTool(false);
             activeRunRef.current = null;
         }
         setStep(step - 1);
@@ -204,7 +205,9 @@ export function ImportIntegration() {
             sourcePath: importParams.importSourcePath,
             keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
         };
-        wsClient.migrateProject(params);
+        // Fire-and-forget: enhancement streaming drives the next step; guard the
+        // promise so a rejection surfaces as a logged error, not an unhandled rejection.
+        wsClient.migrateProject(params).catch((error) => console.error("Failed to start migration:", error));
         setStep(4);
     };
 
@@ -219,7 +222,9 @@ export function ImportIntegration() {
             sourcePath: importParams.importSourcePath,
             keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
         };
-        wsClient.migrateProject(params);
+        // Fire-and-forget: the extension opens the folder (VS Code reloads). Guard the
+        // promise so a rejection is logged rather than left unhandled.
+        wsClient.migrateProject(params).catch((error) => console.error("Failed to open migrated project:", error));
     };
 
     const handleDone = async () => {
@@ -233,7 +238,9 @@ export function ImportIntegration() {
             sourcePath: importParams.importSourcePath,
             keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
         };
-        wsClient.migrateProject(params);
+        // Fire-and-forget: project is created but not opened; guard the promise so a
+        // rejection is logged rather than left unhandled.
+        wsClient.migrateProject(params).catch((error) => console.error("Failed to finalize migration:", error));
         gotToWelcome();
     };
 
@@ -253,46 +260,50 @@ export function ImportIntegration() {
     useEffect(() => {
         getMigrationTools();
 
-        wsClient.onDownloadProgress((progressUpdate) => {
-            setToolPullProgress(progressUpdate);
-            if (progressUpdate.success) {
-                setPullingTool(false);
-            }
+        const unsubscribers = [
+            wsClient.onDownloadProgress((progressUpdate) => {
+                setToolPullProgress(progressUpdate);
+                if (progressUpdate.success) {
+                    setPullingTool(false);
+                }
 
-            if (progressUpdate.step === -1) {
-                setPullingTool(false);
-                setToolPullFailed(true);
-                setToolPullFailureMessage(progressUpdate.message);
-                wsClient.showErrorMessage({ message: progressUpdate.message });
-            }
-        });
+                if (progressUpdate.step === -1) {
+                    setPullingTool(false);
+                    setToolPullFailed(true);
+                    setToolPullFailureMessage(progressUpdate.message);
+                    wsClient.showErrorMessage({ message: progressUpdate.message });
+                }
+            }),
 
-        wsClient.onMigrationToolStateChanged((state) => {
-            const activeRun = activeRunRef.current;
-            if (activeRun === "dryRun") {
-                setDryRunToolState(state);
-            } else if (activeRun === "migration") {
-                setMigrationToolState(state);
-            }
-        });
+            wsClient.onMigrationToolStateChanged((state) => {
+                const activeRun = activeRunRef.current;
+                if (activeRun === "dryRun") {
+                    setDryRunToolState(state);
+                } else if (activeRun === "migration") {
+                    setMigrationToolState(state);
+                }
+            }),
 
-        wsClient.onMigrationToolLogs((log) => {
-            const activeRun = activeRunRef.current;
-            if (activeRun === "dryRun") {
-                setDryRunLogs((prevLogs) => [...prevLogs, log]);
-            } else if (activeRun === "migration") {
-                setMigrationToolLogs((prevLogs) => [...prevLogs, log]);
-            }
-        });
+            wsClient.onMigrationToolLogs((log) => {
+                const activeRun = activeRunRef.current;
+                if (activeRun === "dryRun") {
+                    setDryRunLogs((prevLogs) => [...prevLogs, log]);
+                } else if (activeRun === "migration") {
+                    setMigrationToolLogs((prevLogs) => [...prevLogs, log]);
+                }
+            }),
 
-        wsClient.onMigratedProject((project) => {
-            const activeRun = activeRunRef.current;
-            if (activeRun === "dryRun") {
-                setDryRunProjects((prevProjects) => [...prevProjects, project]);
-            } else if (activeRun === "migration") {
-                setMigratedProjects((prevProjects) => [...prevProjects, project]);
-            }
-        });
+            wsClient.onMigratedProject((project) => {
+                const activeRun = activeRunRef.current;
+                if (activeRun === "dryRun") {
+                    setDryRunProjects((prevProjects) => [...prevProjects, project]);
+                } else if (activeRun === "migration") {
+                    setMigratedProjects((prevProjects) => [...prevProjects, project]);
+                }
+            }),
+        ];
+
+        return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
     }, [wsClient]);
 
     useEffect(() => {

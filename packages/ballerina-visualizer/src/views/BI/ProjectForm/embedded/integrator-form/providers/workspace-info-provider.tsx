@@ -46,6 +46,23 @@ export function useProjectModeSupported(): boolean {
 }
 
 /**
+ * Like {@link useProjectModeSupported} but also reports whether the version check
+ * has actually resolved. Use this when a decision must not act on the optimistic
+ * placeholder (e.g. before mutating form state), so it waits for the confirmed value.
+ * Shares the same query cache key, so it never fires a second request.
+ */
+export function useProjectModeSupportedStatus(): { supported: boolean; isResolved: boolean } {
+    const { wsClient } = useVisualizerContext();
+    const { data, isSuccess } = useQuery({
+        queryKey: WORKSPACE_INFO_QUERY_KEYS.projectModeSupported,
+        queryFn: () => wsClient.isSupportedSLVersion(PROJECT_MODE_MIN_VERSION),
+        staleTime: Infinity,
+        placeholderData: true,
+    });
+    return { supported: data ?? true, isResolved: isSuccess };
+}
+
+/**
  * Returns the current VS Code workspace root path and a ready flag.
  * - `path`: the workspace root (empty string if none is open).
  * - `isReady`: false while the initial fetch is in flight.

@@ -42,6 +42,11 @@ function formatFileNameForDisplay(filePath: string): string {
     return filePath.replace(/\\/g, "/");
 }
 
+/** Escapes regex metacharacters so a value can be embedded literally in a RegExp. */
+function escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Styled Components
 // ──────────────────────────────────────────────────────────────────────────────
@@ -221,6 +226,29 @@ const CredentialInput = styled.input`
     }
 `;
 
+// Multi-line variant for pasted PEM keys — a single-line <input> silently strips
+// the newlines a PEM private key depends on.
+const CredentialTextArea = styled.textarea`
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 3px;
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 12px;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 72px;
+    &::placeholder {
+        color: var(--vscode-input-placeholderForeground);
+    }
+    &:focus {
+        outline: 1px solid var(--vscode-focusBorder);
+        border-color: var(--vscode-focusBorder);
+    }
+`;
+
 const CredentialLabel = styled.label`
     display: block;
     font-size: 11px;
@@ -388,14 +416,18 @@ export function WizardAIEnhancementView({ projectCount, isMultiProject, onFinish
 
                     if (toolName === "LibrarySearchTool") {
                         const desc = toolOutput?.searchDescription;
-                        const origMsg = desc ? `Searching for ${desc}...` : "Searching for libraries...";
                         const doneMsg = desc
                             ? `${desc.charAt(0).toUpperCase() + desc.slice(1)} search completed`
                             : "Library search completed";
                         const failedAttrLS = event.failed ? ` failed="true"` : "";
+                        // Match the in-progress tag by id + tool, not by its inner text: the
+                        // in-progress message is built from tool *input*'s searchDescription while
+                        // this result carries the *output*'s — they can differ, and a literal-string
+                        // replace would then miss, leaving the spinner stuck forever.
+                        const idPattern = escapeRegExp(toolCallId ?? "");
                         updateContent((prev) =>
                             prev.replace(
-                                `<toolcall id="${toolCallId}" tool="${toolName}">${origMsg}</toolcall>`,
+                                new RegExp(`<toolcall id="${idPattern}" tool="${toolName}">[^<]*</toolcall>`),
                                 `<toolresult id="${toolCallId}" tool="${toolName}"${failedAttrLS}>${doneMsg}</toolresult>`
                             )
                         );
@@ -505,9 +537,10 @@ export function WizardAIEnhancementView({ projectCount, isMultiProject, onFinish
 
     // ── Subscribe to streaming events ───────────────────────────────────────
     useEffect(() => {
-        wsClient.onChatNotify((event: ChatNotify) => {
+        const unsubscribe = wsClient.onChatNotify((event: ChatNotify) => {
             handleChatEvent(event);
         });
+        return () => unsubscribe();
     }, [wsClient, handleChatEvent]);
 
     // ── Trigger the agent ───────────────────────────────────────────────────
@@ -906,9 +939,9 @@ export function WizardAIEnhancementView({ projectCount, isMultiProject, onFinish
                                 </div>
                                 <div>
                                     <CredentialLabel htmlFor="vertex-private-key">Private Key</CredentialLabel>
-                                    <CredentialInput
+                                    <CredentialTextArea
                                         id="vertex-private-key"
-                                        type="password"
+                                        rows={4}
                                         placeholder="-----BEGIN PRIVATE KEY-----"
                                         value={vertexPrivateKey}
                                         onChange={(e) => setVertexPrivateKey(e.target.value)}

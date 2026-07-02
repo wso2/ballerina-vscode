@@ -61,13 +61,17 @@ export function useSignIn() {
             setIsSigningIn(false);
             timeoutRef.current = null;
         }, SIGN_IN_TIMEOUT_MS);
-        wsClient.runCommand({ command: WICommandIds.SignIn, args: [] });
+        wsClient
+            .runCommand({ command: WICommandIds.SignIn, args: [] })
+            .catch((error) => console.error("Sign-in command failed:", error));
     };
 
     const handleCancelSignIn = () => {
         setIsSigningIn(false);
         clearSignInTimeout();
-        wsClient.runCommand({ command: WICommandIds.CancelSignIn, args: [] });
+        wsClient
+            .runCommand({ command: WICommandIds.CancelSignIn, args: [] })
+            .catch((error) => console.error("Cancel sign-in command failed:", error));
     };
 
     return { isSigningIn, handleSignIn, handleCancelSignIn };

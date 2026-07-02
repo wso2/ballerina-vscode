@@ -525,6 +525,11 @@ export const RadioInput = styled.input`
     accent-color: var(--vscode-focusBorder);
     flex-shrink: 0;
     outline: none;
+    /* Restore a visible focus ring for keyboard users (outline: none removes it). */
+    &:focus-visible {
+        outline: 1px solid var(--vscode-focusBorder);
+        outline-offset: 2px;
+    }
 `;
 
 export const RadioContent = styled.div`

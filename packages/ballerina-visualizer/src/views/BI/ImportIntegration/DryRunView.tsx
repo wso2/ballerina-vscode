@@ -67,8 +67,8 @@ export function DryRunView({
     const handleViewReport = async () => {
         try {
             if (migrationResponse?.report) {
-                handleMultiProjectReportOpening(migrationResponse, projects, wsClient);
-                wsClient.openMigrationReport({
+                await handleMultiProjectReportOpening(migrationResponse, projects, wsClient);
+                await wsClient.openMigrationReport({
                     reportContent: migrationResponse.report,
                     fileName: "dry-run-report.html",
                 });
@@ -89,13 +89,13 @@ export function DryRunView({
                         projectReports[project.projectName] = project.report;
                     }
                 });
-                wsClient.saveMigrationReport({
+                await wsClient.saveMigrationReport({
                     reportContent: migrationResponse.report,
                     defaultFileName: "aggregate_dry_run_report.html",
                     projectReports,
                 });
             } else {
-                wsClient.saveMigrationReport({
+                await wsClient.saveMigrationReport({
                     reportContent: migrationResponse.report,
                     defaultFileName: "dry-run-report.html",
                 });

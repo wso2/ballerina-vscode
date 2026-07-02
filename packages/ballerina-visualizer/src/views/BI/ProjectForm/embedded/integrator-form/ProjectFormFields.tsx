@@ -21,7 +21,7 @@ import debounce from "lodash/debounce";
 import { TextField, CheckBox } from "@wso2/ui-toolkit";
 import { DirectorySelector } from "./components/DirectorySelector/DirectorySelector";
 import { useVisualizerContext } from "./context/WsClientContext";
-import { useCloudContext, useCloudProjects, useProjectModeSupported, useWorkspaceRoot } from "./providers";
+import { useCloudContext, useCloudProjects, useProjectModeSupportedStatus, useWorkspaceRoot } from "./providers";
 import {
     FieldGroup,
     Description,
@@ -78,7 +78,7 @@ export function ProjectFormFields({
 }: ProjectFormFieldsProps) {
     const { wsClient } = useVisualizerContext();
     const { authState } = useCloudContext();
-    const isProjectModeSupported = useProjectModeSupported();
+    const { supported: isProjectModeSupported, isResolved: isProjectModeResolved } = useProjectModeSupportedStatus();
     const { path: workspacePath, isReady: workspaceReady } = useWorkspaceRoot();
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [withinProjectNameTouched, setWithinProjectNameTouched] = useState(false);
@@ -211,6 +211,9 @@ export function ProjectFormFields({
             if (
                 !hasAutoInitializedProjectMode.current &&
                 !hasUserToggledCreateWithinProject.current &&
+                // Wait for the confirmed value — acting on the optimistic placeholder
+                // could auto-enable project mode on a runtime that doesn't support it.
+                isProjectModeResolved &&
                 isProjectModeSupported
             ) {
                 hasAutoInitializedProjectMode.current = true;
@@ -226,6 +229,7 @@ export function ProjectFormFields({
         wsClient,
         workspacePath,
         isProjectModeSupported,
+        isProjectModeResolved,
         formData.path,
         formData.packageName,
         formData.withinProjectName,

@@ -191,7 +191,13 @@ export function BIProjectForm({ ballerinaUnavailable }: { ballerinaUnavailable?:
                 setIsValidating(false);
                 return;
             }
+        } catch (error) {
+            setPathError("An error occurred during validation");
+            setIsValidating(false);
+            return;
+        }
 
+        try {
             const orgHandle = organizations?.find(o => o.handle === formData.orgName)?.handle ||
                 sanitizeOrgHandle(formData.orgName);
 
@@ -208,7 +214,8 @@ export function BIProjectForm({ ballerinaUnavailable }: { ballerinaUnavailable?:
                 projectHandle: formData.createWithinProject ? formData.projectHandle : undefined,
             });
         } catch (error) {
-            setPathError("An error occurred during validation");
+            console.error("Failed to create integration:", error);
+            setPathError(error instanceof Error ? error.message : "Failed to create the integration");
         } finally {
             setIsValidating(false);
         }
