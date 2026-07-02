@@ -205,10 +205,17 @@ export function ImportIntegration() {
             sourcePath: importParams.importSourcePath,
             keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
         };
-        // Fire-and-forget: enhancement streaming drives the next step; guard the
-        // promise so a rejection surfaces as a logged error, not an unhandled rejection.
-        wsClient.migrateProject(params).catch((error) => console.error("Failed to start migration:", error));
-        setStep(4);
+        // Await the project write before advancing: the enhancement step calls
+        // wizardEnhancementReady, which needs the project root migrateProject sets.
+        // Advancing early would both race that and hide a write failure.
+        try {
+            await wsClient.migrateProject(params);
+            setStep(4);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.error("Failed to start migration:", error);
+            wsClient.showErrorMessage({ message: `Failed to start AI enhancement: ${message}` });
+        }
     };
 
     const handleOpenProject = async () => {
@@ -223,8 +230,12 @@ export function ImportIntegration() {
             keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
         };
         // Fire-and-forget: the extension opens the folder (VS Code reloads). Guard the
-        // promise so a rejection is logged rather than left unhandled.
-        wsClient.migrateProject(params).catch((error) => console.error("Failed to open migrated project:", error));
+        // promise and surface any failure to the user rather than only logging it.
+        wsClient.migrateProject(params).catch((error) => {
+            const message = error instanceof Error ? error.message : String(error);
+            console.error("Failed to open migrated project:", error);
+            wsClient.showErrorMessage({ message: `Failed to open the migrated project: ${message}` });
+        });
     };
 
     const handleDone = async () => {
@@ -238,10 +249,16 @@ export function ImportIntegration() {
             sourcePath: importParams.importSourcePath,
             keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
         };
-        // Fire-and-forget: project is created but not opened; guard the promise so a
-        // rejection is logged rather than left unhandled.
-        wsClient.migrateProject(params).catch((error) => console.error("Failed to finalize migration:", error));
-        gotToWelcome();
+        // Await the project write before navigating away, so a failure keeps the user
+        // on the wizard with a visible error instead of silently returning to welcome.
+        try {
+            await wsClient.migrateProject(params);
+            gotToWelcome();
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.error("Failed to finalize migration:", error);
+            wsClient.showErrorMessage({ message: `Failed to finalize migration: ${message}` });
+        }
     };
 
     const gotToWelcome = () => {
