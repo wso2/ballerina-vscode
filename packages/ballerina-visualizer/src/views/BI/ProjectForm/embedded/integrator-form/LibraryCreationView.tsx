@@ -78,6 +78,7 @@ export function LibraryCreationView({ onBack, ballerinaUnavailable }: { onBack?:
     const handleTouched = useRef(false);
     const withinProjectNameTouchedRef = useRef(false);
     const orgNameInitialized = useRef(false);
+    const defaultPathInitialized = useRef(false);
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [withinProjectNameTouched, setWithinProjectNameTouched] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
@@ -130,10 +131,16 @@ export function LibraryCreationView({ onBack, ballerinaUnavailable }: { onBack?:
         if (!workspaceReady) return;
         let mounted = true;
         (async () => {
-            const dp = workspacePath || (await wsClient.getDefaultCreationPath()).path;
-            if (!mounted) return;
-            setDefaultPath(dp);
-            setFormData(prev => ({ ...prev, path: dp }));
+            // Seed the default path only once — this effect re-runs on workspacePath /
+            // project-mode changes, and without the guard it would clobber a path the
+            // user has since chosen via Browse or by typing.
+            if (!defaultPathInitialized.current) {
+                const dp = workspacePath || (await wsClient.getDefaultCreationPath()).path;
+                if (!mounted) return;
+                defaultPathInitialized.current = true;
+                setDefaultPath(dp);
+                setFormData(prev => ({ ...prev, path: dp }));
+            }
 
             if (isProjectModeSupported) {
                 if (!mounted) return;

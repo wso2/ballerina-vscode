@@ -68,6 +68,7 @@ export function ProjectCreationView({ onBack, ballerinaUnavailable }: { onBack?:
     const handleTouched = useRef(false);
     const projectNameTouchedRef = useRef(false);
     const orgNameInitialized = useRef(false);
+    const defaultPathInitialized = useRef(false);
     const [isValidating, setIsValidating] = useState(false);
     const [projectNameError, setProjectNameError] = useState<string | null>(null);
     const [pathError, setPathError] = useState<string | null>(null);
@@ -109,15 +110,21 @@ export function ProjectCreationView({ onBack, ballerinaUnavailable }: { onBack?:
     useEffect(() => {
         let mounted = true;
         (async () => {
-            try {
-                const { path: workspacePath } = await wsClient.getWorkspaceRoot();
-                if (!mounted) return;
-                const dp = workspacePath || (await wsClient.getDefaultCreationPath()).path;
-                if (!mounted) return;
-                setDefaultPath(dp);
-                setFormData(prev => ({ ...prev, path: dp }));
-            } catch (error) {
-                console.error("Failed to fetch default path:", error);
+            // Seed the default path only once. This effect also re-runs when the async
+            // cloud `organizations` list arrives/changes; without this guard it would
+            // overwrite a path the user has since chosen via Browse or by typing.
+            if (!defaultPathInitialized.current) {
+                try {
+                    const { path: workspacePath } = await wsClient.getWorkspaceRoot();
+                    if (!mounted) return;
+                    const dp = workspacePath || (await wsClient.getDefaultCreationPath()).path;
+                    if (!mounted) return;
+                    defaultPathInitialized.current = true;
+                    setDefaultPath(dp);
+                    setFormData(prev => ({ ...prev, path: dp }));
+                } catch (error) {
+                    console.error("Failed to fetch default path:", error);
+                }
             }
 
             if (!orgNameInitialized.current) {
