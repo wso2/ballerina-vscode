@@ -74,6 +74,8 @@ export interface EnhanceTomlData {
     currentStage?: number;
     /** `true` when this project is a multi-package workspace (cross-dependent packages). */
     multiProject?: boolean;
+    /** `true` when the migration ran with --keep-structure, preserving the original source file layout. */
+    keepStructure?: boolean;
 }
 
 /**

@@ -202,6 +202,7 @@ export function ImportIntegration() {
             projects: migratedProjects,
             aiFeatureUsed: true,
             sourcePath: importParams.importSourcePath,
+            keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
         };
         wsClient.migrateProject(params);
         setStep(4);
@@ -216,6 +217,7 @@ export function ImportIntegration() {
             projects: migratedProjects,
             aiFeatureUsed: false,
             sourcePath: importParams.importSourcePath,
+            keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
         };
         wsClient.migrateProject(params);
     };
@@ -229,6 +231,7 @@ export function ImportIntegration() {
             projects: migratedProjects,
             aiFeatureUsed: true,
             sourcePath: importParams.importSourcePath,
+            keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
         };
         wsClient.migrateProject(params);
         gotToWelcome();

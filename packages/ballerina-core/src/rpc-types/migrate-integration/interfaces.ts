@@ -88,6 +88,8 @@ export interface MigrateRequest {
     aiFeatureUsed?: boolean;
     /** Absolute path to the original source project (e.g. Mule XML directory). */
     sourcePath?: string;
+    /** `true` when the migration ran with --keep-structure, preserving original source file layout. */
+    keepStructure?: boolean;
 }
 
 export interface OpenSubProjectReportRequest {
