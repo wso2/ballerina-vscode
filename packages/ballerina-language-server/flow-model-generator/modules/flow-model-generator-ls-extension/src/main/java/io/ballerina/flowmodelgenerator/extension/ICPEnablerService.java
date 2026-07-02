@@ -87,47 +87,8 @@ public class ICPEnablerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             ICPEnabledResponse response = new ICPEnabledResponse();
             try {
-                Path filePath = Path.of(request.projectPath());
-                Project project = this.workspaceManager.loadProject(filePath);
-                Package pkg = project.currentPackage();
-                Module defaultModule = pkg.getDefaultModule();
-                Collection<DocumentId> documentIds = defaultModule.documentIds();
-                boolean hasCorrectImport = false;
-                for (DocumentId documentId : documentIds) {
-                    if (hasCorrectImport) {
-                        break;
-                    }
-                    Document document = defaultModule.document(documentId);
-                    ModulePartNode root = document.syntaxTree().rootNode();
-                    NodeList<ImportDeclarationNode> imports = root.imports();
-                    for (ImportDeclarationNode importNode : imports) {
-                        if (validOrg(importNode) && validModuleName(importNode) && validPrefix(importNode)) {
-                            hasCorrectImport = true;
-                            break;
-                        }
-                    }
-                }
-                if (!hasCorrectImport) {
-                    response.setEnabled(false);
-                    return response;
-                }
-                Optional<BallerinaToml> ballerinaToml = pkg.ballerinaToml();
-                if (ballerinaToml.isEmpty()) {
-                    throw new RuntimeException("Ballerina.toml not found");
-                }
-                TomlTableNode tomlTableNode = ballerinaToml.get().tomlAstNode();
-                TopLevelNode topLevelNode = tomlTableNode.entries().get("build-options");
-                if (topLevelNode instanceof TomlTableNode buildOptions) {
-                    TopLevelNode icpNode = buildOptions.entries().get("remoteManagement");
-                    if (icpNode instanceof TomlKeyValueNode keyValueNode) {
-                        String value = keyValueNode.value().toNativeValue().toString();
-                        if (value.trim().equals("true")) {
-                            response.setEnabled(true);
-                            return response;
-                        }
-                    }
-                }
-                response.setEnabled(false);
+                Project project = this.workspaceManager.loadProject(Path.of(request.projectPath()));
+                response.setEnabled(isIcpEnabled(project.currentPackage()));
             } catch (Throwable e) {
                 response.setError(e);
             }

@@ -977,11 +977,13 @@ export function PackageOverview(props: PackageOverviewProps) {
         setWorkflowMgmtEnabled(wfEnabled);
         if (wfEnabled) {
             rpcClient.getWorkflowManagementRpcClient().addWorkflowManagement({ projectPath })
-                .then((res) => setWorkflowMgmtEnabled(res.enabled ?? true))
+                // The RPC reports failures via errorMsg (it resolves rather than rejects), so roll
+                // back to the pre-toggle state instead of trusting enabled on a reported failure.
+                .then((res) => setWorkflowMgmtEnabled(res.errorMsg ? false : (res.enabled ?? true)))
                 .catch(() => setWorkflowMgmtEnabled(false));
         } else {
             rpcClient.getWorkflowManagementRpcClient().disableWorkflowManagement({ projectPath })
-                .then((res) => setWorkflowMgmtEnabled(res.enabled ?? false))
+                .then((res) => setWorkflowMgmtEnabled(res.errorMsg ? true : (res.enabled ?? false)))
                 .catch(() => setWorkflowMgmtEnabled(true));
         }
     };

@@ -49,9 +49,6 @@ public class WorkflowManagementEnablerTests extends AbstractLSTest {
         JsonElement response = getResponse(request);
 
         if (!response.equals(testConfig.response())) {
-            TestConfig updatedConfig =
-                    new TestConfig(testConfig.projectPath(), testConfig.description(), response);
-//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
