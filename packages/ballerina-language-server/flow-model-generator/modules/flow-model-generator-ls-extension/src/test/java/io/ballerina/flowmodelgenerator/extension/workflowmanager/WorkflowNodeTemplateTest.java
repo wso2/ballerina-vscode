@@ -42,6 +42,7 @@ public class WorkflowNodeTemplateTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
+                {Path.of("human_task_node_template.json")},
                 {Path.of("activity_call.json")},
                 {Path.of("activity_creation_node_template.json")},
                 {Path.of("activity_node_template.json")},
