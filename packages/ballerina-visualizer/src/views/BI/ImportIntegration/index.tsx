@@ -113,6 +113,9 @@ export function ImportIntegration() {
                 aiFeatureUsed: aiFeatureUsed,
                 sourcePath: importParams?.importSourcePath,
                 keepStructure: importParams?.parameters?.["keepStructure"] as boolean | undefined,
+                sourcePlatform: selectedIntegration?.commandName === 'migrate-mule' ? 'mule'
+                    : selectedIntegration?.commandName === 'migrate-tibco' ? 'tibco'
+                    : undefined,
             };
             rpcClient.getMigrateIntegrationRpcClient().migrateProject(params);
 

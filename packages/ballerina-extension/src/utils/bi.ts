@@ -712,7 +712,7 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
     // Write the AI enhancement state file – acts as the source of truth for the
     // migration UI banner.  This is done for ALL values of aiFeatureUsed so
     // the card can offer a "Start Enhancement" button even when the user skipped.
-    writeEnhanceToml(resolvedRoot, aiEnabled, false, params.sourcePath);
+    writeEnhanceToml(resolvedRoot, aiEnabled, false, params.sourcePath, undefined, undefined, undefined, undefined, undefined, params.sourcePlatform);
 
     if (aiEnabled) {
         // When AI enhancement is enabled, return the project root to the caller
