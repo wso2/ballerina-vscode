@@ -138,6 +138,18 @@ async function prepareExtensionsForLaunch(profileName) {
   return launchExtensionsFolder;
 }
 
+// macOS caps Unix domain socket paths at ~104 chars. VS Code binds its main
+// IPC socket at `<user-data-dir>/<ver>-main.sock`, and the launcher derives the
+// user-data-dir from `process.env.TEST_RESOURCES` (falling back to os.tmpdir(),
+// which on macOS is a ~48-char path under /var/folders). The profile name embeds
+// the scenario name, so a longer scenario pushes the socket path over the limit
+// and VS Code exits before a window ever opens. Point launch-time storage at a
+// short, stable root so even long scenario names stay well under the cap.
+// (Profile names include the pid, so per-profile subdirs never collide.)
+const launchStorageRoot = '/tmp/bae-store';
+fs.mkdirSync(launchStorageRoot, { recursive: true });
+process.env.TEST_RESOURCES = launchStorageRoot;
+
 async function launchIDE() {
   resetAuthoringDataFolder();
   const profileName = `bi-authoring-${sessionName}-${process.pid}`;
