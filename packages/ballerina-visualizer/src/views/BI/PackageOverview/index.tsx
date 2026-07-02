@@ -948,33 +948,41 @@ export function PackageOverview(props: PackageOverviewProps) {
         });
     };
 
+    const refreshWorkflowManagementState = () => {
+        rpcClient.getWorkflowManagementRpcClient().isWorkflowManagementEnabled({ projectPath })
+            .then((res) => setWorkflowMgmtEnabled(res.enabled));
+    };
+
     const handleICP = (icpEnabled: boolean) => {
+        // Update the checkbox state optimistically so it doesn't flicker while the RPC is in flight.
+        setEnableICP(icpEnabled);
         if (icpEnabled) {
             rpcClient.getICPRpcClient().addICP({ projectPath: '' })
                 .then(() => {
                     setEnableICP(true);
-                }
-                );
+                    // Enabling ICP may auto-enable Workflow Management (when the integration has
+                    // workflow functions), so re-sync that checkbox from the language server.
+                    refreshWorkflowManagementState();
+                })
+                .catch(() => setEnableICP(false));
         } else {
             rpcClient.getICPRpcClient().disableICP({ projectPath: '' })
-                .then(() => {
-                    setEnableICP(false);
-                }
-                );
+                .then(() => setEnableICP(false))
+                .catch(() => setEnableICP(true));
         }
     };
 
     const handleWorkflowManagement = (wfEnabled: boolean) => {
+        // Optimistic update to avoid checkbox flicker during the RPC round-trip.
+        setWorkflowMgmtEnabled(wfEnabled);
         if (wfEnabled) {
             rpcClient.getWorkflowManagementRpcClient().addWorkflowManagement({ projectPath })
-                .then((res) => {
-                    setWorkflowMgmtEnabled(res.enabled ?? true);
-                });
+                .then((res) => setWorkflowMgmtEnabled(res.enabled ?? true))
+                .catch(() => setWorkflowMgmtEnabled(false));
         } else {
             rpcClient.getWorkflowManagementRpcClient().disableWorkflowManagement({ projectPath })
-                .then((res) => {
-                    setWorkflowMgmtEnabled(res.enabled ?? false);
-                });
+                .then((res) => setWorkflowMgmtEnabled(res.enabled ?? false))
+                .catch(() => setWorkflowMgmtEnabled(true));
         }
     };
 
