@@ -214,6 +214,18 @@ export function markEnhancementComplete(): void {
 }
 
 /**
+ * Returns the migration source project path for the given project root, if available and accessible.
+ * Used to inject `migration_source_list` / `migration_source_read` tools into post-enhancement AI chat sessions.
+ */
+export function getMigrationSourcePathForProject(projectRoot: string): string | undefined {
+    const data = readEnhanceToml(projectRoot);
+    if (data?.sourcePath && fs.existsSync(data.sourcePath)) {
+        return data.sourcePath;
+    }
+    return undefined;
+}
+
+/**
  * Previously seeded raw conversation history into chatStateStorage.
  * Now a no-op — resume context is injected via the prompt preamble from summary.md.
  *
