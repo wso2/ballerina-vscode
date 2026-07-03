@@ -355,6 +355,6 @@ jobs:
       - name: Run LS tests
         uses: ./.github/actions/ls-test
         with:
-          cache-branch: ${{ github.ref_name }}
+          cache-branch: ${{ github.base_ref || github.ref_name }}
           package-user: ${{ github.actor }}
           package-pat: ${{ secrets.GITHUB_TOKEN }}
