@@ -20,6 +20,7 @@ import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createWebviewEventHandler } from "../utils/events";
 import { AgentExecutor } from './AgentExecutor';
+import { getMigrationSourcePathForProject } from "../migration/orchestrator";
 import {
     sendTelemetryEvent,
     TM_EVENT_BALLERINA_AI_GENERATION_SUBMITTED,
@@ -93,6 +94,12 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
             cleanupStrategy: 'review', // Review mode - temp persists until user accepts/declines
             existingTempPath: pendingReview?.reviewState.tempProjectPath
         });
+
+        // Inject migration source tools for projects that have been AI-enhanced
+        const migrationSourcePath = getMigrationSourcePathForProject(projectRootPath);
+        if (migrationSourcePath) {
+            config.toolOptions = { ...config.toolOptions, migrationSourcePath };
+        }
 
         // Get project metrics, project ID, and chat history for telemetry
         const projectMetrics = await getProjectMetrics(projectRootPath);

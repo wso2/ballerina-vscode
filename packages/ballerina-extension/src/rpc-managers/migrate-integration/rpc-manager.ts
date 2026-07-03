@@ -225,7 +225,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
             // Store the project root for wizard-level AI enhancement.
             // The webview will call wizardEnhancementReady once it shows the
             // enhancement step, which triggers the agent.
-            setWizardProjectRoot(projectRoot, params.sourcePath);
+            setWizardProjectRoot(projectRoot, params.sourcePath, params.keepStructure);
         }
     }
 

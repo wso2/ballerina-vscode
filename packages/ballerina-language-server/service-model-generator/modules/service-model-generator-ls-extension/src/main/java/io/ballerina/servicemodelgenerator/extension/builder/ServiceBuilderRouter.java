@@ -31,6 +31,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.service.FTPServiceBu
 import io.ballerina.servicemodelgenerator.extension.builder.service.GithubTriggerServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.GraphqlServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.HubspotTriggerServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.McpServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.MssqlCdcServiceBuilder;
@@ -75,6 +76,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBIT
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_HUBSPOT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_SHOPIFY;
 
 /**
@@ -101,6 +103,7 @@ public class ServiceBuilderRouter {
         put(FTP, FTPServiceBuilder::new);
         put(TRIGGER_GITHUB, GithubTriggerServiceBuilder::new);
         put(TRIGGER_SHOPIFY, ShopifyTriggerServiceBuilder::new);
+        put(TRIGGER_HUBSPOT, HubspotTriggerServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {

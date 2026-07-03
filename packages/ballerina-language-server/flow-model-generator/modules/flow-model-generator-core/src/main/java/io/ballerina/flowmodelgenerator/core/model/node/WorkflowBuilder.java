@@ -94,7 +94,7 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
         PackageUtil.pullModuleAndNotify(context.lsClientLogger(), workflowModuleInfo);
         // Add function name
         properties().functionNameTemplate("workflow", context.getAllVisibleSymbolNames());
-        setMandatoryProperties(this, "error?", "", "");
+        setMandatoryProperties(this, "json|error", "", "");
         // Add input property with WORKFLOW_INPUT_TYPE
         setInputTypeProperty(this, "");
     }

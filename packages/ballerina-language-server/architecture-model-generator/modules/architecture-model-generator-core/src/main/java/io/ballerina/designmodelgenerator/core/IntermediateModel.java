@@ -65,6 +65,7 @@ public class IntermediateModel {
         protected String absolutePath;
         protected String displayName;
         protected String sortText;
+        protected String serviceType;
         protected final List<String> namedListeners = new ArrayList<>();
         protected final List<Listener> anonListeners = new ArrayList<>();
 
