@@ -95,7 +95,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_O
  * @since 1.8.0
  */
 public class WaitDataBuilder extends CallBuilder {
-    private static final String LABEL = "Wait for Data";
+    private static final String LABEL = "Await Data";
     private static final String DESCRIPTION = "Wait for workflow data to be received";
     public static final String DATA_NAME_KEY = "dataName";
     public static final String DATA_NAME_LABEL = "Data Name";

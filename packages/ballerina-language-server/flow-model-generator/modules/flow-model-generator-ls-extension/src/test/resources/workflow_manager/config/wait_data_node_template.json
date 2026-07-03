@@ -7,7 +7,7 @@
   "output": {
     "id": "31",
     "metadata": {
-      "label": "Wait for Data",
+      "label": "Await Data",
       "description": "Wait for workflow data to be received"
     },
     "codedata": {
