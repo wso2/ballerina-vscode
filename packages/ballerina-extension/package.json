@@ -1429,6 +1429,9 @@
         ]
     },
     "main": "./dist/extension",
+    "bin": {
+        "ballerina-copilot-gen": "./bin/ballerina-copilot-gen.js"
+    },
     "scripts": {
         "clean": "del-cli ./dist ./out ./ballerina-*.vsix ./coverage ./.nyc_output",
         "compile": "webpack --mode production",
@@ -1437,6 +1440,7 @@
         "test": "pnpm run test-compile && node ./out/test/runTest.js",
         "test:ai": "pnpm run test-compile && node ./out/test/runAiTest.js",
         "test:libs-integration": "pnpm run test-compile && node ./out/test/runLibsIntegrationTest.js",
+        "gen:headless": "pnpm run test-compile && node ./out/test/runHeadlessGen.js",
         "e2e-test-setup": "npx extest get-vscode -c 1.100.0 && npx extest get-chromedriver -c 1.100.0 && npx extest install-vsix -f $(ls vsix/*.vsix)",
         "preui-test": "node -e \"const fs = require('fs'); if (fs.existsSync('test-resou')) { fs.unlinkSync('test-resou'); }\"",
         "e2e-test": "pnpm exec playwright test -c e2e-test/playwright.config.js",
