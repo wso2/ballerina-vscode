@@ -123,3 +123,50 @@ describe("BI Diagram — render semantics", () => {
         expect(container.querySelectorAll('[data-testid^="link-add-button-"]').length).toBeGreaterThan(0);
     }, 15000);
 });
+
+// L2-07: specific control-flow shapes that historically crashed the diagram. Rather
+// than hand-author fragile flow JSON, derive each shape by minimally mutating a known-
+// valid story model, then assert the canvas still renders (no throw). Each is one more
+// data point for the "control-flow shape is handled" invariant above.
+function findNode(flow: any, pred: (n: any) => boolean): any {
+    const walk = (nodes: any[] = []): any => {
+        for (const n of nodes) {
+            if (pred(n)) return n;
+            for (const b of n?.branches ?? []) {
+                const hit = walk(b?.children ?? b?.nodes ?? []);
+                if (hit) return hit;
+            }
+        }
+        return undefined;
+    };
+    return walk(flow?.nodes ?? []);
+}
+
+describe("BI Diagram — control-flow edge shapes (L2-07)", () => {
+    // NOTE on #586 ("missing `on fail` doesn't crash"): mutating an ERROR_HANDLER to
+    // drop its ON_FAILURE branch makes the layout visitor throw (reads viewState of an
+    // undefined node). A `do {}` block without `on fail` is valid Ballerina, so this is
+    // a plausible real crash — but whether the LS emits an ERROR_HANDLER (vs a distinct
+    // node) for that source is unverified, so it is NOT asserted here to avoid testing a
+    // synthetic shape. Tracked for real-LS verification before adding a fixture.
+
+    it("renders an else branch whose first child is a comment without crashing (#1794)", async () => {
+        const model: any = structuredClone(model7);
+        const iff = findNode(
+            model,
+            (n) => n?.codedata?.node === "IF" && (n.branches ?? []).some((b: any) => b?.label === "Else")
+        );
+        expect(iff).toBeTruthy();
+        const elseBranch = iff.branches.find((b: any) => b.label === "Else");
+        const comment = {
+            id: "synthetic-comment",
+            metadata: { label: "", description: "a leading comment in the else block" },
+            codedata: { node: "COMMENT", lineRange: iff.codedata?.lineRange },
+            branches: [],
+            properties: {},
+        };
+        elseBranch.children = [comment, ...(elseBranch.children ?? [])];
+        const { container } = await renderDiagram(model as Flow);
+        expect(container.querySelectorAll('[data-testid="bi-diagram-canvas"]').length).toBeGreaterThan(0);
+    }, 15000);
+});
