@@ -43,9 +43,14 @@ const arrayField = (value: any[]): FormField =>
     } as unknown as FormField);
 
 function renderArray(value: any[]) {
-    return renderWithForm(<FormArrayEditorWrapper field={arrayField(value)} openSubPanel={() => {}} />, {
-        defaultValues: { items: value },
-    });
+    return renderWithForm(
+        <FormArrayEditorWrapper
+            field={arrayField(value)}
+            fieldInputType={{ fieldType: "REPEATABLE_LIST" } as any}
+            openSubPanel={() => {}}
+        />,
+        { defaultValues: { items: value } }
+    );
 }
 
 describe("FormArrayEditorWrapper (array editor)", () => {
