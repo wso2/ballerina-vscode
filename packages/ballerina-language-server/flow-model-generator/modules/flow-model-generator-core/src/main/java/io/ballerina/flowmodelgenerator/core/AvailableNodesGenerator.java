@@ -157,7 +157,8 @@ public class AvailableNodesGenerator {
             TextRange range = TextRange.from(txtPos, 0);
             NonTerminalNode node = ((ModulePartNode) document.syntaxTree().rootNode()).findNode(range);
             return WorkflowUtil.isInsideWorkflowFunction(this.semanticModel, node);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            // Defensive: position resolution / syntax-tree lookups can fail on malformed sources.
             return false;
         }
     }
