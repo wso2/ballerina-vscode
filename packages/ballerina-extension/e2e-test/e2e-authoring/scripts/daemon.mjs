@@ -217,9 +217,13 @@ http.createServer((req, res) => {
   req.on('data', (chunk) => { body += chunk; });
   req.on('end', () => {
     const preview = body.trim().slice(0, 120).replace(/\n/g, ' ');
+    // Buffer step console output instead of streaming it: writing to the
+    // response before an error would lock the status code at 200 and make
+    // the later writeHead(500) crash the daemon (ERR_HTTP_HEADERS_SENT).
+    const logs = [];
     const run = async () => {
       log(`run: ${preview}`);
-      ctx.console = { log: (...args) => { if (!res.writableEnded) res.write(args.map(String).join(' ') + '\n'); } };
+      ctx.console = { log: (...args) => { logs.push(args.map(String).join(' ')); } };
       const wrapped = `(async()=>{return(${body})})()`;
       let code;
       try {
@@ -243,12 +247,14 @@ http.createServer((req, res) => {
       (result) => {
         log(`ok: ${preview}`);
         const out = typeof result === 'string' ? result : JSON.stringify(result) ?? '';
-        res.end(out || (result === undefined ? 'ok' : String(result)));
+        const prefix = logs.length ? logs.join('\n') + '\n' : '';
+        res.end(prefix + (out || (result === undefined ? 'ok' : String(result))));
       },
       (error) => {
         log(`err: ${error.message}`);
+        const prefix = logs.length ? logs.join('\n') + '\n' : '';
         res.writeHead(500);
-        res.end((error.stack ?? error.message) + '\n');
+        res.end(prefix + (error.stack ?? error.message) + '\n');
       }
     );
   });

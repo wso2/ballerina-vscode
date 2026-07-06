@@ -41,11 +41,27 @@ globalThis.createProjectAndIntegration = async (baseName = 'Authoring') => {
 
   await frame.getByRole('button', { name: 'Create Integration' }).click({ force: true });
   frame = await waitForGuest(BI_INTEGRATOR_LABEL, 120000);
-  await frame.getByText(projectName, { exact: true }).waitFor({ timeout: 120000 });
-  await frame.getByText(integrationName, { exact: true }).click({ force: true });
-  await waitForText('Add Artifact', 60000);
-  const projectDir = path.join(dataFolder, projectName.toLowerCase());
-  const integrationDir = path.join(projectDir, integrationName.toLowerCase());
+  // Depending on the build, creation lands either directly on the integration
+  // overview (Add Artifact visible) or on a project view listing integrations.
+  const deadline = Date.now() + 120000;
+  let landed = false;
+  while (Date.now() < deadline) {
+    const snap = await snapshot().catch(() => '');
+    if (snap.includes('Add Artifact')) { landed = true; break; }
+    if (snap.includes(projectName)) {
+      await frame.getByText(integrationName, { exact: true }).click({ force: true }).catch(() => {});
+    }
+    await window.waitForTimeout(1000);
+  }
+  if (!landed) throw new Error('integration overview (Add Artifact) not reached after Create Integration');
+  // Resolve the created integration directory: newer builds create
+  // data/<integration> directly; older ones data/<project>/<integration>.
+  const candidates = [
+    path.join(dataFolder, projectName.toLowerCase(), integrationName.toLowerCase()),
+    path.join(dataFolder, integrationName.toLowerCase()),
+  ];
+  const integrationDir = candidates.find((p) => fs.existsSync(p)) ?? candidates[1];
+  const projectDir = path.dirname(integrationDir);
   globalThis.newProjectPath = integrationDir;
   return { projectName, integrationName, projectDir, integrationDir };
 };
