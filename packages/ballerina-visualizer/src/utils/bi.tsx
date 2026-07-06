@@ -46,7 +46,6 @@ import {
     Item,
     FunctionKind,
     functionKinds,
-    Diagnostic,
     FUNCTION_TYPE,
     FunctionNode,
     FocusFlowDiagramView,
@@ -603,30 +602,13 @@ export function updateLineRange(lineRange: LineRange, offset: number) {
     return lineRange;
 }
 
-/**
- * Remove duplicate diagnostics based on the range and message
- * @param diagnostics The diagnostics array to remove duplicates from
- * @returns The unique diagnostics array
- */
-export function removeDuplicateDiagnostics(diagnostics: Diagnostic[]) {
-    const uniqueDiagnostics = diagnostics?.filter((diagnostic, index, self) => {
-        return (
-            self.findIndex((item) => {
-                const itemRange = item.range;
-                const diagnosticRange = diagnostic.range;
-                return (
-                    itemRange.start.line === diagnosticRange.start.line &&
-                    itemRange.start.character === diagnosticRange.start.character &&
-                    itemRange.end.line === diagnosticRange.end.line &&
-                    itemRange.end.character === diagnosticRange.end.character &&
-                    item.message === diagnostic.message
-                );
-            }) === index
-        );
-    });
-
-    return uniqueDiagnostics;
-}
+// Pure diagnostic-mapping helpers live in ./diagnostics (unit-tested there);
+// re-exported here so existing `utils/bi` importers are unaffected.
+export {
+    removeDuplicateDiagnostics,
+    filterUnsupportedDiagnostics,
+    filterToolInputSymbolDiagnostics,
+} from "./diagnostics";
 
 // TRIGGERS RELATED HELPERS
 export function convertTriggerServiceTypes(trigger: Trigger): Record<string, FunctionField> {
@@ -1022,49 +1004,6 @@ export function getImportsForFormFields(formFields: FormField[]): FormImports {
         }
     }
     return imports;
-}
-
-/**
- * Filters the unsupported diagnostics for local connections
- * @param diagnostics - Diagnostics to filter
- * @returns Filtered diagnostics
- */
-export function filterUnsupportedDiagnostics(diagnostics: Diagnostic[]): Diagnostic[] {
-    return diagnostics.filter((diagnostic) => {
-        return !diagnostic.message.startsWith('unknown type') && !diagnostic.message.startsWith('undefined module');
-    });
-}
-
-/**
- * Filter out "undefined symbol" diagnostics when the symbol is a known Tool Input parameter
- * @param diagnostics - Array of diagnostics to filter
- * @param toolInputParameterNames - Array of Tool Input parameter names to exclude from diagnostics
- * @returns Filtered diagnostics array
- */
-export function filterToolInputSymbolDiagnostics(
-    diagnostics: Diagnostic[],
-    toolInputs?: { type: string, variable: string }[]
-): Diagnostic[] {
-    if (!toolInputs || toolInputs.length === 0) {
-        return diagnostics;
-    }
-
-    return diagnostics.filter((diagnostic) => {
-        // Only filter "undefined symbol" diagnostics
-        if (!diagnostic.message.includes('undefined symbol')) {
-            return true;
-        }
-
-        // Extract symbol name from message like "undefined symbol 'code'"
-        const match = diagnostic.message.match(/['"`]([^'"`]+)['"`]/);
-        if (!match) {
-            return true; // Keep diagnostic if we can't parse it
-        }
-
-        const symbolName = match[1];
-        // Filter out if symbol is a Tool Input parameter
-        return !toolInputs.some(input => input.variable === symbolName);
-    });
 }
 
 /**
