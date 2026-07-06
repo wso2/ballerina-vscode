@@ -153,8 +153,6 @@ export default function createTests() {
             logStep('Opening Add Type panel');
             await typeUtils.clickAddType();
 
-            await page.page.pause();
-
             logStep('Switching to Import tab');
             await typeUtils.switchToImportTab();
 
@@ -170,7 +168,6 @@ export default function createTests() {
             await typeUtils.clickImportButton();
 
             logStep(`Verifying type node ${typeName}`);
-            await typeUtils.waitForTypeEditor();
             await typeUtils.verifyTypeNodeExists(typeName);
         });
 
@@ -197,7 +194,6 @@ export default function createTests() {
             await typeUtils.clickImportButton();
 
             logStep('Verifying type node appears (name derived from XML root element)');
-            await typeUtils.waitForTypeEditor();
             // XML import names the type from the root element; match any type-node-* that appears
             const typeNode = artifactWebView.locator('[data-testid^="type-node-"]').first();
             await typeNode.waitFor({ timeout: 30000 });

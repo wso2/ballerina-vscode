@@ -344,17 +344,6 @@ export class TypeEditorUtils {
     }
 
     /**
-     * Switch to the Import tab in the type creation TabPanel
-     */
-    async switchToImportTab(): Promise<void> {
-        const importTab = this.webView.getByRole('tab', { name: 'Import' });
-        await this.waitForElement(importTab);
-        await importTab.click();
-        const importContent = this.webView.locator('[data-testid="import-tab"]');
-        await this.waitForElement(importContent);
-    }
-
-    /**
      * Set the Format dropdown on the Import tab (JSON or XML)
      */
     async setImportFormat(format: 'JSON' | 'XML'): Promise<void> {
@@ -387,10 +376,7 @@ export class TypeEditorUtils {
         await textarea.fill(content);
     }
 
-    /**
-     * Click the Import button and wait for the diagram to reload
-     */
-    async clickImportButton(): Promise<void> {
+    async switchToImportTab(): Promise<void> {
         const importBtn = this.webView.getByRole('button', { name: 'Import' });
         await this.waitForElement(importBtn);
         await importBtn.click();
@@ -398,4 +384,14 @@ export class TypeEditorUtils {
         await this.page.waitForLoadState('domcontentloaded');
     }
 
+        /**
+     * Click the Import button and wait for the diagram to reload
+     */
+    async clickImportButton(): Promise<void> {
+        const importBtn = this.webView.getByTestId('import-tab').getByRole('button', { name: 'Import' });
+        await this.waitForElement(importBtn);
+        await importBtn.click();
+        await this.page.waitForTimeout(2000);
+        await this.page.waitForLoadState('domcontentloaded');
+    }
 }
