@@ -9,13 +9,14 @@
   "types": "lib/DesignDiagram.d.ts",
   "scripts": {
     "start": "webpack-dev-server --mode=development --progress",
+    "build": "webpack --config webpack.config.js --mode=production && pnpm run postbuild && pnpm run build:federation",
+    "build:federation": "webpack --config webpack.federation.config.js --mode=production && pnpm run postbuild:federation",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "build": "webpack --config webpack.config.js --mode=production && pnpm run postbuild",
     "copy:assets": "copyfiles -u 1 \"src/**/*.scss\"  \"src/**/*.svg\"  \"src/**/*.css\" \"src/resources/assets/font/*.*\" lib/",
     "deploy": "npm publish",
     "postbuild": "node ./scripts/clean-jslibs.js && copyfiles -u 1 -V build/*.js build/fonts/* build/images/* -e build/*.txt ../ballerina-extension/resources/jslibs",
-    "test": "jest"
+    "postbuild:federation": "node -e \"require('fs').rmSync('../ballerina-extension/resources/jslibs/federation',{recursive:true,force:true})\" && copyfiles -u 1 -V build-federation/*.js build-federation/images/* ../ballerina-extension/resources/jslibs/federation"
   },
   "keywords": [],
   "dependencies": {
@@ -47,6 +48,7 @@
     "@wso2/record-creator": "workspace:*",
     "@wso2/syntax-tree": "workspace:*",
     "@wso2/ui-toolkit": "workspace:*",
+    "@wso2/webview-giga-bridge": "workspace:*",
     "@wso2/type-editor": "workspace:*",
     "@wso2/wso2-platform-core": "workspace:*",
     "react": "18.2.0",
