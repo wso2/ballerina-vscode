@@ -17,6 +17,7 @@
  */
 
 import { LanguageClient, LanguageClientOptions, ServerOptions } from "vscode-languageclient/node";
+import { isRecording, recordLs } from "../test-support/fixtureRecorder";
 import { CodeAction, CodeActionParams, DocumentSymbol, DocumentSymbolParams, ExecuteCommandParams, RenameParams, SymbolInformation, WorkspaceEdit } from "monaco-languageclient";
 import {
     Connectors,
@@ -565,6 +566,23 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         this.timeConsumption = { diagnostics: [], completion: [] };
     }
     init?: (params: InitializeParams) => Promise<InitializeResult>;
+
+    // Records all LS request/response traffic to fixtures when BAL_RECORD_FIXTURES
+    // is set. No-op (and zero overhead) otherwise. See src/test-support/fixtureRecorder.ts.
+    public sendRequest<R = any>(...args: any[]): Promise<R> {
+        const result = (super.sendRequest as any)(...args) as Promise<R>;
+        if (isRecording()) {
+            const method = typeof args[0] === "string" ? args[0] : args[0]?.method;
+            const maybeParams = args[1];
+            const request =
+                maybeParams && typeof maybeParams.isCancellationRequested === "boolean" ? undefined : maybeParams;
+            Promise.resolve(result).then(
+                (response) => recordLs(method, request, response),
+                () => { /* ignore rejected LS calls */ }
+            );
+        }
+        return result;
+    }
 
     // <------------ VS CODE RELATED APIS START --------------->
     didOpen(params: DidOpenParams): void {
