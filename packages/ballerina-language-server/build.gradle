@@ -134,7 +134,10 @@ task resolveBallerinaDependencies {
             .collect { String.format("%02x", it) }
             .join()
 
-        if (hashFile.exists() && hashFile.text.trim() == currentHash) {
+        // Skip only when the TOML is unchanged AND the home it describes still
+        // exists — a partially deleted home must trigger re-resolution.
+        def homeBalaDir = new File(ballerinaTestHomeDir, "repositories/central.ballerina.io/bala")
+        if (hashFile.exists() && hashFile.text.trim() == currentHash && homeBalaDir.exists()) {
             logger.lifecycle("Ballerina.toml unchanged — skipping dependency resolution")
             return
         }
@@ -362,10 +365,14 @@ test {
 
 // Tests must resolve Ballerina packages only from the build-owned Ballerina home
 // that resolveBallerinaDependencies pre-populates — never from the developer's
-// ~/.ballerina and never from Ballerina Central over the network. PackageUtil
-// honors the BALLERINA_HOME_DIR environment variable.
+// ~/.ballerina and never from Ballerina Central over the network. The Ballerina
+// project API honors the BALLERINA_HOME_DIR environment variable. Every test
+// task in every module depends on the resolution task so that running a single
+// module's tests (or a single test class) on a fresh checkout also populates
+// the home first.
 allprojects {
     tasks.withType(Test).configureEach {
+        dependsOn rootProject.tasks.named("resolveBallerinaDependencies")
         environment "BALLERINA_HOME_DIR", rootProject.ballerinaTestHomeDir.absolutePath
     }
 }
