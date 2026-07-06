@@ -11,7 +11,6 @@
         "build": "tsc --pretty && npm run copy:assets",
         "test": "jest --coverage",
         "test:watch": "jest --watch",
-        "test:legacy": "npm run build && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test test/typeCompletionUtils.test.mjs test/formValidationUtils.test.mjs",
         "storybook": "start-storybook -p 6006",
         "watch": "tsc --pretty --watch",
         "build-storybook": "build-storybook",
