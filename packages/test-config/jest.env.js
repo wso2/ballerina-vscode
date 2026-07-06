@@ -26,6 +26,15 @@ globalThis.structuredClone = globalThis.structuredClone || ((val) => JSON.parse(
 globalThis.setImmediate =
     globalThis.setImmediate || ((fn, ...args) => globalThis.setTimeout(fn, 0, ...args));
 
+// jsdom does not provide the WebCrypto API; components that mint ids via
+// crypto.randomUUID() (e.g. the array editor) would otherwise throw on render.
+if (!globalThis.crypto) {
+    globalThis.crypto = require('crypto').webcrypto;
+}
+if (typeof globalThis.crypto.randomUUID !== 'function') {
+    globalThis.crypto.randomUUID = () => require('crypto').randomUUID();
+}
+
 class MockResizeObserver {
     observe = jest.fn();
     unobserve = jest.fn();
