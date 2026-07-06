@@ -314,16 +314,13 @@ export function convertMemoryStoreCategoriesToSidePanelCategories(categories: Ca
     });
 }
 
-import {
-    convertNodePropertiesToFormFields,
-    convertNodePropertyToFormField,
-    updateNodeProperties,
-    handleRepeatableProperty,
-} from "./node-property-utils";
 export {
     convertNodePropertiesToFormFields,
     convertNodePropertyToFormField,
     updateNodeProperties,
+    // convertConfig moved to node-property-utils (unit-tested there); re-exported so
+    // existing `utils/bi` importers are unaffected.
+    convertConfig,
 } from "./node-property-utils";
 
 export function getFormProperties(flowNode: FlowNode): NodeProperties {
@@ -915,27 +912,6 @@ export function extractFunctionInsertText(template: string): CompletionInsertTex
     };
 }
 
-
-export function convertConfig(properties: NodeProperties, skipKeys: string[] = [], sortKeys: boolean = true): FormField[] {
-    const formFields: FormField[] = [];
-    const sortedKeys = sortKeys ? Object.keys(properties).sort() : Object.keys(properties);
-
-    for (const key of sortedKeys) {
-        if (skipKeys.includes(key)) {
-            continue;
-        }
-        const property = properties[key as keyof NodeProperties];
-        const formField = convertNodePropertyToFormField(key, property);
-
-        if (getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_PROPERTY") {
-            handleRepeatableProperty(property, formField);
-        }
-
-        formFields.push(formField);
-    }
-
-    return formFields;
-}
 
 export function isNaturalFunction(node: STNode, view: FocusFlowDiagramView): node is FunctionDefinition {
     return view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
