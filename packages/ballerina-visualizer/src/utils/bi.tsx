@@ -581,26 +581,9 @@ export function convertBalCompletion(completion: ExpressionCompletionItem): Comp
     };
 }
 
-export function updateLineRange(lineRange: LineRange, offset: number) {
-    if (
-        lineRange.startLine.line === 0 &&
-        lineRange.startLine.offset === 0 &&
-        lineRange.endLine.line === 0 &&
-        lineRange.endLine.offset === 0
-    ) {
-        return {
-            startLine: {
-                line: lineRange.startLine.line,
-                offset: lineRange.startLine.offset + offset,
-            },
-            endLine: {
-                line: lineRange.endLine.line,
-                offset: lineRange.endLine.offset + offset,
-            },
-        };
-    }
-    return lineRange;
-}
+// Pure range/offset math lives in ./range (unit-tested there); re-exported here
+// so existing `utils/bi` importers are unaffected.
+export { updateLineRange, calculateExpressionOffsets } from "./range";
 
 // Pure diagnostic-mapping helpers live in ./diagnostics (unit-tested there);
 // re-exported here so existing `utils/bi` importers are unaffected.
@@ -965,27 +948,6 @@ export function getFlowNodeForNaturalFunction(node: FunctionNode): FlowNode {
         branches: [],
     };
     return flowNode;
-}
-
-/**
- * Returns the line and the character offset of the expression
- *
- * @param expression
- * @returns { lineOffset: number, charOffset: number }
- */
-export function calculateExpressionOffsets(
-    expression: string,
-    cursorPosition: number
-): { lineOffset: number, charOffset: number } {
-    const effectiveExpression = expression.slice(0, cursorPosition);
-    const lines = effectiveExpression.split(/\n/g);
-    const lineCount = lines.length - 1;
-    const charOffset = lines[lineCount].length;
-
-    return {
-        lineOffset: lineCount,
-        charOffset: charOffset
-    };
 }
 
 export const getImportsForProperty = (key: string, imports: FormImports): Imports | undefined => {
