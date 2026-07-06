@@ -106,6 +106,14 @@ if (moduleVersion.indexOf('-') != -1) {
     moduleVersion = moduleVersion.substring(0, moduleVersion.indexOf('-'))
 }
 
+// Build-owned Ballerina user home. Both bal build (below) and every test JVM use
+// this directory instead of ~/.ballerina, so test runs never read from or write
+// to the developer's machine-wide package cache. It lives inside the task's
+// output directory on purpose: wiping build/ballerina_dependencies clears the
+// resolution hash and the cache it describes together, so they cannot go out of
+// sync.
+ext.ballerinaTestHomeDir = file("$buildDir/ballerina_dependencies/home")
+
 task resolveBallerinaDependencies {
     description 'Resolves Ballerina dependencies by executing bal build in build-config/ballerina_dependencies'
     group 'build'
@@ -142,6 +150,7 @@ task resolveBallerinaDependencies {
         def result = exec {
             ignoreExitValue = true
             workingDir targetDir
+            environment "BALLERINA_HOME_DIR", ballerinaTestHomeDir.absolutePath
 
             def balBuildCommand = "bal build"
             if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
@@ -349,6 +358,16 @@ task pack(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
 
 test {
     dependsOn resolveBallerinaDependencies
+}
+
+// Tests must resolve Ballerina packages only from the build-owned Ballerina home
+// that resolveBallerinaDependencies pre-populates — never from the developer's
+// ~/.ballerina and never from Ballerina Central over the network. PackageUtil
+// honors the BALLERINA_HOME_DIR environment variable.
+allprojects {
+    tasks.withType(Test).configureEach {
+        environment "BALLERINA_HOME_DIR", rootProject.ballerinaTestHomeDir.absolutePath
+    }
 }
 
 task buildFlow {

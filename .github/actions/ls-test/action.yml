@@ -33,7 +33,9 @@ runs:
       with:
         version: 2201.13.3
 
-    # The cache key hashes the locked dependency project, so the cache is only
+    # The build resolves Ballerina packages into a build-owned home
+    # (build/ballerina_dependencies/home) rather than ~/.ballerina, and the
+    # cache key hashes the locked dependency project — so the cache is only
     # reused when its contents are exactly what the current lock file would
     # produce. No restore-keys on purpose: a fuzzy match would restore packages
     # from older dependency sets, and test-time resolution picks the newest
@@ -43,7 +45,7 @@ runs:
     - name: Cache Ballerina dependencies
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
-        path: ${{ runner.os == 'Windows' && 'C:\Users\runneradmin\.ballerina\repositories\' || '/home/runner/.ballerina/repositories/' }}
+        path: packages/ballerina-language-server/build/ballerina_dependencies
         key: ${{ runner.os }}-ballerina-${{ inputs.cache-branch }}-${{ hashFiles('packages/ballerina-language-server/build-config/ballerina_dependencies/**') }}
 
     - name: Test with Gradle
