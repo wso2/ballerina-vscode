@@ -142,15 +142,19 @@ public class WorkflowManagementService implements ExtendedLanguageServerService 
                 Path mainPath = sourceRoot.resolve(MAIN_BAL);
 
                 Path targetPath;
+                String targetFileName;
                 boolean targetExists;
                 if (Files.exists(functionsPath)) {
                     targetPath = functionsPath;
+                    targetFileName = FUNCTIONS_BAL;
                     targetExists = true;
                 } else if (Files.exists(mainPath)) {
                     targetPath = mainPath;
+                    targetFileName = MAIN_BAL;
                     targetExists = true;
                 } else {
                     targetPath = functionsPath;
+                    targetFileName = FUNCTIONS_BAL;
                     targetExists = false;
                 }
 
@@ -160,7 +164,7 @@ public class WorkflowManagementService implements ExtendedLanguageServerService 
                     Node node = targetDoc.get().syntaxTree().rootNode();
                     edit = new TextEdit(PositionUtil.toRange(node.lineRange().startLine()), IMPORT_STMT.formatted());
                 } else {
-                    edit = new TextEdit(PositionUtil.toRange(LineRange.from(targetPath.getFileName().toString(),
+                    edit = new TextEdit(PositionUtil.toRange(LineRange.from(targetFileName,
                             LinePosition.from(0, 0), LinePosition.from(0, 0))), IMPORT_STMT.formatted());
                 }
                 textEdits.put(targetPath.toString(), List.of(edit));
