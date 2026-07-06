@@ -22,6 +22,8 @@ Start Integration project. Then navigate to the type diagram through the project
 | 13 | click the three dots in the leaf type and click the edit | verify the side panel is opened or not |
 | 14 | click edit the name of the type and save it | check the generated ballerina code |
 | 15 | click the three dots in a parent type and click delete | check type is deleted or not  in the type diagram and the ballerina code |
+| 16 | click three dots in the type that is remained and click focused view | Verify only the selected type is shown rather than all the types |
+| 17 | click the three dots in the type and click source | side panel should open with the ballerina code and the type code which is relevant to that type should be in selected mode |
 
 
 ## Gaps
@@ -62,3 +64,16 @@ Start Integration project. Then navigate to the type diagram through the project
 - Node three-dots menu (`type-node-<Name>-menu`) items: Edit, Source, Delete,
   Focused View. Delete shows a confirmation dialog
   ("Are you sure you want to delete <Name>?") with Cancel/Delete buttons.
+- Focused View hides the other type nodes in the **diagram only** (assert the
+  other `type-node-*` testids have count 0); the project explorer tree still
+  lists all types. The focused node's three-dots menu stays available.
+- "Source" calls `goToSource`, which opens `types.bal` in a VS Code editor
+  group **beside** the diagram (`ViewColumn.Beside`) and sets
+  `editor.selection` to the type's range — in practice the type **name** token
+  (e.g. `Customer`). Verify selection two ways: (1) Monaco renders selected
+  ranges as `.monaco-editor .selected-text` overlay divs in the host DOM;
+  (2) focus the editor via its tab (does not clear the selection), press
+  Cmd/Ctrl+C, and read the clipboard through the Electron main process
+  (`vscode.evaluate(({ clipboard }) => clipboard.readText())`) — it should
+  contain the type name. Write a sentinel to the clipboard first to avoid
+  stale reads.

@@ -17,7 +17,7 @@
  */
 
 import { expect, test } from '@playwright/test';
-import { BI_INTEGRATOR_LABEL, DEFAULT_PROJECT_NAME, getWebview, initTest, logStep, page, verifyGeneratedSource } from '../utils/helpers';
+import { BI_INTEGRATOR_LABEL, DEFAULT_PROJECT_NAME, getWebview, initTest, logStep, page, verifyGeneratedSource, vscode } from '../utils/helpers';
 import { ProjectExplorer } from '../utils/pages';
 import { TypeEditorUtils } from './TypeEditorUtils';
 import path from 'path';
@@ -240,6 +240,65 @@ export default function createTests() {
                 'Location1': `Location${testAttempt}`,
             };
             await verifyGeneratedSource('types.bal', expectedFilePath, substitutions);
+        });
+
+        test('Focused View Shows Only Selected Type', async ({ }, testInfo) => {
+            const testAttempt = testInfo.retry + 1;
+            const customerName = `Customer${testAttempt}`;
+            const locationName = `Location${testAttempt}`;
+
+            const artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
+            const typeUtils = new TypeEditorUtils(page.page, artifactWebView);
+
+            logStep(`Opening Focused View for ${customerName} via node menu`);
+            const menuButton = artifactWebView.locator(`[data-testid="type-node-${customerName}-menu"]`);
+            await menuButton.waitFor({ state: 'visible', timeout: 15000 });
+            await menuButton.click();
+            const focusItem = artifactWebView.getByText('Focused View', { exact: true });
+            await focusItem.waitFor({ state: 'visible', timeout: 10000 });
+            await focusItem.click({ force: true });
+
+            logStep('Verifying only the focused type is rendered in the diagram');
+            await typeUtils.verifyTypeNodeExists(customerName);
+            // The other type must disappear from the diagram (the project
+            // explorer tree still lists it — this check is diagram-only)
+            await expect(artifactWebView.locator(`[data-testid="type-node-${locationName}"]`)).toHaveCount(0, { timeout: 15000 });
+        });
+
+        test('Source View Opens Editor With Type Selected', async ({ }, testInfo) => {
+            const testAttempt = testInfo.retry + 1;
+            const customerName = `Customer${testAttempt}`;
+
+            const artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
+
+            logStep(`Opening Source for ${customerName} via node menu`);
+            const menuButton = artifactWebView.locator(`[data-testid="type-node-${customerName}-menu"]`);
+            await menuButton.waitFor({ state: 'visible', timeout: 15000 });
+            await menuButton.click();
+            const sourceItem = artifactWebView.getByText('Source', { exact: true });
+            await sourceItem.waitFor({ state: 'visible', timeout: 10000 });
+            await sourceItem.click({ force: true });
+
+            // goToSource opens types.bal in an editor group beside the diagram
+            // and sets editor.selection to the type's range
+            logStep('Verifying types.bal opened beside the diagram');
+            const tab = page.page.locator('.tab[aria-label*="types.bal"]').first();
+            await tab.waitFor({ state: 'visible', timeout: 30000 });
+
+            logStep('Verifying the editor has a selection');
+            // Monaco renders selected ranges as .selected-text overlay divs
+            await page.page.locator('.monaco-editor .selected-text').first().waitFor({ state: 'attached', timeout: 15000 });
+
+            logStep('Verifying the selected code belongs to the type (via clipboard)');
+            // Focusing the editor through its tab does not alter the selection;
+            // copying it lets us read the exact selected text
+            await vscode.evaluate(({ clipboard }: any) => clipboard.writeText('SENTINEL'));
+            await tab.click();
+            await page.page.waitForTimeout(500);
+            await page.page.keyboard.press(process.platform === 'darwin' ? 'Meta+C' : 'Control+C');
+            await page.page.waitForTimeout(500);
+            const clip = await vscode.evaluate(({ clipboard }: any) => clipboard.readText());
+            expect(clip).toContain(customerName);
         });
 
     });
