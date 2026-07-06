@@ -61,6 +61,7 @@
         "@testing-library/jest-dom": "6.6.3",
         "@testing-library/react": "16.3.0",
         "@testing-library/dom": "10.4.0",
+        "@wso2/test-config": "workspace:*",
         "jest-environment-jsdom": "29.7.0",
         "@babel/core": "7.29.6",
         "@babel/preset-env": "7.27.2",

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,18 +16,13 @@
  * under the License.
  */
 
-Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: jest.fn().mockImplementation((query) => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn(),
-    })),
-});
+// Stub for CSS/asset imports in tests: any imported name returns its own key,
+// so `import styles from './x.css'; styles.foo === 'foo'`. Replaces the
+// external identity-obj-proxy dependency.
 
-window.HTMLElement.prototype.scrollIntoView = jest.fn();
+module.exports = new Proxy(
+    {},
+    {
+        get: (_target, key) => (key === '__esModule' ? false : key),
+    }
+);

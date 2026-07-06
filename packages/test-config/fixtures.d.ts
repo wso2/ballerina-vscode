@@ -16,18 +16,11 @@
  * under the License.
  */
 
-Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: jest.fn().mockImplementation((query) => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn(),
-    })),
-});
+/** Load and parse a single JSON fixture. */
+export function loadFixture<T = unknown>(dir: string, ...segments: string[]): T;
 
-window.HTMLElement.prototype.scrollIntoView = jest.fn();
+/** Load every *.json fixture in a directory (non-recursive), sorted by name. */
+export function loadFixtures<T = unknown>(
+    dir: string,
+    ...segments: string[]
+): Array<{ name: string; data: T }>;
