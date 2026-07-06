@@ -121,7 +121,8 @@ public class SleepBuilder extends CallBuilder {
 
         Optional<Property> durationProp = sourceBuilder.getProperty(DURATION_KEY);
         String duration = durationProp
-                .map(p -> p.value() != null && !p.value().toString().isBlank() ? p.value().toString() : DURATION_DEFAULT)
+                .map(p -> p.value() != null && !p.value().toString().isBlank() ? p.value().toString()
+                        : DURATION_DEFAULT)
                 .orElse(DURATION_DEFAULT);
 
         if (useCheck) {
