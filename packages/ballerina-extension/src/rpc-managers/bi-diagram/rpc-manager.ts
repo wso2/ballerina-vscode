@@ -217,6 +217,9 @@ import { getCurrentBallerinaProject, getCurrentProjectRoot } from "../../utils/p
 import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
 import { readOrWriteReadmeContent } from "./utils";
+// Extracted to a narrow-import module so the handler is headless-testable (the rest of
+// this file's imports pull the whole extension graph). Behaviour is unchanged.
+import { convertAiToFileScheme as convertAiToFileSchemeImpl, getFlowModel as getFlowModelHandler } from "./flowModel";
 import { registerFormOpen, registerFormClose, setFormDirtyState } from "./form-state";
 import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { getRepoRoot } from "../platform-ext/platform-utils";
@@ -274,72 +277,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
     private convertAiToFileScheme(uri: string): string {
-        if (uri.startsWith('ai://')) {
-            const fileUri = Uri.parse(uri).with({ scheme: 'file' }).toString();
-            return fileUri;
-        }
-        return uri;
+        return convertAiToFileSchemeImpl(uri);
     }
 
 
     async getFlowModel(params: BIFlowModelRequest): Promise<BIFlowModelResponse> {
-        console.log(">>> requesting bi flow model from ls", params);
-        return new Promise((resolve) => {
-            let request: BIFlowModelRequest;
-
-            // If params has all required fields, use them directly
-            if (params?.filePath && params?.startLine && params?.endLine) {
-                console.log(">>> using params to create request");
-                let filePath = params.filePath;
-                // When useFileSchema is set, use file:// scheme to show original content
-                if (params.useFileSchema) {
-                    filePath = this.convertAiToFileScheme(filePath);
-                }
-                request = {
-                    filePath,
-                    startLine: params.startLine,
-                    endLine: params.endLine,
-                    forceAssign: params.forceAssign ?? true,
-                };
-            } else {
-                // Fall back to context if params are not complete
-                console.log(">>> params incomplete, falling back to context");
-                const context = StateMachine.context();
-
-                if (!context.position) {
-                    // TODO: check why this hits when we are in review mode
-                    console.log(">>> position not found in context, cannot create request");
-                    resolve(undefined);
-                    return;
-                }
-
-                request = {
-                    filePath: params?.filePath || context.documentUri,
-                    startLine: params?.startLine || {
-                        line: context.position.startLine ?? 0,
-                        offset: context.position.startColumn ?? 0,
-                    },
-                    endLine: params?.endLine || {
-                        line: context.position.endLine ?? 0,
-                        offset: context.position.endColumn ?? 0,
-                    },
-                    forceAssign: params?.forceAssign ?? true,
-                };
-            }
-
-            console.log(">>> final request:", request);
-
-            StateMachine.langClient()
-                .getFlowModel(request)
-                .then((model) => {
-                    console.log(">>> bi flow model received from ls");
-                    resolve(model);
-                })
-                .catch((error) => {
-                    console.log(">>> error fetching bi flow model from ls", error);
-                    resolve(undefined);
-                });
-        });
+        return getFlowModelHandler(params);
     }
 
     async getSourceCode(params: BISourceCodeRequest): Promise<UpdatedArtifactsResponse> {
