@@ -134,42 +134,88 @@ task resolveBallerinaDependencies {
             .collect { String.format("%02x", it) }
             .join()
 
-        // Skip only when the TOML is unchanged AND the home it describes still
-        // exists — a partially deleted home must trigger re-resolution.
+        // Skip the bal build only when the TOML is unchanged AND the home it
+        // describes still exists — a partially deleted home must trigger
+        // re-resolution.
         def homeBalaDir = new File(ballerinaTestHomeDir, "repositories/central.ballerina.io/bala")
-        if (hashFile.exists() && hashFile.text.trim() == currentHash && homeBalaDir.exists()) {
+        def skipResolution = hashFile.exists() && hashFile.text.trim() == currentHash && homeBalaDir.exists()
+
+        if (skipResolution) {
             logger.lifecycle("Ballerina.toml unchanged — skipping dependency resolution")
-            return
-        }
-
-        // Copy the directory to build location
-        copy {
-            from sourceDir
-            into targetDir
-        }
-
-        // Execute bal build in the copied directory
-        def errOutput = new ByteArrayOutputStream()
-        def result = exec {
-            ignoreExitValue = true
-            workingDir targetDir
-            environment "BALLERINA_HOME_DIR", ballerinaTestHomeDir.absolutePath
-
-            def balBuildCommand = "bal build"
-            if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
-                commandLine 'cmd', '/c', balBuildCommand
-            } else {
-                commandLine '/bin/sh', '-c', balBuildCommand
+        } else {
+            // Copy the directory to build location
+            copy {
+                from sourceDir
+                into targetDir
             }
-            errorOutput = errOutput
+
+            // Execute bal build in the copied directory
+            def errOutput = new ByteArrayOutputStream()
+            def result = exec {
+                ignoreExitValue = true
+                workingDir targetDir
+                environment "BALLERINA_HOME_DIR", ballerinaTestHomeDir.absolutePath
+
+                def balBuildCommand = "bal build"
+                if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+                    commandLine 'cmd', '/c', balBuildCommand
+                } else {
+                    commandLine '/bin/sh', '-c', balBuildCommand
+                }
+                errorOutput = errOutput
+            }
+
+            if (result.exitValue != 0) {
+                println errOutput
+                throw new GradleException("Failed to build Ballerina dependencies")
+            }
+
+            hashFile.text = currentHash
         }
 
-        if (result.exitValue != 0) {
-            println errOutput
-            throw new GradleException("Failed to build Ballerina dependencies")
+        // Cache-completion: bal build satisfies packages bundled in the INSTALLED
+        // distribution (cloud, file, mcp, email, ...) directly from that
+        // distribution's repo without writing their balas into the home — but the
+        // tests run on the minimal jballerina-tools distribution, which does not
+        // bundle them. Pull every locked package that is missing from the home so
+        // the shelf provably equals the lock, regardless of which bal built it.
+        // Runs on every invocation; per-package existence checks make it a no-op
+        // once the home is complete.
+        def lockFile = file("build-config/ballerina_dependencies/Dependencies.toml")
+        def pkgPattern = java.util.regex.Pattern.compile(
+                /\[\[package\]\]\s*\norg = "([^"]+)"\s*\nname = "([^"]+)"\s*\nversion = "([^"]+)"/)
+        def matcher = pkgPattern.matcher(lockFile.text)
+        while (matcher.find()) {
+            def org = matcher.group(1)
+            def name = matcher.group(2)
+            def version = matcher.group(3)
+            if (org == "wso2" && name == "ballerina_dependencies") {
+                continue // the dependency project itself
+            }
+            if (version == "0.0.0") {
+                continue // compiler-internal packages (langlibs, jballerina.java) ship with every distribution
+            }
+            if (new File(homeBalaDir, "${org}/${name}/${version}").exists()) {
+                continue
+            }
+            logger.lifecycle("Pulling missing locked package: ${org}/${name}:${version}")
+            def pullErr = new ByteArrayOutputStream()
+            def pullResult = exec {
+                ignoreExitValue = true
+                environment "BALLERINA_HOME_DIR", ballerinaTestHomeDir.absolutePath
+                def balPullCommand = "bal pull ${org}/${name}:${version}"
+                if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+                    commandLine 'cmd', '/c', balPullCommand
+                } else {
+                    commandLine '/bin/sh', '-c', balPullCommand
+                }
+                errorOutput = pullErr
+            }
+            if (pullResult.exitValue != 0) {
+                println pullErr
+                throw new GradleException("Failed to pull locked package: ${org}/${name}:${version}")
+            }
         }
-
-        hashFile.text = currentHash
     }
 }
 
