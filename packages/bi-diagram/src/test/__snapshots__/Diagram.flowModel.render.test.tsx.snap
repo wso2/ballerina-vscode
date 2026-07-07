@@ -60,8 +60,7 @@ exports[`bi-diagram — render + snapshot from a real captured flow model matche
 				1
 			);"
       >
-        <g
-        >
+        <g>
           <g
             data-testid="diagram-link-undefined"
             pointer-events="stroke"
@@ -160,8 +159,7 @@ exports[`bi-diagram — render + snapshot from a real captured flow model matche
             </defs>
           </g>
         </g>
-        <g
-        >
+        <g>
           <g
             data-testid="diagram-link-1"
             pointer-events="stroke"
@@ -260,8 +258,7 @@ exports[`bi-diagram — render + snapshot from a real captured flow model matche
             </defs>
           </g>
         </g>
-        <g
-        >
+        <g>
           <g
             data-testid="diagram-link-2"
             pointer-events="stroke"
@@ -360,8 +357,7 @@ exports[`bi-diagram — render + snapshot from a real captured flow model matche
             </defs>
           </g>
         </g>
-        <g
-        >
+        <g>
           <g
             data-testid="diagram-link-3"
             pointer-events="stroke"
@@ -480,8 +476,7 @@ exports[`bi-diagram — render + snapshot from a real captured flow model matche
             </defs>
           </g>
         </g>
-        <g
-        >
+        <g>
           <g
             data-testid="diagram-link-4"
             pointer-events="stroke"
@@ -580,8 +575,7 @@ exports[`bi-diagram — render + snapshot from a real captured flow model matche
             </defs>
           </g>
         </g>
-        <g
-        >
+        <g>
           <g
             data-testid="diagram-link-5"
             pointer-events="stroke"
@@ -617,8 +611,7 @@ exports[`bi-diagram — render + snapshot from a real captured flow model matche
             </defs>
           </g>
         </g>
-        <g
-        >
+        <g>
           <g
             data-testid="diagram-link-6"
             pointer-events="stroke"
@@ -654,8 +647,7 @@ exports[`bi-diagram — render + snapshot from a real captured flow model matche
             </defs>
           </g>
         </g>
-        <g
-        >
+        <g>
           <g
             data-testid="diagram-link-7"
             pointer-events="stroke"

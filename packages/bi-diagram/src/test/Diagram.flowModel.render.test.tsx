@@ -64,6 +64,11 @@ function sanitize(dom: string): string {
         /\s+(marker-end|id|data-linkid|data-nodeid|aria-label|current-value|appearance)="[^"]*"/g,
         ""
     );
+    // prettyDOM prints an element that HAD attributes across multiple lines; once the only
+    // attribute is stripped (above), an empty multi-line opening tag (`<tag\n    >`) remains,
+    // which won't match a single-line `<tag>` from an environment that never had the attribute.
+    // Collapse any opening tag left with nothing but whitespace before `>`.
+    out = out.replaceAll(/<([a-zA-Z][\w-]*)\s+>/g, "<$1>");
     ordered.forEach((hash, i) => {
         out = out.replaceAll(`css-${hash}`, `css-${i}`);
     });
