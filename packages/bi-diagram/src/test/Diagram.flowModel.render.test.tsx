@@ -56,7 +56,14 @@ function sanitize(dom: string): string {
             ordered.push(m[1]);
         }
     }
-    let out = clean.replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid|aria-label|current-value)="[^"]*"/g, "");
+    // `appearance` on <vscode-button> is reflected from a prop by the webview-ui-toolkit
+    // custom element; whether/when it appears in the serialized DOM depends on custom-element
+    // upgrade timing + the resolved toolkit version, so it varies by environment. Strip it —
+    // it's styling noise for structural drift detection.
+    let out = clean.replaceAll(
+        /\s+(marker-end|id|data-linkid|data-nodeid|aria-label|current-value|appearance)="[^"]*"/g,
+        ""
+    );
     ordered.forEach((hash, i) => {
         out = out.replaceAll(`css-${hash}`, `css-${i}`);
     });
