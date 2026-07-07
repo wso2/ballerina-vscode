@@ -215,7 +215,7 @@ final class DeliveryChannel {
             try {
                 DomainEvent event = queue.take();
                 telemetryEmitter.emitGauge("event_bus.queue_depth", queue.size());
-                consumer.accept(event);
+                deliverSafely(event);
             } catch (InterruptedException interruptedException) {
                 Thread.currentThread().interrupt();
             }
@@ -230,8 +230,26 @@ final class DeliveryChannel {
         while (iterator.hasNext()) {
             Map.Entry<String, DomainEvent> entry = iterator.next();
             if (stagingMap.remove(entry.getKey(), entry.getValue())) {
-                consumer.accept(entry.getValue());
+                deliverSafely(entry.getValue());
             }
+        }
+    }
+
+    /**
+     * Delivers a single event to the subscriber consumer, isolating any exception the
+     * subscriber throws so it can never stop delivery of subsequent events on this channel.
+     *
+     * @param event event to deliver
+     */
+    private void deliverSafely(DomainEvent event) {
+        try {
+            consumer.accept(event);
+        } catch (RuntimeException subscriberException) {
+            telemetryEmitter.emit("event_bus.subscriber_exception", Map.of(
+                    "subscriber", subscriberId,
+                    "eventKind", event.eventKind().name(),
+                    "error", String.valueOf(subscriberException)
+            ));
         }
     }
 

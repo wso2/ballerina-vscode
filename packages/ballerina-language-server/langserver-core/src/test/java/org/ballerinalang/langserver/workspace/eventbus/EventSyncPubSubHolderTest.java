@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -300,6 +301,124 @@ public class EventSyncPubSubHolderTest {
                 .anyMatch(e -> "event_bus.dropped_count".equals(e.get("metricName"))
                         && "best-effort-metric-sub".equals(e.get("subscriber")));
         Assert.assertTrue(hasDropped, "Expected dropped_count metric to be emitted on head-drop");
+    }
+
+    /**
+     * Verifies a subscriber that throws while handling one event still receives subsequent
+     * events, and that a healthy subscriber on the same publish call is unaffected.
+     *
+     * @throws InterruptedException if interrupted while awaiting delivery
+     */
+    @Test
+    public void subscriberException_doesNotStopSubsequentDeliveryOrOtherSubscribers() throws InterruptedException {
+        EventSyncPubSubHolder holder = new EventSyncPubSubHolder();
+        List<DomainEvent> throwingSubscriberDelivered = new CopyOnWriteArrayList<>();
+        List<DomainEvent> healthySubscriberDelivered = new CopyOnWriteArrayList<>();
+        CountDownLatch throwingSubscriberSecondEvent = new CountDownLatch(1);
+        CountDownLatch healthySubscriberBothEvents = new CountDownLatch(2);
+
+        holder.subscribe("throwing-sub", SubscriberTier.BEST_EFFORT,
+                Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED), event -> {
+            throwingSubscriberDelivered.add(event);
+            if (throwingSubscriberDelivered.size() == 1) {
+                throw new RuntimeException("boom");
+            }
+            throwingSubscriberSecondEvent.countDown();
+        });
+        holder.subscribe("healthy-sub", SubscriberTier.BEST_EFFORT,
+                Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED), event -> {
+            healthySubscriberDelivered.add(event);
+            healthySubscriberBothEvents.countDown();
+        });
+
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///seq-1")));
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///seq-2")));
+
+        Assert.assertTrue(throwingSubscriberSecondEvent.await(2, TimeUnit.SECONDS),
+                "Expected the throwing subscriber to still receive the second event");
+        Assert.assertTrue(healthySubscriberBothEvents.await(2, TimeUnit.SECONDS),
+                "Expected the healthy subscriber to receive both events");
+        Assert.assertEquals(throwingSubscriberDelivered.size(), 2);
+        Assert.assertEquals(healthySubscriberDelivered.size(), 2);
+        holder.close();
+    }
+
+    /**
+     * Verifies the coalesceable tier's scheduled drain task keeps running after a subscriber
+     * throws once, rather than being permanently suppressed by {@code scheduleAtFixedRate}.
+     *
+     * @throws InterruptedException if interrupted while awaiting delivery
+     */
+    @Test
+    public void coalesceableTier_subscriberException_doesNotStopScheduledDrain() throws InterruptedException {
+        EventSyncPubSubHolder holder = new EventSyncPubSubHolder();
+        List<DomainEvent> delivered = new CopyOnWriteArrayList<>();
+        CountDownLatch secondEventHandled = new CountDownLatch(1);
+
+        holder.subscribe("coalesce-throw-sub", SubscriberTier.COALESCEABLE,
+                Set.of(EventKind.WORKSPACE_PROJECT_UPDATED), event -> {
+            delivered.add(event);
+            if (delivered.size() == 1) {
+                throw new RuntimeException("boom");
+            }
+            secondEventHandled.countDown();
+        });
+
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, URI.create("file:///workspace-a")));
+        Thread.sleep(100);
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, URI.create("file:///workspace-b")));
+
+        Assert.assertTrue(secondEventHandled.await(2, TimeUnit.SECONDS),
+                "Expected the scheduled coalesce drain to keep running after a handler threw once");
+        Assert.assertEquals(delivered.size(), 2);
+        holder.close();
+    }
+
+    /**
+     * Verifies that a saturated CRITICAL channel's delivery failure does not prevent delivery
+     * to a healthy channel for the same publish call.
+     *
+     * @throws InterruptedException if interrupted while coordinating latches
+     */
+    @Test
+    public void publish_channelFailureDoesNotPreventDeliveryToOtherChannels() throws InterruptedException {
+        EventSyncPubSubHolder holder = new EventSyncPubSubHolder();
+        CountDownLatch blockedStarted = new CountDownLatch(1);
+        CountDownLatch unblockBlocked = new CountDownLatch(1);
+        List<DomainEvent> healthyDelivered = new CopyOnWriteArrayList<>();
+
+        holder.subscribe("blocked-critical", SubscriberTier.CRITICAL,
+                Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED), event -> {
+            blockedStarted.countDown();
+            awaitLatch(unblockBlocked);
+        });
+        holder.subscribe("healthy-critical", SubscriberTier.CRITICAL,
+                Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED), healthyDelivered::add);
+
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///workspace-a")));
+        Assert.assertTrue(blockedStarted.await(1, TimeUnit.SECONDS));
+
+        AtomicInteger publishAttempts = new AtomicInteger(1);
+        Assert.assertThrows(IllegalStateException.class, () -> {
+            for (int i = 0; i < 1_500; i++) {
+                publishAttempts.incrementAndGet();
+                holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED,
+                        URI.create("file:///workspace-a")));
+            }
+        });
+
+        int expectedDeliveries = publishAttempts.get();
+        long deadline = System.currentTimeMillis() + 2_000;
+        while (healthyDelivered.size() < expectedDeliveries && System.currentTimeMillis() < deadline) {
+            Thread.sleep(20);
+        }
+
+        Assert.assertEquals(healthyDelivered.size(), expectedDeliveries,
+                "Expected the healthy channel to receive every published event, including the one whose "
+                        + "delivery to the blocked channel failed");
+
+        unblockBlocked.countDown();
+        holder.close();
     }
 
     private static TraceLogSink capturingSink(List<Map<String, String>> target) {

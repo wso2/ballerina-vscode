@@ -89,15 +89,37 @@ public class EventSyncPubSubHolder implements AutoCloseable {
     /**
      * Publishes the given event to all matching subscribers asynchronously.
      *
+     * <p>A delivery failure on one channel (e.g. a saturated CRITICAL queue) does not prevent
+     * the event from being offered to the remaining matching channels. Once every matching
+     * channel has been attempted, the first failure encountered (if any) is rethrown so callers
+     * retain the existing explicit-failure signal for their own event.
+     *
      * @param event domain event to publish
      */
     public void publish(@Nonnull DomainEvent event) {
         ensureOpen();
 
-        for (DeliveryChannel channel : deliveryChannels.values()) {
-            if (channel.accepts(event.eventKind())) {
-                channel.enqueue(event);
+        RuntimeException firstFailure = null;
+        for (Map.Entry<String, DeliveryChannel> entry : deliveryChannels.entrySet()) {
+            DeliveryChannel channel = entry.getValue();
+            if (!channel.accepts(event.eventKind())) {
+                continue;
             }
+            try {
+                channel.enqueue(event);
+            } catch (RuntimeException enqueueFailure) {
+                telemetryEmitter.emit("event_bus.channel_delivery_failure", Map.of(
+                        "subscriber", entry.getKey(),
+                        "eventKind", event.eventKind().name(),
+                        "error", String.valueOf(enqueueFailure)
+                ));
+                if (firstFailure == null) {
+                    firstFailure = enqueueFailure;
+                }
+            }
+        }
+        if (firstFailure != null) {
+            throw firstFailure;
         }
     }
 
