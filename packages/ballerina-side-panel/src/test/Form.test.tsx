@@ -26,7 +26,7 @@
 // covered as pure logic in formValidationUtils.test.ts (L1). Asserting the enabled
 // TRANSITION here needs waitFor, which advances rAF into an editor layout callback
 // that throws IndexSizeError under jsdom (a jsdom Range limitation, not a product
-// bug) — so the render-level transition is intentionally left to L5/manual.
+// bug) — so the render-level transition is intentionally left to L4/manual.
 
 import React from "react";
 import { render } from "@testing-library/react";

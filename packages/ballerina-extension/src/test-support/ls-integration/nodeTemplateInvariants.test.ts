@@ -16,7 +16,7 @@
  * under the License.
  */
 
-// L4-07: node-template form-field type INVARIANTS. These are not per-issue tests —
+// L3-07: node-template form-field type INVARIANTS. These are not per-issue tests —
 // each is a rule asserted over every property of every sampled connector action, so
 // it catches the whole class of bug (#1491, #105, and any future connector), not one
 // case. Grow coverage by adding actions to ACTIONS; the rules stay the same.
@@ -89,7 +89,7 @@ describeLs("node-template form-field type invariants", () => {
     // This is INTENTIONALLY LEFT FAILING (red) — it surfaces open LS node-template bugs
     // (#1491, and the same class for #105). Do NOT silence it by deleting/skipping; it
     // turns green only once the LS maps every array-typed param to REPEATABLE_LIST.
-    // Runs in the L4 (ls-integration) job, not the fast PR gate.
+    // Runs in the L3 (ls-integration) job, not the fast PR gate.
     it("array-typed params are offered as array editors (REPEATABLE_LIST)", () => {
         if (sampled === 0) {
             throw new Error("no connector actions resolved — cannot verify");

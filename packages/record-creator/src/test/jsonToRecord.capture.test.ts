@@ -16,7 +16,7 @@
  * under the License.
  */
 
-// L4-tier fixture generator + drift check for the JSON→record view's data.
+// L3-tier fixture generator + drift check for the JSON→record view's data.
 //
 // This is how the L2 render fixture (fixtures/convertJsonToRecord.json) is produced
 // and kept honest — WITHOUT touching production code. It calls the real LS (the same

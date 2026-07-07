@@ -16,10 +16,10 @@
  * under the License.
  */
 
-// Reference L6 performance benchmark: measures LS request latency and emits a
+// Reference L5 performance benchmark: measures LS request latency and emits a
 // trend record. Not a hard pass/fail gate — the assertion is a loose guardrail;
 // the value is the logged/append trend (set PERF_TREND_FILE to accumulate).
-// See docs/TEST_BACKLOG.md L6-01. Skips when no Ballerina distribution is found.
+// See docs/TEST_BACKLOG.md L5-01. Skips when no Ballerina distribution is found.
 
 import * as fs from "fs";
 import * as path from "path";

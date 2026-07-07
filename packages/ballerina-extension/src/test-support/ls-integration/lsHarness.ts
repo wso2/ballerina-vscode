@@ -16,9 +16,9 @@
  * under the License.
  */
 
-// Headless Ballerina Language Server harness for L4 integration tests. Spawns a
-// real LS over stdio (no VSCode) and speaks LSP JSON-RPC. See docs/TEST_PLAN.md (L4)
-// and docs/TEST_BACKLOG.md L4-01.
+// Headless Ballerina Language Server harness for L3 integration tests. Spawns a
+// real LS over stdio (no VSCode) and speaks LSP JSON-RPC. See docs/TEST_PLAN.md (L3)
+// and docs/TEST_BACKLOG.md L3-01.
 //
 // Uses the distribution's `bal start-language-server`. Resolution order:
 //   1. $BAL_LS_CMD               (explicit path to the bal launcher)

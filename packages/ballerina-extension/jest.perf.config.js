@@ -16,7 +16,7 @@
  * under the License.
  */
 
-// L6 performance benchmarks (*.perf.ts). Separate config so they never run in the
+// L5 performance benchmarks (*.perf.ts). Separate config so they never run in the
 // fast PR job (filename is not `jest.config.js`). Run with: pnpm run test:perf
 
 module.exports = {

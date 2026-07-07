@@ -16,7 +16,7 @@
  * under the License.
  */
 
-// L4 LS-integration config. Runs a real headless LS — SEPARATE from the fast PR
+// L3 LS-integration config. Runs a real headless LS — SEPARATE from the fast PR
 // job (its filename is not `jest.config.js`, so the fast-tests auto-discovery in
 // build.yml does not pick it up). Requires a Ballerina distribution + Java.
 // Run with: pnpm run test:ls-integration
