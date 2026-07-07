@@ -45,9 +45,7 @@ import java.util.concurrent.CompletableFuture;
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("designModelService")
 public class DesignModelGeneratorService implements ExtendedLanguageServerService {
-
     private WorkspaceManagerProxy workspaceManagerProxy;
-
     @Override
     public void init(LanguageServer langServer,
                      WorkspaceManagerProxy workspaceManagerProxy,

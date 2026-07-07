@@ -95,6 +95,7 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.commons.CompilerCompilationGuard;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
@@ -747,8 +748,9 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      */
     private static Optional<SemanticModel> getSemanticModel(Module module) {
         try {
-            if (module.packageInstance() != null && module.packageInstance().getCompilation() != null) {
-                SemanticModel semanticModel = module.packageInstance().getCompilation()
+            Package packageInstance = module.packageInstance();
+            if (packageInstance != null) {
+                SemanticModel semanticModel = CompilerCompilationGuard.getCompilation(packageInstance)
                         .getSemanticModel(module.moduleId());
                 return Optional.ofNullable(semanticModel);
             }

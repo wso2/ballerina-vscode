@@ -61,7 +61,7 @@
         "name": "rabbitmqListener",
         "scope": "Global",
         "visibility": "module",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.5.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.3.3.png",
         "module": "rabbitmq",
         "children": {}
       },

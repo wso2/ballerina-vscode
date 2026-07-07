@@ -84,7 +84,7 @@
         "name": "tcpConnection",
         "scope": "Global",
         "visibility": "module",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.5.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.4.png",
         "module": "tcp",
         "children": {}
       }
