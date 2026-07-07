@@ -16,19 +16,15 @@
  * under the License.
  */
 
-// L4-tier "headless view" tests: render a real webview view (jsdom) whose rpc-client
-// is wired to the REAL language server via the L4 harness — the full loop, no VSCode,
-// no captured fixtures. Spawns a real LS (needs Java + a Ballerina distribution) and
-// auto-skips otherwise. Filename is NOT `jest.config.js`, so the fast PR job never
-// picks it up. Run with: pnpm run test:headless-view
+// Fast L2 render tests (jsdom, no LS). Renders real components/views against COMMITTED
+// fixtures captured from the real LS (see *.capture.test.ts + jest.headless-view.config.js).
+// This IS the fast PR job's config (auto-discovered by build.yml as jest.config.js).
+// The `.render.` suffix keeps the L4 capture/drift tests out of this fast run.
 
 const base = require('@wso2/test-config/jest-preset');
 
 module.exports = {
     ...base,
     rootDir: '.',
-    // L4-tier fixture capture / drift checks (spawn the real LS). Kept separate from the
-    // fast render tests by the `.capture.` suffix.
-    testMatch: ['**/*.capture.test.ts'],
-    testTimeout: 120000,
+    testMatch: ['**/*.render.test.tsx'],
 };
