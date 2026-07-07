@@ -41,32 +41,32 @@ export function getEnhancementStages(context: MigrationContext): EnhancementStag
     const shared = getSharedEnhancementContext(context);
     return [
         {
-            name: "Stage 0 — Source Inventory & Gap Analysis",
+            name: "Stage 1 — Source Inventory & Gap Analysis",
             prompt: shared + "\n\n" + getStage0Prompt(context),
             agentLimits: { maxSteps: 50, maxOutputTokens: 8192 },
         },
         {
-            name: "Stage 1 — Source-First Fidelity Implementation",
+            name: "Stage 2 — Source-First Fidelity Implementation",
             prompt: shared + "\n\n" + getStage1Prompt(context),
             agentLimits: { maxSteps: 200, maxOutputTokens: 16384 },
         },
         {
-            name: "Stage 2 — Zero Compilation Diagnostics",
+            name: "Stage 3 — Zero Compilation Diagnostics",
             prompt: shared + "\n\n" + getStage2Prompt(context),
             agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
         },
         {
-            name: "Stage 3 — Test Refinement",
+            name: "Stage 4 — Test Refinement",
             prompt: shared + "\n\n" + getStage3Prompt(context),
             agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
         },
         {
-            name: "Stage 4 — Final Validation & Documentation",
+            name: "Stage 5 — Final Validation & Documentation",
             prompt: shared + "\n\n" + getStage4Prompt(),
             agentLimits: { maxSteps: 50, maxOutputTokens: 16384 },
         },
         {
-            name: "Stage 5 — Idiomatic Refactoring",
+            name: "Stage 6 — Idiomatic Refactoring",
             prompt: shared + "\n\n" + getStage5Prompt(context),
             agentLimits: { maxSteps: 150, maxOutputTokens: 16384 },
         },
@@ -126,32 +126,32 @@ export function getPerProjectEnhancementStages(
     const shared = preamble + "\n\n" + getSharedEnhancementContext(context);
     return [
         {
-            name: `[${packageName}] Stage 0 — Source Inventory & Gap Analysis`,
+            name: `[${packageName}] Stage 1 — Source Inventory & Gap Analysis`,
             prompt: shared + "\n\n" + getStage0Prompt(context),
             agentLimits: { maxSteps: 50, maxOutputTokens: 8192 },
         },
         {
-            name: `[${packageName}] Stage 1 — Source-First Fidelity Implementation`,
+            name: `[${packageName}] Stage 2 — Source-First Fidelity Implementation`,
             prompt: shared + "\n\n" + getStage1Prompt(context),
             agentLimits: { maxSteps: 200, maxOutputTokens: 16384 },
         },
         {
-            name: `[${packageName}] Stage 2 — Zero Compilation Diagnostics`,
+            name: `[${packageName}] Stage 3 — Zero Compilation Diagnostics`,
             prompt: shared + "\n\n" + getStage2Prompt(context) + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
             agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
         },
         {
-            name: `[${packageName}] Stage 3 — Test Refinement`,
+            name: `[${packageName}] Stage 4 — Test Refinement`,
             prompt: shared + "\n\n" + getStage3Prompt(context),
             agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
         },
         {
-            name: `[${packageName}] Stage 4 — Final Validation & Documentation`,
+            name: `[${packageName}] Stage 5 — Final Validation & Documentation`,
             prompt: shared + "\n\n" + getStage4Prompt() + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
             agentLimits: { maxSteps: 50, maxOutputTokens: 16384 },
         },
         {
-            name: `[${packageName}] Stage 5 — Idiomatic Refactoring`,
+            name: `[${packageName}] Stage 6 — Idiomatic Refactoring`,
             prompt: shared + "\n\n" + getStage5Prompt(context) + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
             agentLimits: { maxSteps: 150, maxOutputTokens: 16384 },
         },
@@ -324,7 +324,7 @@ These rules are **non-negotiable**. Violating any of them means the enhancement 
 
 1. **IMPLEMENT, do not document.** Write working Ballerina code. Never produce summaries, roadmaps,
    remaining-work lists, or explanations of what _should_ be done instead of doing it.
-   **Do NOT create** \`NEXT_STEPS.md\`, \`README_MIGRATION.md\`, \`ENHANCEMENT_SUMMARY.md\` (unless Stage 4),
+   **Do NOT create** \`NEXT_STEPS.md\`, \`README_MIGRATION.md\`, \`ENHANCEMENT_SUMMARY.md\` (unless Stage 5),
    or any guide/roadmap/documentation file.
 2. **Never stop early.** "This project is complex", "time constraints", "token limits", "escaping issues"
    are NOT valid reasons to stop. You have ample budget. Keep making \`file_edit\` calls.
@@ -431,14 +431,14 @@ Process one package at a time. Read other packages for context but only modify t
 }
 
 // ---------------------------------------------------------------------------
-// Stage 0 — Source Inventory & Gap Analysis (read-only)
+// Stage 1 — Source Inventory & Gap Analysis (read-only)
 // ---------------------------------------------------------------------------
 
 function getStage0Prompt(context: MigrationContext): string {
     const { keepStructure } = context;
     const platformName = getPlatformName(context.sourcePlatform);
 
-    return `## Your Task — Stage 0: Source Inventory & Gap Analysis
+    return `## Your Task — Stage 1: Source Inventory & Gap Analysis
 
 This is a **read-only stage** — you will NOT edit any files. Your sole output is a structured inventory
 that Stage 1 will use as its work plan.
@@ -518,13 +518,13 @@ GAPS REQUIRING IMPLEMENTATION IN STAGE 1:
   2. ...
 \`\`\`
 
-### Completion Criteria for Stage 0
+### Completion Criteria for Stage 1
 
-Output the inventory above, then stop. Do not edit any files. Stage 1 will implement all gaps.`;
+Output the inventory above, then stop. Do not edit any files. Stage 2 will implement all gaps.`;
 }
 
 // ---------------------------------------------------------------------------
-// Stage 1 — Source-First Fidelity Implementation
+// Stage 2 — Source-First Fidelity Implementation
 // ---------------------------------------------------------------------------
 
 function getStage1Prompt(context: MigrationContext): string {
@@ -532,7 +532,7 @@ function getStage1Prompt(context: MigrationContext): string {
     const platformName = getPlatformName(context.sourcePlatform);
     const connectorTable = getConnectorMappingTable(context.sourcePlatform);
 
-    return `## Your Task — Stage 1: Source-First Fidelity Implementation
+    return `## Your Task — Stage 2: Source-First Fidelity Implementation
 
 Your sole focus: ensure **every construct in the ${platformName} source project is correctly and completely
 represented in the Ballerina output**. A later stage handles compilation diagnostics, tests, and documentation.
@@ -558,7 +558,7 @@ Process source files in this priority order:
 2. ⚠️ Partial — constructs with \`// TODO\` or \`// FIXME\` markers
 3. ✅ Covered — verify correctness of already-translated constructs (spot-check, don't skip)
 
-If Stage 0 output is not in your context (e.g. this is a resumed session), call
+If Stage 1 output is not in your context (e.g. this is a resumed session), call
 \`migration_source_list(".")\` to re-establish the source structure, then proceed.
 
 **Phase B: Process one source file at a time**
@@ -617,19 +617,19 @@ ${connectorTable}
 ### Completion Criteria
 
 When every source file in your work plan has been read and verified/implemented, output one line:
-"Stage 1 complete: processed N source files, implemented M constructs. todo.bal: [deleted | N remain]."
+"Stage 2 complete: processed N source files, implemented M constructs. todo.bal: [deleted | N remain]."
 Then stop. Do not write anything else.`;
 }
 
 // ---------------------------------------------------------------------------
-// Stage 2 — Zero Compilation Diagnostics
+// Stage 3 — Zero Compilation Diagnostics
 // ---------------------------------------------------------------------------
 
 function getStage2Prompt(context: MigrationContext): string {
     const platformName = getPlatformName(context.sourcePlatform);
-    return `## Your Task — Stage 2: Achieve Zero Compilation Diagnostics
+    return `## Your Task — Stage 3: Achieve Zero Compilation Diagnostics
 
-You are running **Stage 2** of the enhancement pipeline. The previous stage verified all ${platformName}
+You are running **Stage 3** of the enhancement pipeline. The previous stage verified all ${platformName}
 source constructs and implemented missing ones. Your sole focus is achieving **zero error-level compilation
 diagnostics** across all source files (excluding \`tests/\`).
 
@@ -659,19 +659,19 @@ diagnostics** across all source files (excluding \`tests/\`).
   or absent), apply the minimum change that makes the code compile: widen a type to \`anydata\`, extract a
   helper function with a compatible signature, etc. Always add a scoped comment explaining the approximation.
 - You may use \`migration_source_read\` if you need to check original ${platformName} source for context.
-- If Stage 1 left any unresolved constructs that cause compilation errors, fix them now.
+- If Stage 2 left any unresolved constructs that cause compilation errors, fix them now.
 
-### Completion Criteria for Stage 2
+### Completion Criteria for Stage 3
 
 When the diagnostics tool reports zero error-level diagnostics for all source files (excluding \`tests/\`):
 - Output the final diagnostics count (should be 0 errors).
 - List any best-effort approximations you made to fix diagnostics.
 
-Then stop. Stage 3 will handle test files.`;
+Then stop. Stage 4 will handle test files.`;
 }
 
 // ---------------------------------------------------------------------------
-// Stage 3 — Test Refinement
+// Stage 4 — Test Refinement
 // ---------------------------------------------------------------------------
 
 function getStage3Prompt(context: MigrationContext): string {
@@ -682,15 +682,15 @@ function getStage3Prompt(context: MigrationContext): string {
         ? 'BW test processes (`*.bwtest` files)'
         : 'original test files';
 
-    return `## Your Task — Stage 3: Refine and Validate Test Files
+    return `## Your Task — Stage 4: Refine and Validate Test Files
 
-You are running **Stage 3** of the enhancement pipeline. Stages 1 and 2 have verified all ${platformName}
+You are running **Stage 4** of the enhancement pipeline. Stages 2 and 3 have verified all ${platformName}
 constructs and achieved zero compilation diagnostics in source files. Your sole focus is making the test
 files in \`tests/\` complete, correctly typed, and compilation-error free.
 
 > **Tests are not executed during this stage.** The goal is to produce structurally complete, correctly-typed
 > test files. Test execution and pass/fail validation is handled in a separate subsequent step.
-> **Do NOT** create \`ENHANCEMENT_SUMMARY.md\` during this stage — that is Stage 4.
+> **Do NOT** create \`ENHANCEMENT_SUMMARY.md\` during this stage — that is Stage 5.
 
 ### Preparation: Build a Behaviour Map
 
@@ -703,7 +703,7 @@ Before touching any test file:
 ### For each test file in \`tests/\`:
 
 1. **Align with enhanced implementation**: Verify test calls match current function signatures. Update
-   call sites if signatures changed during Stages 1/2.
+   call sites if signatures changed during Stages 2/3.
 2. **Align with original test intent**: Cross-reference each test against the ${testFileRef}.
    If the original mocked a connector, mock the equivalent \`ballerinax/\` client using \`@test:Mock\`.
 3. **Resolve all \`// TODO\` and \`// FIXME\` comments** with correct test logic.
@@ -716,23 +716,23 @@ Before touching any test file:
 8. **Ensure test files compile**: Run the diagnostics tool **including** the \`tests/\` directory and fix errors.
 9. **Do not delete or comment out existing test cases.**
 
-### Completion Criteria for Stage 3
+### Completion Criteria for Stage 4
 
 When all test files are complete and compilation-error free:
 - Output the diagnostics count for test files (should be 0 errors).
 - List test functions added or significantly modified.
 
-Then stop. Stage 4 will handle final validation and documentation.`;
+Then stop. Stage 5 will handle final validation and documentation.`;
 }
 
 // ---------------------------------------------------------------------------
-// Stage 4 — Final Validation & Documentation
+// Stage 5 — Final Validation & Documentation
 // ---------------------------------------------------------------------------
 
 function getStage4Prompt(): string {
-    return `## Your Task — Stage 4: Final Validation & Documentation
+    return `## Your Task — Stage 5: Final Validation & Documentation
 
-You are running the **final stage** of the enhancement pipeline. Stages 1–3 have verified all source
+You are running **Stage 5** of the enhancement pipeline. Stages 2–4 have verified all source
 constructs, fixed diagnostics, and refined test files. Your focus is verifying completeness and writing
 \`ENHANCEMENT_SUMMARY.md\`.
 
@@ -806,20 +806,20 @@ List stubs written in one package to unblock another.
 Summarise anything requiring human review.
 \`\`\`
 
-### Completion Criteria for Stage 4
+### Completion Criteria for Stage 5
 
 Output the final status: checklist results and confirmation that \`ENHANCEMENT_SUMMARY.md\` was written.`;
 }
 
 // ---------------------------------------------------------------------------
-// Stage 5 – Idiomatic refactoring (wrapper elimination, renaming, check normalization)
+// Stage 6 — Idiomatic Refactoring (wrapper elimination, renaming, check normalization)
 // ---------------------------------------------------------------------------
 
 function getStage5Prompt(context: MigrationContext): string {
     const platform = getPlatformName(context.sourcePlatform);
-    return `## Your Task — Stage 5: Idiomatic Refactoring
+    return `## Your Task — Stage 6: Idiomatic Refactoring
 
-Stages 0–4 produced functionally correct, compilable Ballerina code migrated from ${platform}.
+Stages 1–5 produced functionally correct, compilable Ballerina code migrated from ${platform}.
 Stage 5 refactors that code toward idiomatic Ballerina style without changing any observable behaviour.
 
 **Scope constraint — public symbols are frozen:**
@@ -891,8 +891,8 @@ Steps:
 
 ### Completion
 
-1. Run diagnostics. Confirm zero new errors vs. the Stage 4 baseline.
-2. Append a \`## Refactoring Changes (Stage 5)\` section to the existing \`ENHANCEMENT_SUMMARY.md\`:
+1. Run diagnostics. Confirm zero new errors vs. the Stage 5 baseline.
+2. Append a \`## Refactoring Changes (Stage 6)\` section to the existing \`ENHANCEMENT_SUMMARY.md\`:
    - Wrapper functions eliminated (count)
    - Private identifiers renamed (old → new list)
    - Error propagation patterns simplified (count)`;
@@ -942,7 +942,7 @@ fix any remaining cross-package issues so that all packages build together succe
 
 ### Important Notes
 
-- Do NOT re-run Stage 1–4 work here — only fix errors that span package boundaries.
+- Do NOT re-run Stage 2–5 work here — only fix errors that span package boundaries.
 - Only make changes that are strictly necessary to achieve zero workspace-level errors.
 - Do NOT create \`ENHANCEMENT_SUMMARY.md\` or any documentation in this stage.
 
