@@ -116,6 +116,7 @@ public class CompilationPipeline implements AutoCloseable {
     private final ScheduledExecutorService debounceScheduler;
     private final ExecutorService compilationWorker;
     private final AtomicReference<ScheduledFuture<?>> pendingDebounce;
+    private final AtomicReference<InProgressSnapshot> pendingBridgeSnapshot;
     private final AtomicReference<CompileTask> inflightTask;
     private final AtomicReference<ContentVersion> latestRequestedVersion;
     private final AtomicReference<Thread> activeWorkerThread;
@@ -170,6 +171,7 @@ public class CompilationPipeline implements AutoCloseable {
             return t;
         });
         this.pendingDebounce = new AtomicReference<>();
+        this.pendingBridgeSnapshot = new AtomicReference<>();
         this.inflightTask = new AtomicReference<>();
         this.latestRequestedVersion = new AtomicReference<>();
         this.activeWorkerThread = new AtomicReference<>();
@@ -197,7 +199,7 @@ public class CompilationPipeline implements AutoCloseable {
 
         // Bridge the debounce gap: ensure waiting threads have a Future to block on immediately
         if (snapshotStore.getInProgress(key) == null) {
-            snapshotStore.startCompilation(key);
+            pendingBridgeSnapshot.set(snapshotStore.startCompilation(key));
         }
 
         ScheduledFuture<?> prev = pendingDebounce.getAndSet(
@@ -262,6 +264,7 @@ public class CompilationPipeline implements AutoCloseable {
         if (pending != null) {
             pending.cancel(false);
         }
+        pendingBridgeSnapshot.set(null);
         CompileTask inflight = inflightTask.get();
         if (inflight != null) {
             inflight.cancel();
@@ -293,14 +296,23 @@ public class CompilationPipeline implements AutoCloseable {
 
         CancellationToken token = new CancellationToken();
         CompileTask task = new CompileTask(key.descriptor(), key.sourceRoot(), contentVersion, token);
-        InProgressSnapshot inProgressSnapshot = snapshotStore.startCompilation(key);
+        InProgressSnapshot inProgressSnapshot = inProgressSnapshotForTask();
         inflightTask.set(task);
 
         compilationWorker.execute(() -> executeCompilation(task, inProgressSnapshot));
     }
 
+    private InProgressSnapshot inProgressSnapshotForTask() {
+        InProgressSnapshot bridge = pendingBridgeSnapshot.getAndSet(null);
+        if (bridge != null && snapshotStore.getInProgress(key) == bridge) {
+            return bridge;
+        }
+        return snapshotStore.startCompilation(key);
+    }
+
     private void executeCompilation(CompileTask task, InProgressSnapshot inProgressSnapshot) {
         activeWorkerThread.set(Thread.currentThread());
+        clearStaleInterrupt(task);
         boolean published = false;
         boolean permitAcquired = false;
         try {
@@ -379,6 +391,12 @@ public class CompilationPipeline implements AutoCloseable {
         }
     }
 
+    private void clearStaleInterrupt(CompileTask task) {
+        if (!task.isCancelled() && Thread.currentThread().isInterrupted()) {
+            Thread.interrupted();
+        }
+    }
+
     private void scheduleRecovery(CompileTask task, Throwable cause) {
         compilationWorker.execute(() -> executeRecovery(task, cause));
     }
@@ -419,10 +437,15 @@ public class CompilationPipeline implements AutoCloseable {
         if (closed.get()) {
             return;
         }
+        boolean interrupted = Thread.interrupted();
         try {
             eventBus.publish(new CompilerEvent(kind, sourceRootUri, descriptorName));
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to emit event " + kind + " for " + descriptorName, e);
+        } finally {
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
