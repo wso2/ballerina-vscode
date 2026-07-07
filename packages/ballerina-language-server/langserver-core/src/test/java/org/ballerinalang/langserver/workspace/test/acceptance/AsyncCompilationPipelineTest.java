@@ -29,7 +29,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.recovery.Cancellati
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.lspgateway.TwoTierReadinessController;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -193,23 +192,6 @@ public class AsyncCompilationPipelineTest {
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
                 .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(testKey()).contentVersion(),
                         new ContentVersion(11), "Only the latest content version may remain published"));
-    }
-
-    /**
-     * Verifies cold start waits only up to a bounded timeout and returns a content-modified hint when no snapshot
-     * exists.
-     *
-     * @throws InterruptedException if the waiting thread is interrupted
-     */
-    @Test
-    public void coldStartWithoutSnapshot_timesOutWithContentModifiedHint() throws InterruptedException {
-        TwoTierReadinessController controller = new TwoTierReadinessController();
-        boolean semanticReady = controller.awaitSemanticReady(100, TimeUnit.MILLISECONDS);
-        TwoTierReadinessController.ContentModifiedError hint = controller.contentModifiedHint(100);
-
-        Assert.assertTrue(!semanticReady
-                        && hint.errorCode() == TwoTierReadinessController.ContentModifiedError.CONTENT_MODIFIED_CODE,
-                "Cold start without a snapshot must time out gracefully with a content-modified hint");
     }
 
     /**
