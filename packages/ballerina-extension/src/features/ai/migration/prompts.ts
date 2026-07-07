@@ -65,6 +65,11 @@ export function getEnhancementStages(context: MigrationContext): EnhancementStag
             prompt: shared + "\n\n" + getStage4Prompt(),
             agentLimits: { maxSteps: 50, maxOutputTokens: 16384 },
         },
+        {
+            name: "Stage 5 — Idiomatic Refactoring",
+            prompt: shared + "\n\n" + getStage5Prompt(context),
+            agentLimits: { maxSteps: 150, maxOutputTokens: 16384 },
+        },
     ];
 }
 
@@ -144,6 +149,11 @@ export function getPerProjectEnhancementStages(
             name: `[${packageName}] Stage 4 — Final Validation & Documentation`,
             prompt: shared + "\n\n" + getStage4Prompt() + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
             agentLimits: { maxSteps: 50, maxOutputTokens: 16384 },
+        },
+        {
+            name: `[${packageName}] Stage 5 — Idiomatic Refactoring`,
+            prompt: shared + "\n\n" + getStage5Prompt(context) + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
+            agentLimits: { maxSteps: 150, maxOutputTokens: 16384 },
         },
     ];
 }
@@ -799,6 +809,93 @@ Summarise anything requiring human review.
 ### Completion Criteria for Stage 4
 
 Output the final status: checklist results and confirmation that \`ENHANCEMENT_SUMMARY.md\` was written.`;
+}
+
+// ---------------------------------------------------------------------------
+// Stage 5 – Idiomatic refactoring (wrapper elimination, renaming, check normalization)
+// ---------------------------------------------------------------------------
+
+function getStage5Prompt(context: MigrationContext): string {
+    const platform = getPlatformName(context.sourcePlatform);
+    return `## Your Task — Stage 5: Idiomatic Refactoring
+
+Stages 0–4 produced functionally correct, compilable Ballerina code migrated from ${platform}.
+Stage 5 refactors that code toward idiomatic Ballerina style without changing any observable behaviour.
+
+**Scope constraint — public symbols are frozen:**
+Only modify \`private\` functions, types, and variables. Functions, types, and \`public\` variables
+exported from this package MUST NOT be renamed or have their signatures changed. This protects callers
+in other packages and in tests.
+
+**After each phase:** run diagnostics and confirm zero new errors before proceeding to the next.
+
+### Phase A — Eliminate Redundant Wrapper Functions
+
+A redundant wrapper is a **private** function whose entire body is a single \`return otherFn(args)\` call
+with no additional logic (e.g. \`function setPayload_3(...) { return transformSetPayload_3(...); }\`).
+
+Steps:
+1. Scan all \`.bal\` files for private functions with single-expression bodies.
+2. For each candidate:
+   a. Confirm it does not have the \`public\` keyword.
+   b. Collect every call site across the package (including test files).
+   c. Replace each call site with the inner call.
+   d. Delete the wrapper function.
+3. Run diagnostics after each deletion. Fix any errors before moving to the next wrapper.
+
+Do NOT inline if:
+- The function has the \`public\` keyword.
+- The function is recursive.
+- Any call site inlining would exceed 120 characters and cannot be cleanly split.
+
+### Phase B — Rename Auto-Generated Private Identifiers
+
+Auto-generated identifiers match patterns like: \`var_payload_2\`, \`processOrder_1\`,
+\`SetVariable_4_Output\`, \`get_api_orders_orderId_application_json_apiConfig_1\`,
+\`transform_setCorrelationId_3\`.
+
+A name is auto-generated if it:
+- Ends with \`_<digits>\` (e.g. \`_1\`, \`_3\`)
+- Contains platform DSL segments (e.g. \`application_json\`, \`on_error_propagate\`, \`ProcessService\`)
+- Uses PascalCase for a function (Ballerina convention is camelCase for functions)
+
+Steps:
+1. List all private function names, local variable names, and private type names in \`.bal\` files.
+2. For each auto-generated identifier:
+   a. Read the corresponding source file via \`migration_source_read\` to understand semantic intent.
+   b. Derive a camelCase name (functions/variables) or PascalCase name (types).
+   c. Find all references in the package.
+   d. Rename declaration + all references atomically with \`file_multi_edit\`.
+3. Run diagnostics after all renames. Fix any name collisions before continuing.
+
+Rules:
+- Skip \`main\`, \`init\`, and test functions (names beginning with \`test\`).
+- If the existing name is already readable (e.g. \`processOrder\`), skip it.
+- When source context is unavailable, derive the name from the function body's logic.
+
+### Phase C — Normalize Error Propagation
+
+Convert verbose error re-return patterns to idiomatic \`check\`:
+
+| Before | After |
+|---|---|
+| \`T|error result = expr;\` followed by \`if result is error { return result; }\` | \`T result = check expr;\` |
+| \`if x is error { return error("msg", x); }\` | Leave unchanged — error is transformed |
+| \`if x is error { log:printError(...); return x; }\` | Leave unchanged — has a side effect |
+
+Steps:
+1. Scan \`.bal\` files for: assignment to a \`T|error\` union type, immediately followed by a guard that
+   re-returns the error **unchanged** (no wrapping, no logging, no transformation).
+2. Combine into a single \`check\` expression and remove the now-unused guard.
+3. Run diagnostics after each file.
+
+### Completion
+
+1. Run diagnostics. Confirm zero new errors vs. the Stage 4 baseline.
+2. Append a \`## Refactoring Changes (Stage 5)\` section to the existing \`ENHANCEMENT_SUMMARY.md\`:
+   - Wrapper functions eliminated (count)
+   - Private identifiers renamed (old → new list)
+   - Error propagation patterns simplified (count)`;
 }
 
 // ---------------------------------------------------------------------------
