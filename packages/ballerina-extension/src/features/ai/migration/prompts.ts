@@ -332,6 +332,10 @@ These rules are **non-negotiable**. Violating any of them means the enhancement 
     : `Files like \`functions.bal\`, \`data_mappings.bal\`, \`main.bal\`, \`configs.bal\`, \`types.bal\` etc. that appear in the initial project source ALREADY EXIST. You must use \`file_edit\` / \`file_multi_edit\` to modify them. Use \`file_write\` only when creating a file that has no content yet.`}
 8. **Never write a "Summary" or "Remaining Work" section.** Do not output a final summary of completed
    and remaining work. Just keep editing files until the stage criteria are met.
+9. **Delete every TODO/FIXME comment you address.** When you implement a construct that was annotated
+   with \`// TODO\`, \`// FIXME\`, or \`// TODO: UNSUPPORTED ... BLOCK ENCOUNTERED\`, always remove the
+   comment line(s) as part of the same \`file_edit\` call. A TODO comment left in the file after the
+   implementation is a bug — it signals incomplete work even when the code is there.
 
 ---
 
@@ -563,8 +567,10 @@ For each source file in your work plan:
    missing config variables, empty error handlers, TODO/FIXME comments.
 5. **Implement gaps immediately** using \`file_edit\` / \`file_multi_edit\`.
    - For \`// TODO: UNSUPPORTED ... BLOCK ENCOUNTERED\`: the commented-out source between \`// ---\` lines
-     is the spec — translate it to Ballerina and remove the entire commented block.
-   - For silently dropped constructs: add them to the correct \`.bal\` file.
+     is the spec — translate it to Ballerina and **remove the entire commented block including the TODO line**.
+   - For any \`// TODO\` or \`// FIXME\` comment: implement the required code, then **delete the comment
+     line in the same edit**. Never leave a TODO/FIXME behind after you have addressed it.
+   - For silently dropped constructs: add them to the correct \`.bal\` file (no TODO to delete).
 6. Output one line after each source file: "✅ \`<source-file>\`: verified / implemented N constructs."
 7. Move to the next source file.
 
