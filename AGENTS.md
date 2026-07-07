@@ -132,6 +132,26 @@ Running that exact command locally is the closest reproduction.
 2. Register it in `rush.json` under `projects[]`.
 3. Run `rush update`.
 
+## Writing tests
+
+**Read [`docs/TEST_GUIDE.md`](docs/TEST_GUIDE.md) first — it has, per level, what it is / how to run / how to add / example files to copy.** This is the authoritative how-to; the rules below are the non-negotiables.
+
+**Levels & where they run.** L0 static (enum contracts), L1 unit (pure logic), L2 component (render) are **fast, PR-gated** — a package's tests run in CI **only** via a file named exactly `jest.config.js`. L3 (headless LS), L4 (E2E), L5 (perf) need Java + a Ballerina distribution (or VSCode) and **must use another config filename** (`jest.ls-integration.config.js`, `jest.realdata.config.js`, `jest.headless-view.config.js`, `jest.perf.config.js`) so they never run on every PR; they `describe.skip` when no distro is found. **Never rename an LS/E2E/perf config to `jest.config.js`.**
+
+**Core rules (apply at every level):**
+- **Invariants over per-issue tests.** Assert a *rule over a corpus* ("every array-typed field renders an array editor"), not one reported case. A bug fix ⇒ a fixture feeding the relevant invariant, named `issue-<n>.json`.
+- **Don't touch production code to make something testable** — except the one sanctioned move: if a pure function is trapped in a heavy module (e.g. `bi.tsx`), **extract it into a narrow-import sibling and re-export** so importers are unaffected (see `utils/diagnostics.ts`, `utils/range.ts`). Verify importers still resolve + `tsc --noEmit` clean.
+- **New test file** = WSO2 Apache-2.0 header, year **2026**. Copy from any existing test.
+- **Before pushing:** the affected package's `test` is green (or intentionally red with a documented comment + issue link). L3/L4/L5 need the distro.
+
+**Adding tests to a package with none** (3 lines): add the devDeps + `@wso2/test-config`, create `jest.config.js` = `{ ...require('@wso2/test-config/jest-preset'), rootDir: '.' }` (add `testEnvironment: 'node'` for host-side), `rush update`. Recipe: [`packages/test-config/README.md`](packages/test-config/README.md).
+
+**L2 — the one rule:** *render the component with the context it needs, feed it synthetic data for invariants/edge-cases or a captured fixture for fidelity/drift.*
+- Context = what the component reads: props → `render(<C {...data}/>)`; `useFormContext` → `renderWithForm` (`ballerina-side-panel/src/test/formHarness.tsx`); `useRpcContext` → `renderWithRpc` + a **fake rpc client** (`rpcHarness.tsx`; mock the `@wso2/ballerina-rpc-client` barrel to delegate to the harness so component + Provider share one context).
+- Synthetic data (hand-authored) → fast, PR, for edge cases the LS won't hand you. Captured real data → the **capture→file→render split**: a nightly `*.capture.test.ts` writes/drift-checks `fixture.json` from the live LS; a fast `*.render.test.tsx` loads it and snapshots the render.
+- **god-managers (bi-diagram rpc-manager) can't be imported** — their graph pulls all of `core/extension.ts`. Cover them via captured fixtures, never by importing.
+- **jsdom limits** (don't fight): CodeMirror expression/chip editors don't instantiate; interaction that advances `requestAnimationFrame` (array add/remove, save-button enable) throws `IndexSizeError`. Push those to L4 (E2E).
+
 ## Things that look broken but aren't
 
 | Observation | Reality |
@@ -154,6 +174,7 @@ When in doubt about behavior, read these instead of guessing:
 | Why is CI doing X? | `.github/workflows/*.yml` + `.github/actions/*/action.yml` + `.github/workflows/README.md` |
 | What version of pnpm/node/rush? | `rush.json` (top), `common/config/rush/pnpm-config.json` |
 | What changed recently? | `git log --oneline -30` — commit messages here are descriptive |
+| How do I write/run/add a test? | [`docs/TEST_GUIDE.md`](docs/TEST_GUIDE.md) — per-level explain / run / add / example files |
 
 ## Migration history (for context)
 
