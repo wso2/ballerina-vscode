@@ -34,7 +34,6 @@ import javax.annotation.Nonnull;
  *
  * <p>Each phase advance acts as a cooperative cancellation checkpoint.</p>
  *
- * @adr ADR-018-cooperative-cancellation-model
  * @since 1.7.0
  */
 // CHECKSTYLE ON
