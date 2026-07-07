@@ -31,10 +31,6 @@ module.exports = {
         }],
     },
     moduleFileExtensions: ['ts', 'js', 'json', 'node'],
-    // Some headless-host tests import real rpc-managers, which import `vscode`.
-    moduleNameMapper: {
-        '^vscode$': '<rootDir>/src/test-support/__mocks__/vscode.ts',
-    },
     testMatch: ['**/?(*.)+(spec|test).ts'],
     testTimeout: 120000,
 };
