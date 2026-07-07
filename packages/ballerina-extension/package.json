@@ -1440,6 +1440,7 @@
         "test:unit": "jest --config jest.config.js",
         "test:ls-integration": "jest --config jest.ls-integration.config.js",
         "test:perf": "jest --config jest.perf.config.js",
+        "capture-fixtures": "node scripts/capture-fixtures.js",
         "e2e-test-setup": "npx extest get-vscode -c 1.100.0 && npx extest get-chromedriver -c 1.100.0 && npx extest install-vsix -f $(ls vsix/*.vsix)",
         "preui-test": "node -e \"const fs = require('fs'); if (fs.existsSync('test-resou')) { fs.unlinkSync('test-resou'); }\"",
         "e2e-test": "pnpm exec playwright test -c e2e-test/playwright.config.js",
