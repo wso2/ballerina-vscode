@@ -63,4 +63,13 @@ describe("filterTypeBrowserItems", () => {
         expect(filterTypeBrowserItems(TYPES, "zzz")).toEqual([]);
         expect(filterTypeBrowserItems(TYPES, "bool")).toEqual(["boolean"]);
     });
+
+    it("INVARIANT: searches the ENTIRE list — a match beyond any display limit is returned (#412)", () => {
+        // #412: search must not exclude types beyond the list's display limit. The filter
+        // itself must never cap results — a unique match at the very end of a large list is
+        // still found (any downstream display cap must be applied AFTER filtering, not before).
+        const many = Array.from({ length: 500 }, (_, i) => `Type${i}`);
+        expect(filterTypeBrowserItems(many, "type499")).toEqual(["Type499"]);
+        expect(filterTypeBrowserItems(many, "type").length).toBe(500);
+    });
 });

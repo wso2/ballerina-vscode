@@ -78,5 +78,23 @@ describe("NodeList (rpc-driven)", () => {
         await waitFor(() => expect(npCalled).toHaveBeenCalled());
         expect(container.textContent).toContain("Functions");
     });
+
+    // rpc feature-flag gating: the NP_FUNCTION node must appear only when the LS reports
+    // natural-programming supported — a node wrongly listed/hidden is the #766-class of
+    // "node not (correctly) listed in the UI", decided here on the FE from the rpc flag.
+    // (searchText expands the category so the node rows are rendered.)
+    it.each([
+        ["hidden when the LS reports NP unsupported", false, false],
+        ["shown when the LS reports NP supported", true, true],
+    ])("INVARIANT: NP_FUNCTION node %s", async (_desc, npSupported, expectVisible) => {
+        const categories = [
+            { title: "Functions", items: [node("NP_FUNCTION", "Natural Function"), node("fn", "Function")] },
+        ];
+        const rpc = { getCommonRpcClient: () => ({ isNPSupported: async () => npSupported }) };
+        const { container } = renderWithRpc(<NodeList {...props(categories)} searchText="Function" />, rpc);
+        // the ordinary node is always present; NP visibility is gated on the rpc flag
+        await waitFor(() => expect(container.textContent).toContain("Function"));
+        expect((container.textContent ?? "").includes("Natural Function")).toBe(expectVisible);
+    });
 });
 
