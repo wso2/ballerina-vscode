@@ -16,17 +16,16 @@
  * under the License.
  */
 
+// Real-LS-data render test: renders the Diagram against a flow model fetched LIVE from
+// the real language server (jsdom + a spawned LS). Needs Java + a Ballerina distribution
+// and auto-skips otherwise. Filename is NOT `jest.config.js`, so the fast PR job never
+// runs it. Run with: pnpm exec jest --config jest.realdata.config.js
+
 const base = require('@wso2/test-config/jest-preset');
 
 module.exports = {
     ...base,
     rootDir: '.',
-    moduleNameMapper: {
-        ...base.moduleNameMapper,
-        '^http-proxy-agent$': '<rootDir>/src/test/mocks/proxyAgent.ts',
-        '^https-proxy-agent$': '<rootDir>/src/test/mocks/proxyAgent.ts',
-    },
-    // `*.realdata.test.tsx` spawns a real LS — it runs via jest.realdata.config.js, not
-    // the fast PR job.
-    testPathIgnorePatterns: [...(base.testPathIgnorePatterns || ['/node_modules/']), '\\.realdata\\.test\\.'],
+    testMatch: ['**/*.realdata.test.tsx'],
+    testTimeout: 120000,
 };
