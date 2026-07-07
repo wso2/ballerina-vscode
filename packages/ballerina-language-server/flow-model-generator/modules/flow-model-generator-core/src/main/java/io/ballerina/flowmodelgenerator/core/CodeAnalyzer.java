@@ -1089,12 +1089,16 @@ public class CodeAnalyzer extends NodeVisitor {
                 && callNode.parent().kind() != SyntaxKind.CHECK_EXPRESSION
                 && CommonUtils.withinDoClause(callNode);
 
-        // Always build the canonical static human task form. The compiler-derived params
-        // (setFunctionProperties/processFunctionSymbol) were multi-type with no selected entry, so a
-        // union like userRoles: string|string[] collapsed to a bare TEXT/string field that showed no
-        // type info. The static form uses single, correctly-typed fields and parses the arg values from
-        // source, so both the template and the source re-read render an identical, type-aware form.
-        populateFallbackHumanTaskProperties(callNode, currentProps);
+        // When the awaitHumanTask symbol resolves, setFunctionProperties/processFunctionSymbol have already
+        // built rich, type-aware properties: each param carries its real type symbol and imports, and the
+        // inferred `typedesc<anydata> T` parameter is a record-field-aware result-type selector. Reuse them
+        // (relabel + add the result variable) instead of discarding the type metadata with a hardcoded form.
+        boolean resolved = currentProps.containsKey("taskName") || currentProps.containsKey("userRoles");
+        if (resolved) {
+            populateResolvedHumanTaskProperties();
+        } else {
+            populateFallbackHumanTaskProperties(callNode, currentProps);
+        }
 
         if (savedCheckError != null) {
             boolean checkError = savedCheckError.value() != null
@@ -1106,10 +1110,37 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     /**
-     * Builds the {@code awaitHumanTask} form from canonical static field definitions, reading the
-     * positional/named argument values directly from source. Matches {@link HumanTaskBuilder}'s template
-     * shape so the source re-read and the node template render an identical, type-aware form, and the
-     * result type uses the inferred {@code T} key so {@code toSource} round-trips consistently.
+     * Resolved path: relabels the rich {@code awaitHumanTask} properties built by
+     * {@code processFunctionSymbol}, drops the implicit {@code ctx} connection, and sets the result variable
+     * explicitly so {@code handleVariableNode} skips its generic {@code dataVariable()} (which would otherwise
+     * add a duplicate {@code TYPE_KEY} alongside the inferred {@code T} result-type selector).
+     */
+    private void populateResolvedHumanTaskProperties() {
+        Map<String, Property> currentProps = nodeBuilder.properties().build();
+        currentProps.remove(Property.CONNECTION_KEY);
+
+        // Canonicalize the inferred result type to the databindingType form first, then relabel — the
+        // relabel step renames the databinding property to the human task "Completion Type", so it must
+        // run after normalization has created that property.
+        CallBuilder.normalizeDatabindingTypeProperty(nodeBuilder);
+        HumanTaskBuilder.relabelHumanTaskFormProperties(currentProps);
+
+        if (typedBindingPatternNode != null) {
+            String varText = typedBindingPatternNode.bindingPattern().toSourceCode().strip();
+            nodeBuilder.properties().custom()
+                    .metadata().label(Property.RESULT_NAME).description(Property.RESULT_DOC).stepOut()
+                    .value(varText)
+                    .type().fieldType(Property.ValueType.IDENTIFIER).selected(true).stepOut()
+                    .editable(true).stepOut()
+                    .addProperty(Property.VARIABLE_KEY);
+        }
+    }
+
+    /**
+     * Fallback path used when the {@code awaitHumanTask} symbol cannot be resolved (e.g., the installed
+     * workflow library predates it). Reads positional/named args directly and builds a stable, static form
+     * matching {@link HumanTaskBuilder}'s fallback shape. The result type uses the inferred {@code T} key so
+     * {@code toSource} round-trips consistently with the resolved path.
      */
     private void populateFallbackHumanTaskProperties(RemoteMethodCallActionNode callNode,
                                                      Map<String, Property> currentProps) {
