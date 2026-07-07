@@ -511,6 +511,16 @@ public final class ProjectServiceImpl implements ProjectService {
         }
     }
 
+    private boolean documentContentEquals(DocumentUri uri, String content) {
+        try {
+            return uriResolver.document(uri)
+                    .map(document -> document.textDocument().toString().equals(content))
+                    .orElse(false);
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
     private boolean applyDocumentContent(DocumentUri uri, String content) {
         if (!isBallerinaSource(pathOf(uri))) {
             return false;
@@ -603,6 +613,11 @@ public final class ProjectServiceImpl implements ProjectService {
             if (!alreadyOpen) {
                 incrementOpenDocumentCount(uri);
                 countedOpen = true;
+            }
+            changeBuffer.ensureLayer(uri, layer);
+            if (documentContentEquals(uri, content)) {
+                applyDocumentContent(uri, content);
+                return;
             }
             TextDocumentContentChangeEvent fullText = new TextDocumentContentChangeEvent(content);
             int version = versionCounters.computeIfAbsent(uri, k -> new AtomicInteger(0)).incrementAndGet();

@@ -74,6 +74,17 @@ public class ChangeBuffer {
     }
 
     /**
+     * Ensures an overlay layer exists for the given URI without adding a pending change.
+     *
+     * @param uri document identity
+     * @param layer overlay layer
+     */
+    public void ensureLayer(DocumentUri uri, ChangeLayer layer) {
+        layeredChanges.computeIfAbsent(uri, k -> new ConcurrentHashMap<>())
+                .computeIfAbsent(layer, ignored -> new ConcurrentLinkedQueue<>());
+    }
+
+    /**
      * Atomically drains all buffered changes for the given URI and layer, returning them in
      * insertion order and leaving the queue empty.
      *
