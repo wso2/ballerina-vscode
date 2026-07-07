@@ -234,7 +234,7 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string; isDBC
     NP_FUNCTION_CALL: ({ size, color }) => <Icon name="bi-ai-function" sx={{ fontSize: size, width: size, height: size, color }} />,
     NP_FUNCTION: ({ size, color }) => <Icon name="bi-ai-function" sx={{ fontSize: size, width: size, height: size, color }} />,
     DATA_MAPPER_CALL: ({ size, color }) => <Icon name="dataMapper" sx={{ fontSize: size, width: size, height: size, color }} />,
-    WORKFLOW_RUN: ({ size, color }) => <Icon name="bi-workflow" sx={{ fontSize: size, width: size, height: size, color }} />,
+    WORKFLOW_RUN: ({ size, color }) => <Icon name="bi-flowchart" sx={{ fontSize: size, width: size, height: size, color }} />,
     ACTIVITY_CALL: ({ size, color }) => <Icon name="bi-task" sx={{ fontSize: size, width: size, height: size, color }} />,
     SEND_DATA: ({ size, color }) => <Icon name="bi-arrow-outward" sx={{ fontSize: size, width: size, height: size, color }} />,
     WAIT_DATA: ({ size, color }) => <Icon name="bi-wait" sx={{ fontSize: size, width: size, height: size, color }} />,
