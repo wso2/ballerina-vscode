@@ -28,7 +28,6 @@ import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.lspgateway.WorkspaceManagerFacadeImpl;
 
 import java.nio.file.Path;
 import java.time.Duration;

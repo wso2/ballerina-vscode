@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.lspgateway;
+package org.ballerinalang.langserver.workspace;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
@@ -72,7 +72,6 @@ public class WorkspaceManagerFacadeImplTest {
     private ProjectService mockProjectService;
     private CompilationService mockCompilationService;
     private ExecutionService mockExecutionService;
-    private ClientSession mockClientSession;
     private WorkspaceManagerFacadeImpl facade;
     private Path testPath;
 
@@ -81,7 +80,6 @@ public class WorkspaceManagerFacadeImplTest {
         mockProjectService = Mockito.mock(ProjectService.class);
         mockCompilationService = Mockito.mock(CompilationService.class);
         mockExecutionService = Mockito.mock(ExecutionService.class);
-        mockClientSession = Mockito.mock(ClientSession.class);
 
         facade = new WorkspaceManagerFacadeImpl(
                 mockProjectService,
