@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -342,6 +343,95 @@ public class CompilationServiceImplTest {
 
         Assert.assertSame(future.get(3, TimeUnit.SECONDS), snapshot,
                 "stableSnapshot should return the newly published stable snapshot");
+    }
+
+    // ---- Retry-on-Cancellation Tests (debounce/coalescing window null-return fix) ----
+
+    @Test
+    public void service_stableSnapshot_retriesPastCoalescedCancellation_returnsSuccessfulResult() throws Exception {
+        CountDownLatch firstCompileStarted = new CountDownLatch(1);
+        CountDownLatch firstCompileInterrupted = new CountDownLatch(1);
+        CountDownLatch secondCompileStarted = new CountDownLatch(1);
+        StableSnapshot finalSnapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
+                mock(PackageCompilation.class), new ContentVersion(2));
+
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
+            if (task.contentVersion().equals(new ContentVersion(1))) {
+                firstCompileStarted.countDown();
+                try {
+                    // Block so the request below observes this version's in-progress snapshot
+                    // while it is still the current one — then gets superseded (ADR-018 Mandate 8).
+                    new CountDownLatch(1).await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    firstCompileInterrupted.countDown();
+                    Thread.currentThread().interrupt();
+                    throw new CancellationException("interrupted by superseding edit");
+                }
+                throw new AssertionError("Should have been interrupted by the superseding edit");
+            }
+            secondCompileStarted.countDown();
+            return finalSnapshot;
+        }), 50);
+
+        publishWmE1(testRoot);
+        Assert.assertTrue(firstCompileStarted.await(3, TimeUnit.SECONDS), "First compilation should start");
+
+        // A request (e.g. completion/hover) arrives while the first compile is in flight and
+        // captures its in-progress snapshot — the exact snapshot the review found gets cancelled
+        // out from under the waiter with no retry.
+        CompletableFuture<StableSnapshot> waiter = CompletableFuture.supplyAsync(
+                () -> service.stableSnapshot(mockProject, mockDescriptor, null));
+        // Let the waiter's own forceCompilation() call settle before the second edit registers its
+        // debounce — otherwise forceCompilation() can steal the still-pending debounce and re-queue
+        // it directly on the (currently busy) compile worker, which is a separate pre-existing
+        // CompilationPipeline timing hazard unrelated to the retry-on-cancellation fix under test.
+        Thread.sleep(50);
+
+        // A second edit lands before the first compile finishes, superseding it (LIFO coalescing).
+        publishWmE4(testRoot);
+
+        Assert.assertTrue(firstCompileInterrupted.await(3, TimeUnit.SECONDS),
+                "Superseding edit should cancel the in-flight compile the waiter captured");
+        Assert.assertTrue(secondCompileStarted.await(3, TimeUnit.SECONDS),
+                "The superseding compilation should still run and succeed");
+
+        Assert.assertSame(waiter.get(3, TimeUnit.SECONDS), finalSnapshot,
+                "stableSnapshot must retry past its own coalesced cancellation and return the successful "
+                        + "result instead of null, even though the exact snapshot it first captured was cancelled");
+    }
+
+    @Test
+    public void service_stableSnapshot_terminatesWithNull_whenCircuitBreakerOpensDuringWait() throws Exception {
+        CountDownLatch compileStarted = new CountDownLatch(1);
+        CountDownLatch allowCompileToFail = new CountDownLatch(1);
+        AtomicInteger compileCount = new AtomicInteger(0);
+
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
+            compileCount.incrementAndGet();
+            compileStarted.countDown();
+            Assert.assertTrue(allowCompileToFail.await(3, TimeUnit.SECONDS), "Test should release the compile");
+            // PERSISTENT failure class — opens the circuit breaker immediately, with no further retry.
+            throw new IllegalArgumentException("persistent source error");
+        }), 50);
+
+        publishWmE1(testRoot);
+        Assert.assertTrue(compileStarted.await(3, TimeUnit.SECONDS), "Compilation should start");
+
+        // A request captures the in-progress snapshot for the doomed compile.
+        CompletableFuture<StableSnapshot> waiter = CompletableFuture.supplyAsync(
+                () -> service.stableSnapshot(mockProject, mockDescriptor, null));
+        Thread.sleep(50);
+        Assert.assertFalse(waiter.isDone(), "Should still be waiting on the in-progress compile");
+
+        allowCompileToFail.countDown();
+
+        // Without a termination check tied to the circuit breaker, this would spin forever
+        // re-requesting compilation and re-hitting the now-permanently-open circuit — never
+        // returning at all. A bounded 3s wait proves the retry loop actually terminates.
+        StableSnapshot result = waiter.get(3, TimeUnit.SECONDS);
+        Assert.assertNull(result,
+                "A persistent, non-retryable failure must terminate with null once the circuit opens, "
+                        + "not hang or busy-spin forever retrying a doomed compile");
     }
 
     // ---- Circuit Breaker Tests ----

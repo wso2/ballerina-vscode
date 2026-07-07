@@ -256,7 +256,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 if (awaited.snapshot() != null) {
                     return awaited.snapshot();
                 }
-                if (awaited.retryable()) {
+                if (awaited.retryable() && !hasSettledWithoutProgress(key)) {
                     continue;
                 }
                 return null;
@@ -568,6 +568,24 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 return AwaitPublishedResult.terminalFailure();
             }
         }
+    }
+
+    /**
+     * Determines whether a cancelled wait should stop retrying instead of re-fetching and re-awaiting
+     * the current in-progress snapshot. A cancellation is only worth retrying while the pipeline can
+     * still make forward progress: once its circuit breaker has opened (ADR-033 recovery exhausted) or
+     * the key has been evicted (WM-E2), every future compile attempt for this key fails or is
+     * unreachable, so retrying would busy-loop with no chance of ever observing a published result.
+     *
+     * @param key the compilation key whose retry eligibility is being checked
+     * @return {@code true} if retrying is futile and the caller should return {@code null} instead
+     */
+    private boolean hasSettledWithoutProgress(CompilationKey key) {
+        if (!pipelines.containsKey(key)) {
+            return true;
+        }
+        CircuitBreakerAction circuitAction = circuitActions.get(key);
+        return circuitAction != null && circuitAction.isOpen();
     }
 
     private record AwaitPublishedResult(StableSnapshot snapshot, boolean retryable) {
