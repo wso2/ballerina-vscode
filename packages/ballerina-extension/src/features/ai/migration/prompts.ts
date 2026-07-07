@@ -42,32 +42,32 @@ export function getEnhancementStages(context: MigrationContext): EnhancementStag
     return [
         {
             name: "Stage 1 — Source Inventory & Gap Analysis",
-            prompt: shared + "\n\n" + getStage0Prompt(context),
+            prompt: shared + "\n\n" + getStage1Prompt(context),
             agentLimits: { maxSteps: 50, maxOutputTokens: 8192 },
         },
         {
             name: "Stage 2 — Source-First Fidelity Implementation",
-            prompt: shared + "\n\n" + getStage1Prompt(context),
+            prompt: shared + "\n\n" + getStage2Prompt(context),
             agentLimits: { maxSteps: 200, maxOutputTokens: 16384 },
         },
         {
             name: "Stage 3 — Zero Compilation Diagnostics",
-            prompt: shared + "\n\n" + getStage2Prompt(context),
-            agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
-        },
-        {
-            name: "Stage 4 — Test Refinement",
             prompt: shared + "\n\n" + getStage3Prompt(context),
             agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
         },
         {
+            name: "Stage 4 — Test Migration & Gap Coverage",
+            prompt: shared + "\n\n" + getStage4Prompt(context),
+            agentLimits: { maxSteps: 150, maxOutputTokens: 16384 },
+        },
+        {
             name: "Stage 5 — Final Validation & Documentation",
-            prompt: shared + "\n\n" + getStage4Prompt(),
+            prompt: shared + "\n\n" + getStage5Prompt(),
             agentLimits: { maxSteps: 50, maxOutputTokens: 16384 },
         },
         {
             name: "Stage 6 — Idiomatic Refactoring",
-            prompt: shared + "\n\n" + getStage5Prompt(context),
+            prompt: shared + "\n\n" + getStage6Prompt(context),
             agentLimits: { maxSteps: 150, maxOutputTokens: 16384 },
         },
     ];
@@ -127,32 +127,32 @@ export function getPerProjectEnhancementStages(
     return [
         {
             name: `[${packageName}] Stage 1 — Source Inventory & Gap Analysis`,
-            prompt: shared + "\n\n" + getStage0Prompt(context),
+            prompt: shared + "\n\n" + getStage1Prompt(context),
             agentLimits: { maxSteps: 50, maxOutputTokens: 8192 },
         },
         {
             name: `[${packageName}] Stage 2 — Source-First Fidelity Implementation`,
-            prompt: shared + "\n\n" + getStage1Prompt(context),
+            prompt: shared + "\n\n" + getStage2Prompt(context),
             agentLimits: { maxSteps: 200, maxOutputTokens: 16384 },
         },
         {
             name: `[${packageName}] Stage 3 — Zero Compilation Diagnostics`,
-            prompt: shared + "\n\n" + getStage2Prompt(context) + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
+            prompt: shared + "\n\n" + getStage3Prompt(context) + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
             agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
         },
         {
-            name: `[${packageName}] Stage 4 — Test Refinement`,
-            prompt: shared + "\n\n" + getStage3Prompt(context),
-            agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
+            name: `[${packageName}] Stage 4 — Test Migration & Gap Coverage`,
+            prompt: shared + "\n\n" + getStage4Prompt(context),
+            agentLimits: { maxSteps: 150, maxOutputTokens: 16384 },
         },
         {
             name: `[${packageName}] Stage 5 — Final Validation & Documentation`,
-            prompt: shared + "\n\n" + getStage4Prompt() + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
+            prompt: shared + "\n\n" + getStage5Prompt() + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
             agentLimits: { maxSteps: 50, maxOutputTokens: 16384 },
         },
         {
             name: `[${packageName}] Stage 6 — Idiomatic Refactoring`,
-            prompt: shared + "\n\n" + getStage5Prompt(context) + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
+            prompt: shared + "\n\n" + getStage6Prompt(context) + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
             agentLimits: { maxSteps: 150, maxOutputTokens: 16384 },
         },
     ];
@@ -434,7 +434,7 @@ Process one package at a time. Read other packages for context but only modify t
 // Stage 1 — Source Inventory & Gap Analysis (read-only)
 // ---------------------------------------------------------------------------
 
-function getStage0Prompt(context: MigrationContext): string {
+function getStage1Prompt(context: MigrationContext): string {
     const { keepStructure } = context;
     const platformName = getPlatformName(context.sourcePlatform);
 
@@ -470,24 +470,27 @@ of these categories:
 - **Schemas** — XSD, JSON Schema
 - **Configuration** — properties, substvar, YAML config
 - **Connections** — shared resources, global connectors
-- **Tests** — MUnit, BW test processes
+- **Tests** — MUnit XML, BW test processes, any test-only file *(list for awareness — do NOT
+  cross-reference or analyse; test migration is handled entirely in Stage 4)*
 - **Build** — pom.xml, MANIFEST.MF
 - **Skip** — generated files, IDE metadata, irrelevant assets
 
 **Step 3: Cross-reference with Ballerina output**
 
-For each meaningful source file, determine its coverage status in the Ballerina project
+For each **non-test** source file, determine its coverage status in the Ballerina project
 (use the file list already in your initial message):
 - **✅ Covered** — a Ballerina file clearly implements this source file's constructs
 - **⚠️ Partial** — a Ballerina file exists but has \`// TODO\` / \`// FIXME\` markers suggesting
   incomplete translation of this source file
 - **❌ Missing** — no Ballerina counterpart exists; the migration tool silently dropped it
 
+**Do NOT apply ✅/⚠️/❌ to test files** — just list their paths in the TESTS section.
+
 ${keepStructure ? `**Note (--keep-structure):** Each \`.bal\` file maps 1:1 to a source file. Use \`file_list\` and \`migration_source_list\` together to establish which \`.bal\` corresponds to which source file by comparing encoded file paths in the names.` : ""}
 
 **Step 4: Output your inventory**
 
-Output the inventory as plain text in this format (this is working notes for Stage 1, NOT a file):
+Output the inventory as plain text in this format (this is working notes for Stage 2, NOT a file):
 
 \`\`\`
 SOURCE INVENTORY — ${platformName}
@@ -502,32 +505,35 @@ TRANSFORMATIONS
   ...
 
 API SPECS / SCHEMAS
-  ...
+  [✅/⚠️/❌] ...
 
 CONFIGURATION
-  ...
+  [✅/⚠️/❌] ...
 
 CONNECTIONS
+  [✅/⚠️/❌] ...
+
+TESTS  (listed for Stage 4 — no coverage check here)
+  <source-test-file-path>
   ...
 
-TESTS
-  ...
-
-GAPS REQUIRING IMPLEMENTATION IN STAGE 1:
-  1. <description of most critical gap>
+GAPS REQUIRING IMPLEMENTATION IN STAGE 2:
+  (main-code gaps only — do NOT include test gaps here)
+  1. <description of most critical main-code gap>
   2. ...
 \`\`\`
 
 ### Completion Criteria for Stage 1
 
-Output the inventory above, then stop. Do not edit any files. Stage 2 will implement all gaps.`;
+Output the inventory above, then stop. Do not edit any files.
+Stage 2 will implement all main-code gaps. Test files will be addressed in Stage 4.`;
 }
 
 // ---------------------------------------------------------------------------
 // Stage 2 — Source-First Fidelity Implementation
 // ---------------------------------------------------------------------------
 
-function getStage1Prompt(context: MigrationContext): string {
+function getStage2Prompt(context: MigrationContext): string {
     const { keepStructure } = context;
     const platformName = getPlatformName(context.sourcePlatform);
     const connectorTable = getConnectorMappingTable(context.sourcePlatform);
@@ -625,7 +631,7 @@ Then stop. Do not write anything else.`;
 // Stage 3 — Zero Compilation Diagnostics
 // ---------------------------------------------------------------------------
 
-function getStage2Prompt(context: MigrationContext): string {
+function getStage3Prompt(context: MigrationContext): string {
     const platformName = getPlatformName(context.sourcePlatform);
     return `## Your Task — Stage 3: Achieve Zero Compilation Diagnostics
 
@@ -674,62 +680,102 @@ Then stop. Stage 4 will handle test files.`;
 // Stage 4 — Test Refinement
 // ---------------------------------------------------------------------------
 
-function getStage3Prompt(context: MigrationContext): string {
+function getStage4Prompt(context: MigrationContext): string {
     const platformName = getPlatformName(context.sourcePlatform);
-    const testFileRef = context.sourcePlatform === 'mule'
+    const testSourceRef = context.sourcePlatform === 'mule'
         ? 'MUnit XML files (typically under `src/test/munit/`)'
         : context.sourcePlatform === 'tibco'
-        ? 'BW test processes (`*.bwtest` files)'
+        ? 'BW test processes (`*.bwtest` files in the source root)'
         : 'original test files';
+    const testSourceFind = context.sourcePlatform === 'mule'
+        ? 'call `migration_source_list("src/test/munit")` (or `migration_source_list("src/test")`).'
+        : context.sourcePlatform === 'tibco'
+        ? 'call `migration_source_list(".")` and look for `*.bwtest` files.'
+        : 'call `migration_source_list(".")` and look for test files.';
 
-    return `## Your Task — Stage 4: Refine and Validate Test Files
+    return `## Your Task — Stage 4: Test Migration & Gap Coverage
 
 You are running **Stage 4** of the enhancement pipeline. Stages 2 and 3 have verified all ${platformName}
-constructs and achieved zero compilation diagnostics in source files. Your sole focus is making the test
-files in \`tests/\` complete, correctly typed, and compilation-error free.
+constructs and fixed compilation errors in source files. Your sole focus is tests.
 
-> **Tests are not executed during this stage.** The goal is to produce structurally complete, correctly-typed
-> test files. Test execution and pass/fail validation is handled in a separate subsequent step.
+> **Tests are not executed during this stage.** The goal is complete, correctly-typed, compilable
+> test files. Test execution and pass/fail validation happens in a separate step.
 > **Do NOT** create \`ENHANCEMENT_SUMMARY.md\` during this stage — that is Stage 5.
 
-### Preparation: Build a Behaviour Map
+This stage has **two strictly separate phases**. Always complete Phase A before starting Phase B.
+**Never write Phase A and Phase B tests in the same file.**
 
-Before touching any test file:
-1. Read the enhanced Ballerina source files (\`functions.bal\`, \`data_mappings.bal\`, \`main.bal\`, etc.) to
-   understand actual function signatures, return types, error paths, and data shapes.
-2. Use \`migration_source_list\` and \`migration_source_read\` to read the ${testFileRef}
-   to understand the original test scenarios and assertions.
+---
 
-### For each test file in \`tests/\`:
+### Preparation
 
-1. **Align with enhanced implementation**: Verify test calls match current function signatures. Update
-   call sites if signatures changed during Stages 2/3.
-2. **Align with original test intent**: Cross-reference each test against the ${testFileRef}.
-   If the original mocked a connector, mock the equivalent \`ballerinax/\` client using \`@test:Mock\`.
-3. **Resolve all \`// TODO\` and \`// FIXME\` comments** with correct test logic.
-4. **Ensure meaningful assertions**: Every \`@test:Config\` function must have at least one substantive
-   assertion (\`test:assertEquals\`, \`test:assertTrue\`, \`test:assertFail\`, etc.). No trivially-true checks.
-5. **Check for dropped test coverage**: If a test exists in the original source but has no counterpart
-   in \`tests/\`, create the missing test function.
-6. **Mock connectors and external services**: Use \`@test:Mock\` for \`http:Client\`, database clients, etc.
-7. **Wire setup/teardown correctly**: \`@test:BeforeSuite\`, \`@test:AfterSuite\`, etc.
-8. **Ensure test files compile**: Run the diagnostics tool **including** the \`tests/\` directory and fix errors.
-9. **Do not delete or comment out existing test cases.**
+1. From the Stage 1 inventory in your context, collect the TESTS section — these are the source
+   test files to migrate. If the Stage 1 inventory is not available, ${testSourceFind}
+2. Read the enhanced Ballerina source files (\`functions.bal\`, \`main.bal\`, \`data_mappings.bal\`,
+   etc.) to understand current function signatures, return types, and error paths.
+
+---
+
+### Phase A — Migrate Source Tests (Priority 1)
+
+Faithfully translate every ${testSourceRef} into Ballerina.
+These migrated tests are the ground truth for verifying migration correctness.
+
+For each source test file:
+
+1. **Read it** with \`migration_source_read\`.
+2. **Translate every test scenario 1:1**:
+   - Map every assertion to \`test:assertEquals\`, \`test:assertTrue\`, \`test:assertFail\`, etc.
+   - Map every source mock (e.g. MUnit \`mock:when\`, BW stub process) to \`@test:Mock\` on the
+     equivalent \`ballerinax/\` client.
+   - Map \`@BeforeClass\`/\`@AfterClass\` (MUnit) or setup processes (TIBCO) to
+     \`@test:BeforeSuite\`/\`@test:AfterSuite\`.
+   - Do NOT skip or simplify any test scenario. A source assertion silently dropped = a migration gap.
+3. **Write the output** to \`tests/<source-name>_migrated.bal\`, where \`<source-name>\` is the
+   source file's base name without extension (e.g. \`orderFlowTest.xml\` → \`tests/orderFlow_migrated.bal\`).
+   - If the file already exists (partial output from the migration tool), **overwrite it entirely**
+     with the faithful translation — do NOT keep old half-converted content.
+   - Use \`file_write\` to create / overwrite; use \`file_edit\` only for targeted fixes to an
+     already-written \`_migrated.bal\` file.
+4. **Run diagnostics** on the new file immediately. Fix all compilation errors before moving on.
+5. Output one line per file: "✅ \`<source-file>\` → \`tests/<name>_migrated.bal\`: N scenarios."
+
+---
+
+### Phase B — Write Gap Tests (Priority 2)
+
+After **all** Phase A files are written and compile:
+
+1. **List** every public function and service-exposed resource in the Ballerina implementation.
+2. **Cross-reference** against the \`*_migrated.bal\` files from Phase A: which functions/flows
+   have **zero coverage** from the migrated test set?
+3. For each uncovered area, write targeted \`@test:Config\` functions with meaningful assertions.
+   - Every test must have at least one \`test:assertEquals\`, \`test:assertTrue\`, or \`test:assertFail\`.
+   - Mock connectors and external services with \`@test:Mock\`.
+4. **Group by functional area** and write to \`tests/<area>_additional.bal\`
+   (e.g. \`tests/errorHandling_additional.bal\`, \`tests/dataMapping_additional.bal\`).
+   **Never add gap tests to a \`*_migrated.bal\` file.**
+5. Run diagnostics on each \`*_additional.bal\` file. Fix errors before continuing.
+6. Output: "Phase B: N gap areas identified, M test functions written across K files."
+
+---
 
 ### Completion Criteria for Stage 4
 
-When all test files are complete and compilation-error free:
-- Output the diagnostics count for test files (should be 0 errors).
-- List test functions added or significantly modified.
+1. Every source test file has a corresponding \`tests/*_migrated.bal\`.
+2. All \`*_migrated.bal\` files compile with zero errors.
+3. All \`*_additional.bal\` files (if any) compile with zero errors.
+4. No file mixes migrated and gap tests.
 
-Then stop. Stage 5 will handle final validation and documentation.`;
+Output the final diagnostics count (should be 0 errors for all test files), then stop.
+Stage 5 will handle final validation and documentation.`;
 }
 
 // ---------------------------------------------------------------------------
 // Stage 5 — Final Validation & Documentation
 // ---------------------------------------------------------------------------
 
-function getStage4Prompt(): string {
+function getStage5Prompt(): string {
     return `## Your Task — Stage 5: Final Validation & Documentation
 
 You are running **Stage 5** of the enhancement pipeline. Stages 2–4 have verified all source
@@ -815,7 +861,7 @@ Output the final status: checklist results and confirmation that \`ENHANCEMENT_S
 // Stage 6 — Idiomatic Refactoring (wrapper elimination, renaming, check normalization)
 // ---------------------------------------------------------------------------
 
-function getStage5Prompt(context: MigrationContext): string {
+function getStage6Prompt(context: MigrationContext): string {
     const platform = getPlatformName(context.sourcePlatform);
     return `## Your Task — Stage 6: Idiomatic Refactoring
 
