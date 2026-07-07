@@ -313,12 +313,15 @@ public class HumanTaskBuilder extends CallBuilder {
                 .map(p -> p.value() == null || !"false".equals(p.value().toString()))
                 .orElse(true);
 
-        // Required positional args
+        // Required positional args. Use toSourceCode() (not the raw value) so structured/templated
+        // values are converted to valid Ballerina source.
         String taskName = sourceBuilder.getProperty("taskName")
-                .map(p -> p.value() != null ? p.value().toString() : "\"\"")
+                .filter(p -> p.value() != null && !p.value().toString().isEmpty())
+                .map(Property::toSourceCode)
                 .orElse("\"\"");
         String userRoles = sourceBuilder.getProperty("userRoles")
-                .map(p -> p.value() != null ? p.value().toString() : "\"admin\"")
+                .filter(p -> p.value() != null && !p.value().toString().isEmpty())
+                .map(Property::toSourceCode)
                 .orElse("\"admin\"");
 
         // Optional named args (only when the user provided a value)
@@ -360,8 +363,11 @@ public class HumanTaskBuilder extends CallBuilder {
 
     private static void addNamedArg(SourceBuilder sourceBuilder, List<String> args, String key) {
         sourceBuilder.getProperty(key).ifPresent(p -> {
-            if (p.value() != null && !p.value().toString().isEmpty()) {
-                args.add(key + " = " + p.value().toString());
+            // toSourceCode() converts structured values (e.g. a map<json> payload) into a Ballerina
+            // literal; the raw value.toString() would emit the internal form-field object.
+            String source = p.toSourceCode();
+            if (source != null && !source.isEmpty()) {
+                args.add(key + " = " + source);
             }
         });
     }
