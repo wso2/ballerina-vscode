@@ -1119,9 +1119,11 @@ public class CodeAnalyzer extends NodeVisitor {
         Map<String, Property> currentProps = nodeBuilder.properties().build();
         currentProps.remove(Property.CONNECTION_KEY);
 
-        HumanTaskBuilder.relabelHumanTaskFormProperties(currentProps);
-        // Canonicalize the inferred result type to the databindingType/"Databinding Type" form.
+        // Canonicalize the inferred result type to the databindingType form first, then relabel — the
+        // relabel step renames the databinding property to the human task "Completion Type", so it must
+        // run after normalization has created that property.
         CallBuilder.normalizeDatabindingTypeProperty(nodeBuilder);
+        HumanTaskBuilder.relabelHumanTaskFormProperties(currentProps);
 
         if (typedBindingPatternNode != null) {
             String varText = typedBindingPatternNode.bindingPattern().toSourceCode().strip();
@@ -1200,8 +1202,8 @@ public class CodeAnalyzer extends NodeVisitor {
         if (typedBindingPatternNode != null) {
             String typeText = typedBindingPatternNode.typeDescriptor().toSourceCode().strip();
             nodeBuilder.properties().custom()
-                    .metadata().label(CallBuilder.DATABINDING_TYPE_LABEL)
-                        .description("The expected return type of the human task result").stepOut()
+                    .metadata().label(HumanTaskBuilder.COMPLETION_TYPE_LABEL)
+                        .description(HumanTaskBuilder.COMPLETION_TYPE_DESCRIPTION).stepOut()
                     .value(typeText)
                     .type().fieldType(Property.ValueType.TYPE).ballerinaType(typeText).selected(true).stepOut()
                     .codedata().kind(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name())

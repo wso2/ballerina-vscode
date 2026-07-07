@@ -62,7 +62,14 @@ public class HumanTaskBuilder extends CallBuilder {
 
     public static final String LABEL = HUMAN_TASK_LABEL;
     public static final String DESCRIPTION = HUMAN_TASK_DESCRIPTION;
-    public static final String DEFAULT_RETURN_TYPE = "anydata";
+    // A human task typically completes with an approve/reject decision, so the completion type
+    // defaults to boolean (the user can still pick any concrete type).
+    public static final String DEFAULT_RETURN_TYPE = "boolean";
+    // The human task result type is the data a human submits to complete the task, so it is labelled
+    // as the task's "completion type" rather than a generic databinding/return type.
+    public static final String COMPLETION_TYPE_LABEL = "Completion Type";
+    public static final String COMPLETION_TYPE_DESCRIPTION =
+            "The type of the data returned when the human task is completed";
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -154,8 +161,8 @@ public class HumanTaskBuilder extends CallBuilder {
         // Inferred databinding type — bare type selector when the module signature is unavailable.
         properties().custom()
                 .metadata()
-                    .label(DATABINDING_TYPE_LABEL)
-                    .description("The expected return type of the human task result")
+                    .label(COMPLETION_TYPE_LABEL)
+                    .description(COMPLETION_TYPE_DESCRIPTION)
                     .stepOut()
                 .type().fieldType(Property.ValueType.TYPE).ballerinaType(DEFAULT_RETURN_TYPE).selected(true).stepOut()
                 .codedata().kind(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name()).originalName(DATABINDING_TYPE_KEY)
@@ -274,8 +281,10 @@ public class HumanTaskBuilder extends CallBuilder {
         relabel(properties, "title", "Title", "Short summary shown in the inbox");
         relabel(properties, "description", "Description", "Additional context shown alongside the form");
         relabel(properties, "timeout", "Timeout", "Maximum time to wait; omit to wait indefinitely");
-        // The inferred databinding/result type is normalized separately via
-        // CallBuilder.normalizeDatabindingTypeProperty (canonical "databindingType" key + label).
+        // The inferred result type is the human task's completion type; re-label it from the generic
+        // "Databinding Type" set by CallBuilder.normalizeDatabindingTypeProperty. Must run after
+        // normalization so the DATABINDING_TYPE_KEY property exists.
+        relabel(properties, DATABINDING_TYPE_KEY, COMPLETION_TYPE_LABEL, COMPLETION_TYPE_DESCRIPTION);
     }
 
     private static void relabel(Map<String, Property> properties, String key, String label, String description) {

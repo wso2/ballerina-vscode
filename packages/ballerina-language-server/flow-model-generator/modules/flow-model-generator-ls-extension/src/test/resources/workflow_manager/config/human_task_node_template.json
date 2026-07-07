@@ -240,8 +240,8 @@
       },
       "databindingType": {
         "metadata": {
-          "label": "Databinding Type",
-          "description": "Expected result type; drives form schema generation and runtime validation"
+          "label": "Completion Type",
+          "description": "The type of the data returned when the human task is completed"
         },
         "types": [
           {
@@ -250,7 +250,7 @@
             "selected": true
           }
         ],
-        "value": "anydata",
+        "value": "boolean",
         "placeholder": "anydata",
         "optional": false,
         "editable": true,
