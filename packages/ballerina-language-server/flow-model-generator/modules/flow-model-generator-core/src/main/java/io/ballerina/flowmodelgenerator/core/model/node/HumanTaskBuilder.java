@@ -24,11 +24,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.FunctionData;
-import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
-import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
-import io.ballerina.projects.Module;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -102,50 +98,12 @@ public class HumanTaskBuilder extends CallBuilder {
                 .object(CONTEXT_CLASS_NAME)
                 .symbol(CALL_HUMAN_TASK_METHOD_NAME);
 
-        boolean fallbackTemplate = false;
-        try {
-            ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
-            FunctionData functionData = new FunctionDataBuilder()
-                    .name(CALL_HUMAN_TASK_METHOD_NAME)
-                    .moduleInfo(workflowModuleInfo)
-                    .parentSymbolType(CONTEXT_CLASS_NAME)
-                    .functionResultKind(FunctionData.Kind.REMOTE)
-                    .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
-                    .userModuleInfo(moduleInfo)
-                    .workspaceManager(context.workspaceManager())
-                    .filePath(context.filePath())
-                    .build();
+        // Build the fixed awaitHumanTask form from canonical static field definitions. These are
+        // single-type, correctly-typed fields (e.g. userRoles is an expression of type string|string[])
+        // whose type shows in the form. The compiler-derived params were multi-type with no selected
+        // entry, so a union like string|string[] collapsed to a bare TEXT/string field with no type info.
+        setFallbackHumanTaskProperties();
 
-            if (functionData == null || functionData.parameters() == null || functionData.parameters().isEmpty()) {
-                fallbackTemplate = true;
-            } else {
-                Module module = context.workspaceManager().module(context.filePath()).orElse(null);
-                // Build each parameter (taskName, userRoles, payload, title, description, timeout) with its
-                // real compiler-derived type metadata, and let the inferred {@code typedesc<anydata> T}
-                // parameter become a rich result-type selector (record-field-selector for record types) —
-                // the same mechanism the builtin Call REST activity uses for its databinding type.
-                setParameterProperties(functionData, module);
-                // Re-key the inferred type to the canonical databindingType/"Databinding Type" form.
-                normalizeDatabindingTypeProperty(this);
-
-                // The inferred result type defaults to anydata until the user picks a concrete type.
-                Property resultType = properties().build().get(DATABINDING_TYPE_KEY);
-                if (resultType != null && (resultType.value() == null || resultType.value().toString().isEmpty())) {
-                    properties().build().put(DATABINDING_TYPE_KEY,
-                            Property.Builder.copyFrom(resultType).value(DEFAULT_RETURN_TYPE).build());
-                }
-            }
-        } catch (RuntimeException e) {
-            // awaitHumanTask may not be resolvable yet, or project/dependency loading may fail.
-            // Use a stable, static form so opening/editing HUMAN_TASK nodes still works.
-            fallbackTemplate = true;
-        }
-
-        if (fallbackTemplate) {
-            setFallbackHumanTaskProperties();
-        }
-
-        // Apply friendly form labels/descriptions without discarding the rich type metadata above.
         relabelHumanTaskFormProperties(properties().build());
 
         properties().data(Property.RESULT_NAME, context.getAllVisibleSymbolNames(),

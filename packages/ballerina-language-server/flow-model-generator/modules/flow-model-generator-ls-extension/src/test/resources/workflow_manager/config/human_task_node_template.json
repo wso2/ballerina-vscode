@@ -33,7 +33,7 @@
           {
             "fieldType": "TEXT",
             "ballerinaType": "string",
-            "selected": false
+            "selected": true
           },
           {
             "fieldType": "EXPRESSION",
@@ -41,7 +41,6 @@
             "selected": false
           }
         ],
-        "placeholder": "\"\"",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -58,40 +57,11 @@
         },
         "types": [
           {
-            "fieldType": "TEXT",
-            "ballerinaType": "string",
-            "selected": false
-          },
-          {
-            "fieldType": "REPEATABLE_LIST",
-            "ballerinaType": "string[]",
-            "template": {
-              "types": [
-                {
-                  "fieldType": "TEXT",
-                  "ballerinaType": "string",
-                  "selected": false
-                },
-                {
-                  "fieldType": "EXPRESSION",
-                  "ballerinaType": "string",
-                  "selected": false
-                }
-              ],
-              "optional": false,
-              "editable": false,
-              "advanced": false,
-              "hidden": false
-            },
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "string|string[]",
-            "selected": false
+            "selected": true
           }
         ],
-        "placeholder": "\"\"",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -108,39 +78,19 @@
         },
         "types": [
           {
-            "fieldType": "REPEATABLE_MAP",
-            "ballerinaType": "map<json>",
-            "template": {
-              "types": [
-                {
-                  "fieldType": "EXPRESSION",
-                  "ballerinaType": "json",
-                  "selected": false
-                }
-              ],
-              "optional": false,
-              "editable": false,
-              "advanced": false,
-              "hidden": false
-            },
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "map<json>",
-            "selected": false
+            "selected": true
           }
         ],
-        "placeholder": "{}",
         "optional": true,
         "editable": true,
-        "advanced": true,
+        "advanced": false,
         "hidden": false,
         "codedata": {
           "kind": "DEFAULTABLE",
           "originalName": "payload"
-        },
-        "defaultValue": "{}"
+        }
       },
       "title": {
         "metadata": {
@@ -150,8 +100,8 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string",
-            "selected": false
+            "ballerinaType": "string?",
+            "selected": true
           },
           {
             "fieldType": "EXPRESSION",
@@ -159,27 +109,25 @@
             "selected": false
           }
         ],
-        "placeholder": "()",
         "optional": true,
         "editable": true,
-        "advanced": true,
+        "advanced": false,
         "hidden": false,
         "codedata": {
           "kind": "DEFAULTABLE",
           "originalName": "title"
-        },
-        "defaultValue": "()"
+        }
       },
-      "$description": {
+      "description": {
         "metadata": {
           "label": "Description",
-          "description": "Additional context shown alongside the form. Optional"
+          "description": "Additional context shown alongside the form"
         },
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string",
-            "selected": false
+            "ballerinaType": "string?",
+            "selected": true
           },
           {
             "fieldType": "EXPRESSION",
@@ -187,16 +135,14 @@
             "selected": false
           }
         ],
-        "placeholder": "()",
         "optional": true,
         "editable": true,
-        "advanced": true,
+        "advanced": false,
         "hidden": false,
         "codedata": {
           "kind": "DEFAULTABLE",
           "originalName": "description"
-        },
-        "defaultValue": "()"
+        }
       },
       "timeout": {
         "metadata": {
@@ -205,38 +151,19 @@
         },
         "types": [
           {
-            "fieldType": "RECORD_MAP_EXPRESSION",
-            "ballerinaType": "time:Duration",
-            "typeMembers": [
-              {
-                "type": "Duration",
-                "packageInfo": "ballerina:time:2.8.0",
-                "packageName": "time",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "time:Duration?",
-            "selected": false
+            "selected": true
           }
         ],
-        "placeholder": "()",
         "optional": true,
         "editable": true,
-        "advanced": true,
+        "advanced": false,
         "hidden": false,
         "codedata": {
           "kind": "DEFAULTABLE",
           "originalName": "timeout"
-        },
-        "imports": {
-          "time": "ballerina/time"
-        },
-        "defaultValue": "()"
+        }
       },
       "databindingType": {
         "metadata": {
@@ -246,12 +173,11 @@
         "types": [
           {
             "fieldType": "TYPE",
-            "ballerinaType": "anydata",
+            "ballerinaType": "boolean",
             "selected": true
           }
         ],
         "value": "boolean",
-        "placeholder": "anydata",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -259,8 +185,7 @@
         "codedata": {
           "kind": "PARAM_FOR_TYPE_INFER",
           "originalName": "databindingType"
-        },
-        "defaultValue": "anydata"
+        }
       },
       "variable": {
         "metadata": {
