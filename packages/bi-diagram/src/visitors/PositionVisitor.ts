@@ -114,6 +114,46 @@ export class PositionVisitor implements BaseVisitor {
         this.endVisitIf(node, parent);
     }
 
+    // Synthetic review-diff container: headless fork — lanes start right below the previous node.
+    beginVisitDiffHunk(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        node.viewState.y = this.lastNodeY;
+        this.lastNodeY += NODE_GAP_Y;
+
+        const centerX = getTopNodeCenter(node, parent, this.diagramCenterX);
+        node.viewState.x = centerX - node.viewState.lw;
+
+        node.branches.forEach((branch, index) => {
+            if (!branch?.viewState) {
+                console.error("Branch view state is not defined", branch);
+                return;
+            }
+            if (node.branches.length === 1) {
+                // single lane is centered under the hunk
+                branch.viewState.x = centerX - branch.viewState.clw;
+            } else if (index === 0) {
+                branch.viewState.x = centerX - node.viewState.clw;
+            } else {
+                const previousBranch = node.branches.at(index - 1);
+                if (!previousBranch.viewState) {
+                    console.error("Previous branch view state is not defined", previousBranch);
+                    return;
+                }
+                branch.viewState.x =
+                    previousBranch.viewState.x +
+                    previousBranch.viewState.clw +
+                    previousBranch.viewState.crw +
+                    NODE_GAP_X;
+            }
+            branch.viewState.y = this.lastNodeY;
+        });
+    }
+
+    endVisitDiffHunk(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.lastNodeY = node.viewState.y + node.viewState.ch + NODE_GAP_Y;
+    }
+
     beginVisitConditional(node: Branch, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.lastNodeY = node.viewState.y;

@@ -55,10 +55,13 @@ export type FlowNode = {
     flags?: number;
     returning: boolean;
     suggested?: boolean;
+    diffState?: FlowNodeDiffState;
     viewState?: ViewState;
     hasBreakpoint?: boolean;
     isActiveBreakpoint?: boolean;
 };
+
+export type FlowNodeDiffState = "added" | "removed";
 
 export type FunctionNode = {
     id: string;
@@ -546,6 +549,7 @@ export type NodeKind =
     | "DATA_MAPPER_CALL"
     | "DATA_MAPPER_DEFINITION"
     | "DATA_MAPPER_CREATION"
+    | "DIFF_HUNK"
     | "DRAFT"
     | "ELSE"
     | "EMPTY"

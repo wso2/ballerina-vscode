@@ -77,6 +77,12 @@ export const END_NODE_BG_COLOR = ThemeColors.ON_SURFACE;
 export const EMPTY_NODE_ACTIVE_BORDER_COLOR = ThemeColors.ON_SURFACE;
 export const EMPTY_NODE_ACTIVE_BG_COLOR = ThemeColors.PRIMARY_CONTAINER;
 
+// ─── Review Diff Colors (unified old/new diagram) ────────────────────────────
+export const DIFF_REMOVED_COLOR = "var(--vscode-gitDecoration-deletedResourceForeground, #f85149)";
+export const DIFF_REMOVED_BG_COLOR = "var(--vscode-diffEditor-removedTextBackground, rgba(255, 0, 0, 0.2))";
+export const DIFF_ADDED_COLOR = "var(--vscode-gitDecoration-addedResourceForeground, #2ea043)";
+export const DIFF_ADDED_BG_COLOR = "var(--vscode-diffEditor-insertedTextBackground, rgba(0, 255, 0, 0.2))";
+
 // ─── Link Colors ─────────────────────────────────────────────────────────────
 export const LINK_COLOR = ThemeColors.ON_SURFACE_VARIANT;
 export const LINK_HOVERED_COLOR = ThemeColors.PRIMARY;

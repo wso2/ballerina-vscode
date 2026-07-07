@@ -39,6 +39,9 @@ jest.mock('resize-observer-polyfill', () => {
   };
 });
 
+// DOM mocks — skip in non-DOM test environments (e.g. @jest-environment node)
+if (typeof Element !== 'undefined') {
+
 // Mock getBoundingClientRect for canvas elements
 Element.prototype.getBoundingClientRect = jest.fn(() => ({
   width: 800,
@@ -77,4 +80,6 @@ HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
   strokeStyle: '',
   globalAlpha: 1,
 })) as any;
+
+}
 

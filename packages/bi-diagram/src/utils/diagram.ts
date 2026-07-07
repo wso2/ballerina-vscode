@@ -21,7 +21,7 @@ import { NodePortFactory, NodePortModel } from "../components/NodePort";
 import { NodeLinkFactory, NodeLinkModel, NodeLinkModelOptions } from "../components/NodeLink";
 import { EmptyNodeFactory } from "../components/nodes/EmptyNode";
 import { OverlayLayerFactory } from "../components/OverlayLayer";
-import { LinkableNodeModel, NodeModel } from "./types";
+import { FlowNode, FlowNodeDiffState, LinkableNodeModel, NodeModel } from "./types";
 import { VerticalScrollCanvasAction } from "../actions/VerticalScrollCanvasAction";
 import { IfNodeFactory } from "../components/nodes/IfNode/IfNodeFactory";
 import { StartNodeFactory } from "../components/nodes/StartNode/StartNodeFactory";
@@ -100,12 +100,24 @@ export function createNodesLink(sourceNode: NodeModel, targetNode: NodeModel, op
     const source = sourceNode as LinkableNodeModel;
     const target = targetNode as LinkableNodeModel;
 
+    // Links attached to a review-diff node inherit its removed/added styling
+    const diffState = getNodeDiffState(targetNode) ?? getNodeDiffState(sourceNode);
+    if (diffState && !options?.diffState) {
+        options = { ...options, diffState };
+    }
+
     const sourcePort = source.getOutPort();
     const targetPort = target.getInPort();
     const link = createPortsLink(sourcePort, targetPort, options);
     link.setSourceNode(sourceNode);
     link.setTargetNode(targetNode);
     return link;
+}
+
+// get the diff state of the flow node wrapped by a diagram node model, if any
+function getNodeDiffState(nodeModel: NodeModel): FlowNodeDiffState | undefined {
+    const flowNode = (nodeModel as { node?: FlowNode }).node;
+    return flowNode?.diffState;
 }
 
 // save diagram zoom level and position to local storage

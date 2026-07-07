@@ -1,0 +1,327 @@
+/**
+ * @jest-environment node
+ */
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import { mergeFlowModelsForDiff, stampDiffState, DIFF_HUNK_NODE } from "../utils/diff";
+import { Branch, Flow, FlowNode, NodeKind } from "../utils/types";
+
+let idCounter = 0;
+
+function makeNode(kind: NodeKind, sourceCode: string, branches?: Branch[]): FlowNode {
+    idCounter += 1;
+    return {
+        id: `node-${idCounter}`,
+        metadata: { label: kind, description: "" },
+        codedata: { node: kind, sourceCode },
+        branches: branches ?? [],
+        returning: kind === "RETURN",
+    };
+}
+
+function makeBranch(label: string, children: FlowNode[], kind: NodeKind = "CONDITIONAL"): Branch {
+    return {
+        label,
+        kind: "block",
+        codedata: { node: kind },
+        repeatable: "ONE",
+        properties: {},
+        children,
+    };
+}
+
+function makeFlow(nodes: FlowNode[]): Flow {
+    return { fileName: "main.bal", nodes };
+}
+
+function kinds(nodes: FlowNode[]): string[] {
+    return nodes.map((n) => n.codedata.node as string);
+}
+
+function hunkBranchLabels(hunk: FlowNode): string[] {
+    return hunk.branches.map((b) => b.label);
+}
+
+describe("mergeFlowModelsForDiff", () => {
+    beforeEach(() => {
+        idCounter = 0;
+    });
+
+    it("returns identical flow unchanged with no hunks", () => {
+        const oldFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("RETURN", "return 1;")]);
+        const newFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("RETURN", "return 1;")]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", "RETURN"]);
+        expect(merged.nodes.every((n) => n.diffState === undefined)).toBe(true);
+    });
+
+    it("wraps a pure insertion in a hunk with only an added branch", () => {
+        const oldFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("RETURN", "return x;")]);
+        const newFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("FUNCTION_CALL", "io:println(x);"),
+            makeNode("RETURN", "return x;"),
+        ]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", DIFF_HUNK_NODE, "RETURN"]);
+        const hunk = merged.nodes[1];
+        expect(hunkBranchLabels(hunk)).toEqual(["Added"]);
+        expect(hunk.branches[0].children[0].diffState).toBe("added");
+        expect(hunk.branches[0].children[0].codedata.sourceCode).toBe("io:println(x);");
+    });
+
+    it("wraps a pure deletion in a hunk with only a removed branch", () => {
+        const oldFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("FUNCTION_CALL", "log(x);"),
+            makeNode("RETURN", "return x;"),
+        ]);
+        const newFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("RETURN", "return x;")]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", DIFF_HUNK_NODE, "RETURN"]);
+        const hunk = merged.nodes[1];
+        expect(hunkBranchLabels(hunk)).toEqual(["Removed"]);
+        expect(hunk.branches[0].children[0].diffState).toBe("removed");
+        expect(hunk.branches[0].children[0].codedata.sourceCode).toBe("log(x);");
+    });
+
+    it("pairs a replaced statement into a removed+added hunk", () => {
+        const oldFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("VARIABLE", "string s = orderValue.status;"),
+            makeNode("FUNCTION_CALL", "logOrderStatusRetrieved(s);"),
+            makeNode("RETURN", "return s;"),
+        ]);
+        const newFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("VARIABLE", "string s = orderValue.status;"),
+            makeNode("FUNCTION_CALL", "io:println(s);"),
+            makeNode("RETURN", "return s;"),
+        ]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", "VARIABLE", DIFF_HUNK_NODE, "RETURN"]);
+        const hunk = merged.nodes[2];
+        // dash-free id: `<id>-lastNode`/`<id>-StartContainer` custom ids are parsed by
+        // reverseCustomNodeId (splits on "-"), e.g. for rendering the End node after a hunk
+        expect(hunk.id).not.toContain("-");
+        expect(hunkBranchLabels(hunk)).toEqual(["Removed", "Added"]);
+        expect(hunk.branches[0].children[0].codedata.sourceCode).toBe("logOrderStatusRetrieved(s);");
+        expect(hunk.branches[0].children[0].diffState).toBe("removed");
+        expect(hunk.branches[1].children[0].codedata.sourceCode).toBe("io:println(s);");
+        expect(hunk.branches[1].children[0].diffState).toBe("added");
+    });
+
+    it("ignores whitespace-only differences", () => {
+        const oldFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("RETURN", "return  x ;")]);
+        const newFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("RETURN", "return x;")]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", "RETURN"]);
+    });
+
+    it("recurses into a container whose header is unchanged", () => {
+        const oldIf = makeNode("IF", "if x > 5 {\n  log(x);\n}", [
+            makeBranch("Then", [makeNode("FUNCTION_CALL", "log(x);")]),
+        ]);
+        const newIf = makeNode("IF", "if x > 5 {\n  io:println(x);\n}", [
+            makeBranch("Then", [makeNode("FUNCTION_CALL", "io:println(x);")]),
+        ]);
+        const oldFlow = makeFlow([makeNode("EVENT_START", "start"), oldIf]);
+        const newFlow = makeFlow([makeNode("EVENT_START", "start"), newIf]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", "IF"]);
+        const ifNode = merged.nodes[1];
+        expect(ifNode.diffState).toBeUndefined();
+        expect(kinds(ifNode.branches[0].children)).toEqual([DIFF_HUNK_NODE]);
+        const hunk = ifNode.branches[0].children[0];
+        expect(hunkBranchLabels(hunk)).toEqual(["Removed", "Added"]);
+    });
+
+    it("treats a container with a changed header as removed+added pair", () => {
+        const oldIf = makeNode("IF", "if x > 5 {\n  log(x);\n}", [
+            makeBranch("Then", [makeNode("FUNCTION_CALL", "log(x);")]),
+        ]);
+        const newIf = makeNode("IF", "if x > 10 {\n  log(x);\n}", [
+            makeBranch("Then", [makeNode("FUNCTION_CALL", "log(x);")]),
+        ]);
+        const oldFlow = makeFlow([makeNode("EVENT_START", "start"), oldIf]);
+        const newFlow = makeFlow([makeNode("EVENT_START", "start"), newIf]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", DIFF_HUNK_NODE]);
+        const hunk = merged.nodes[1];
+        expect(hunkBranchLabels(hunk)).toEqual(["Removed", "Added"]);
+        expect(hunk.branches[0].children[0].codedata.node).toBe("IF");
+        expect(hunk.branches[0].children[0].diffState).toBe("removed");
+        // nested children are stamped too
+        expect(hunk.branches[0].children[0].branches[0].children[0].diffState).toBe("removed");
+        expect(hunk.branches[1].children[0].diffState).toBe("added");
+    });
+
+    it("keeps a branch removed in the new version and stamps its children", () => {
+        const oldIf = makeNode("IF", "if x {\n  a();\n} else {\n  b();\n}", [
+            makeBranch("Then", [makeNode("FUNCTION_CALL", "a();")]),
+            makeBranch("Else", [makeNode("FUNCTION_CALL", "b();")], "ELSE"),
+        ]);
+        const newIf = makeNode("IF", "if x {\n  a();\n}", [
+            makeBranch("Then", [makeNode("FUNCTION_CALL", "a();")]),
+        ]);
+        const oldFlow = makeFlow([makeNode("EVENT_START", "start"), oldIf]);
+        const newFlow = makeFlow([makeNode("EVENT_START", "start"), newIf]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        const ifNode = merged.nodes[1];
+        expect(ifNode.codedata.node).toBe("IF");
+        expect(ifNode.branches.map((b) => b.label)).toEqual(["Then", "Else"]);
+        expect(ifNode.branches[1].children[0].diffState).toBe("removed");
+    });
+
+    it("stamps an added branch's children in the new version", () => {
+        const oldIf = makeNode("IF", "if x {\n  a();\n}", [
+            makeBranch("Then", [makeNode("FUNCTION_CALL", "a();")]),
+        ]);
+        const newIf = makeNode("IF", "if x {\n  a();\n} else {\n  b();\n}", [
+            makeBranch("Then", [makeNode("FUNCTION_CALL", "a();")]),
+            makeBranch("Else", [makeNode("FUNCTION_CALL", "b();")], "ELSE"),
+        ]);
+        const oldFlow = makeFlow([makeNode("EVENT_START", "start"), oldIf]);
+        const newFlow = makeFlow([makeNode("EVENT_START", "start"), newIf]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        const ifNode = merged.nodes[1];
+        expect(ifNode.branches[1].label).toBe("Else");
+        expect(ifNode.branches[1].children[0].diffState).toBe("added");
+    });
+
+    it("treats a note (comment) text change as unchanged", () => {
+        // Statement sourceCode from the LS includes the leading comment line,
+        // so both the COMMENT node and the following statement differ textually.
+        const oldFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("COMMENT", "// old note"),
+            makeNode("FUNCTION_CALL", "// old note\nsyncEmailHeadings(firstRun);"),
+        ]);
+        const newFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("COMMENT", "// new note"),
+            makeNode("FUNCTION_CALL", "// new note\nsyncEmailHeadings(firstRun);"),
+        ]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", "COMMENT", "FUNCTION_CALL"]);
+        expect(merged.nodes.every((n) => n.diffState === undefined)).toBe(true);
+        // the new note text is kept
+        expect(merged.nodes[1].codedata.sourceCode).toBe("// new note");
+    });
+
+    it("emits an added-only comment inline without a hunk", () => {
+        const oldFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("RETURN", "return x;")]);
+        const newFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("COMMENT", "// explain the return"),
+            makeNode("RETURN", "return x;"),
+        ]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", "COMMENT", "RETURN"]);
+        expect(merged.nodes[1].diffState).toBeUndefined();
+    });
+
+    it("drops a removed-only comment without a hunk", () => {
+        const oldFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("COMMENT", "// obsolete note"),
+            makeNode("RETURN", "return x;"),
+        ]);
+        const newFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("RETURN", "return x;")]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", "RETURN"]);
+    });
+
+    it("keeps a comment inside a hunk lane when it accompanies changed code", () => {
+        const oldFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("FUNCTION_CALL", "log(x);")]);
+        const newFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("COMMENT", "// print instead of log"),
+            makeNode("FUNCTION_CALL", "io:println(x);"),
+        ]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", DIFF_HUNK_NODE]);
+        const hunk = merged.nodes[1];
+        expect(hunkBranchLabels(hunk)).toEqual(["Removed", "Added"]);
+        expect(kinds(hunk.branches[1].children)).toEqual(["COMMENT", "FUNCTION_CALL"]);
+        expect(hunk.branches[1].children.every((n) => n.diffState === "added")).toBe(true);
+    });
+
+    it("always pairs EVENT_START even when its source changed", () => {
+        const oldFlow = makeFlow([makeNode("EVENT_START", "get resource()"), makeNode("RETURN", "return x;")]);
+        const newFlow = makeFlow([makeNode("EVENT_START", "get resource(int y)"), makeNode("RETURN", "return x;")]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", "RETURN"]);
+        expect(merged.nodes[0].codedata.sourceCode).toBe("get resource(int y)");
+    });
+
+    it("does not mutate its inputs", () => {
+        const oldFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("FUNCTION_CALL", "log(x);")]);
+        const newFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("FUNCTION_CALL", "io:println(x);")]);
+
+        mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(oldFlow.nodes[1].diffState).toBeUndefined();
+        expect(newFlow.nodes[1].diffState).toBeUndefined();
+    });
+});
+
+describe("stampDiffState", () => {
+    it("stamps all nodes recursively without mutating the input", () => {
+        const flow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("IF", "if x {\n  a();\n}", [makeBranch("Then", [makeNode("FUNCTION_CALL", "a();")])]),
+        ]);
+
+        const stamped = stampDiffState(flow, "added");
+
+        expect(stamped.nodes[0].diffState).toBe("added");
+        expect(stamped.nodes[1].diffState).toBe("added");
+        expect(stamped.nodes[1].branches[0].children[0].diffState).toBe("added");
+        expect(flow.nodes[0].diffState).toBeUndefined();
+    });
+});

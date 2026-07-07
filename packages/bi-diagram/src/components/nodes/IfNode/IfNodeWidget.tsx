@@ -39,7 +39,7 @@ import { FlowNode } from "../../../utils/types";
 import { useDiagramContext } from "../../DiagramContext";
 import { MoreVertIcon } from "../../../resources";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
-import { nodeHasError } from "../../../utils/node";
+import { getDiffContainerStyles, getDiffTitleStyles, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import NodeIcon from "../../NodeIcon";
 import { NodeNoteChip } from "../../NodeNoteChip";
@@ -268,6 +268,11 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
 
     const disabled = model.node.suggested;
     const hasError = nodeHasError(model.node);
+    // Cast to a plain shape here: this package's CSSProperties type resolution doesn't
+    // expose named members for direct reads (only works when passed whole to a `style` prop).
+    const diffStyles = getDiffContainerStyles(model.node) as
+        | { backgroundColor?: string; borderColor?: string }
+        | undefined;
 
     return (
         <NodeStyles.Node
@@ -311,14 +316,18 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                             rx="5"
                             ry="5"
                             fill={
-                                isActiveBreakpoint
+                                diffStyles?.backgroundColor
+                                    ? (diffStyles.backgroundColor as string)
+                                    : isActiveBreakpoint
                                     ? NODE_BG_BREAKPOINT_COLOR
                                     : (isHovered || isNoteActive) && !disabled && !readOnly
                                     ? NODE_BG_HOVER_COLOR
                                     : NODE_BG_COLOR
                             }
                             stroke={
-                                hasError
+                                diffStyles?.borderColor
+                                    ? (diffStyles.borderColor as string)
+                                    : hasError
                                     ? NODE_BORDER_ERROR_COLOR
                                     : isSelected && !disabled
                                         ? ThemeColors.SECONDARY
@@ -338,7 +347,7 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                     <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
                 </NodeStyles.Column>
                 <NodeStyles.Header onClick={handleOnClick}>
-                    <NodeStyles.Title>{model.node.metadata.label || model.node.codedata.node}</NodeStyles.Title>
+                    <NodeStyles.Title style={getDiffTitleStyles(model.node)}>{model.node.metadata.label || model.node.codedata.node}</NodeStyles.Title>
                     {/* <NodeStyles.Description>
                         {model.node.branches.at(0).properties.condition.value}
                     </NodeStyles.Description> */}

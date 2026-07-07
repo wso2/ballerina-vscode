@@ -242,6 +242,41 @@ export class SizingVisitor implements BaseVisitor {
         this.endVisitIf(node, parent);
     }
 
+    // Synthetic review-diff container: removed/added lanes side by side, headless
+    // (no visible widget of its own, unlike the IF diamond).
+    endVisitDiffHunk(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        const branchViewStates = node.branches
+            .map((branch) => branch.viewState)
+            .filter((viewState) => viewState !== undefined);
+        if (branchViewStates.length === 0) {
+            console.error("No branch view states found in diff hunk node", node);
+            return;
+        }
+
+        const firstBranch = branchViewStates.at(0);
+        const lastBranch = branchViewStates.at(-1);
+        let containerLeftWidth: number;
+        let containerRightWidth: number;
+        if (branchViewStates.length === 1) {
+            containerLeftWidth = firstBranch.clw;
+            containerRightWidth = firstBranch.crw;
+        } else {
+            const barWidth = firstBranch.crw + lastBranch.clw + NODE_GAP_X * (branchViewStates.length - 1);
+            containerLeftWidth = firstBranch.clw + barWidth / 2;
+            containerRightWidth = barWidth / 2 + lastBranch.crw;
+        }
+
+        let containerHeight = 0;
+        branchViewStates.forEach((viewState) => {
+            containerHeight = Math.max(containerHeight, Math.max(viewState.ch, NODE_GAP_Y));
+        });
+        // add fork gap above the lanes and join gap below them
+        containerHeight += NODE_GAP_Y + NODE_GAP_Y / 2;
+
+        this.setNodeSize(node, 0, 0, 0, containerLeftWidth, containerRightWidth, containerHeight);
+    }
+
     endVisitConditional(node: Branch, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.createBlockNode(node);

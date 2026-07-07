@@ -30,6 +30,9 @@ export type { GetHelperPaneFunction, TraceAnimationState, TraceAnimationEntry, A
 
 export { setTraceAnimationActive, setTraceAnimationInactive, useTraceAnimation } from "./components/DiagramContext";
 
+// diff utils
+export { mergeFlowModelsForDiff, stampDiffState } from "./utils/diff";
+
 // traversing utils
 export { traverseFlow, traverseNode } from "@wso2/ballerina-core";
 export { AddNodeVisitor } from "./visitors/AddNodeVisitor";

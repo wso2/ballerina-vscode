@@ -17,11 +17,11 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Flow, NodePosition } from "@wso2/ballerina-core";
+import { ChangeTypeEnum, Flow, NodePosition, ParentMetadata } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
-import { Diagram } from "@wso2/bi-diagram";
+import { Diagram, mergeFlowModelsForDiff, stampDiffState } from "@wso2/bi-diagram";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -41,68 +41,129 @@ interface ItemMetadata {
     accessor?: string;
 }
 
+export type ReviewViewMode = "diff" | "new" | "old";
+
 interface ReadonlyFlowDiagramProps {
     projectPath: string;
     filePath: string;
     position: NodePosition;
     onModelLoaded?: (metadata: ItemMetadata) => void;
-    useFileSchema?: boolean;
+    viewMode: ReviewViewMode;
+    changeType: number;
+    onDiffUnavailable?: () => void;
+}
+
+function getEventStartData(flow: Flow): ParentMetadata | undefined {
+    const eventStartNode = flow?.nodes?.find((node) => node.codedata?.node === "EVENT_START");
+    return eventStartNode?.metadata?.data as ParentMetadata | undefined;
+}
+
+// The old-version lookup reuses the new version's position, so line shifts in the old file
+// can land on a different function. Reject the pair when the resolved functions differ.
+function isSameFunction(oldFlow: Flow, newFlow: Flow): boolean {
+    const oldData = getEventStartData(oldFlow);
+    const newData = getEventStartData(newFlow);
+    if (!oldData || !newData) {
+        return true; // cannot verify; let the merge proceed
+    }
+    return oldData.label === newData.label && oldData.accessor === newData.accessor;
 }
 
 export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Element {
-    const { filePath, position, onModelLoaded, useFileSchema } = props;
+    const { filePath, position, onModelLoaded, viewMode, changeType, onDiffUnavailable } = props;
     const { rpcClient } = useRpcContext();
     const [flowModel, setFlowModel] = useState<Flow | null>(null);
 
     useEffect(() => {
         setFlowModel(null);
-        fetchFlowModel();
-    }, [filePath, position, useFileSchema]);
+        let cancelled = false;
+        loadFlowModel()
+            .then((model) => {
+                if (cancelled || !model) {
+                    return;
+                }
+                setFlowModel(model);
 
-    const fetchFlowModel = () => {
+                // Extract metadata from EVENT_START node
+                const data = getEventStartData(model);
+                if (onModelLoaded && data) {
+                    onModelLoaded({
+                        type: (data as any).kind || "Function",
+                        name: data.label || "Unknown",
+                        accessor: data.accessor,
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error("[Reviewing Changes] Error loading flow model:", error);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [filePath, position, viewMode]);
+
+    // Fetch one version of the enclosing function's flow model.
+    // useFileSchema=true reads the frozen original (file://); false reads the modified temp content (ai://).
+    const fetchFlowModelVersion = async (useFileSchema: boolean): Promise<Flow | null> => {
         // First resolve the full function range using getEnclosedFunction,
         // since the position from semantic diff may only cover the changed statement
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getEnclosedFunction({
-                filePath: filePath,
-                position: { line: position.startLine, offset: position.startColumn },
-                useFileSchema,
-            })
-            .then((enclosedFn) => {
-                const startLine = enclosedFn?.startLine ?? { line: position.startLine, offset: position.startColumn };
-                const endLine = enclosedFn?.endLine ?? { line: position.endLine, offset: position.endColumn };
+        const enclosedFn = await rpcClient.getBIDiagramRpcClient().getEnclosedFunction({
+            filePath: filePath,
+            position: { line: position.startLine, offset: position.startColumn },
+            useFileSchema,
+        });
+        const startLine = enclosedFn?.startLine ?? { line: position.startLine, offset: position.startColumn };
+        const endLine = enclosedFn?.endLine ?? { line: position.endLine, offset: position.endColumn };
 
-                return rpcClient
-                    .getBIDiagramRpcClient()
-                    .getFlowModel({
-                        filePath: filePath,
-                        startLine,
-                        endLine,
-                        useFileSchema,
-                    });
-            })
-            .then((response) => {
-                if (response?.flowModel) {
-                    setFlowModel(response.flowModel);
+        const response = await rpcClient.getBIDiagramRpcClient().getFlowModel({
+            filePath: filePath,
+            startLine,
+            endLine,
+            useFileSchema,
+        });
+        return response?.flowModel ?? null;
+    };
 
-                    // Extract metadata from EVENT_START node
-                    if (onModelLoaded && response.flowModel.nodes) {
-                        const eventStartNode = response.flowModel.nodes.find(
-                            (node: any) => node.codedata?.node === 'EVENT_START'
-                        );
+    const loadFlowModel = async (): Promise<Flow | null> => {
+        if (viewMode === "old") {
+            return fetchFlowModelVersion(true);
+        }
+        if (viewMode === "new") {
+            return fetchFlowModelVersion(false);
+        }
 
-                        if (eventStartNode?.metadata?.data) {
-                            const data = eventStartNode.metadata.data as any;
-                            onModelLoaded({
-                                type: data.kind || 'Function',
-                                name: data.label || 'Unknown',
-                                accessor: data.accessor
-                            });
-                        }
-                    }
-                }
-            });
+        // unified diff mode
+        if (changeType === ChangeTypeEnum.ADDITION) {
+            const newFlow = await fetchFlowModelVersion(false);
+            return newFlow ? stampDiffState(newFlow, "added") : null;
+        }
+        if (changeType === ChangeTypeEnum.DELETION) {
+            const oldFlow = await fetchFlowModelVersion(true);
+            return oldFlow ? stampDiffState(oldFlow, "removed") : null;
+        }
+
+        // modification: merge old and new into a single diagram
+        const [oldFlow, newFlow] = await Promise.all([
+            fetchFlowModelVersion(true).catch((error): Flow | null => {
+                console.error("[Reviewing Changes] Error fetching old flow model:", error);
+                return null;
+            }),
+            fetchFlowModelVersion(false),
+        ]);
+        if (!newFlow) {
+            return oldFlow;
+        }
+        if (!oldFlow || !isSameFunction(oldFlow, newFlow)) {
+            onDiffUnavailable?.();
+            return newFlow;
+        }
+        try {
+            return mergeFlowModelsForDiff(oldFlow, newFlow);
+        } catch (error) {
+            console.error("[Reviewing Changes] Error merging flow models for diff:", error);
+            onDiffUnavailable?.();
+            return newFlow;
+        }
     };
 
     if (!flowModel) {
