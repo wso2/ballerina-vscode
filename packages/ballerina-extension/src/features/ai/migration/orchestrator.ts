@@ -81,6 +81,7 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
         const currentPackageMatch = content.match(/currentPackage\s*=\s*"([^"]+)"/);
         const currentStageMatch = content.match(/currentStage\s*=\s*(\d+)/);
         const multiProjectMatch = content.match(/multiProject\s*=\s*(true|false)/);
+        const keepStructureMatch = content.match(/keepStructure\s*=\s*(true|false)/);
 
         // Parse completedPackages array
         const completedPackagesMatch = content.match(/completedPackages\s*=\s*\[([^\]]*)\]/);
@@ -100,6 +101,7 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
             currentPackage: currentPackageMatch?.[1],
             currentStage: currentStageMatch ? parseInt(currentStageMatch[1], 10) : undefined,
             multiProject: multiProjectMatch ? multiProjectMatch[1] === "true" : undefined,
+            keepStructure: keepStructureMatch ? keepStructureMatch[1] === "true" : undefined,
         };
     } catch {
         return null;
@@ -118,6 +120,7 @@ export function writeEnhanceToml(
     currentPackage?: string,
     currentStage?: number,
     multiProject?: boolean,
+    keepStructure?: boolean,
 ): void {
     const dir = path.join(projectRoot, AI_MIGRATION_DIR);
     if (!fs.existsSync(dir)) {
@@ -138,12 +141,15 @@ export function writeEnhanceToml(
     if (currentStage !== undefined) {
         content += `currentStage = ${currentStage}\n`;
     }
-    // When multiProject is not explicitly provided, preserve the existing value from disk.
-    const effectiveMultiProject = multiProject !== undefined
-        ? multiProject
-        : readEnhanceToml(projectRoot)?.multiProject;
+    // When multiProject / keepStructure are not explicitly provided, preserve existing values from disk.
+    const existing = multiProject === undefined || keepStructure === undefined ? readEnhanceToml(projectRoot) : undefined;
+    const effectiveMultiProject = multiProject !== undefined ? multiProject : existing?.multiProject;
     if (effectiveMultiProject !== undefined) {
         content += `multiProject = ${effectiveMultiProject}\n`;
+    }
+    const effectiveKeepStructure = keepStructure !== undefined ? keepStructure : existing?.keepStructure;
+    if (effectiveKeepStructure) {
+        content += `keepStructure = true\n`;
     }
     fs.writeFileSync(filePath, content);
 }
@@ -208,6 +214,18 @@ export function markEnhancementComplete(): void {
 }
 
 /**
+ * Returns the migration source project path for the given project root, if available and accessible.
+ * Used to inject `migration_source_list` / `migration_source_read` tools into post-enhancement AI chat sessions.
+ */
+export function getMigrationSourcePathForProject(projectRoot: string): string | undefined {
+    const data = readEnhanceToml(projectRoot);
+    if (data?.sourcePath && fs.existsSync(data.sourcePath)) {
+        return data.sourcePath;
+    }
+    return undefined;
+}
+
+/**
  * Previously seeded raw conversation history into chatStateStorage.
  * Now a no-op — resume context is injected via the prompt preamble from summary.md.
  *
@@ -230,6 +248,7 @@ export async function startMigrationEnhancement(): Promise<void> {
         // triggered by the AI Chat via wizardEnhancementReady().
         _wizardProjectRoot = projectRoot;
         _wizardSourcePath = existing?.sourcePath;
+        _wizardKeepStructure = existing?.keepStructure ?? false;
     }
 
     // Mark the session as active (panel is already open when called from AI Chat)
@@ -901,16 +920,19 @@ export function getMigrationHistoryMessages(): Array<{ role: string; content: st
 let _wizardProjectRoot: string | undefined;
 /** The original source path for the wizard enhancement. */
 let _wizardSourcePath: string | undefined;
+/** Whether the wizard ran with --keep-structure, preserving the original source file layout. */
+let _wizardKeepStructure: boolean = false;
 
 /**
  * Called by the RPC manager after `createBIProjectFromMigration` returns the
  * project root (when `aiFeatureUsed === true`).  Stores the project
  * root so the wizard enhancement can be kicked off from the webview.
  */
-export function setWizardProjectRoot(projectRoot: string, sourcePath?: string): void {
-    console.log('[orchestrator] setWizardProjectRoot called. projectRoot:', projectRoot, 'sourcePath:', sourcePath);
+export function setWizardProjectRoot(projectRoot: string, sourcePath?: string, keepStructure?: boolean): void {
+    console.log('[orchestrator] setWizardProjectRoot called. projectRoot:', projectRoot, 'sourcePath:', sourcePath, 'keepStructure:', keepStructure);
     _wizardProjectRoot = projectRoot;
     _wizardSourcePath = sourcePath;
+    _wizardKeepStructure = keepStructure ?? false;
 }
 
 /**
@@ -1318,7 +1340,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 const fullPkgPath = path.join(projectRoot, pkgRelPath);
                 const pkgName = readPackageName(fullPkgPath) ?? pkgRelPath;
                 const manifest = buildCrossPackageManifest(projectRoot, packagePaths, pkgRelPath);
-                const stages = getPerProjectEnhancementStages(pkgName, pkgRelPath, pkgIdx, packagePaths.length, manifest);
+                const stages = getPerProjectEnhancementStages(pkgName, pkgRelPath, pkgIdx, packagePaths.length, manifest, _wizardKeepStructure);
                 if (!resumeInjected) {
                     injectResumePreamble(projectRoot, stages);
                     resumeInjected = true;
@@ -1411,7 +1433,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
             }
         } else {
             // ── Single-package project ───────────────────────────────────
-            const stages = getEnhancementStages();
+            const stages = getEnhancementStages(_wizardKeepStructure);
             injectResumePreamble(projectRoot, stages);
             console.log(`[MigrationEnhancement] Starting wizard migration agent (${stages.length} stages) – projectRoot: ${projectRoot}, sourcePath: ${sourcePath ?? 'none'}`);
             debugLogger.logMilestone(`Run start — single package (wizard), model: ${_selectedModelId}, projectRoot: ${projectRoot}`);
@@ -1509,10 +1531,11 @@ export function openMigratedProject(): void {
     const aiFeatureUsed = data?.aiFeatureUsed ?? true;
     const sourcePath = data?.sourcePath ?? _wizardSourcePath;
 
-    // If the AI agent was running (paused by user), the toml already reflects fullyEnhanced=false
+    // If the AI agent was running (paused by user), the toml already reflects fullyEnhanced=false.
+    // Also persist keepStructure so the resume flow can restore it after a window reload.
     const wasRunning = _migrationAbortController !== undefined;
-    if (wasRunning && data && !data.fullyEnhanced) {
-        writeEnhanceToml(projectRoot, aiFeatureUsed, false, sourcePath);
+    if ((wasRunning || _wizardKeepStructure) && data && !data.fullyEnhanced) {
+        writeEnhanceToml(projectRoot, aiFeatureUsed, false, sourcePath, undefined, undefined, undefined, undefined, _wizardKeepStructure || undefined);
     }
 
     scheduleMigrationEnhancement(aiFeatureUsed, projectRoot, sourcePath);
@@ -1520,6 +1543,7 @@ export function openMigratedProject(): void {
     // Clear the wizard state
     _wizardProjectRoot = undefined;
     _wizardSourcePath = undefined;
+    _wizardKeepStructure = false;
 
     commands.executeCommand('vscode.openFolder', Uri.file(projectRoot));
 }

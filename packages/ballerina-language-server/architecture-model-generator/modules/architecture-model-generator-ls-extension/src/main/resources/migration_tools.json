@@ -7,6 +7,13 @@
     "description": "Select your MuleSoft project's root folder or main configuration XML file.",
     "parameters": [
       {
+        "key": "keepStructure",
+        "label": "Keep Original Structure",
+        "description": "Preserve the original source file structure (each .xml file in a separate .bal file).",
+        "valueType": "boolean",
+        "defaultValue": false
+      },
+      {
         "key": "forceVersion",
         "label": "Force Version",
         "description": "Force specific Mule version or auto-detect from project.",
@@ -30,6 +37,13 @@
     "requiredVersion": "1.2.13",
     "description": "Select your TIBCO BusinessWorks project folder or main configuration file.",
     "parameters": [
+      {
+        "key": "keepStructure",
+        "label": "Keep Original Structure",
+        "description": "Preserve the original source file structure (each process in a separate .bal file).",
+        "valueType": "boolean",
+        "defaultValue": false
+      },
       {
         "key": "multiRoot",
         "label": "Migrate Multiple Projects",

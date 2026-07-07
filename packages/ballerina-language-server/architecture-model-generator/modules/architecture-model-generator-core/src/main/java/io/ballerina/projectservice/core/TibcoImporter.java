@@ -38,6 +38,7 @@ public class TibcoImporter {
     private static final String PARAM_OGR_NAME = "orgName";
     private static final String PARAM_PROJECT_NAME = "projectName";
     private static final String PARAM_SOURCE_PATH = "sourcePath";
+    private static final String PARAM_KEEP_STRUCTURE = "keepStructure";
     private static final String PARAM_TIBCO_MULTI_ROOT = "multiRoot";
     private static final String PARAM_STATE_CALLBACK = "stateCallback";
     private static final String PARAM_LOG_CALLBACK = "logCallback";
@@ -61,6 +62,8 @@ public class TibcoImporter {
         args.put(PARAM_PROJECT_NAME, packageName);
         args.put(PARAM_SOURCE_PATH, sourcePath);
 
+        boolean keepStructure = Boolean.parseBoolean(parameters.getOrDefault("keepStructure", "false"));
+        args.put(PARAM_KEEP_STRUCTURE, keepStructure);
         boolean isMultiRoot = Boolean.parseBoolean(parameters.getOrDefault("multiRoot", "false"));
         args.put(PARAM_TIBCO_MULTI_ROOT, isMultiRoot);
         args.put(PARAM_STATE_CALLBACK, stateCallback);

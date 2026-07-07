@@ -648,6 +648,16 @@ export interface ICPEnabledResponse {
     stacktrace?: string;
 }
 
+export interface WorkflowManagementRequest {
+    projectPath: string;
+}
+
+export interface WorkflowManagementResponse {
+    enabled?: boolean;
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
 export interface GetTestFunctionRequest {
     filePath: string;
     functionName: string;

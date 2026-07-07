@@ -131,6 +131,10 @@
       "projectFolder": "submodules/wso2-vscode-extensions/workspaces/common-libs/ui-toolkit"
     },
     {
+      "packageName": "@wso2/webview-giga-bridge",
+      "projectFolder": "submodules/wso2-vscode-extensions/workspaces/common-libs/vscode-webview-bridge"
+    },
+    {
       "packageName": "@wso2/playwright-vscode-tester",
       "projectFolder": "submodules/wso2-vscode-extensions/workspaces/common-libs/playwright-vscode-tester"
     },

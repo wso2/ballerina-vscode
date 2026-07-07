@@ -64,7 +64,7 @@
             "selected": true
           }
         ],
-        "value": "error?",
+        "value": "json|error",
         "optional": true,
         "editable": true,
         "advanced": false,

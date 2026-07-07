@@ -1477,6 +1477,7 @@
         "@wso2/trace-visualizer": "workspace:*",
         "graphqlview-lib": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
+        "@wso2/webview-giga-bridge": "workspace:*",
         "ai": "6.0.103",
         "cors-anywhere": "0.4.4",
         "del-cli": "5.1.0",

@@ -191,6 +191,8 @@ import {
     AIGentToolsResponse,
     ICPEnabledRequest,
     ICPEnabledResponse,
+    WorkflowManagementRequest,
+    WorkflowManagementResponse,
     AINodesRequest,
     BISearchRequest,
     BISearchResponse,
@@ -297,6 +299,7 @@ import {
     AIGetPackageVersionResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
+import { emitMigrationToolState, emitMigrationToolLog, emitMigratedProject } from "../features/ai/migration/migrationEvents";
 import { debug, handlePullModuleProgress } from "../utils";
 import { CMP_LS_CLIENT_COMPLETIONS, CMP_LS_CLIENT_DIAGNOSTICS, getMessageObject, sendTelemetryEvent, TM_EVENT_LANG_CLIENT } from "../features/telemetry";
 import { DefinitionParams, InitializeParams, InitializeResult, Location, LocationLink, TextDocumentPositionParams } from 'vscode-languageserver-protocol';
@@ -478,6 +481,10 @@ enum EXTENDED_APIS {
     BI_IS_ICP_ENABLED = 'icpService/isIcpEnabled',
     BI_ADD_ICP = 'icpService/addICP',
     BI_DISABLE_ICP = 'icpService/disableICP',
+    BI_IS_WORKFLOW_MGMT_ENABLED = 'workflowManagementService/isWorkflowManagementEnabled',
+    BI_ADD_WORKFLOW_MGMT = 'workflowManagementService/addWorkflowManagement',
+    BI_DISABLE_WORKFLOW_MGMT = 'workflowManagementService/disableWorkflowManagement',
+    BI_SHOULD_ENABLE_WORKFLOW_MGMT_DEFAULT = 'workflowManagementService/shouldEnableWorkflowManagementByDefault',
     BI_WORKFLOW_ALL_DATA = 'workflowManager/getAllData',
     BI_SEARCH = 'flowDesignService/search',
     BI_SEARCH_NODES = 'flowDesignService/searchNodes',
@@ -606,6 +613,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                     { type: "webview", webviewType: VisualizerWebview.viewType },
                     res
                 );
+                emitMigrationToolState(res as any);
             } catch (error) {
                 console.error("Error in MIGRATION_TOOL_STATE handler:", error);
             }
@@ -618,6 +626,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                     { type: "webview", webviewType: VisualizerWebview.viewType },
                     res
                 );
+                emitMigrationToolLog(res as any);
             } catch (error) {
                 console.error("Error in MIGRATION_TOOL_LOG handler:", error);
             }
@@ -630,6 +639,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                     { type: "webview", webviewType: VisualizerWebview.viewType },
                     res
                 );
+                emitMigratedProject(res);
             } catch (error) {
                 console.error("Error in PUSH_MIGRATED_PROJECT handler:", error);
             }
@@ -1022,6 +1032,22 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async disableICP(params: ICPEnabledRequest): Promise<TestSourceEditResponse | NOT_SUPPORTED_TYPE> {
         return this.sendRequest(EXTENDED_APIS.BI_DISABLE_ICP, params);
+    }
+
+    async isWorkflowManagementEnabled(params: WorkflowManagementRequest): Promise<WorkflowManagementResponse | NOT_SUPPORTED_TYPE> {
+        return this.sendRequest(EXTENDED_APIS.BI_IS_WORKFLOW_MGMT_ENABLED, params);
+    }
+
+    async addWorkflowManagement(params: WorkflowManagementRequest): Promise<TestSourceEditResponse | NOT_SUPPORTED_TYPE> {
+        return this.sendRequest(EXTENDED_APIS.BI_ADD_WORKFLOW_MGMT, params);
+    }
+
+    async disableWorkflowManagement(params: WorkflowManagementRequest): Promise<TestSourceEditResponse | NOT_SUPPORTED_TYPE> {
+        return this.sendRequest(EXTENDED_APIS.BI_DISABLE_WORKFLOW_MGMT, params);
+    }
+
+    async shouldEnableWorkflowManagementByDefault(params: WorkflowManagementRequest): Promise<WorkflowManagementResponse | NOT_SUPPORTED_TYPE> {
+        return this.sendRequest(EXTENDED_APIS.BI_SHOULD_ENABLE_WORKFLOW_MGMT_DEFAULT, params);
     }
 
     async getProjectDiagnostics(params: ProjectDiagnosticsRequest): Promise<ProjectDiagnosticsResponse | NOT_SUPPORTED_TYPE> {

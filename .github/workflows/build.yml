@@ -126,7 +126,7 @@ jobs:
           # Must be a single line: trivy splits on ',' verbatim. A folded
           # YAML string (>-) introduces a space after each comma, which
           # makes every entry except the first start with ' ' and never match.
-          skip-dirs: 'common/temp,submodules,packages/ballerina-language-server/**/src/test/resources,packages/ballerina-language-server/**/src/test/data'
+          skip-dirs: 'common/temp,submodules,packages/ballerina-language-server/**/src/test/resources,packages/ballerina-language-server/**/src/test/data,packages/ballerina-language-server/**/build/resources/test'
           ignore-unfixed: true
           trivyignores: .trivyignore,submodules/wso2-vscode-extensions/.trivyignore
 
@@ -355,6 +355,6 @@ jobs:
       - name: Run LS tests
         uses: ./.github/actions/ls-test
         with:
-          cache-branch: ${{ github.ref_name }}
+          cache-branch: ${{ github.base_ref || github.ref_name }}
           package-user: ${{ github.actor }}
           package-pat: ${{ secrets.GITHUB_TOKEN }}
