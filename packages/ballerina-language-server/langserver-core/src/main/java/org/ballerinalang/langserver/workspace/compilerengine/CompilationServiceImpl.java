@@ -252,9 +252,12 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 if (pipeline != null) {
                     pipeline.forceCompilation();
                 }
-                StableSnapshot awaited = awaitPublished(storeInProgress, cancelChecker);
-                if (awaited != null) {
-                    return awaited;
+                AwaitPublishedResult awaited = awaitPublished(key, storeInProgress, cancelChecker);
+                if (awaited.snapshot() != null) {
+                    return awaited.snapshot();
+                }
+                if (awaited.retryable()) {
+                    continue;
                 }
                 return null;
             }
@@ -522,7 +525,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
         sourceRootIndex.computeIfAbsent(sourceRootIdentifier, k -> ConcurrentHashMap.newKeySet()).add(key);
         circuitActions.put(key, circuitAction);
-        pipeline.requestCompilation(nextContentVersion(key));
+        requestCompilation(pipeline);
     }
 
     private void evictPipeline(String sourceRootIdentifier) {
@@ -544,24 +547,40 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
     }
 
-    private StableSnapshot awaitPublished(DualSnapshotStore.StoreInProgressSnapshot storeInProgress,
-                                           CancelChecker cancelChecker) {
+    private AwaitPublishedResult awaitPublished(CompilationKey key,
+                                                DualSnapshotStore.StoreInProgressSnapshot storeInProgress,
+                                                CancelChecker cancelChecker) {
         while (true) {
             if (cancelChecker != null) {
                 cancelChecker.checkCanceled();
             }
             try {
-                return storeInProgress.publishedStableSnapshot().get(10, TimeUnit.MILLISECONDS);
+                StableSnapshot snapshot = storeInProgress.publishedStableSnapshot().get(10, TimeUnit.MILLISECONDS);
+                return AwaitPublishedResult.published(snapshot);
             } catch (TimeoutException e) {
                 // Keep waiting until the next stable snapshot is published.
             } catch (CancellationException e) {
-                return null;
+                return AwaitPublishedResult.retryableCancellation();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                return null;
+                return AwaitPublishedResult.terminalFailure();
             } catch (ExecutionException e) {
-                return null;
+                return AwaitPublishedResult.terminalFailure();
             }
+        }
+    }
+
+    private record AwaitPublishedResult(StableSnapshot snapshot, boolean retryable) {
+        private static AwaitPublishedResult published(StableSnapshot snapshot) {
+            return new AwaitPublishedResult(snapshot, false);
+        }
+
+        private static AwaitPublishedResult retryableCancellation() {
+            return new AwaitPublishedResult(null, true);
+        }
+
+        private static AwaitPublishedResult terminalFailure() {
+            return new AwaitPublishedResult(null, false);
         }
     }
 
