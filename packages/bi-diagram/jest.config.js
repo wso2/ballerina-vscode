@@ -26,7 +26,8 @@ module.exports = {
         '^http-proxy-agent$': '<rootDir>/src/test/mocks/proxyAgent.ts',
         '^https-proxy-agent$': '<rootDir>/src/test/mocks/proxyAgent.ts',
     },
-    // `*.realdata.test.tsx` spawns a real LS — it runs via jest.realdata.config.js, not
-    // the fast PR job.
-    testPathIgnorePatterns: [...(base.testPathIgnorePatterns || ['/node_modules/']), '\\.realdata\\.test\\.'],
+    // `*.capture.test.ts` spawns a real LS — it runs via jest.realdata.config.js (nightly),
+    // not the fast PR job. The fast job DOES run `*.render.test.tsx` (snapshots the
+    // captured fixture, no LS).
+    testPathIgnorePatterns: [...(base.testPathIgnorePatterns || ['/node_modules/']), '\\.capture\\.test\\.'],
 };

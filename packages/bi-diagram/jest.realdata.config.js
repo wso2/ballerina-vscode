@@ -16,16 +16,16 @@
  * under the License.
  */
 
-// Real-LS-data render test: renders the Diagram against a flow model fetched LIVE from
-// the real language server (jsdom + a spawned LS). Needs Java + a Ballerina distribution
-// and auto-skips otherwise. Filename is NOT `jest.config.js`, so the fast PR job never
-// runs it. Run with: pnpm exec jest --config jest.realdata.config.js
+// NIGHTLY fixture capture / drift-check (`*.capture.test.ts`): spawns a real LS to
+// generate/validate the flow-model fixture the fast render test snapshots. Needs Java +
+// a Ballerina distribution; auto-skips otherwise. Filename is NOT `jest.config.js`, so
+// the fast PR job never runs it. Run with: pnpm exec jest --config jest.realdata.config.js
 
 const base = require('@wso2/test-config/jest-preset');
 
 module.exports = {
     ...base,
     rootDir: '.',
-    testMatch: ['**/*.realdata.test.tsx'],
+    testMatch: ['**/*.capture.test.ts'],
     testTimeout: 120000,
 };
