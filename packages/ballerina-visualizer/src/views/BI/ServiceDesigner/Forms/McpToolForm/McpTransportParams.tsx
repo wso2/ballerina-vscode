@@ -190,7 +190,9 @@ export function deriveMcpAdvancedParams(params: ParameterModel[]): ParameterMode
     return MCP_ADVANCED_PARAMS.map(({ label, type }) => {
         const existing = params.find((p) => p.type?.value === type);
         if (existing) {
-            return { ...existing, metadata: existing.metadata ?? { label, description: advancedParamDescriptions[label] } };
+            // Use the canonical label/description; a read-back param's metadata label is its variable
+            // name (kept on name.value for codegen), which would otherwise mislabel the checkbox.
+            return { ...existing, metadata: { label, description: advancedParamDescriptions[label] } };
         }
         return buildMcpAdvancedParam(label, type);
     });
