@@ -265,8 +265,18 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
             return oldFlow ? stampDiffState(oldFlow, "removed") : null;
         }
 
-        // modification: merge old and new into a single diagram
-        const newFlow = await fetchFlowModelVersion(false);
+        // modification: merge old and new into a single diagram.
+        // Fetch both versions concurrently — they're independent LS lookups, so doing
+        // them sequentially doubled the time-to-first-render for diff mode. Results are
+        // cached per version, so the extra fetch on a metadata-mismatch fallback is free
+        // if the user then toggles to New/Old.
+        const [newFlow, oldFlow] = await Promise.all([
+            fetchFlowModelVersion(false),
+            fetchFlowModelVersion(true).catch((error): Flow | null => {
+                console.error("[Reviewing Changes] Error fetching old flow model:", error);
+                return null;
+            }),
+        ]);
         if (!newFlow) {
             return null;
         }
@@ -274,11 +284,6 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
             onDiffUnavailableRef.current?.();
             return newFlow;
         }
-
-        const oldFlow = await fetchFlowModelVersion(true).catch((error): Flow | null => {
-            console.error("[Reviewing Changes] Error fetching old flow model:", error);
-            return null;
-        });
         if (!oldFlow || !isSameExpectedFunction(oldFlow, newFlow, expectedMetadata)) {
             onDiffUnavailableRef.current?.();
             return newFlow;
