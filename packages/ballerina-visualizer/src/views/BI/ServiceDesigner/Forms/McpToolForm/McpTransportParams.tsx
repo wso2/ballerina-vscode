@@ -19,22 +19,69 @@
 
 import { useState } from "react";
 import styled from "@emotion/styled";
-import { CheckBox, CheckBoxGroup, Codicon, Divider, LinkButton, Typography } from "@wso2/ui-toolkit";
+import { CheckBox, Codicon, Divider, LinkButton, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { ParameterModel } from "@wso2/ballerina-core";
 import { ParamItem } from "../ResourceForm/Parameters/ParamItem";
 import { ParamEditor } from "../ResourceForm/Parameters/ParamEditor";
+
+// Fills the form column instead of shrink-wrapping to content. Without this, the enclosing
+// CategoryRow (align-items: flex-start) lets the section shrink when collapsed, which slides the
+// Expand/Collapse button leftwards.
+const Container = styled.div`
+    width: 100%;
+    box-sizing: border-box;
+`;
 
 const AddButtonWrapper = styled.div`
     margin: 8px 0;
 `;
 
-const SectionWrapper = styled.div`
-    margin-top: 16px;
+const AdvancedConfigRow = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 8px;
+    margin-top: 12px;
+`;
+
+const AdvancedConfigButtonContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    justify-content: flex-end;
 `;
 
 const AdvancedContent = styled.div`
     margin-top: 8px;
-    padding-left: 8px;
+`;
+
+const SectionCaption = styled.div`
+    color: var(--vscode-list-deemphasizedForeground);
+    font-size: 12px;
+    margin: 2px 0 12px 0;
+    user-select: text;
+`;
+
+const SubLabel = styled.div`
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+    font-weight: 500;
+    margin: 12px 0 6px 0;
+`;
+
+const CheckBoxRow = styled.div`
+    margin-bottom: 8px;
+`;
+
+// Description shown under each advanced toggle. Rendered here (rather than via the CheckBox's own
+// `sx.description`) so it shares the panel background instead of the CheckBox's editor-background box.
+const ParamDescription = styled.div`
+    color: var(--vscode-list-deemphasizedForeground);
+    font-size: 13px;
+    padding: 2px 0 0 24px;
+    user-select: text;
 `;
 
 // The raw transport types an MCP tool on a Streamable HTTP service may bind. Caller is intentionally
@@ -163,6 +210,10 @@ export function McpTransportParams(props: McpTransportParamsProps) {
     const [editModel, setEditModel] = useState<ParameterModel>(undefined);
     const [isNew, setIsNew] = useState<boolean>(false);
     const [editingIndex, setEditingIndex] = useState<number>(-1);
+    // Collapsed by default; auto-expand when the tool already binds transport params so they're visible.
+    const [expanded, setExpanded] = useState<boolean>(
+        headerParams.length > 0 || advancedParams.some((param) => param.enabled)
+    );
 
     const onAddHeaderClick = () => {
         const newHeader = structuredClone(headerSchema);
@@ -234,59 +285,72 @@ export function McpTransportParams(props: McpTransportParamsProps) {
     };
 
     return (
-        <div>
-            {/* Headers */}
-            <SectionWrapper>
-                <Typography sx={{ marginBlockEnd: 10 }} variant="h4">Headers</Typography>
-                {headerParams.map((param, index) => (
-                    <ParamItem
-                        key={`mcp-header-${index}`}
-                        param={param}
-                        onDelete={onDeleteHeader}
-                        onEditClick={onEditHeader}
-                    />
-                ))}
-                {editModel && editModel.httpParamType === "HEADER" && (
-                    <ParamEditor
-                        isNew={isNew}
-                        param={editModel}
-                        onChange={onChangeHeader}
-                        onSave={onSaveHeader}
-                        onCancel={onCancelHeader}
-                        type="HEADER"
-                    />
-                )}
-                <AddButtonWrapper>
+        <Container>
+            <AdvancedConfigRow>
+                Advanced Configurations
+                <AdvancedConfigButtonContainer>
                     <LinkButton
-                        sx={editModel ? { opacity: 0.5, pointerEvents: "none" } : {}}
-                        onClick={editModel ? undefined : onAddHeaderClick}
+                        onClick={() => setExpanded(!expanded)}
+                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
                     >
-                        <Codicon name="add" />
-                        <>Header</>
+                        <Codicon name={expanded ? "chevron-up" : "chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                        {expanded ? "Collapse" : "Expand"}
                     </LinkButton>
-                </AddButtonWrapper>
-            </SectionWrapper>
+                </AdvancedConfigButtonContainer>
+            </AdvancedConfigRow>
 
-            {/* Advanced transport parameters */}
-            {advancedParams.length > 0 && (
-                <SectionWrapper>
-                    <Typography sx={{ marginBlockEnd: 4 }} variant="h4">Advanced Parameters</Typography>
-                    <AdvancedContent>
-                        <CheckBoxGroup direction="vertical">
-                            {advancedParams.map((param, index) => (
-                                <CheckBox
-                                    key={`mcp-advanced-${index}`}
-                                    label={param.metadata?.label}
-                                    checked={param.enabled}
-                                    onChange={(checked) => onAdvancedChecked(param, checked)}
-                                    sx={{ description: advancedParamDescriptions[param.metadata?.label] }}
-                                />
-                            ))}
-                        </CheckBoxGroup>
-                    </AdvancedContent>
-                </SectionWrapper>
+            {expanded && (
+                <AdvancedContent>
+                    <Typography sx={{ marginBlockEnd: 2 }} variant="h4">Transport Parameters</Typography>
+                    <SectionCaption>
+                        Bind transport-level request data to this tool.
+                    </SectionCaption>
+
+                    {/* Headers */}
+                    <SubLabel>HTTP Headers</SubLabel>
+                    {headerParams.map((param, index) => (
+                        <ParamItem
+                            key={`mcp-header-${index}`}
+                            param={param}
+                            onDelete={onDeleteHeader}
+                            onEditClick={onEditHeader}
+                        />
+                    ))}
+                    {editModel && editModel.httpParamType === "HEADER" && (
+                        <ParamEditor
+                            isNew={isNew}
+                            param={editModel}
+                            onChange={onChangeHeader}
+                            onSave={onSaveHeader}
+                            onCancel={onCancelHeader}
+                            type="HEADER"
+                        />
+                    )}
+                    <AddButtonWrapper>
+                        <LinkButton
+                            sx={editModel ? { opacity: 0.5, pointerEvents: "none" } : {}}
+                            onClick={editModel ? undefined : onAddHeaderClick}
+                        >
+                            <Codicon name="add" />
+                            <>Header</>
+                        </LinkButton>
+                    </AddButtonWrapper>
+
+                    {/* Raw transport parameter toggles */}
+                    <SubLabel>Request Objects</SubLabel>
+                    {advancedParams.map((param, index) => (
+                        <CheckBoxRow key={`mcp-advanced-${index}`}>
+                            <CheckBox
+                                label={param.metadata?.label}
+                                checked={param.enabled}
+                                onChange={(checked) => onAdvancedChecked(param, checked)}
+                            />
+                            <ParamDescription>{advancedParamDescriptions[param.metadata?.label]}</ParamDescription>
+                        </CheckBoxRow>
+                    ))}
+                </AdvancedContent>
             )}
             <Divider />
-        </div>
+        </Container>
     );
 }
