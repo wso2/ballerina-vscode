@@ -16,9 +16,14 @@
  * under the License.
  */
 
-// Headless Ballerina Language Server harness for L3 integration tests. Spawns a
-// real LS over stdio (no VSCode) and speaks LSP JSON-RPC. See docs/TEST_PLAN.md (L3)
-// and docs/TEST_BACKLOG.md L3-01.
+// Headless Ballerina Language Server harness for L3 integration + L5 perf tests.
+// Spawns a real LS over stdio (no VSCode) and speaks LSP JSON-RPC. See docs/TEST_GUIDE.md.
+//
+// Lives in @wso2/test-config (the shared test package) rather than inside any one
+// consumer so bi-diagram / record-creator / ballerina-extension all depend on a
+// stable public import (`@wso2/test-config/ls-harness`) instead of deep relative
+// paths into another package's internals. Shipped as plain JS + a .d.ts (matching
+// fixtures.js) so ts-jest in every consumer loads it without transforming node_modules.
 //
 // Uses the distribution's `bal start-language-server`. Resolution order:
 //   1. $BAL_LS_CMD               (explicit path to the bal launcher)
@@ -26,17 +31,17 @@
 //   3. ~/.ballerina/ballerina-home/bin/bal
 // resolveBalCommand() returns null when none exist, so suites can skip cleanly.
 
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
-import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
+"use strict";
 
-type Pending = { resolve: (v: any) => void; reject: (e: any) => void };
+const { spawn } = require("child_process");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
 
 const isWindows = process.platform === "win32";
 
-export function resolveBalCommand(): string | null {
-    const candidates: string[] = [];
+function resolveBalCommand() {
+    const candidates = [];
     if (process.env.BAL_LS_CMD) {
         candidates.push(process.env.BAL_LS_CMD);
     }
@@ -48,28 +53,34 @@ export function resolveBalCommand(): string | null {
     return candidates.find((c) => c && fs.existsSync(c)) ?? null;
 }
 
-export function pathToFileUri(p: string): string {
+function pathToFileUri(p) {
     const resolved = path.resolve(p).replace(/\\/g, "/");
     return "file://" + (resolved.startsWith("/") ? "" : "/") + resolved;
 }
 
-export class LsHarness {
-    private proc?: ChildProcessWithoutNullStreams;
-    private buf: Buffer = Buffer.alloc(0);
-    private nextId = 1;
-    private readonly pending = new Map<number, Pending>();
-    private readonly defaultTimeoutMs: number;
-
-    constructor(private readonly balCommand: string, opts: { timeoutMs?: number } = {}) {
+class LsHarness {
+    constructor(balCommand, opts = {}) {
+        this.balCommand = balCommand;
+        this.buf = Buffer.alloc(0);
+        this.nextId = 1;
+        this.pending = new Map();
         this.defaultTimeoutMs = opts.timeoutMs ?? 60_000;
     }
 
-    start(): void {
+    start() {
         this.proc = spawn(this.balCommand, ["start-language-server"], {
             stdio: ["pipe", "pipe", "pipe"],
             env: process.env,
         });
-        this.proc.stdout.on("data", (d: Buffer) => this.onData(d));
+        this.proc.stdout.on("data", (d) => this.onData(d));
+        // Surface a failed spawn (bad path, perms) as a normal rejection instead of an
+        // unhandled 'error' event that would crash the Jest worker.
+        this.proc.on("error", (err) => {
+            for (const [, p] of this.pending) {
+                p.reject(err);
+            }
+            this.pending.clear();
+        });
         this.proc.on("exit", (code) => {
             for (const [, p] of this.pending) {
                 p.reject(new Error(`LS exited (code ${code}) before responding`));
@@ -78,7 +89,7 @@ export class LsHarness {
         });
     }
 
-    private onData(chunk: Buffer): void {
+    onData(chunk) {
         this.buf = Buffer.concat([this.buf, chunk]);
         // Parse as many complete LSP frames as are buffered.
         for (;;) {
@@ -103,8 +114,8 @@ export class LsHarness {
         }
     }
 
-    private dispatch(body: string): void {
-        let msg: any;
+    dispatch(body) {
+        let msg;
         try {
             msg = JSON.parse(body);
         } catch {
@@ -117,7 +128,7 @@ export class LsHarness {
             return;
         }
         if (typeof msg.id === "number" && this.pending.has(msg.id)) {
-            const p = this.pending.get(msg.id)!;
+            const p = this.pending.get(msg.id);
             this.pending.delete(msg.id);
             if (msg.error) {
                 p.reject(new Error(`LS error for id ${msg.id}: ${JSON.stringify(msg.error)}`));
@@ -128,7 +139,7 @@ export class LsHarness {
         // Notifications are ignored by this harness.
     }
 
-    private write(msg: object): void {
+    write(msg) {
         if (!this.proc) {
             throw new Error("LS not started");
         }
@@ -136,9 +147,9 @@ export class LsHarness {
         this.proc.stdin.write(`Content-Length: ${Buffer.byteLength(s)}\r\n\r\n${s}`);
     }
 
-    request<T = any>(method: string, params?: unknown, timeoutMs = this.defaultTimeoutMs): Promise<T> {
+    request(method, params, timeoutMs = this.defaultTimeoutMs) {
         const id = this.nextId++;
-        return new Promise<T>((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const timer = setTimeout(() => {
                 this.pending.delete(id);
                 reject(new Error(`Timeout (${timeoutMs}ms) waiting for '${method}'`));
@@ -151,11 +162,11 @@ export class LsHarness {
         });
     }
 
-    notify(method: string, params?: unknown): void {
+    notify(method, params) {
         this.write({ jsonrpc: "2.0", method, params });
     }
 
-    async initialize(rootPath: string): Promise<any> {
+    async initialize(rootPath) {
         const result = await this.request("initialize", {
             processId: process.pid,
             rootUri: pathToFileUri(rootPath),
@@ -166,13 +177,13 @@ export class LsHarness {
         return result;
     }
 
-    didOpen(filePath: string, text: string, languageId = "ballerina"): void {
+    didOpen(filePath, text, languageId = "ballerina") {
         this.notify("textDocument/didOpen", {
             textDocument: { uri: pathToFileUri(filePath), languageId, version: 1, text },
         });
     }
 
-    async shutdown(): Promise<void> {
+    async shutdown() {
         try {
             await this.request("shutdown", undefined, 10_000);
             this.notify("exit");
@@ -182,3 +193,5 @@ export class LsHarness {
         this.proc?.kill("SIGKILL");
     }
 }
+
+module.exports = { resolveBalCommand, pathToFileUri, LsHarness };

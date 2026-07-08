@@ -12,6 +12,8 @@
         "identity-obj-proxy.js",
         "fixtures.js",
         "fixtures.d.ts",
+        "ls-harness.js",
+        "ls-harness.d.ts",
         "README.md"
     ],
     "scripts": {

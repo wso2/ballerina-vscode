@@ -23,7 +23,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { LsHarness, resolveBalCommand, pathToFileUri } from "../ls-integration/lsHarness";
+import { LsHarness, resolveBalCommand, pathToFileUri } from "@wso2/test-config/ls-harness";
 
 const bal = resolveBalCommand();
 const projectRoot = path.join(__dirname, "..", "ls-integration", "fixtures", "hello");

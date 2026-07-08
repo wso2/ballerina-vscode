@@ -37,7 +37,7 @@
 // otherwise, and never runs in the fast PR job (config filename is not jest.config.js).
 
 import * as os from "os";
-import { LsHarness, resolveBalCommand } from "./lsHarness";
+import { LsHarness, resolveBalCommand } from "@wso2/test-config/ls-harness";
 import type { JsonToRecord } from "@wso2/ballerina-core";
 
 // Holder is `mock`-prefixed so the jest.mock factory (hoisted) may reference it.

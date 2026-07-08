@@ -312,6 +312,9 @@ importers:
       '@wso2/playwright-vscode-tester':
         specifier: workspace:*
         version: link:../../submodules/wso2-vscode-extensions/workspaces/common-libs/playwright-vscode-tester
+      '@wso2/test-config':
+        specifier: workspace:*
+        version: link:../test-config
       adm-zip:
         specifier: 0.5.16
         version: 0.5.16

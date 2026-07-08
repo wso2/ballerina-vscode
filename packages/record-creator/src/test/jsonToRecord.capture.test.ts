@@ -32,7 +32,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import { LsHarness, resolveBalCommand } from "../../../ballerina-extension/src/test-support/ls-integration/lsHarness";
+import { LsHarness, resolveBalCommand } from "@wso2/test-config/ls-harness";
 
 const bal = resolveBalCommand();
 const FIXTURE = path.join(__dirname, "fixtures", "convertJsonToRecord.json");

@@ -159,7 +159,7 @@ BAL_UPDATE_FIXTURES=1 npx jest --config jest.realdata.config.js
 **How to add.** Use the harness: `resolveBalCommand()` (skip if null) → `new LsHarness(bal)` → `start()` → `initialize(projectRoot)` → `didOpen(file)` → `request(method, params)`. Prefer **invariants over a corpus** (e.g. "array-typed param ⇒ REPEATABLE_LIST" across sampled connector actions) over one-off assertions. A **headless-host** variant runs a real *thin* rpc-manager by mocking `StateMachine.langClient()` to route to the harness (god-managers can't be imported — cover them via capture instead).
 
 **Example files.**
-- [`lsHarness.ts`](../packages/ballerina-extension/src/test-support/ls-integration/lsHarness.ts) — the spawn/initialize/request harness.
+- [`ls-harness.js`](../packages/test-config/ls-harness.js) — the shared spawn/initialize/request harness, published from `@wso2/test-config` and imported as `@wso2/test-config/ls-harness`.
 - [`ls.test.ts`](../packages/ballerina-extension/src/test-support/ls-integration/ls.test.ts) — baseline LS requests.
 - [`nodeTemplateInvariants.test.ts`](../packages/ballerina-extension/src/test-support/ls-integration/nodeTemplateInvariants.test.ts) — connector node-template type invariants (#1491 class; intentionally red until the LS bug is fixed).
 - [`headlessHost.test.ts`](../packages/ballerina-extension/src/test-support/ls-integration/headlessHost.test.ts) — real rpc-manager handler against the real LS.
