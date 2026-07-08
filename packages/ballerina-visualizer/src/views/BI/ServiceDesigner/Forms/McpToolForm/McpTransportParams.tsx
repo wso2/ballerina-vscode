@@ -337,7 +337,7 @@ export function McpTransportParams(props: McpTransportParamsProps) {
                     </AddButtonWrapper>
 
                     {/* Raw transport parameter toggles */}
-                    <SubLabel>Request Objects</SubLabel>
+                    <SubLabel>Request Access</SubLabel>
                     {advancedParams.map((param, index) => (
                         <CheckBoxRow key={`mcp-advanced-${index}`}>
                             <CheckBox
