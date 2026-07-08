@@ -37,7 +37,90 @@
     "advanced": false,
     "addNewButton": false
   },
-  "parameters": [],
+  "parameters": [
+    {
+      "metadata": {
+        "label": "Request",
+        "description": "The HTTP Request. Only available on Streamable HTTP MCP services."
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": false,
+        "value": "http:Request",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "http:Request",
+        "optional": false,
+        "advanced": false
+      },
+      "name": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "request",
+        "optional": false,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": true,
+      "advanced": true
+    },
+    {
+      "metadata": {
+        "label": "Headers",
+        "description": "The HTTP Headers. Only available on Streamable HTTP MCP services."
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": false,
+        "value": "http:Headers",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "http:Headers",
+        "optional": false,
+        "advanced": false
+      },
+      "name": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "headers",
+        "optional": false,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": true,
+      "advanced": true
+    }
+  ],
   "schema": {
     "parameter": {
       "type": {
@@ -98,6 +181,81 @@
       "editable": true,
       "optional": false,
       "advanced": false
+    },
+    "header": {
+      "metadata": {
+        "label": "Header",
+        "description": "The Header Parameter"
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": true,
+        "value": "string",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "string",
+        "optional": false,
+        "advanced": false
+      },
+      "name": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "name",
+        "optional": true,
+        "advanced": false
+      },
+      "headerName": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "defaultValue": {
+        "metadata": {
+          "label": "Default Value",
+          "description": "The default value"
+        },
+        "enabled": false,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "",
+        "optional": true,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": false,
+      "httpParamType": "HEADER"
     }
   },
   "returnType": {
