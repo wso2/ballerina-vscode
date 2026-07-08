@@ -4,3 +4,8 @@ name = "mcp_service"
 version = "0.1.0"
 
 bi = true
+
+[[dependency]]
+org = "ballerina"
+name = "mcp"
+version = "1.1.0"

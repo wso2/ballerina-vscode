@@ -4,3 +4,8 @@ name = "hubspot_trigger"
 version = "0.1.0"
 
 bi = true
+
+[[dependency]]
+org = "ballerinax"
+name = "trigger.hubspot"
+version = "0.12.0"
