@@ -29,7 +29,7 @@
               "value": "8080"
             }
           ],
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.1.0.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.0.3.png",
           "uuid": "5d4e7555-da87-4523-317b-8497e9d819f0",
           "enableFlowModel": true,
           "sortText": "service.bal2"
@@ -57,7 +57,7 @@
           "resourceFunctions": [],
           "absolutePath": "/mcp ",
           "type": "mcp:Service",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.1.0.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.0.3.png",
           "uuid": "9d7deb9b-633a-1087-8a9b-1ee7fd1091ec",
           "enableFlowModel": true,
           "sortText": "service.bal4"
