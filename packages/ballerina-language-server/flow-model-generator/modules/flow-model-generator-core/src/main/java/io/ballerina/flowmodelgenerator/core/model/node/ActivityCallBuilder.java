@@ -168,13 +168,32 @@ public class ActivityCallBuilder extends CallBuilder {
                 strategy.searchNodesKind(), strategy.connectors());
         strategy.setFormProperties(this, context);
 
+        // Build the callActivity FunctionData once and share it between the inferred-return-type
+        // (REST only) and advanced-parameter passes to avoid loading/compiling the project twice.
+        FunctionData callActivityData = buildCallActivityFunctionData(context, moduleInfo, project);
+
         addBuiltinPostProperties(strategy, context);
         if (strategy instanceof RestActivityStrategy) {
-            addRestInferredReturnTypeProperty(context, project, DEFAULT_REST_DATABINDING);
+            addRestInferredReturnTypeProperty(context, callActivityData, DEFAULT_REST_DATABINDING);
         }
         addCheckErrorProperty();
         addRetryPolicyFormProperties(this, NO_RETRY_VALUE, "", "", "", "");
-        addAdvancedParameters(context, moduleInfo, this, project);
+        addAdvancedParameters(context, this, callActivityData);
+    }
+
+    private static FunctionData buildCallActivityFunctionData(TemplateContext context, ModuleInfo userModuleInfo,
+                                                              Project project) {
+        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
+        return new FunctionDataBuilder()
+                .name(CALL_ACTIVITY_METHOD)
+                .moduleInfo(workflowModuleInfo)
+                .parentSymbolType(CONTEXT_CLASS_NAME)
+                .functionResultKind(FunctionData.Kind.REMOTE)
+                .project(project)
+                .userModuleInfo(userModuleInfo)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
+                .build();
     }
 
     private void addBuiltinPostProperties(BuiltinActivityStrategy strategy, TemplateContext context) {
@@ -188,18 +207,8 @@ public class ActivityCallBuilder extends CallBuilder {
         // Email (error? return): no result variable or type field.
     }
 
-    private void addRestInferredReturnTypeProperty(TemplateContext context, Project project, String value) {
-        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
-        FunctionData callActivityData = new FunctionDataBuilder()
-                .name(CALL_ACTIVITY_METHOD)
-                .moduleInfo(workflowModuleInfo)
-                .parentSymbolType(CONTEXT_CLASS_NAME)
-                .functionResultKind(FunctionData.Kind.REMOTE)
-                .project(project)
-                .userModuleInfo(moduleInfo)
-                .workspaceManager(context.workspaceManager())
-                .filePath(context.filePath())
-                .build();
+    private void addRestInferredReturnTypeProperty(TemplateContext context, FunctionData callActivityData,
+                                                   String value) {
         Optional<ParameterData> inferredTypeParam = callActivityData.parameters().values().stream()
                 .filter(param -> param.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER)
                 .findFirst();
@@ -280,13 +289,17 @@ public class ActivityCallBuilder extends CallBuilder {
         Property maxRetryDelaySubProp = buildRetrySubProperty("Max Retry Delay",
                 "Maximum delay cap in seconds", "decimal");
 
+        // Insertion-ordered so the AutoRetry sub-fields always render in this sequence (Map.of does
+        // not guarantee iteration order).
+        Map<String, Property> autoRetryFields = new LinkedHashMap<>();
+        autoRetryFields.put(MAX_RETRIES_KEY, maxRetriesSubProp);
+        autoRetryFields.put(RETRY_DELAY_KEY, retryDelaySubProp);
+        autoRetryFields.put(RETRY_BACKOFF_KEY, retryBackoffSubProp);
+        autoRetryFields.put(MAX_RETRY_DELAY_KEY, maxRetryDelaySubProp);
+
         Map<String, Map<String, Property>> dynamicFields = new LinkedHashMap<>();
         dynamicFields.put(NO_RETRY_VALUE, Map.of());
-        dynamicFields.put(AUTO_RETRY_VALUE, Map.of(
-                MAX_RETRIES_KEY, maxRetriesSubProp,
-                RETRY_DELAY_KEY, retryDelaySubProp,
-                RETRY_BACKOFF_KEY, retryBackoffSubProp,
-                MAX_RETRY_DELAY_KEY, maxRetryDelaySubProp));
+        dynamicFields.put(AUTO_RETRY_VALUE, autoRetryFields);
         dynamicFields.put(MANUAL_RETRY_VALUE, Map.of());
 
         nodeBuilder.properties().custom()
@@ -351,18 +364,11 @@ public class ActivityCallBuilder extends CallBuilder {
 
     public static void addAdvancedParameters(TemplateContext context, ModuleInfo moduleInfo,
                                              CallBuilder builder, Project project) {
-        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
-        FunctionData callActivityData = new FunctionDataBuilder()
-                .name(CALL_ACTIVITY_METHOD)
-                .moduleInfo(workflowModuleInfo)
-                .parentSymbolType(CONTEXT_CLASS_NAME)
-                .functionResultKind(FunctionData.Kind.REMOTE)
-                .project(project)
-                .userModuleInfo(moduleInfo)
-                .workspaceManager(context.workspaceManager())
-                .filePath(context.filePath())
-                .build();
+        addAdvancedParameters(context, builder, buildCallActivityFunctionData(context, moduleInfo, project));
+    }
 
+    public static void addAdvancedParameters(TemplateContext context, CallBuilder builder,
+                                             FunctionData callActivityData) {
         LinkedHashMap<String, ParameterData> filteredParams = new LinkedHashMap<>(callActivityData.parameters());
         filteredParams.keySet().removeAll(EXCLUDED_CALL_ACTIVITY_PARAMS);
         filteredParams.values().removeIf(p -> p.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER);

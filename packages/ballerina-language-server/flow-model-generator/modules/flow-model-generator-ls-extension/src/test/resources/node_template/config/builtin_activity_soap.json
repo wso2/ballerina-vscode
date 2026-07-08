@@ -261,10 +261,10 @@
               "advanced": false,
               "hidden": false
             },
-            "maxRetryDelay": {
+            "retryBackoff": {
               "metadata": {
-                "label": "Max Retry Delay",
-                "description": "Maximum delay cap in seconds"
+                "label": "Retry Backoff",
+                "description": "Exponential backoff multiplier (e.g. 2.0 doubles each delay)"
               },
               "types": [
                 {
@@ -279,10 +279,10 @@
               "advanced": false,
               "hidden": false
             },
-            "retryBackoff": {
+            "maxRetryDelay": {
               "metadata": {
-                "label": "Retry Backoff",
-                "description": "Exponential backoff multiplier (e.g. 2.0 doubles each delay)"
+                "label": "Max Retry Delay",
+                "description": "Maximum delay cap in seconds"
               },
               "types": [
                 {

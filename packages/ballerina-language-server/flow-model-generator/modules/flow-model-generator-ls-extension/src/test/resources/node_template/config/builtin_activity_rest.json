@@ -345,24 +345,6 @@
         "dynamicFormFields": {
           "NoRetry": {},
           "AutoRetry": {
-            "retryDelay": {
-              "metadata": {
-                "label": "Retry Delay",
-                "description": "Initial delay between retries in seconds"
-              },
-              "types": [
-                {
-                  "fieldType": "EXPRESSION",
-                  "ballerinaType": "decimal",
-                  "selected": true
-                }
-              ],
-              "value": "",
-              "optional": false,
-              "editable": true,
-              "advanced": false,
-              "hidden": false
-            },
             "maxRetries": {
               "metadata": {
                 "label": "Max Retries",
@@ -372,6 +354,24 @@
                 {
                   "fieldType": "EXPRESSION",
                   "ballerinaType": "int",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "retryDelay": {
+              "metadata": {
+                "label": "Retry Delay",
+                "description": "Initial delay between retries in seconds"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "decimal",
                   "selected": true
                 }
               ],
