@@ -44,7 +44,7 @@ export function WorkflowPanel() {
             <CardGrid>
                 <ButtonCard
                     id="workflow"
-                    icon={<Icon name="bi-workflow" />}
+                    icon={<Icon name="bi-flowchart" />}
                     title="Workflow"
                     onClick={handleClick}
                 />

@@ -4,7 +4,7 @@
   "flowNode": {
     "id": "31",
     "metadata": {
-      "label": "Wait for Data",
+      "label": "Await Data",
       "description": "Wait for workflow data to be received"
     },
     "codedata": {
@@ -332,7 +332,7 @@
   "output": {
     "id": "35788",
     "metadata": {
-      "label": "Wait for Data",
+      "label": "Await Data",
       "description": "Wait for workflow data to be received",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.5.0.png"
     },
