@@ -38,14 +38,17 @@ export interface ReviewRestoreData {
 
 const REVIEW_RESTORE_KEY = 'ballerina.copilot.pendingReviewRestore';
 
-export function savePendingReviewRestore(data: ReviewRestoreData): void {
-    extension.context.workspaceState.update(REVIEW_RESTORE_KEY, data);
+// Awaited so the Memento write is flushed before we return: this payload's whole
+// purpose is to survive an extension host restart, so a crash right after the call
+// must not be able to leave it unpersisted.
+export async function savePendingReviewRestore(data: ReviewRestoreData): Promise<void> {
+    await extension.context.workspaceState.update(REVIEW_RESTORE_KEY, data);
 }
 
 export function getPendingReviewRestore(): ReviewRestoreData | undefined {
     return extension.context.workspaceState.get<ReviewRestoreData>(REVIEW_RESTORE_KEY);
 }
 
-export function clearPendingReviewRestore(): void {
-    extension.context.workspaceState.update(REVIEW_RESTORE_KEY, undefined);
+export async function clearPendingReviewRestore(): Promise<void> {
+    await extension.context.workspaceState.update(REVIEW_RESTORE_KEY, undefined);
 }

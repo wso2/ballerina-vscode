@@ -145,6 +145,13 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
     const [flowModel, setFlowModel] = useState<Flow | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [unavailableMessage, setUnavailableMessage] = useState<string | null>(null);
+    // Latest callbacks held in refs so the load effect can call them without listing them
+    // as dependencies — the parent re-creates onModelLoaded on every render, which would
+    // otherwise retrigger a full refetch each render.
+    const onModelLoadedRef = useRef(onModelLoaded);
+    const onDiffUnavailableRef = useRef(onDiffUnavailable);
+    onModelLoadedRef.current = onModelLoaded;
+    onDiffUnavailableRef.current = onDiffUnavailable;
     // Review content is frozen while the review is open, so fetched versions are cached
     // per view — toggling Diff/New/Old re-derives locally instead of re-querying the LS.
     const flowCache = useRef<{ key: string; versions: Map<boolean, Flow | null> }>({ key: "", versions: new Map() });
@@ -167,8 +174,8 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
 
                 // Extract metadata from EVENT_START node
                 const data = getEventStartData(model);
-                if (onModelLoaded && data) {
-                    onModelLoaded({
+                if (data) {
+                    onModelLoadedRef.current?.({
                         type: (data as any).kind || "Function",
                         name: data.label || "Unknown",
                         accessor: data.accessor,
@@ -189,7 +196,7 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
         return () => {
             cancelled = true;
         };
-    }, [filePath, position, viewMode, expectedMetadata]);
+    }, [filePath, position, viewMode, expectedMetadata, changeType, rpcClient]);
 
     // Fetch one version of the enclosing function's flow model.
     // useFileSchema=true reads the frozen original (file://); false reads the modified temp content (ai://).
@@ -231,7 +238,7 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
         if (viewMode === "old") {
             const oldFlow = await fetchFlowModelVersion(true);
             if (oldFlow && !metadataMatchesExpected(oldFlow, expectedMetadata)) {
-                onDiffUnavailable?.();
+                onDiffUnavailableRef.current?.();
                 return null;
             }
             return oldFlow;
@@ -239,6 +246,9 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
         if (viewMode === "new") {
             const newFlow = await fetchFlowModelVersion(false);
             if (newFlow && !metadataMatchesExpected(newFlow, expectedMetadata)) {
+                // Match the "old" branch: disable the diff toggle up front instead of
+                // waiting for the user to click Diff and discover it later.
+                onDiffUnavailableRef.current?.();
                 return null;
             }
             return newFlow;
@@ -261,7 +271,7 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
             return null;
         }
         if (!metadataMatchesExpected(newFlow, expectedMetadata)) {
-            onDiffUnavailable?.();
+            onDiffUnavailableRef.current?.();
             return newFlow;
         }
 
@@ -270,7 +280,7 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
             return null;
         });
         if (!oldFlow || !isSameExpectedFunction(oldFlow, newFlow, expectedMetadata)) {
-            onDiffUnavailable?.();
+            onDiffUnavailableRef.current?.();
             return newFlow;
         }
 
@@ -278,7 +288,7 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
             return mergeFlowModelsForDiff(oldFlow, newFlow);
         } catch (error) {
             console.error("[Reviewing Changes] Error merging flow models for diff:", error);
-            onDiffUnavailable?.();
+            onDiffUnavailableRef.current?.();
             return newFlow;
         }
     };

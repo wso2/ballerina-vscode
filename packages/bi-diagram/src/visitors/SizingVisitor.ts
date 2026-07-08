@@ -181,9 +181,11 @@ export class SizingVisitor implements BaseVisitor {
     }
 
     // Container left/right widths for a row of branch lanes joined by a horizontal bar.
-    private computeBranchRowWidths(branchViewStates: Branch["viewState"][]): { left: number; right: number } {
-        const first = branchViewStates.at(0);
-        const last = branchViewStates.at(-1);
+    // Callers pass only defined view states (see collectBranchViewStates), and the row is
+    // never empty, so first/last are safe to index directly.
+    private computeBranchRowWidths(branchViewStates: NonNullable<Branch["viewState"]>[]): { left: number; right: number } {
+        const first = branchViewStates[0];
+        const last = branchViewStates[branchViewStates.length - 1];
         const middleBranchesWidth = branchViewStates
             .slice(1, -1)
             .reduce((acc, viewState) => acc + viewState.clw + viewState.crw, 0);
@@ -192,15 +194,21 @@ export class SizingVisitor implements BaseVisitor {
     }
 
     // Tallest branch lane in the row (each lane counts at least one node gap).
-    private computeBranchRowHeight(branchViewStates: Branch["viewState"][]): number {
+    private computeBranchRowHeight(branchViewStates: NonNullable<Branch["viewState"]>[]): number {
         return branchViewStates.reduce((max, viewState) => Math.max(max, Math.max(viewState.ch, NODE_GAP_Y)), 0);
+    }
+
+    // The defined view states of a node's branches, narrowed so callers get non-optional
+    // elements (a branch without layout can't contribute to sizing).
+    private collectBranchViewStates(node: FlowNode): NonNullable<Branch["viewState"]>[] {
+        return node.branches
+            .map((branch) => branch.viewState)
+            .filter((viewState): viewState is NonNullable<Branch["viewState"]> => viewState !== undefined);
     }
 
     endVisitIf(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        const branchViewStates = node.branches
-            .map((branch) => branch.viewState)
-            .filter((viewState) => viewState !== undefined);
+        const branchViewStates = this.collectBranchViewStates(node);
         if (branchViewStates.length === 0) {
             console.error("No branch view states found in if node", node);
             return;
@@ -222,9 +230,7 @@ export class SizingVisitor implements BaseVisitor {
     // (no visible widget of its own, unlike the IF diamond).
     endVisitDiffHunk(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        const branchViewStates = node.branches
-            .map((branch) => branch.viewState)
-            .filter((viewState) => viewState !== undefined);
+        const branchViewStates = this.collectBranchViewStates(node);
         if (branchViewStates.length === 0) {
             console.error("No branch view states found in diff hunk node", node);
             return;

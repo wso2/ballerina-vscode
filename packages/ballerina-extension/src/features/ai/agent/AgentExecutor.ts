@@ -953,7 +953,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
             // The chat persistence schema drops tempProjectPath/affectedPackagePaths, so
             // stash what the diff view needs to reopen after an extension host restart.
-            savePendingReviewRestore({
+            await savePendingReviewRestore({
                 generationId: context.messageId,
                 tempProjectPath: context.ctx.tempProjectPath!,
                 modifiedFiles: accumulatedModifiedFiles,

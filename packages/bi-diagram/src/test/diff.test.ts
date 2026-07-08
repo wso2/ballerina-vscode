@@ -363,6 +363,34 @@ describe("mergeFlowModelsForDiff", () => {
         expect(merged.nodes.every((n) => n.diffState === undefined)).toBe(true);
     });
 
+    it("marks an inserted note as added and leaves the existing note unchanged", () => {
+        // A note inserted above an existing one must not mispair: because every comment
+        // once shared a single match key, the LCS could pair the inserted note with the
+        // existing one (marking the insert "modified" and the original "added").
+        const oldFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("COMMENT", "// keep this"),
+            makeNode("RETURN", "return x;"),
+        ]);
+        const newFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("COMMENT", "// brand new"),
+            makeNode("COMMENT", "// keep this"),
+            makeNode("RETURN", "return x;"),
+        ]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", "COMMENT", "COMMENT", "RETURN"]);
+        // the inserted note is added...
+        expect(merged.nodes[1].codedata.sourceCode).toBe("// brand new");
+        expect(merged.nodes[1].diffState).toBe("added");
+        // ...and the existing note is untouched (not shown as modified/added)
+        expect(merged.nodes[2].codedata.sourceCode).toBe("// keep this");
+        expect(merged.nodes[2].diffState).toBeUndefined();
+        expect(merged.nodes[3].diffState).toBeUndefined();
+    });
+
     it("emits an added-only comment inline as added, without a hunk", () => {
         const oldFlow = makeFlow([makeNode("EVENT_START", "start"), makeNode("RETURN", "return x;")]);
         const newFlow = makeFlow([

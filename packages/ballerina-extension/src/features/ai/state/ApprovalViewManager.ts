@@ -347,6 +347,9 @@ export class ApprovalViewManager {
     }
 
     private cachedReviewData: ReviewModeData | null = null;
+    // Shared while a restore-rebuild is running so concurrent navigateReviewMode calls
+    // await the same result instead of each re-opening the same LS documents.
+    private rebuildInFlight: Promise<ReviewModeData | null> | null = null;
 
     /**
      * Open ReviewMode with review data passed via OPEN_VIEW reviewData field.
@@ -377,7 +380,12 @@ export class ApprovalViewManager {
             return;
         }
         if (!this.cachedReviewData) {
-            this.cachedReviewData = await this.rebuildReviewDataFromStorage();
+            this.rebuildInFlight ??= this.rebuildReviewDataFromStorage();
+            try {
+                this.cachedReviewData = await this.rebuildInFlight;
+            } finally {
+                this.rebuildInFlight = null;
+            }
         }
         if (this.cachedReviewData) {
             openMainView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode, reviewData: { ...this.cachedReviewData, currentIndex: index } });
@@ -403,10 +411,13 @@ export class ApprovalViewManager {
         const restore = getPendingReviewRestore();
         if (!restore || restore.generationId !== generation.id) {
             console.error('[ApprovalViewManager] No restore data for pending review generation', generation.id);
+            // Drop the stale payload so we don't repeat this failed lookup every navigation.
+            await clearPendingReviewRestore();
             return null;
         }
         if (!fs.existsSync(restore.tempProjectPath)) {
             console.error('[ApprovalViewManager] Temp project of the pending review no longer exists:', restore.tempProjectPath);
+            await clearPendingReviewRestore();
             return null;
         }
 
@@ -437,7 +448,9 @@ export class ApprovalViewManager {
      */
     clearReviewData(): void {
         this.cachedReviewData = null;
-        clearPendingReviewRestore();
+        // Fire-and-forget: a lost clear only leaves stale restore data, which
+        // rebuildReviewDataFromStorage detects and clears on the next navigation.
+        void clearPendingReviewRestore();
     }
 }
 

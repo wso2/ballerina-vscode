@@ -23,6 +23,7 @@
                 },
                 "sourceCode": "resource function get orderStatus() returns string {"
             },
+            "branches": [],
             "returning": false,
             "flags": 0
         },
@@ -59,6 +60,7 @@
                     "hidden": false
                 }
             },
+            "branches": [],
             "returning": false,
             "flags": 0
         },
@@ -78,6 +80,7 @@
                 },
                 "sourceCode": "logOrderStatusRetrieved(orderStatus);"
             },
+            "branches": [],
             "returning": false,
             "flags": 0
         },
@@ -106,6 +109,7 @@
                     "hidden": false
                 }
             },
+            "branches": [],
             "returning": true,
             "flags": 0
         }

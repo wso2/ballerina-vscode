@@ -123,7 +123,7 @@ function nodeKey(node: FlowNode): string {
 }
 
 function computeNodeKey(node: FlowNode): string {
-    // Comments pair positionally regardless of text — a note edit is not a code change.
+    // Fallback only: matchNodes aligns comments by text before it ever reaches nodeKey.
     if (isComment(node)) {
         return "kind:COMMENT";
     }
@@ -197,6 +197,13 @@ function matchNodes(oldNode: FlowNode, newNode: FlowNode): NodeMatch {
     // The function start event is never part of the diff; always pair it.
     if (newNode.codedata?.node === "EVENT_START") {
         return "exact";
+    }
+    // Comments align by text: equal text is a stable anchor (exact); differing text is an
+    // in-place note edit (modified). Handling them before nodeKey — which collapses every
+    // comment to "kind:COMMENT" — stops the LCS from pairing an inserted note with an
+    // existing one and mislabeling both.
+    if (isComment(newNode)) {
+        return commentText(oldNode) === commentText(newNode) ? "exact" : "modified";
     }
     if (nodeKey(oldNode) === nodeKey(newNode)) {
         return "exact";
@@ -280,10 +287,8 @@ function mergeNodeLists(oldNodes: FlowNode[], newNodes: FlowNode[], hunkCounter:
             }
             merged.push(mergedContainer);
         } else if (pair.match === "modified") {
-            merged.push(markModified(newNode, oldNode));
-        } else if (isComment(newNode) && commentText(oldNode) !== commentText(newNode)) {
-            // Comments pair positionally, so an edited note lands here as an "exact" match.
-            // Mark it modified so the note chip renders the old and new texts.
+            // An edited note pairs here too (matchNodes returns "modified" when comment text
+            // differs), so the chip renders the old and new texts.
             merged.push(markModified(newNode, oldNode));
         } else {
             merged.push(newNode);

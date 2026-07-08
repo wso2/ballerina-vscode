@@ -176,8 +176,9 @@ export class NodeFactoryVisitor implements BaseVisitor {
     private getBranchLastFlowNode(branch: Branch): FlowNode | undefined {
         // Comments render as note chips on the following node, not as widgets — skip them
         for (let i = branch.children.length - 1; i >= 0; i--) {
-            if (branch.children.at(i).codedata.node !== "COMMENT") {
-                return branch.children.at(i);
+            const child = branch.children[i];
+            if (child.codedata.node !== "COMMENT") {
+                return child;
             }
         }
         return undefined;
