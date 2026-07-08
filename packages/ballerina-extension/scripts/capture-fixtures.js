@@ -51,7 +51,9 @@ function readJson(file) {
 }
 
 function hashOf(value) {
-    return crypto.createHash("sha1").update(JSON.stringify(value)).digest("hex");
+    // Content fingerprint for dedup only — not a security primitive. sha256 avoids
+    // repeated static-analysis flags on the legacy sha1.
+    return crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
 /**

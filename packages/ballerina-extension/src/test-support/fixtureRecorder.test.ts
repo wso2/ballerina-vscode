@@ -54,6 +54,20 @@ describe("redactSecrets", () => {
         a.self = a;
         expect(() => redactSecrets(a)).not.toThrow();
     });
+    it("INVARIANT: redacts a secret-looking key wholesale regardless of value type", () => {
+        // A secret key holding an array or object must be replaced in full, not recursed
+        // into — otherwise non-string secret material leaks into recorded fixtures.
+        const out = redactSecrets({
+            tokens: ["a", "b"],
+            credentials: { user: "u", pass: "p" },
+            name: "svc",
+        });
+        expect(out).toEqual({
+            tokens: "***REDACTED***",
+            credentials: "***REDACTED***",
+            name: "svc",
+        });
+    });
 });
 
 describe("rewritePaths", () => {

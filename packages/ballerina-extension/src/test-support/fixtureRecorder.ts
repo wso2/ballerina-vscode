@@ -59,7 +59,9 @@ export function redactSecrets<T>(value: T): T {
         }
         const out: any = {};
         for (const [k, val] of Object.entries(v)) {
-            out[k] = SECRET_KEY_RE.test(k) && typeof val === "string" ? "***REDACTED***" : walk(val);
+            // Redact the WHOLE value for a secret-looking key regardless of type — an array
+            // or object under e.g. `credentials`/`tokens` must not recurse through unredacted.
+            out[k] = SECRET_KEY_RE.test(k) ? "***REDACTED***" : walk(val);
         }
         return out;
     };
