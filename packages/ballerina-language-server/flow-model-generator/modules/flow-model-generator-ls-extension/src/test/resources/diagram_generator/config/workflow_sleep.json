@@ -102,7 +102,7 @@
           "packageName": "workflow",
           "object": "Context",
           "symbol": "sleep",
-          "version": "0.0.0",
+          "version": "0.5.0",
           "lineRange": {
             "fileName": "workflow_sleep.bal",
             "startLine": {
@@ -130,7 +130,7 @@
                 "typeMembers": [
                   {
                     "type": "Duration",
-                    "packageInfo": "ballerina:time:2.8.0",
+                    "packageInfo": "ballerina:time:2.8.1",
                     "packageName": "time",
                     "kind": "RECORD_TYPE",
                     "selected": true
