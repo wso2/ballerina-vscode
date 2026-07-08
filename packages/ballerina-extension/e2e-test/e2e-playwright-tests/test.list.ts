@@ -46,6 +46,7 @@ import runConflict from './run-conflict/run-conflict.spec';
 import runConcurrent from './run-concurrent/run-concurrent.spec';
 import automationDebug from './automation-debug/automation-debug.spec';
 import expressionEditor from './expression-editor/expression-editor.spec';
+import expressionEditorAdvanced from './expression-editor/expression-editor-advanced.spec';
 
 import httpService from './api-integration/http-service.spec';
 import httpUpload from './api-integration/http-upload.spec';
@@ -127,6 +128,7 @@ test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
 
     // <----Expression Editor Test---->
     test.describe(expressionEditor);
+    test.describe(expressionEditorAdvanced);
 
     // <----Integration as API Test---->
     test.describe(httpService);
