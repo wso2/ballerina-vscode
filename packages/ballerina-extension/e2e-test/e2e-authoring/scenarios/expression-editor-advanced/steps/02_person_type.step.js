@@ -62,6 +62,19 @@
     console.log('no [data-testid="type-field"] cell found — age keeps default type');
   }
 
+  // Mark age as optional — the "?" icon button next to the field
+  // (vscode-button[title="Set as an Optional Field"]); active state flips the
+  // icon fill from descriptionForeground to button-background.
+  const optionalBtn = frame.locator('vscode-button[title="Set as an Optional Field"]').last();
+  await optionalBtn.waitFor({ state: 'visible', timeout: 10000 });
+  await optionalBtn.click({ force: true });
+  await window.waitForTimeout(500);
+  const activeFill = await optionalBtn.locator('g[fill="var(--vscode-button-background)"]').count();
+  if (activeFill === 0) {
+    throw new Error('optional-field "?" button did not activate for age');
+  }
+  console.log('marked age as optional (? icon active)');
+
   const saveBtn = frame.getByRole('button', { name: 'Save' }).first();
   await saveBtn.waitFor({ state: 'visible', timeout: 15000 });
   await saveBtn.click({ force: true });

@@ -2,11 +2,18 @@
   const frame = await getBIWebview();
   const panel = frame.locator('[data-testid="side-panel"]').first();
 
+  // Mode-switcher labels can render outside the viewport at this window
+  // size — dispatch a DOM click instead of a pointer click.
+  const domClick = async (locator) => {
+    await locator.waitFor({ state: 'attached', timeout: 15000 });
+    await locator.evaluate((el) => el.click());
+  };
+
   // Continue editing p (form open from step 06, Expression mode active).
   // Reopen the Record Configuration modal and create a configurable from the
   // helper pane, then reference it in the record value.
   const record = frame.locator('[data-testid="primary-mode"]');
-  await record.click({ force: true });
+  await domClick(record);
   await window.waitForTimeout(1500);
   const preview = frame.locator('[data-testid="ex-editor-expression"] textarea, [data-testid="ex-editor-expression"] input, [data-testid="ex-editor-expression"] .cm-content').last();
   await preview.click({ force: true });
@@ -20,6 +27,23 @@
   await window.waitForTimeout(2000);
   await frame.getByText('Configurables', { exact: true }).last().waitFor({ timeout: 15000 });
   console.log('helper pane menu visible (Inputs/Variables/Configurables/Functions)');
+
+  // Position the insertion point: SELECT the current "Anne" value (not the
+  // whole field, not left empty) via the CM API so the record's surrounding
+  // structure `{name: |, age: 30}` stays intact. Creating the configurable
+  // while this selection is active replaces exactly that span with the new
+  // reference — no manual retype of the full literal needed afterward.
+  const modalCmIndex = (await frame.locator('.cm-content').count()) - 1;
+  await frame.evaluate(({ index }) => {
+    const el = document.querySelectorAll('.cm-content')[index];
+    const view = el.cmView.view;
+    const text = view.state.doc.toString();
+    const start = text.indexOf('"Anne"');
+    if (start === -1) { throw new Error(`"Anne" not found in record field: ${text}`); }
+    view.dispatch({ selection: { anchor: start, head: start + '"Anne"'.length } });
+    view.focus();
+  }, { index: modalCmIndex });
+  console.log('selected "Anne" value in place (structure preserved)');
 
   await frame.getByText('Configurables', { exact: true }).last().click({ force: true });
   await window.waitForTimeout(1500);
@@ -56,36 +80,36 @@
   }
   console.log('config.bal contains configurable');
 
-  // Close the modal and switch to Expression mode to edit the record value.
-  // IMPORTANT: the chip editor's form model only commits on real keyboard
-  // input — cmFill alone leaves Save disabled. Clear with cmFill, then type.
-  await frame.locator('.unq-modal-overlay').last().locator('vscode-button, button').first().click({ force: true });
-  await window.waitForTimeout(1000);
-  await frame.locator('[data-testid="expression-mode"]').click({ force: true });
-  await window.waitForTimeout(2000);
-  const fieldCm = panel.locator('.cm-content').first();
-  await fieldCm.click({ force: true });
-  await window.waitForTimeout(300);
-  await cmFill('', 0);
-  await window.waitForTimeout(500);
-  await window.keyboard.type('{name: personName, age: 30}', { delay: 30 });
-  await window.waitForTimeout(2500);
-
-  // personName must render as a blue chip widget (fw-bi-variable icon,
-  // blue background) as it is typed
-  const chip = panel.locator('.cm-content span[contenteditable="false"]', { hasText: 'personName' }).first();
-  await chip.waitFor({ state: 'visible', timeout: 15000 });
+  // The blue chip appears at the selected position — wait generously since
+  // render timing varies. NOTE: closing and reopening the modal as a
+  // fallback was tried and found HARMFUL in the promoted e2e suite — it
+  // re-fetches the node's last SAVED value, discarding the in-progress
+  // (unsaved) configurable insertion and reverting the field back to the
+  // original "Anne" literal. A direct, longer wait is safer than a
+  // "recovery" path that destroys the edit.
+  const chip = overlay.locator('.cm-content span[contenteditable="false"]', { hasText: 'personName' }).first();
+  await chip.waitFor({ state: 'visible', timeout: 30000 });
   const chipStyle = await chip.getAttribute('style');
   console.log('chip style:', chipStyle);
   if (!chipStyle.includes('rgba(59, 130, 246')) {
     throw new Error(`configurable chip is not blue: ${chipStyle}`);
   }
-  const hasIcon = await chip.locator('i.fw-bi-variable').count();
-  console.log('chip rendered blue with variable icon:', hasIcon > 0);
+  console.log('chip rendered blue at the exact insertion point');
 
+  // Verify the record's surrounding structure survived the insertion —
+  // the field should read {name: personName, age: 30}, not a bare token
+  const modalText = await overlay.locator('.cm-content').last().innerText();
+  const normalized = modalText.replace(/\s+/g, ' ').trim();
+  if (!normalized.includes('name:') || !normalized.includes('personName') || !normalized.includes('age: 30')) {
+    throw new Error(`record structure not preserved after cursor insert: ${JSON.stringify(modalText)}`);
+  }
+  console.log('record structure preserved:', JSON.stringify(modalText));
+
+  await overlay.locator('vscode-button, button').first().click({ force: true });
+  await window.waitForTimeout(1000);
   await dismissHelperPanel();
   await saveOpenFlowNodeForm();
-  console.log('saved p with configurable reference');
+  console.log('saved p with configurable reference (no manual retype needed)');
 
   const source = fs.readFileSync(path.join(state.integrationDir, 'automation.bal'), 'utf8');
   if (!source.includes('Person p = {name: personName, age: 30}')) {

@@ -1,6 +1,13 @@
 {
   const frame = await getBIWebview();
 
+  // Mode-switcher labels can render outside the viewport at this window
+  // size — dispatch a DOM click instead of a pointer click.
+  const domClick = async (locator) => {
+    await locator.waitFor({ state: 'attached', timeout: 15000 });
+    await locator.evaluate((el) => el.click());
+  };
+
   // Create p:Person with a typed record literal and save. The Record mode
   // switcher only appears when EDITING a saved record-typed variable (the
   // node template must carry the record type), so creation uses the plain
@@ -27,14 +34,19 @@
   }
   console.log('record literal in source verified');
 
-  // Reopen the node: the mode switcher must offer Record / Expression
+  // Reopen the node: the mode switcher must offer Record / Expression.
+  // CONFIRMED (verified live, 30s wait, clean state, both with and without
+  // touching the Expression field): the switcher never renders while the
+  // node is being CREATED, even after Type=Person is set — it only mounts
+  // once the record-typed field is reopened for editing on a SAVED node.
+  // Wait generously here since this is the one point it actually appears.
   const node = frame.getByText(/p = \{name/).last();
   await node.waitFor({ state: 'visible', timeout: 15000 });
   await node.click({ force: true });
-  await window.waitForTimeout(2500);
   const record = frame.locator('[data-testid="primary-mode"]');
   const expression = frame.locator('[data-testid="expression-mode"]');
-  await record.waitFor({ state: 'visible', timeout: 15000 });
+  await record.waitFor({ state: 'visible', timeout: 30000 });
+  await expression.waitFor({ state: 'visible', timeout: 5000 });
   const labels = [await record.innerText(), await expression.innerText()];
   console.log('mode switcher labels:', JSON.stringify(labels));
   if (labels[0] !== 'Record' || labels[1] !== 'Expression') {
@@ -43,7 +55,7 @@
 
   // Switch to Record mode and open the Record Configuration modal by
   // focusing the preview editor
-  await record.click({ force: true });
+  await domClick(record);
   await window.waitForTimeout(1500);
   const preview = frame.locator('[data-testid="ex-editor-expression"] textarea, [data-testid="ex-editor-expression"] input, [data-testid="ex-editor-expression"] .cm-content').last();
   await preview.click({ force: true });
@@ -60,7 +72,7 @@
   // switch to Expression mode and confirm the literal is intact
   await overlay.locator('vscode-button, button').first().click({ force: true });
   await window.waitForTimeout(1000);
-  await expression.click({ force: true });
+  await domClick(expression);
   await window.waitForTimeout(1500);
   const cmValue = await frame.locator('[data-testid="side-panel"] .cm-content').first().innerText();
   if (!cmValue.replace(/\s/g, '').includes('{name:"Anne",age:30}'.replace(/\s/g, ''))) {

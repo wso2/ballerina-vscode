@@ -192,14 +192,23 @@ export default function createTests() {
             await intOption.click({ force: true });
             logStep('Filled type fields: name (string), age (int)');
 
+            // Mark age optional via the "?" icon button next to the field row;
+            // its icon fill flips to button-background when active.
+            const optionalBtn = frame.locator('vscode-button[title="Set as an Optional Field"]').last();
+            await optionalBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await optionalBtn.click({ force: true });
+            await page.page.waitForTimeout(500);
+            expect(await optionalBtn.locator('g[fill="var(--vscode-button-background)"]').count()).toBeGreaterThan(0);
+            logStep('Marked age as optional');
+
             await frame.getByRole('button', { name: 'Save' }).first().click({ force: true });
             await frame.getByTestId(`type-node-${personTypeName}`).waitFor({ timeout: 30000 });
             logStep('Type node visible in diagram');
 
             const typesSource = await pollGenerated('types.bal', `type ${personTypeName} record {|`);
             expect(typesSource).toContain('string name;');
-            expect(typesSource).toContain('int age;');
-            logStep('types.bal verified');
+            expect(typesSource).toContain('int age?;');
+            logStep('types.bal verified (age is optional)');
 
             // Back to the overview for the next test
             const home = frame.getByTestId('home-button').first();
@@ -315,13 +324,18 @@ export default function createTests() {
             await pollGenerated('automation.bal', `${personTypeName} ${recordVarName} = {name: "Anne", age: 30}`);
             logStep('Record variable saved with typed literal');
 
-            // Reopen the node — Record / Expression mode switcher must appear
+            // Reopen the node — Record / Expression mode switcher must appear.
+            // CONFIRMED (verified live: 30s wait, clean state, with and
+            // without touching Expression, typed vs completion-picked type):
+            // this switcher never renders during CREATION, only once a
+            // record-typed field is reopened for editing on a saved node —
+            // so wait generously here since this is the one point it appears.
             const node = frame.getByText(new RegExp(`${recordVarName} = \\{name`)).last();
             await node.waitFor({ state: 'visible', timeout: 15000 });
             await node.click({ force: true });
             const recordMode = frame.getByTestId('primary-mode');
             const expressionMode = frame.getByTestId('expression-mode');
-            await recordMode.waitFor({ state: 'visible', timeout: 15000 });
+            await recordMode.waitFor({ state: 'visible', timeout: 30000 });
             expect(await recordMode.innerText()).toBe('Record');
             expect(await expressionMode.innerText()).toBe('Expression');
             logStep('Record/Expression mode switcher visible on edit');
@@ -354,6 +368,25 @@ export default function createTests() {
             const modalCm = overlay.locator('.cm-content').last();
             await modalCm.click({ force: true });
             await frame.getByText('Configurables', { exact: true }).last().waitFor({ timeout: 15000 });
+
+            // Position the insertion point precisely: SELECT the current
+            // "Anne" value (not the whole field, not left empty) via the CM
+            // API so the record's surrounding structure `{name: |, age: 30}`
+            // stays intact. Creating the configurable while this selection is
+            // active replaces exactly that span with the new reference —
+            // no manual retype of the full literal needed afterward.
+            const modalCmIndex = (await frame.locator('.cm-content').count()) - 1;
+            await frame.evaluate(({ index }) => {
+                const el = document.querySelectorAll('.cm-content')[index] as any;
+                const view = el.cmView.view;
+                const text = view.state.doc.toString();
+                const start = text.indexOf('"Anne"');
+                if (start === -1) { throw new Error(`"Anne" not found in record field: ${text}`); }
+                view.dispatch({ selection: { anchor: start, head: start + '"Anne"'.length } });
+                view.focus();
+            }, { index: modalCmIndex });
+            logStep('Selected "Anne" value in place (structure preserved)');
+
             await frame.getByText('Configurables', { exact: true }).last().click({ force: true });
             await page.page.waitForTimeout(1500);
             const newConfig = frame.getByText('New Configurable', { exact: false }).last();
@@ -380,27 +413,30 @@ export default function createTests() {
             await pollGenerated('config.bal', `configurable string ${configName} = "Anne"`);
             logStep('config.bal has the new configurable');
 
-            // Close the modal and set the record value through the keyboard —
-            // programmatic CM edits do not commit to the form model
-            await frame.locator('.unq-modal-overlay').last().locator('vscode-button, button').first().click({ force: true });
-            await page.page.waitForTimeout(1000);
-            await domClick(expressionMode);
-            await page.page.waitForTimeout(2000);
-            const fieldCm = panel.locator('.cm-content').first();
-            await fieldCm.click({ force: true });
-            await cmSet(frame, '', 0);
-            await page.page.waitForTimeout(500);
-            await page.page.keyboard.type(`{name: ${configName}, age: 30}`, { delay: 30 });
-            await page.page.waitForTimeout(2500);
-
-            // The configurable renders as a blue chip widget
-            const chip = panel.locator('.cm-content span[contenteditable="false"]', { hasText: configName }).first();
-            await chip.waitFor({ state: 'visible', timeout: 15000 });
+            // The blue chip appears at the selected position — wait generously
+            // since this environment's render timing varies. NOTE: closing and
+            // reopening the modal as a fallback was tried and found harmful —
+            // it re-fetches the node's last SAVED value, discarding the
+            // in-progress (unsaved) configurable insertion and reverting the
+            // field back to the original "Anne" literal. A direct, longer wait
+            // is safer than a "recovery" path that destroys the edit.
+            const chip = overlay.locator('.cm-content span[contenteditable="false"]', { hasText: configName }).first();
+            await chip.waitFor({ state: 'visible', timeout: 30000 });
             const chipStyle = await chip.getAttribute('style');
             expect(chipStyle).toContain('rgba(59, 130, 246');
             expect(await chip.locator('i.fw-bi-variable').count()).toBeGreaterThan(0);
-            logStep('Configurable rendered as blue chip');
+            logStep('Configurable rendered as blue chip at the exact insertion point');
 
+            // The record's surrounding structure must have survived the
+            // insertion — no manual retype was performed.
+            const modalText = (await overlay.locator('.cm-content').last().innerText()).replace(/\s+/g, ' ').trim();
+            expect(modalText).toContain('name:');
+            expect(modalText).toContain(configName);
+            expect(modalText).toContain('age: 30');
+            logStep('Record structure preserved without manual retype');
+
+            await overlay.locator('vscode-button, button').first().click({ force: true });
+            await page.page.waitForTimeout(1000);
             await saveOpenForm(frame);
             await pollGenerated('automation.bal', `${personTypeName} ${recordVarName} = {name: ${configName}, age: 30}`);
             logStep('automation.bal has the configurable reference');

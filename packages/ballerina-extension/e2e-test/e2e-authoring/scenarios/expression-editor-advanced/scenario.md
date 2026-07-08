@@ -72,18 +72,32 @@ All items below are CONFIRMED through the authoring daemon (steps 01–12).
   Inputs / Variables / Configurables / Functions. Configurables →
   "New Configurable" opens an inline form (Variable Name / Variable Type /
   Default Value / Documentation) whose Save writes
-  `configurable string personName = "Anne";` to `config.bal` AND auto-inserts
-  the bare name at the cursor — into an empty record expression that produces
-  `invalid token 'personName'`, so the test sets the full record value after.
+  `configurable string personName = "Anne";` to `config.bal` and replaces
+  whatever text was **selected** in the record field at the moment "New
+  Configurable" was opened with the new reference.
+- **Correct insertion technique (confirmed)**: don't create the configurable
+  against an empty or fully-selected field — instead, with the record field
+  holding a valid literal (e.g. `{name: "Anne", age: 30}`), use the CM API to
+  select just the value to replace (e.g. the `"Anne"` span, found via
+  `view.state.doc.toString().indexOf('"Anne"')` and a `view.dispatch({
+  selection: { anchor, head } })`), *then* open Configurables → New
+  Configurable. The saved configurable replaces exactly that selection,
+  producing `{name: personName, age: 30}` directly — no manual clear+retype
+  needed, and the surrounding structure is never at risk.
+- **Close/reopen is NOT a safe fallback for a slow-to-render chip** (tried in
+  the promoted e2e suite and found harmful): reopening the Record
+  Configuration modal re-fetches the node's last **saved** value, discarding
+  the in-progress (unsaved) configurable insertion and reverting the field
+  back to the original literal (e.g. `"Anne"`). If the chip doesn't render
+  promptly, wait longer (30s) rather than closing the modal.
 - **Blue chip confirmed**: in Expression mode the configurable reference
   renders as an inline CM widget — `span[contenteditable="false"]` containing
   `i.fw-bi-variable` and the name, with inline style
   `background: rgba(59, 130, 246, 0.15)` (blue). Assert the style + icon.
-- **Chip editor edits must go through the keyboard**: `cmFill` (programmatic
-  CM dispatch) renders but does NOT commit to the form model — Save stays
-  disabled and the old value persists. Clear with `cmFill('')`, then
-  `keyboard.type(...)`. Do not select-all-and-type over an existing chip
-  widget — it mangles the text.
+- Field rows in the Record Configuration modal's `parameter-branch` tree have
+  **no per-field value input** — only a checkbox (include/exclude) + name +
+  type label. All value editing happens through the single combined
+  expression editor at the bottom of the modal.
 - MySQL: palette → "Add Connection" → search → card `#connector-mysql`
   (testid `function-card-MySQL`) → form defaults name `mysqlClient`, all
   params optional → "Save Connection" writes
@@ -108,7 +122,21 @@ All items below are CONFIRMED through the authoring daemon (steps 01–12).
 - Creating the `Person` type: hover the project explorer "Types" node and use
   the inline "View Type Diagram"/"Add Type" actions (the node itself has no
   click command); the type helper panel in the type editor lets you pick
-  `int` for a field via dblclick on the `type-field` cell.
+  `int` for a field via dblclick on the `type-field` cell. Mark `age` as
+  **optional** via the "?" icon button next to the field row
+  (`vscode-button[title="Set as an Optional Field"]`) — its icon fill flips
+  from `descriptionForeground` to `button-background` when active; generated
+  source is `int age?;` and it later shows in the Record Configuration modal's
+  field tree as "int (Optional)".
+- **Mode switcher timing (confirmed, 4 independent live tests)**: the
+  Record/Expression switcher (`data-testid="primary-mode"` /
+  `"expression-mode"`) never renders during node CREATION — not immediately
+  after setting Type=Person, not after 30s of waiting, not after focusing the
+  Expression field, and not via a type-field autocomplete pick instead of
+  typed text. It only mounts once the record-typed field is **reopened for
+  editing on an already-saved node**. Create with a typed literal, save, then
+  reopen — and wait generously (~30s) for the switcher right after the
+  reopen-click, since that's the one point it's guaranteed to appear.
 - Promotion shape: several serial tests inside one `test.describe.serial`
   (expanded editor + completion; record config + configurable chip; MySQL
   query SQL toggle; AI agent prompt markdown), sharing one project.
