@@ -7,8 +7,18 @@
 ## Approach
 > Describe how you are implementing the solutions. Include an animated GIF or screenshot if the change affects the UI (email documentation@wso2.com to review all UI text). Include a link to a Markdown file or Google doc if the feature write-up is too long to paste here.
 
+## UI Component Development
+> Specify the reason if following are not followed.
+- [ ] Added reusable UI components to the ui-toolkit. Follow the [intructions](./workspaces/common-libs/ui-toolkit/README.md) when adding the componenent.
+- [ ] Use ui-toolkit components wherever possible. Run `npm run storybook` from the root directory to view current components.
+- [ ] Matches with the native VSCode look and feel.
+
+## Manage Icons
+> Specify the reason if following are not followed.
+- [ ] Added Icons to the font-wso2-vscode. Follow the [instructions](./workspaces/common-libs/font-wso2-vscode/README.md).
+
 ## User stories
-> Summary of user stories addressed by this change
+> Summary of user stories addressed by this change>
 
 ## Release note
 > Brief description of the new feature or bug fix as it will appear in the release notes
@@ -26,7 +36,7 @@
 > Link to drafts of marketing content that will describe and promote this feature, including product page changes, technical articles, blog posts, videos, etc., if applicable
 
 ## Automation tests
- - Unit tests
+ - Unit tests 
    > Code coverage information
  - Integration tests
    > Details about the test cases and coverage
@@ -47,6 +57,6 @@
 
 ## Test environment
 > List all JDK versions, operating systems, databases, and browser/versions on which this feature/fix was tested
-
+ 
 ## Learning
 > Describe the research phase and any blog posts, patterns, libraries, or add-ons you used to solve the problem.
