@@ -20,8 +20,11 @@ package io.ballerina.servicemodelgenerator.extension.builder.function;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
+import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
@@ -30,6 +33,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContex
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
+import io.ballerina.servicemodelgenerator.extension.util.HttpUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -44,6 +48,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_HEADER_PARAM_ANNOTATION;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PARAM_TYPE_HEADER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
@@ -423,7 +429,47 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
             }
         }
 
+        // Enrich transport-bound tool params (Streamable HTTP) so the tool form can render them as
+        // header / advanced params instead of ordinary tool inputs.
+        enrichTransportParams(function, functionNode);
+
         return function;
+    }
+
+    /**
+     * Marks `@http:Header` parameters with their HTTP param type and header name so they round-trip in
+     * the tool form's Headers section. Raw `http:Request` / `http:Headers` params are recognised by the
+     * webview from their type value, so they need no enrichment here.
+     *
+     * @param function     the function model built from source
+     * @param functionNode the function definition node
+     */
+    private static void enrichTransportParams(Function function, FunctionDefinitionNode functionNode) {
+        List<Parameter> parameters = function.getParameters();
+        if (parameters == null || parameters.isEmpty()) {
+            return;
+        }
+        Map<String, Parameter> paramsByName = new HashMap<>();
+        for (Parameter parameter : parameters) {
+            if (parameter.getName() != null && parameter.getName().getValue() != null) {
+                paramsByName.put(parameter.getName().getValue(), parameter);
+            }
+        }
+        for (ParameterNode parameterNode : functionNode.functionSignature().parameters()) {
+            Optional<Parameter> paramModel = getParameterModel(parameterNode);
+            if (paramModel.isEmpty()) {
+                continue;
+            }
+            Parameter parameter = paramsByName.get(paramModel.get().getName().getValue());
+            if (parameter == null) {
+                continue;
+            }
+            NodeList<AnnotationNode> paramAnnotations = Utils.getParamAnnotations(parameterNode);
+            Optional<String> httpParamType = HttpUtil.getHttpParamTypeAndSetHeaderName(parameter, paramAnnotations);
+            if (httpParamType.isPresent() && httpParamType.get().equals(HTTP_HEADER_PARAM_ANNOTATION)) {
+                parameter.setHttpParamType(HTTP_PARAM_TYPE_HEADER);
+            }
+        }
     }
 
     @Override
