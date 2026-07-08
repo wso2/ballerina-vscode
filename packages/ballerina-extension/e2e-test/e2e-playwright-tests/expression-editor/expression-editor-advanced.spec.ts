@@ -270,16 +270,21 @@ export default function createTests() {
                     'Type': { type: 'textarea', value: 'int', additionalProps: { clickLabel: true } }
                 }
             });
+            await expect(panel.getByText("incompatible types: expected 'int', found 'string'")).toBeVisible({ timeout: 15000 });
+            logStep('Type-mismatch diagnostic verified: incompatible types: expected \'int\', found \'string\'');
             await dismissHelperPanel();
 
             // Completion-driven function call (no signature-help popup exists
-            // in the multi-mode editor — insertion help is completion-based)
+            // in the multi-mode editor — insertion help is completion-based).
+            // Append to the existing "Hello World" text instead of clearing
+            // and retyping — placing the cursor at the end and typing ".le"
+            // triggers the same completion.
             const exprCm = panel.locator('.cm-content').last();
             await exprCm.click();
             await page.page.waitForTimeout(500);
-            await cmSet(frame, '', (await frame.locator('.cm-content').count()) - 1);
+            await page.page.keyboard.press(process.platform === 'darwin' ? 'Meta+End' : 'Control+End');
             await page.page.waitForTimeout(300);
-            await page.page.keyboard.type('"Hello World".le', { delay: 80 });
+            await page.page.keyboard.type('.le', { delay: 80 });
             const option = frame.locator('.cm-tooltip-autocomplete [role="option"]', { hasText: 'length' }).first();
             await option.waitFor({ state: 'visible', timeout: 15000 });
             logStep('Completion list visible');
@@ -440,6 +445,64 @@ export default function createTests() {
             await saveOpenForm(frame);
             await pollGenerated('automation.bal', `${personTypeName} ${recordVarName} = {name: ${configName}, age: 30}`);
             logStep('automation.bal has the configurable reference');
+
+            // Reopen the node and untick the optional "age" field: its entry
+            // must drop entirely from the combined Expression value (not
+            // just go blank), and the change must flow through to source.
+            // The node click occasionally doesn't register (panel stays
+            // closed) — retry with real delays between attempts.
+            const node2 = frame.getByText(new RegExp(`${recordVarName} = \\{`)).last();
+            await node2.waitFor({ state: 'visible', timeout: 15000 });
+            const reopenDeadline = Date.now() + 30000;
+            while (Date.now() < reopenDeadline) {
+                await node2.click({ force: true }).catch(() => { });
+                if (await recordMode.isVisible({ timeout: 3000 }).catch(() => false)) { break; }
+                await page.page.waitForTimeout(1000);
+            }
+            await recordMode.waitFor({ state: 'visible', timeout: 10000 });
+            await domClick(recordMode);
+            await page.page.waitForTimeout(1500);
+            const preview2 = frame.locator('[data-testid="ex-editor-expression"] textarea, [data-testid="ex-editor-expression"] input, [data-testid="ex-editor-expression"] .cm-content').last();
+            await preview2.click({ force: true });
+            await page.page.waitForTimeout(2000);
+            const overlay2 = frame.locator('.unq-modal-overlay').last();
+            await overlay2.getByText('Select fields to construct the record').waitFor({ timeout: 15000 });
+            logStep('Reopened Record Configuration modal');
+
+            // The required "name" field's checkbox is disabled; "age" (an
+            // optional field) is the only enabled one.
+            const ageCheckbox = overlay2.locator('[data-testid="parameter-branch"] vscode-checkbox:not([disabled])').last();
+            await ageCheckbox.waitFor({ state: 'visible', timeout: 10000 });
+            await ageCheckbox.click({ force: true });
+            await page.page.waitForTimeout(1500);
+            expect(await ageCheckbox.getAttribute('aria-checked')).toBe('false');
+            logStep('Unchecked the age field');
+
+            const modalText2 = (await overlay2.locator('.cm-content').last().innerText()).replace(/\s+/g, ' ').trim();
+            expect(modalText2).not.toContain('age');
+            expect(modalText2).toContain('name:');
+            expect(modalText2).toContain(configName);
+            logStep('Expression value dropped the age entry entirely');
+
+            const declareSave = panel.getByRole('button', { name: 'Save' }).last();
+            await expect(declareSave).toBeEnabled({ timeout: 5000 });
+
+            await overlay2.locator('vscode-button, button').first().click({ force: true });
+            await page.page.waitForTimeout(1000);
+            await saveOpenForm(frame);
+
+            // "name: personName" was already true from the earlier save, so
+            // polling for its presence alone would return a stale positive —
+            // wait specifically until "age" actually disappears from source.
+            const deadline = Date.now() + 30000;
+            let finalSource = readGenerated('automation.bal');
+            while (Date.now() < deadline && finalSource.includes('age')) {
+                await page.page.waitForTimeout(1000);
+                finalSource = readGenerated('automation.bal');
+            }
+            expect(finalSource).not.toContain('age');
+            expect(finalSource).toContain(`name: ${configName}`);
+            logStep('automation.bal record literal has no age field');
         });
 
         test('MySQL Query with SQL Mode Toggle', async ({ }, testInfo) => {

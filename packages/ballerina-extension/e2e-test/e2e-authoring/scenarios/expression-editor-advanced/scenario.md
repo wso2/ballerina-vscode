@@ -34,12 +34,14 @@ in the spec.
 | 8 | Add a Declare Variable node (`p`, `Person`); in the Expression use the record-config support (Create Value section or typed `{ name: "Anne", age: 30 }`); switch between the record form view and the raw expression view | Record template/fields inserted; no error occurs when toggling between the two views |
 | 9 | Edit the record through the record config editor with the helper pane (Variables, Configurables, Functions, Inputs); create a new configurable via the "Add New Config" button and assign it to a field | Blue chip appears for the configurable and the value is shown without any error |
 | 10 | Save | Node in diagram |
-| 11 | Add a MySQL connector by clicking the add-connection button | MySQL visible in the side panel |
-| 12 | Click the MySQL connector and select the Query action | Side panel opens the query form |
-| 13 | Add an SQL statement and toggle between SQL format and expression format, then save | Save succeeds without error; statement is wrapped in SQL backticks; flow diagram shows the connector addition |
-| 14 | Click AI in the side panel, select Agent, and add a new agent | Each navigation step lands on the expected view |
-| 15 | Open the prompt field's expand mode and use the different markdown formatting tools, then save | Markdown formatting is applied in the prompt without errors |
-| 16 | Verify the generated source | Declarations, connector + query, and agent match the fixture |
+| 11 | Reopen the node, switch to Record mode, and untick the optional `age` field's checkbox in the Record Configuration modal | Expression value updates to drop the `age` entry entirely (e.g. `{name: personName}`); Save remains enabled |
+| 12 | Save | Generated code's `Person p` record literal has no `age` field |
+| 13 | Add a MySQL connector by clicking the add-connection button | MySQL visible in the side panel |
+| 14 | Click the MySQL connector and select the Query action | Side panel opens the query form |
+| 15 | Add an SQL statement and toggle between SQL format and expression format, then save | Save succeeds without error; statement is wrapped in SQL backticks; flow diagram shows the connector addition |
+| 16 | Click AI in the side panel, select Agent, and add a new agent | Each navigation step lands on the expected view |
+| 17 | Open the prompt field's expand mode and use the different markdown formatting tools, then save | Markdown formatting is applied in the prompt without errors |
+| 18 | Verify the generated source | Declarations, connector + query, and agent match the fixture |
 
 ## Gaps
 
@@ -94,6 +96,18 @@ All items below are CONFIRMED through the authoring daemon (steps 01–12).
   renders as an inline CM widget — `span[contenteditable="false"]` containing
   `i.fw-bi-variable` and the name, with inline style
   `background: rgba(59, 130, 246, 0.15)` (blue). Assert the style + icon.
+- **Unchecking an optional field (confirmed)**: in the `parameter-branch`
+  tree, a required field's checkbox is `disabled` (e.g. `name`); an optional
+  field's checkbox (e.g. `age`, listed under "Optional fields") is enabled.
+  Unchecking it (`aria-checked` flips to `false`) immediately removes that
+  field's entry from the combined Expression value — `{name: personName, age:
+  30}` becomes `{name: personName}`, not just a blank value — and Save stays
+  enabled. The generated record literal in source correspondingly drops the
+  field entirely.
+- Appending to an existing expression value works fine for triggering
+  completions — no need to clear and retype from scratch. Move the cursor to
+  the end (`Meta+End`/`Control+End`) and type the suffix (e.g. `.le` after an
+  existing `"Hello World"`) to get the same completion list.
 - Field rows in the Record Configuration modal's `parameter-branch` tree have
   **no per-field value input** — only a checkbox (include/exclude) + name +
   type label. All value editing happens through the single combined

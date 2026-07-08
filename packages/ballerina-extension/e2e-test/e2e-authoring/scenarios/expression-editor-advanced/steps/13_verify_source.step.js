@@ -4,10 +4,10 @@
   const read = (f) => fs.readFileSync(path.join(state.integrationDir, f), 'utf8');
 
   const checks = [
-    ['types.bal', ['type Person record {|', 'string name;', 'int age;']],
+    ['types.bal', ['type Person record {|', 'string name;', 'int age?;']],
     ['automation.bal', [
       'int greeting = "Hello World".length()',
-      'Person p = {name: personName, age: 30}',
+      'name: personName',
       'mysqlClient->query(`SELECT * FROM users`)',
       '.run("Summarize the user data")'
     ]],

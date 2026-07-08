@@ -11,17 +11,26 @@
       'Type': { type: 'textarea', value: 'int', additionalProps: { clickLabel: true } }
     }
   });
-  await dismissHelperPanel();
   console.log('type set to int');
 
-  // Clear the expression and type a method access up to a partial name
+  // The Expression field still holds the plain string "Hello World" at this
+  // point — a type-mismatch diagnostic must render below the editor.
+  const panel = frame.locator('[data-testid="side-panel"]').first();
+  const mismatchText = panel.getByText("incompatible types: expected 'int', found 'string'");
+  await mismatchText.waitFor({ state: 'visible', timeout: 15000 });
+  console.log('verified diagnostic: incompatible types: expected \'int\', found \'string\'');
+
+  await dismissHelperPanel();
+
+  // Append to the existing "Hello World" text rather than clearing and
+  // retyping — placing the cursor at the end and typing ".le" triggers the
+  // same completion.
   const expr = frame.locator('[data-testid="side-panel"] .cm-content').last();
   await expr.click();
   await window.waitForTimeout(500);
-  const cmCount = await frame.locator('.cm-content').count();
-  await cmFill('', cmCount - 1);
+  await window.keyboard.press(process.platform === 'darwin' ? 'Meta+End' : 'Control+End');
   await window.waitForTimeout(300);
-  await window.keyboard.type('"Hello World".le', { delay: 80 });
+  await window.keyboard.type('.le', { delay: 80 });
 
   // Completion list must appear with the length() candidate. Click the
   // option — Enter can race the list's selection state.
