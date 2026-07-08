@@ -319,10 +319,12 @@ public class HumanTaskBuilder extends CallBuilder {
                 .filter(p -> p.value() != null && !p.value().toString().isEmpty())
                 .map(Property::toSourceCode)
                 .orElse("\"\"");
+        // Do not default to a privileged role when userRoles is absent; emit an empty string like
+        // taskName so the generated call never silently inserts a role.
         String userRoles = sourceBuilder.getProperty("userRoles")
                 .filter(p -> p.value() != null && !p.value().toString().isEmpty())
                 .map(Property::toSourceCode)
-                .orElse("\"admin\"");
+                .orElse("\"\"");
 
         // Optional named args (only when the user provided a value)
         List<String> callArgs = new ArrayList<>();

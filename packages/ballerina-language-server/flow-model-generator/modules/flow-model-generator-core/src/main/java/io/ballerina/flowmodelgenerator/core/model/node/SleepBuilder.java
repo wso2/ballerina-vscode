@@ -26,6 +26,7 @@ import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Module;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -90,24 +91,45 @@ public class SleepBuilder extends CallBuilder {
                 .object(CONTEXT_CLASS_NAME)
                 .symbol(SLEEP_METHOD_NAME);
 
-        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
-        FunctionData functionData = new FunctionDataBuilder()
-                .name(SLEEP_METHOD_NAME)
-                .moduleInfo(workflowModuleInfo)
-                .parentSymbolType(CONTEXT_CLASS_NAME)
-                .functionResultKind(getFunctionResultKind())
-                .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
-                .userModuleInfo(moduleInfo)
-                .workspaceManager(context.workspaceManager())
-                .filePath(context.filePath())
-                .build();
+        try {
+            ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
+            FunctionData functionData = new FunctionDataBuilder()
+                    .name(SLEEP_METHOD_NAME)
+                    .moduleInfo(workflowModuleInfo)
+                    .parentSymbolType(CONTEXT_CLASS_NAME)
+                    .functionResultKind(getFunctionResultKind())
+                    .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
+                    .userModuleInfo(moduleInfo)
+                    .workspaceManager(context.workspaceManager())
+                    .filePath(context.filePath())
+                    .build();
 
-        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
-        setParameterProperties(functionData, module);
+            Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+            setParameterProperties(functionData, module);
 
-        if (functionData.returnError()) {
-            properties().checkError(true);
+            if (functionData.returnError()) {
+                properties().checkError(true);
+            }
+        } catch (RuntimeException e) {
+            // sleep may not be resolvable yet, or project/dependency loading may fail. Use a stable,
+            // static form so opening/editing SLEEP nodes still works.
+            setFallbackSleepProperties();
         }
+    }
+
+    private void setFallbackSleepProperties() {
+        properties().custom()
+                .metadata()
+                    .label("Duration")
+                    .description("Duration to pause the workflow (e.g. {seconds: 5})")
+                    .stepOut()
+                .type().fieldType(Property.ValueType.EXPRESSION).ballerinaType("time:Duration").selected(true).stepOut()
+                .codedata().kind(ParameterData.Kind.REQUIRED.name()).originalName(DURATION_KEY).stepOut()
+                .placeholder(DURATION_DEFAULT)
+                .editable(true)
+                .stepOut()
+                .addProperty(DURATION_KEY);
+        properties().checkError(true);
     }
 
     @Override
