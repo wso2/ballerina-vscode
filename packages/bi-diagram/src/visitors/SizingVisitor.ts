@@ -442,51 +442,15 @@ export class SizingVisitor implements BaseVisitor {
     endVisitFork(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
 
-        if (!node.branches) {
+        const branchViewStates = this.collectBranchViewStates(node);
+        if (branchViewStates.length === 0) {
+            console.error("No branch view states found in fork node", node);
             return;
         }
 
-        // first branch
-        const firstBranchWidthViewState = node.branches.at(0)?.viewState;
-        if (!firstBranchWidthViewState) {
-            console.error("No first branch view state found in fork node", node);
-            return;
-        }
-        // last branch
-        const lastBranchWidthViewState = node.branches.at(-1)?.viewState;
-        if (!lastBranchWidthViewState) {
-            console.error("No last branch view state found in fork node", node);
-            return;
-        }
-        // middle branches width
-        const middleBranchesWidth = node.branches.slice(1, -1).reduce((acc, branch) => {
-            if (!branch?.viewState) {
-                console.error("Branch view state is not defined", branch);
-                return acc;
-            }
-            return acc + branch.viewState?.clw + branch.viewState?.crw;
-        }, 0);
-        const topBarWidth =
-            firstBranchWidthViewState?.crw +
-            middleBranchesWidth +
-            lastBranchWidthViewState?.clw +
-            NODE_GAP_X * (node.branches.length - 1);
-        // node container left width
-        const nodeContainerLeftWidth = firstBranchWidthViewState?.clw + topBarWidth / 2;
-        // node container right width
-        const nodeContainerRightWidth = topBarWidth / 2 + lastBranchWidthViewState?.crw;
-
-        // node container height
-        let containerHeight = 0;
-        if (node.branches) {
-            node.branches.forEach((child: Branch) => {
-                if (child.viewState) {
-                    containerHeight = Math.max(containerHeight, Math.max(child.viewState.ch, NODE_GAP_Y));
-                }
-            });
-        }
-        // add if node width and height
-        containerHeight += WHILE_NODE_WIDTH + NODE_GAP_Y;
+        const { left: nodeContainerLeftWidth, right: nodeContainerRightWidth } =
+            this.computeBranchRowWidths(branchViewStates);
+        const containerHeight = this.computeBranchRowHeight(branchViewStates) + WHILE_NODE_WIDTH + NODE_GAP_Y;
 
         const halfNodeWidth = WHILE_NODE_WIDTH / 2;
         const nodeHeight = WHILE_NODE_WIDTH;
