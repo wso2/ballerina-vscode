@@ -71,6 +71,14 @@ export let undoRedoManager: IUndoRedoManager;
 let pendingProjectRootUpdateResolvers: Array<() => void> = [];
 let scaffoldPromptTriggered = false;
 
+// Bounded wait for `workspace.workspaceFolders` to be populated before deciding whether the
+// opened project is a BI project. VS Code can activate the extension before the folders/config
+// are settled (notably on window reload), which otherwise makes detection fall back to "not BI".
+const WORKSPACE_FOLDERS_WAIT_TIMEOUT_MS = 5000;
+// `getProjectInfo` can transiently fail while the LS is still warming up right after activation.
+const MAX_PROJECT_INFO_RETRIES = 3;
+const PROJECT_INFO_RETRY_DELAY_MS = 1000;
+
 const stateMachine = createMachine<MachineContext>(
     {
         /** @xstate-layout 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-S3PzToCjSzlMpTMmwo7JgCV-DMRcryOm7ruEMFwcdWhUmCK0QIeYfIMT2k7JYPl9rJurdYjF7yV7SQfZKZUjx7KvpMAnfaAR5GdAkRWSRwsgjmrvSwrBOD8GELMaQ8hGkqE0Mg80EsGqDVZgGJmZZthkOLV-P4qkThIJAfSaB+x2TEnOLMeR2UpYY5RorAa+yq04FLAKmE4+yLzUR2w1kxxvHckCd7kWUI5IyT7SdqVPMjSOgRwEvmQERUQaKbA4PHdwjClnIGKuezq0-G9DkbOks0nyRLoEk8Cz9isU4v4zZoVZz1PZq0x+3TuYYUglJGSDykqqQNQiEAA */
@@ -517,18 +525,28 @@ const stateMachine = createMachine<MachineContext>(
             });
         },
         fetchProjectInfo: (context, event) => {
-            return new Promise(async (resolve, reject) => {
-                try {
-                    const projectPath = context.workspacePath || context.projectPath;
-                    if (!projectPath) {
-                        resolve({ projectInfo: undefined });
-                    } else {
+            return new Promise(async (resolve) => {
+                const projectPath = context.workspacePath || context.projectPath;
+                if (!projectPath || !context.langClient) {
+                    resolve({ projectInfo: undefined });
+                    return;
+                }
+                // Retry a few times to ride out the LS still warming up. On persistent failure,
+                // resolve with undefined so the machine still reaches `extensionReady` (degraded)
+                // instead of throwing into the `lsError` dead-end and hanging activate().
+                for (let attempt = 1; attempt <= MAX_PROJECT_INFO_RETRIES; attempt++) {
+                    try {
                         const projectInfo = await context.langClient.getProjectInfo({ projectPath });
                         resolve({ projectInfo });
+                        return;
+                    } catch (error) {
+                        console.error(`Error occurred while fetching project info (attempt ${attempt}/${MAX_PROJECT_INFO_RETRIES}).`, error);
+                        if (attempt < MAX_PROJECT_INFO_RETRIES) {
+                            await new Promise((r) => setTimeout(r, PROJECT_INFO_RETRY_DELAY_MS));
+                        }
                     }
-                } catch (error) {
-                    throw new Error("Error occurred while fetching project info.", error);
                 }
+                resolve({ projectInfo: undefined });
             });
         },
         registerProjectArtifactsStructure: (context, event) => {
@@ -841,9 +859,13 @@ const stateMachine = createMachine<MachineContext>(
 const stateService = interpret(stateMachine);
 
 function startMachine(): Promise<void> {
-    return new Promise<void>(async (resolve, reject) => {
+    return new Promise<void>((resolve) => {
         stateService.start().onTransition((state) => {
-            if (state.value === "extensionReady") {
+            // Resolve on `lsError` as well so activate() never hangs when an init step fails on a
+            // path that can't be safely auto-retried (activateBallerina is not idempotent). The
+            // extension then activates in a degraded state (BI.status reflects the LS failure)
+            // rather than staying stuck "activating" forever.
+            if (state.value === "extensionReady" || state.value === "lsError") {
                 resolve();
             }
         });
@@ -1020,10 +1042,36 @@ function getLastHistory() {
     return historyStack?.[historyStack?.length - 1];
 }
 
-async function checkForProjects() {
-    const workspaceFolders = workspace.workspaceFolders;
+/**
+ * VS Code can call extension activation before `workspace.workspaceFolders` is populated
+ * (e.g. on window reload). Reading it too early makes BI detection fall back to "not a BI
+ * project", so wait (bounded) for the folders to appear before deciding.
+ */
+async function waitForWorkspaceFolders(
+    timeoutMs = WORKSPACE_FOLDERS_WAIT_TIMEOUT_MS
+): Promise<readonly WorkspaceFolder[] | undefined> {
+    if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+        return workspace.workspaceFolders;
+    }
+    return new Promise((resolve) => {
+        const finish = () => {
+            clearTimeout(timer);
+            disposable.dispose();
+            resolve(workspace.workspaceFolders);
+        };
+        const disposable = workspace.onDidChangeWorkspaceFolders(() => {
+            if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+                finish();
+            }
+        });
+        const timer = setTimeout(finish, timeoutMs);
+    });
+}
 
-    if (!workspaceFolders) {
+async function checkForProjects() {
+    const workspaceFolders = await waitForWorkspaceFolders();
+
+    if (!workspaceFolders || workspaceFolders.length === 0) {
         return { isBI: false, projects: [] };
     }
 

@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { ChangeTypeEnum, Flow, NodePosition, ParentMetadata } from "@wso2/ballerina-core";
+import { ChangeTypeEnum, Flow, NodePosition, ParentMetadata, SemanticDiff } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
@@ -35,6 +35,14 @@ const Container = styled.div`
     pointer-events: auto;
 `;
 
+const MessageContainer = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--vscode-descriptionForeground);
+`;
+
 interface ItemMetadata {
     type: string;
     name: string;
@@ -42,6 +50,10 @@ interface ItemMetadata {
 }
 
 export type ReviewViewMode = "diff" | "new" | "old";
+export type ExpectedFlowMetadata = Pick<SemanticDiff, "nodeKind" | "metadata">;
+
+const NODE_KIND_FUNCTION = 0;
+const NODE_KIND_RESOURCE = 1;
 
 /**
  * Which versions of a file structurally exist for a semantic-diff change type.
@@ -66,6 +78,7 @@ interface ReadonlyFlowDiagramProps {
     onModelLoaded?: (metadata: ItemMetadata) => void;
     viewMode: ReviewViewMode;
     changeType: number;
+    expectedMetadata?: ExpectedFlowMetadata;
     onDiffUnavailable?: () => void;
 }
 
@@ -74,31 +87,80 @@ function getEventStartData(flow: Flow): ParentMetadata | undefined {
     return eventStartNode?.metadata?.data as ParentMetadata | undefined;
 }
 
-// The old-version lookup reuses the new version's position, so line shifts in the old file
-// can land on a different function. Reject the pair when the resolved functions differ.
-function isSameFunction(oldFlow: Flow, newFlow: Flow): boolean {
+function normalizeResourcePath(path?: string): string {
+    const normalized = (path ?? "").trim().replace(/\s+/g, "");
+    return normalized === "/" || normalized.startsWith("/") ? normalized : `/${normalized}`;
+}
+
+function metadataMatchesExpected(flow: Flow, expected?: ExpectedFlowMetadata): boolean {
+    if (!expected?.metadata) {
+        return true;
+    }
+
+    const data = getEventStartData(flow);
+    if (!data) {
+        return false;
+    }
+
+    if (expected.nodeKind === NODE_KIND_RESOURCE) {
+        const metadata = expected.metadata as { accessor?: string; resourcePath?: string };
+        if (!metadata.accessor || !metadata.resourcePath) {
+            return true;
+        }
+        return data.isServiceFunction === true
+            && (data.accessor ?? "").toLowerCase() === (metadata.accessor ?? "").toLowerCase()
+            && normalizeResourcePath(data.label) === normalizeResourcePath(metadata.resourcePath);
+    }
+
+    if (expected.nodeKind === NODE_KIND_FUNCTION) {
+        const metadata = expected.metadata as { name?: string };
+        if (!metadata.name) {
+            return true;
+        }
+        return data.isServiceFunction !== true && data.label === metadata.name;
+    }
+
+    return true;
+}
+
+// The old-version lookup can reuse a modified-tree position. Reject the pair
+// when either side resolves to a different semantic item.
+function isSameExpectedFunction(oldFlow: Flow, newFlow: Flow, expected?: ExpectedFlowMetadata): boolean {
+    if (!metadataMatchesExpected(oldFlow, expected) || !metadataMatchesExpected(newFlow, expected)) {
+        return false;
+    }
+
     const oldData = getEventStartData(oldFlow);
     const newData = getEventStartData(newFlow);
     if (!oldData || !newData) {
-        return true; // cannot verify; let the merge proceed
+        return false;
     }
+
     return oldData.label === newData.label && oldData.accessor === newData.accessor;
 }
 
 export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Element {
-    const { filePath, position, onModelLoaded, viewMode, changeType, onDiffUnavailable } = props;
+    const { filePath, position, onModelLoaded, viewMode, changeType, expectedMetadata, onDiffUnavailable } = props;
     const { rpcClient } = useRpcContext();
     const [flowModel, setFlowModel] = useState<Flow | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [unavailableMessage, setUnavailableMessage] = useState<string | null>(null);
     // Review content is frozen while the review is open, so fetched versions are cached
     // per view — toggling Diff/New/Old re-derives locally instead of re-querying the LS.
     const flowCache = useRef<{ key: string; versions: Map<boolean, Flow | null> }>({ key: "", versions: new Map() });
 
     useEffect(() => {
+        setIsLoading(true);
         setFlowModel(null);
+        setUnavailableMessage(null);
         let cancelled = false;
         loadFlowModel()
             .then((model) => {
-                if (cancelled || !model) {
+                if (cancelled) {
+                    return;
+                }
+                if (!model) {
+                    setUnavailableMessage("This diagram is unavailable for the selected version.");
                     return;
                 }
                 setFlowModel(model);
@@ -115,11 +177,19 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
             })
             .catch((error) => {
                 console.error("[Reviewing Changes] Error loading flow model:", error);
+                if (!cancelled) {
+                    setUnavailableMessage("This diagram could not be loaded.");
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setIsLoading(false);
+                }
             });
         return () => {
             cancelled = true;
         };
-    }, [filePath, position, viewMode]);
+    }, [filePath, position, viewMode, expectedMetadata]);
 
     // Fetch one version of the enclosing function's flow model.
     // useFileSchema=true reads the frozen original (file://); false reads the modified temp content (ai://).
@@ -159,10 +229,19 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
 
     const loadFlowModel = async (): Promise<Flow | null> => {
         if (viewMode === "old") {
-            return fetchFlowModelVersion(true);
+            const oldFlow = await fetchFlowModelVersion(true);
+            if (oldFlow && !metadataMatchesExpected(oldFlow, expectedMetadata)) {
+                onDiffUnavailable?.();
+                return null;
+            }
+            return oldFlow;
         }
         if (viewMode === "new") {
-            return fetchFlowModelVersion(false);
+            const newFlow = await fetchFlowModelVersion(false);
+            if (newFlow && !metadataMatchesExpected(newFlow, expectedMetadata)) {
+                return null;
+            }
+            return newFlow;
         }
 
         // unified diff mode
@@ -177,20 +256,24 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
         }
 
         // modification: merge old and new into a single diagram
-        const [oldFlow, newFlow] = await Promise.all([
-            fetchFlowModelVersion(true).catch((error): Flow | null => {
-                console.error("[Reviewing Changes] Error fetching old flow model:", error);
-                return null;
-            }),
-            fetchFlowModelVersion(false),
-        ]);
+        const newFlow = await fetchFlowModelVersion(false);
         if (!newFlow) {
-            return oldFlow;
+            return null;
         }
-        if (!oldFlow || !isSameFunction(oldFlow, newFlow)) {
+        if (!metadataMatchesExpected(newFlow, expectedMetadata)) {
             onDiffUnavailable?.();
             return newFlow;
         }
+
+        const oldFlow = await fetchFlowModelVersion(true).catch((error): Flow | null => {
+            console.error("[Reviewing Changes] Error fetching old flow model:", error);
+            return null;
+        });
+        if (!oldFlow || !isSameExpectedFunction(oldFlow, newFlow, expectedMetadata)) {
+            onDiffUnavailable?.();
+            return newFlow;
+        }
+
         try {
             return mergeFlowModelsForDiff(oldFlow, newFlow);
         } catch (error) {
@@ -200,12 +283,16 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
         }
     };
 
-    if (!flowModel) {
+    if (isLoading) {
         return (
             <SpinnerContainer>
                 <ProgressRing color={ThemeColors.PRIMARY} />
             </SpinnerContainer>
         );
+    }
+
+    if (!flowModel) {
+        return <MessageContainer>{unavailableMessage ?? "This diagram is unavailable."}</MessageContainer>;
     }
 
     return (

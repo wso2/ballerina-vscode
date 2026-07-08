@@ -21,7 +21,7 @@ import { SemanticDiffResponse, SemanticDiff, ChangeTypeEnum } from "@wso2/baller
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ReadonlyComponentDiagram } from "./ReadonlyComponentDiagram";
-import { ReadonlyFlowDiagram, ReviewViewMode, getVersionsForChangeType } from "./ReadonlyFlowDiagram";
+import { ExpectedFlowMetadata, ReadonlyFlowDiagram, ReviewViewMode, getVersionsForChangeType } from "./ReadonlyFlowDiagram";
 import { ReadonlyTypeDiagram } from "./ReadonlyTypeDiagram";
 import { ReviewNavigation } from "./ReviewNavigation";
 import { Codicon, Icon, ThemeColors } from "@wso2/ui-toolkit";
@@ -134,6 +134,7 @@ interface ReviewView {
     projectPath: string;
     label?: string;
     changeType: number;
+    expectedMetadata?: ExpectedFlowMetadata;
 }
 
 enum NodeKindEnum {
@@ -200,6 +201,10 @@ function convertToReviewView(diff: SemanticDiff, projectPath: string, packageNam
         projectPath,
         label: changeLabel,
         changeType: diff.changeType,
+        expectedMetadata: {
+            nodeKind: diff.nodeKind,
+            metadata: diff.metadata,
+        },
     };
 }
 
@@ -345,6 +350,7 @@ export function ReviewMode(): JSX.Element {
                 pendingIndexRef.current = index;
             } else {
                 setCurrentIndex(index >= 0 && index < viewsLengthRef.current ? index : 0);
+                setCurrentItemMetadata(null);
                 setViewMode("diff");
             }
         });
@@ -472,6 +478,7 @@ export function ReviewMode(): JSX.Element {
                         onModelLoaded={handleModelLoaded}
                         viewMode={effectiveViewMode}
                         changeType={currentView.changeType}
+                        expectedMetadata={currentView.expectedMetadata}
                         onDiffUnavailable={handleDiffUnavailable}
                     />
                 );

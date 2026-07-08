@@ -17,9 +17,10 @@
  */
 
 import * as fs from 'fs';
-import { MACHINE_VIEW, EVENT_TYPE, VisualizerLocation, PopupVisualizerLocation, AgentMetadata, navigateReviewIndex, reviewModeOpened, reviewModeClosed, ReviewModeData, SemanticDiff, PROJECT_KIND } from '@wso2/ballerina-core';
+import { MACHINE_VIEW, EVENT_TYPE, VisualizerLocation, PopupVisualizerLocation, AgentMetadata, navigateReviewIndex, reviewModeOpened, reviewModeClosed, ReviewModeData } from '@wso2/ballerina-core';
 import { AiPanelWebview } from '../../../views/ai-panel/webview';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
+import { getPendingReviewRestore, clearPendingReviewRestore } from './reviewRestoreStore';
 import { sendReviewRestoreDidOpenBatch } from '../utils/project/ls-schema-notifications';
 import { VisualizerWebview } from '../../../views/visualizer/webview';
 import { openView as openMainView, StateMachine } from '../../../stateMachine';
@@ -385,52 +386,41 @@ export class ApprovalViewManager {
     }
 
     /**
-     * Rebuild ReviewModeData for the pending review from persisted chat state.
-     * Needed after an extension host restart: chatStateStorage (with checkpoint
-     * snapshots) survives on disk, but the in-memory cache and the Language
-     * Server's ai:// and file:// documents do not — so the modified files are
-     * re-opened in the LS and the semantic diffs re-collected.
+     * Rebuild ReviewModeData for the pending review after an extension host
+     * restart: the review payload survives in the workspace Memento
+     * (reviewRestoreStore) and the checkpoint snapshot in chatStateStorage,
+     * but the Language Server restarted with the in-memory ai:// (modified)
+     * and file:// (original) documents — so the modified files are re-opened
+     * in the LS before reopening the view.
      */
     private async rebuildReviewDataFromStorage(): Promise<ReviewModeData | null> {
         const ctx = StateMachine.context();
         const projectRootPath = ctx.workspacePath || ctx.projectPath || '';
         const generation = chatStateStorage.getPendingReviewGeneration(projectRootPath, 'default');
-        const reviewState = generation?.reviewState;
-        if (!reviewState?.tempProjectPath || !fs.existsSync(reviewState.tempProjectPath)) {
+        if (!generation) {
+            return null;
+        }
+        const restore = getPendingReviewRestore();
+        if (!restore || restore.generationId !== generation.id) {
+            console.error('[ApprovalViewManager] No restore data for pending review generation', generation.id);
+            return null;
+        }
+        if (!fs.existsSync(restore.tempProjectPath)) {
+            console.error('[ApprovalViewManager] Temp project of the pending review no longer exists:', restore.tempProjectPath);
             return null;
         }
 
-        const { tempProjectPath, modifiedFiles, affectedPackagePaths } = reviewState;
-        sendReviewRestoreDidOpenBatch(tempProjectPath, modifiedFiles ?? [], generation.checkpoint?.workspaceSnapshot);
-
-        const isWorkspace = ctx.projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
-        const affectedPackages = affectedPackagePaths?.length ? affectedPackagePaths : [tempProjectPath];
-        const semanticDiffs: SemanticDiff[] = [];
-        let loadDesignDiagrams = false;
-        for (const pkg of affectedPackages) {
-            // Skip workspace root — it only contains Ballerina.toml, not a real package
-            if (isWorkspace && pkg === tempProjectPath) { continue; }
-            try {
-                const res = await ctx.langClient.getSemanticDiff({ projectPath: pkg });
-                if (res) {
-                    semanticDiffs.push(...res.semanticDiffs);
-                    loadDesignDiagrams = loadDesignDiagrams || res.loadDesignDiagrams;
-                }
-            } catch (err) {
-                console.error(`[ApprovalViewManager] getSemanticDiff failed for package ${pkg} while rebuilding review data`, err);
-                return null;
-            }
-        }
+        sendReviewRestoreDidOpenBatch(restore.tempProjectPath, restore.modifiedFiles, generation.checkpoint?.workspaceSnapshot);
 
         return {
             views: [],
             currentIndex: 0,
-            semanticDiffs,
-            loadDesignDiagrams,
-            affectedPackages,
-            modifiedFiles: modifiedFiles ?? [],
-            tempProjectPath,
-            isWorkspace,
+            semanticDiffs: restore.semanticDiffs,
+            loadDesignDiagrams: restore.loadDesignDiagrams,
+            affectedPackages: restore.affectedPackagePaths,
+            modifiedFiles: restore.modifiedFiles,
+            tempProjectPath: restore.tempProjectPath,
+            isWorkspace: restore.isWorkspace,
         };
     }
 
@@ -447,6 +437,7 @@ export class ApprovalViewManager {
      */
     clearReviewData(): void {
         this.cachedReviewData = null;
+        clearPendingReviewRestore();
     }
 }
 

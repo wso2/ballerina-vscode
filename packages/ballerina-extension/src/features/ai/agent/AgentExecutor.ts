@@ -39,6 +39,7 @@ import { updateAndSaveChat, calculateTotalCost } from '../utils/events';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import * as path from 'path';
 import { approvalViewManager } from '../state/ApprovalViewManager';
+import { savePendingReviewRestore } from '../state/reviewRestoreStore';
 import {
     buildContextManagementOptions,
     detectAppliedCompaction,
@@ -949,6 +950,18 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             };
 
             approvalViewManager.openReviewMode(reviewData, false);
+
+            // The chat persistence schema drops tempProjectPath/affectedPackagePaths, so
+            // stash what the diff view needs to reopen after an extension host restart.
+            savePendingReviewRestore({
+                generationId: context.messageId,
+                tempProjectPath: context.ctx.tempProjectPath!,
+                modifiedFiles: accumulatedModifiedFiles,
+                affectedPackagePaths: affectedPackages,
+                semanticDiffs,
+                loadDesignDiagrams,
+                isWorkspace,
+            });
 
             context.eventHandler({
                 type: "chat_component",
