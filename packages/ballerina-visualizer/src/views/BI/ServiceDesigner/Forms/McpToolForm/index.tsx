@@ -395,6 +395,11 @@ function convertConfigToFormFields(model: FunctionModel): FormField[] {
     const formFields: FormField[] = [];
     for (const key in model?.properties) {
         const property = model?.properties[key];
+        // Skip properties with no `types` (e.g. annotation attachments) — they can't be form fields.
+        // They're still preserved on the saved model.
+        if (!property?.types || property.types.length === 0) {
+            continue;
+        }
         const formField: FormField = {
             key: key,
             label: property?.metadata.label || key,
