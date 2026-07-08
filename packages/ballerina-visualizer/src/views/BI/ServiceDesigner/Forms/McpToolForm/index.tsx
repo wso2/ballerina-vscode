@@ -31,12 +31,22 @@ import {
 import { FormField, FormImports, FormValues, Parameter } from "@wso2/ballerina-side-panel";
 import { getImportsForProperty } from "../../../../../utils/bi";
 import ArtifactForm from "../../../Forms/ArtifactForm";
+import {
+    McpTransportParams,
+    buildMcpHeaderSchema,
+    deriveMcpAdvancedParams,
+    isMcpAdvancedType,
+    isMcpHeaderParam,
+} from "./McpTransportParams";
 
 interface McpToolFormProps {
     model: FunctionModel;
     filePath: string;
     lineRange: LineRange;
     isServiceClass?: boolean;
+    // True when the enclosing service is an mcp:StreamableHttpService, which is the only case where
+    // tools may bind transport-specific request info (@http:Header, http:Request, http:Headers).
+    isStreamableHttp?: boolean;
     onSave: (model: FunctionModel) => void;
     onClose: () => void;
     isSaving: boolean;
@@ -44,9 +54,11 @@ interface McpToolFormProps {
 
 export function McpToolForm(props: McpToolFormProps) {
     console.log("McpToolForm props: ", props);
-    const { model: initialModel, onSave, onClose, filePath, lineRange, isServiceClass, isSaving } = props;
+    const { model: initialModel, onSave, onClose, filePath, lineRange, isServiceClass, isStreamableHttp, isSaving } = props;
     const [fields, setFields] = useState<FormField[]>([]);
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
+    const [headerParams, setHeaderParams] = useState<ParameterModel[]>([]);
+    const [advancedParams, setAdvancedParams] = useState<ParameterModel[]>([]);
     const [model] = useState<FunctionModel>(() => {
         const cloned = structuredClone(initialModel);
         const properties = cloned.properties ?? {};
@@ -152,6 +164,24 @@ export function McpToolForm(props: McpToolFormProps) {
         return paramList;
     };
 
+    // Split transport-specific params (headers + raw http:Request/http:Headers) out of the ordinary
+    // tool inputs, so they render in their own sections instead of the parameter manager.
+    const isTransportParam = (param: ParameterModel) =>
+        isMcpHeaderParam(param) || isMcpAdvancedType(param.type?.value);
+
+    const regularParameters = isStreamableHttp
+        ? model.parameters.filter((param) => !isTransportParam(param))
+        : model.parameters;
+
+    // Initialize header + advanced param state from the model
+    useEffect(() => {
+        if (!isStreamableHttp) {
+            return;
+        }
+        setHeaderParams(model.parameters.filter((param) => isMcpHeaderParam(param)));
+        setAdvancedParams(deriveMcpAdvancedParams(model.parameters));
+    }, [model, isStreamableHttp]);
+
     // Initialize form fields
     useEffect(() => {
         const initialFields: FormField[] = [
@@ -176,9 +206,9 @@ export function McpToolForm(props: McpToolFormProps) {
                 editable: true,
                 enabled: true,
                 documentation: "",
-                value: model.parameters.map((param, index) => convertParameterToParamValue(param, index)),
+                value: regularParameters.map((param, index) => convertParameterToParamValue(param, index)),
                 paramManagerProps: {
-                    paramValues: model.parameters.map((param, index) => convertParameterToParamValue(param, index)),
+                    paramValues: regularParameters.map((param, index) => convertParameterToParamValue(param, index)),
                     formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange,
                 },
@@ -246,6 +276,12 @@ export function McpToolForm(props: McpToolFormProps) {
         console.log("Function create with data:", data);
         const { name, returnType, parameters: params } = data;
         const paramList = params ? getFunctionParametersList(params) : [];
+        // Append transport-specific params for Streamable HTTP services: header params and any
+        // enabled advanced params (http:Request / http:Headers).
+        if (isStreamableHttp) {
+            paramList.push(...headerParams);
+            paramList.push(...advancedParams.filter((param) => param.enabled));
+        }
         const newFunctionModel = { ...model };
         newFunctionModel.name.value = name;
         newFunctionModel.returnType.value = returnType;
@@ -258,6 +294,23 @@ export function McpToolForm(props: McpToolFormProps) {
         });
         onSave(newFunctionModel);
     };
+
+    const injectedComponents = isStreamableHttp
+        ? [
+              {
+                  index: Number.MAX_SAFE_INTEGER,
+                  component: (
+                      <McpTransportParams
+                          headerSchema={(model.schema?.header as ParameterModel) ?? buildMcpHeaderSchema()}
+                          headerParams={headerParams}
+                          advancedParams={advancedParams}
+                          onHeaderParamsChange={setHeaderParams}
+                          onAdvancedParamsChange={setAdvancedParams}
+                      />
+                  ),
+              },
+          ]
+        : undefined;
 
     return (
         <>
@@ -273,6 +326,7 @@ export function McpToolForm(props: McpToolFormProps) {
                     isSaving={isSaving}
                     preserveFieldOrder={true}
                     recordTypeFields={recordTypeFields}
+                    injectedComponents={injectedComponents}
                 />
             )}
         </>
