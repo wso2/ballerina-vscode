@@ -71,6 +71,39 @@ public class HumanTaskBuilder extends CallBuilder {
     public static final String COMPLETION_TYPE_DESCRIPTION =
             "The type of the data returned when the human task is completed";
 
+    // awaitHumanTask parameter names (keys). Public so CodeAnalyzer can reuse them when re-reading
+    // a human task call from source, keeping the template and source-analysis paths in sync.
+    public static final String TASK_NAME_KEY = "taskName";
+    public static final String USER_ROLES_KEY = "userRoles";
+    public static final String PAYLOAD_KEY = "payload";
+    public static final String TITLE_KEY = "title";
+    public static final String DESCRIPTION_KEY = "description";
+    public static final String TIMEOUT_KEY = "timeout";
+
+    // Form field labels.
+    private static final String TASK_NAME_LABEL = "Task Name";
+    private static final String USER_ROLES_LABEL = "User Roles";
+    private static final String PAYLOAD_LABEL = "Payload";
+    private static final String TITLE_LABEL = "Title";
+    private static final String DESCRIPTION_LABEL = "Description";
+    private static final String TIMEOUT_LABEL = "Timeout";
+
+    // Form field descriptions.
+    private static final String TASK_NAME_DOC = "Identifies the task type";
+    private static final String USER_ROLES_DOC = "One or more roles permitted to complete this task";
+    private static final String PAYLOAD_DOC = "Read-only JSON object shown alongside the form";
+    private static final String TITLE_DOC = "Short summary shown in the inbox";
+    private static final String DESCRIPTION_DOC = "Additional context shown alongside the form";
+    private static final String TIMEOUT_DOC = "Maximum time to wait; omit to wait indefinitely";
+
+    // Ballerina type signatures used by the fallback form fields.
+    private static final String STRING_TYPE = "string";
+    private static final String OPTIONAL_STRING_TYPE = "string?";
+
+    // Default result variable name and the error-union suffix appended to unchecked calls.
+    private static final String DEFAULT_RESULT_VAR = "result";
+    private static final String ERROR_UNION_SUFFIX = "|error";
+
     @Override
     protected NodeKind getFunctionNodeKind() {
         return NodeKind.HUMAN_TASK;
@@ -186,84 +219,86 @@ public class HumanTaskBuilder extends CallBuilder {
     public static void addFallbackHumanTaskParameters(NodeBuilder nodeBuilder, Map<String, String> values) {
         nodeBuilder.properties().custom()
                 .metadata()
-                    .label("Task Name")
-                    .description("Identifies the task type")
+                    .label(TASK_NAME_LABEL)
+                    .description(TASK_NAME_DOC)
                     .stepOut()
-                .type().fieldType(Property.ValueType.TEXT).ballerinaType("string").selected(true).stepOut()
-                .type().fieldType(Property.ValueType.EXPRESSION).ballerinaType("string").selected(false).stepOut()
-                .codedata().kind(ParameterData.Kind.REQUIRED.name()).originalName("taskName").stepOut()
-                .value(values.get("taskName"))
+                .type().fieldType(Property.ValueType.TEXT).ballerinaType(STRING_TYPE).selected(true).stepOut()
+                .type().fieldType(Property.ValueType.EXPRESSION).ballerinaType(STRING_TYPE).selected(false).stepOut()
+                .codedata().kind(ParameterData.Kind.REQUIRED.name()).originalName(TASK_NAME_KEY).stepOut()
+                .value(values.get(TASK_NAME_KEY))
                 .editable(true)
                 .stepOut()
-                .addProperty("taskName");
+                .addProperty(TASK_NAME_KEY);
 
         nodeBuilder.properties().custom()
                 .metadata()
-                    .label("User Roles")
-                    .description("One or more roles permitted to complete this task")
+                    .label(USER_ROLES_LABEL)
+                    .description(USER_ROLES_DOC)
                     .stepOut()
                 .type().fieldType(Property.ValueType.EXPRESSION).ballerinaType("string|string[]").selected(true)
                     .stepOut()
-                .codedata().kind(ParameterData.Kind.REQUIRED.name()).originalName("userRoles").stepOut()
-                .value(values.get("userRoles"))
+                .codedata().kind(ParameterData.Kind.REQUIRED.name()).originalName(USER_ROLES_KEY).stepOut()
+                .value(values.get(USER_ROLES_KEY))
                 .editable(true)
                 .stepOut()
-                .addProperty("userRoles");
+                .addProperty(USER_ROLES_KEY);
 
         nodeBuilder.properties().custom()
                 .metadata()
-                    .label("Payload")
-                    .description("Read-only JSON object shown alongside the form")
+                    .label(PAYLOAD_LABEL)
+                    .description(PAYLOAD_DOC)
                     .stepOut()
                 .type().fieldType(Property.ValueType.EXPRESSION).ballerinaType("map<json>").selected(true).stepOut()
-                .codedata().kind(ParameterData.Kind.DEFAULTABLE.name()).originalName("payload").stepOut()
-                .value(values.get("payload"))
+                .codedata().kind(ParameterData.Kind.DEFAULTABLE.name()).originalName(PAYLOAD_KEY).stepOut()
+                .value(values.get(PAYLOAD_KEY))
                 .editable(true)
                 .optional(true)
                 .stepOut()
-                .addProperty("payload");
+                .addProperty(PAYLOAD_KEY);
 
         nodeBuilder.properties().custom()
                 .metadata()
-                    .label("Title")
-                    .description("Short summary shown in the inbox")
+                    .label(TITLE_LABEL)
+                    .description(TITLE_DOC)
                     .stepOut()
-                .type().fieldType(Property.ValueType.TEXT).ballerinaType("string?").selected(true).stepOut()
-                .type().fieldType(Property.ValueType.EXPRESSION).ballerinaType("string?").selected(false).stepOut()
-                .codedata().kind(ParameterData.Kind.DEFAULTABLE.name()).originalName("title").stepOut()
-                .value(values.get("title"))
-                .editable(true)
-                .optional(true)
-                .stepOut()
-                .addProperty("title");
-
-        nodeBuilder.properties().custom()
-                .metadata()
-                    .label("Description")
-                    .description("Additional context shown alongside the form")
+                .type().fieldType(Property.ValueType.TEXT).ballerinaType(OPTIONAL_STRING_TYPE).selected(true).stepOut()
+                .type().fieldType(Property.ValueType.EXPRESSION).ballerinaType(OPTIONAL_STRING_TYPE).selected(false)
                     .stepOut()
-                .type().fieldType(Property.ValueType.TEXT).ballerinaType("string?").selected(true).stepOut()
-                .type().fieldType(Property.ValueType.EXPRESSION).ballerinaType("string?").selected(false).stepOut()
-                .codedata().kind(ParameterData.Kind.DEFAULTABLE.name()).originalName("description").stepOut()
-                .value(values.get("description"))
+                .codedata().kind(ParameterData.Kind.DEFAULTABLE.name()).originalName(TITLE_KEY).stepOut()
+                .value(values.get(TITLE_KEY))
                 .editable(true)
                 .optional(true)
                 .stepOut()
-                .addProperty("description");
+                .addProperty(TITLE_KEY);
 
         nodeBuilder.properties().custom()
                 .metadata()
-                    .label("Timeout")
-                    .description("Maximum time to wait; omit to wait indefinitely")
+                    .label(DESCRIPTION_LABEL)
+                    .description(DESCRIPTION_DOC)
+                    .stepOut()
+                .type().fieldType(Property.ValueType.TEXT).ballerinaType(OPTIONAL_STRING_TYPE).selected(true).stepOut()
+                .type().fieldType(Property.ValueType.EXPRESSION).ballerinaType(OPTIONAL_STRING_TYPE).selected(false)
+                    .stepOut()
+                .codedata().kind(ParameterData.Kind.DEFAULTABLE.name()).originalName(DESCRIPTION_KEY).stepOut()
+                .value(values.get(DESCRIPTION_KEY))
+                .editable(true)
+                .optional(true)
+                .stepOut()
+                .addProperty(DESCRIPTION_KEY);
+
+        nodeBuilder.properties().custom()
+                .metadata()
+                    .label(TIMEOUT_LABEL)
+                    .description(TIMEOUT_DOC)
                     .stepOut()
                 .type().fieldType(Property.ValueType.EXPRESSION).ballerinaType("time:Duration?").selected(true)
                     .stepOut()
-                .codedata().kind(ParameterData.Kind.DEFAULTABLE.name()).originalName("timeout").stepOut()
-                .value(values.get("timeout"))
+                .codedata().kind(ParameterData.Kind.DEFAULTABLE.name()).originalName(TIMEOUT_KEY).stepOut()
+                .value(values.get(TIMEOUT_KEY))
                 .editable(true)
                 .optional(true)
                 .stepOut()
-                .addProperty("timeout");
+                .addProperty(TIMEOUT_KEY);
     }
 
     /**
@@ -275,12 +310,12 @@ public class HumanTaskBuilder extends CallBuilder {
      * @param properties the live property map to relabel in place
      */
     public static void relabelHumanTaskFormProperties(Map<String, Property> properties) {
-        relabel(properties, "taskName", "Task Name", "Identifies the task type");
-        relabel(properties, "userRoles", "User Roles", "One or more roles permitted to complete this task");
-        relabel(properties, "payload", "Payload", "Read-only JSON object shown alongside the form");
-        relabel(properties, "title", "Title", "Short summary shown in the inbox");
-        relabel(properties, "description", "Description", "Additional context shown alongside the form");
-        relabel(properties, "timeout", "Timeout", "Maximum time to wait; omit to wait indefinitely");
+        relabel(properties, TASK_NAME_KEY, TASK_NAME_LABEL, TASK_NAME_DOC);
+        relabel(properties, USER_ROLES_KEY, USER_ROLES_LABEL, USER_ROLES_DOC);
+        relabel(properties, PAYLOAD_KEY, PAYLOAD_LABEL, PAYLOAD_DOC);
+        relabel(properties, TITLE_KEY, TITLE_LABEL, TITLE_DOC);
+        relabel(properties, DESCRIPTION_KEY, DESCRIPTION_LABEL, DESCRIPTION_DOC);
+        relabel(properties, TIMEOUT_KEY, TIMEOUT_LABEL, TIMEOUT_DOC);
         // The inferred result type is the human task's completion type; re-label it from the generic
         // "Databinding Type" set by CallBuilder.normalizeDatabindingTypeProperty. Must run after
         // normalization so the DATABINDING_TYPE_KEY property exists.
@@ -307,8 +342,8 @@ public class HumanTaskBuilder extends CallBuilder {
                 .map(p -> p.value() != null ? p.value().toString() : DEFAULT_RETURN_TYPE)
                 .orElse(DEFAULT_RETURN_TYPE));
         String variableName = variableProp
-                .map(p -> p.value() != null ? p.value().toString() : "result")
-                .orElse("result");
+                .map(p -> p.value() != null ? p.value().toString() : DEFAULT_RESULT_VAR)
+                .orElse(DEFAULT_RESULT_VAR);
         boolean useCheck = checkErrorProp
                 .map(p -> p.value() == null || !"false".equals(p.value().toString()))
                 .orElse(true);
@@ -317,31 +352,32 @@ public class HumanTaskBuilder extends CallBuilder {
         // so surface a validation error when they are missing rather than silently emitting an empty
         // value (in particular, never fall back to a privileged role for userRoles). Use toSourceCode()
         // (not the raw value) so structured/templated values are converted to valid Ballerina source.
-        String taskName = sourceBuilder.getProperty("taskName")
+        String taskName = sourceBuilder.getProperty(TASK_NAME_KEY)
                 .filter(p -> p.value() != null && !p.value().toString().isEmpty())
                 .map(Property::toSourceCode)
                 .orElseThrow(() -> new IllegalStateException(
-                        "A task name is required for the human task. Provide a value for 'Task Name'."));
-        String userRoles = sourceBuilder.getProperty("userRoles")
+                        "A task name is required for the human task. Provide a value for '"
+                                + TASK_NAME_LABEL + "'."));
+        String userRoles = sourceBuilder.getProperty(USER_ROLES_KEY)
                 .filter(p -> p.value() != null && !p.value().toString().isEmpty())
                 .map(Property::toSourceCode)
                 .orElseThrow(() -> new IllegalStateException(
-                        "At least one user role is required for the human task. "
-                                + "Provide a value for 'User Roles'."));
+                        "At least one user role is required for the human task. Provide a value for '"
+                                + USER_ROLES_LABEL + "'."));
 
         // Optional named args (only when the user provided a value)
         List<String> callArgs = new ArrayList<>();
         callArgs.add(taskName);
         callArgs.add(userRoles);
-        addNamedArg(sourceBuilder, callArgs, "payload");
-        addNamedArg(sourceBuilder, callArgs, "title");
-        addNamedArg(sourceBuilder, callArgs, "description");
-        addNamedArg(sourceBuilder, callArgs, "timeout");
+        addNamedArg(sourceBuilder, callArgs, PAYLOAD_KEY);
+        addNamedArg(sourceBuilder, callArgs, TITLE_KEY);
+        addNamedArg(sourceBuilder, callArgs, DESCRIPTION_KEY);
+        addNamedArg(sourceBuilder, callArgs, TIMEOUT_KEY);
 
         String ctxParamName = ActivityCallBuilder.resolveContextParamName(sourceBuilder);
 
         sourceBuilder.token()
-                .name(useCheck ? resultType : resultType + "|error")
+                .name(useCheck ? resultType : resultType + ERROR_UNION_SUFFIX)
                 .whiteSpace()
                 .name(variableName)
                 .whiteSpace()
@@ -386,8 +422,8 @@ public class HumanTaskBuilder extends CallBuilder {
      */
     private static String normalizeResultType(String resultType) {
         String normalized = resultType.strip();
-        while (normalized.endsWith("|error")) {
-            normalized = normalized.substring(0, normalized.length() - "|error".length()).strip();
+        while (normalized.endsWith(ERROR_UNION_SUFFIX)) {
+            normalized = normalized.substring(0, normalized.length() - ERROR_UNION_SUFFIX.length()).strip();
         }
         return normalized.isEmpty() ? DEFAULT_RETURN_TYPE : normalized;
     }

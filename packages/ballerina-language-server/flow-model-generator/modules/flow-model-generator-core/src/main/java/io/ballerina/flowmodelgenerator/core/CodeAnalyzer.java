@@ -1093,7 +1093,8 @@ public class CodeAnalyzer extends NodeVisitor {
         // built rich, type-aware properties: each param carries its real type symbol and imports, and the
         // inferred `typedesc<anydata> T` parameter is a record-field-aware result-type selector. Reuse them
         // (relabel + add the result variable) instead of discarding the type metadata with a hardcoded form.
-        boolean resolved = currentProps.containsKey("taskName") || currentProps.containsKey("userRoles");
+        boolean resolved = currentProps.containsKey(HumanTaskBuilder.TASK_NAME_KEY)
+                || currentProps.containsKey(HumanTaskBuilder.USER_ROLES_KEY);
         if (resolved) {
             populateResolvedHumanTaskProperties();
         } else {
@@ -1162,40 +1163,40 @@ public class CodeAnalyzer extends NodeVisitor {
         String userRolesValue = "";
         if (args.size() > 0 && args.get(0) instanceof PositionalArgumentNode posArg0) {
             taskNameValue = posArg0.expression().toSourceCode().strip();
-        } else if (namedArgs.containsKey("taskName")) {
-            taskNameValue = namedArgs.get("taskName");
+        } else if (namedArgs.containsKey(HumanTaskBuilder.TASK_NAME_KEY)) {
+            taskNameValue = namedArgs.get(HumanTaskBuilder.TASK_NAME_KEY);
         }
         // userRoles: positional arg 1, or named arg form
         if (args.size() > 1 && args.get(1) instanceof PositionalArgumentNode posArg1) {
             userRolesValue = posArg1.expression().toSourceCode().strip();
-        } else if (namedArgs.containsKey("userRoles")) {
-            userRolesValue = namedArgs.get("userRoles");
+        } else if (namedArgs.containsKey(HumanTaskBuilder.USER_ROLES_KEY)) {
+            userRolesValue = namedArgs.get(HumanTaskBuilder.USER_ROLES_KEY);
         }
 
         // payload: named arg, or positional arg 2
-        String payloadValue = namedArgs.get("payload");
+        String payloadValue = namedArgs.get(HumanTaskBuilder.PAYLOAD_KEY);
         if (payloadValue == null && args.size() > 2 && args.get(2) instanceof PositionalArgumentNode posArg2) {
             payloadValue = posArg2.expression().toSourceCode().strip();
         }
         // title: named arg only
-        String titleValue = namedArgs.get("title");
+        String titleValue = namedArgs.get(HumanTaskBuilder.TITLE_KEY);
         // description: named arg, or positional arg 3
-        String descValue = namedArgs.get("description");
+        String descValue = namedArgs.get(HumanTaskBuilder.DESCRIPTION_KEY);
         if (descValue == null && args.size() > 3 && args.get(3) instanceof PositionalArgumentNode posArg3) {
             descValue = posArg3.expression().toSourceCode().strip();
         }
         // timeout: named arg only
-        String timeoutValue = namedArgs.get("timeout");
+        String timeoutValue = namedArgs.get(HumanTaskBuilder.TIMEOUT_KEY);
 
         // Build the human task parameter form via the single shared definition in HumanTaskBuilder,
         // injecting the values parsed from source (empty required values map to no preset value).
         Map<String, String> paramValues = new LinkedHashMap<>();
-        paramValues.put("taskName", taskNameValue.isEmpty() ? null : taskNameValue);
-        paramValues.put("userRoles", userRolesValue.isEmpty() ? null : userRolesValue);
-        paramValues.put("payload", payloadValue);
-        paramValues.put("title", titleValue);
-        paramValues.put("description", descValue);
-        paramValues.put("timeout", timeoutValue);
+        paramValues.put(HumanTaskBuilder.TASK_NAME_KEY, taskNameValue.isEmpty() ? null : taskNameValue);
+        paramValues.put(HumanTaskBuilder.USER_ROLES_KEY, userRolesValue.isEmpty() ? null : userRolesValue);
+        paramValues.put(HumanTaskBuilder.PAYLOAD_KEY, payloadValue);
+        paramValues.put(HumanTaskBuilder.TITLE_KEY, titleValue);
+        paramValues.put(HumanTaskBuilder.DESCRIPTION_KEY, descValue);
+        paramValues.put(HumanTaskBuilder.TIMEOUT_KEY, timeoutValue);
         HumanTaskBuilder.addFallbackHumanTaskParameters(nodeBuilder, paramValues);
 
         // Inferred databinding/result type and result variable (from typedBindingPatternNode)
