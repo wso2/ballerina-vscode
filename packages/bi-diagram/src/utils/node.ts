@@ -21,6 +21,8 @@ import { CSSProperties } from "react";
 import {
     DIFF_ADDED_BG_COLOR,
     DIFF_ADDED_COLOR,
+    DIFF_MODIFIED_BG_COLOR,
+    DIFF_MODIFIED_COLOR,
     DIFF_REMOVED_BG_COLOR,
     DIFF_REMOVED_COLOR,
 } from "../resources/constants";
@@ -28,18 +30,29 @@ import { Branch, FlowNode } from "./types";
 
 const WORKFLOW_NODE_KINDS = new Set(["WORKFLOW_RUN", "ACTIVITY_CALL", "SEND_DATA", "WAIT_DATA"]);
 
+// Colors for a node in the unified review-diff diagram, keyed by its diff state.
+// Raw strings so both `style`-prop consumers and SVG fill/stroke attributes can use them.
+export function getDiffColors(node: FlowNode): { background: string; border: string } | undefined {
+    switch (node?.diffState) {
+        case "removed":
+            return { background: DIFF_REMOVED_BG_COLOR, border: DIFF_REMOVED_COLOR };
+        case "added":
+            return { background: DIFF_ADDED_BG_COLOR, border: DIFF_ADDED_COLOR };
+        case "modified":
+            return { background: DIFF_MODIFIED_BG_COLOR, border: DIFF_MODIFIED_COLOR };
+        default:
+            return undefined;
+    }
+}
+
 // Inline style overrides for nodes rendered inside the unified review-diff diagram.
 // Applied on top of the widget's styled-component so every node kind gets the same treatment.
 export function getDiffContainerStyles(node: FlowNode): CSSProperties | undefined {
-    if (!node?.diffState) {
+    const colors = getDiffColors(node);
+    if (!colors) {
         return undefined;
     }
-    const removed = node.diffState === "removed";
-    return {
-        backgroundColor: removed ? DIFF_REMOVED_BG_COLOR : DIFF_ADDED_BG_COLOR,
-        borderColor: removed ? DIFF_REMOVED_COLOR : DIFF_ADDED_COLOR,
-        borderStyle: "solid",
-    };
+    return { backgroundColor: colors.background, borderColor: colors.border, borderStyle: "solid" };
 }
 
 export function getDiffTitleStyles(node: FlowNode): CSSProperties | undefined {

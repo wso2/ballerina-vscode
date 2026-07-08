@@ -21,7 +21,7 @@ import { SemanticDiffResponse, SemanticDiff, ChangeTypeEnum } from "@wso2/baller
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ReadonlyComponentDiagram } from "./ReadonlyComponentDiagram";
-import { ReadonlyFlowDiagram, ReviewViewMode } from "./ReadonlyFlowDiagram";
+import { ReadonlyFlowDiagram, ReviewViewMode, getVersionsForChangeType } from "./ReadonlyFlowDiagram";
 import { ReadonlyTypeDiagram } from "./ReadonlyTypeDiagram";
 import { ReviewNavigation } from "./ReviewNavigation";
 import { Codicon, Icon, ThemeColors } from "@wso2/ui-toolkit";
@@ -427,25 +427,9 @@ export function ReviewMode(): JSX.Element {
         if (!currentView) {
             return { diff: false, new: true, old: false };
         }
-        if (currentView.type !== DiagramType.FLOW) {
-            switch (currentView.changeType) {
-                case ChangeTypeEnum.DELETION:
-                    return { diff: false, new: false, old: true };
-                case ChangeTypeEnum.MODIFICATION:
-                    return { diff: false, new: true, old: true };
-                default:
-                    return { diff: false, new: true, old: false };
-            }
-        }
-        const diffAvailable = !diffUnavailableViews.has(currentIndex);
-        switch (currentView.changeType) {
-            case ChangeTypeEnum.ADDITION:
-                return { diff: diffAvailable, new: true, old: false };
-            case ChangeTypeEnum.DELETION:
-                return { diff: diffAvailable, new: false, old: true };
-            default:
-                return { diff: diffAvailable, new: true, old: true };
-        }
+        const versions = getVersionsForChangeType(currentView.changeType);
+        const diff = currentView.type === DiagramType.FLOW && !diffUnavailableViews.has(currentIndex);
+        return { diff, new: versions.new, old: versions.old };
     };
 
     const availableModes = getAvailableModes();

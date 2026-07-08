@@ -180,62 +180,38 @@ export class SizingVisitor implements BaseVisitor {
         this.setNodeSize(node, halfWidth, halfWidth, height);
     }
 
+    // Container left/right widths for a row of branch lanes joined by a horizontal bar.
+    private computeBranchRowWidths(branchViewStates: Branch["viewState"][]): { left: number; right: number } {
+        const first = branchViewStates.at(0);
+        const last = branchViewStates.at(-1);
+        const middleBranchesWidth = branchViewStates
+            .slice(1, -1)
+            .reduce((acc, viewState) => acc + viewState.clw + viewState.crw, 0);
+        const barWidth = first.crw + middleBranchesWidth + last.clw + NODE_GAP_X * (branchViewStates.length - 1);
+        return { left: first.clw + barWidth / 2, right: barWidth / 2 + last.crw };
+    }
+
+    // Tallest branch lane in the row (each lane counts at least one node gap).
+    private computeBranchRowHeight(branchViewStates: Branch["viewState"][]): number {
+        return branchViewStates.reduce((max, viewState) => Math.max(max, Math.max(viewState.ch, NODE_GAP_Y)), 0);
+    }
+
     endVisitIf(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        // first branch
-        const firstBranchWidthViewState = node.branches.at(0)?.viewState;
-        if (!firstBranchWidthViewState) {
-            console.error("No first branch view state found in if node", node);
+        const branchViewStates = node.branches
+            .map((branch) => branch.viewState)
+            .filter((viewState) => viewState !== undefined);
+        if (branchViewStates.length === 0) {
+            console.error("No branch view states found in if node", node);
             return;
         }
-        // last branch
-        const lastBranchWidthViewState = node.branches.at(-1)?.viewState;
-        if (!lastBranchWidthViewState) {
-            console.error("No last branch view state found in if node", node);
-            return;
-        }
-        const middleBranchesWidth = node.branches.slice(1, -1).reduce((acc, branch) => {
-            if (!branch?.viewState) {
-                console.error("Branch view state is not defined", branch);
-                return acc;
-            }
-            return acc + branch.viewState?.clw + branch.viewState?.crw;
-        }, 0);
-        // if bar width
-        const ifBarWidth =
-            firstBranchWidthViewState?.crw +
-            middleBranchesWidth +
-            lastBranchWidthViewState?.clw +
-            NODE_GAP_X * (node.branches.length - 1);
-        // if node container left width
-        const ifNodeContainerLeftWidth = firstBranchWidthViewState?.clw + ifBarWidth / 2;
-        // if node container right width
-        const ifNodeContainerRightWidth = ifBarWidth / 2 + lastBranchWidthViewState?.crw;
 
-        // if node container height
-        let containerHeight = 0;
-        if (node.branches) {
-            node.branches.forEach((child: Branch) => {
-                if (child.viewState) {
-                    containerHeight = Math.max(containerHeight, Math.max(child.viewState.ch, NODE_GAP_Y));
-                }
-            });
-        }
+        const { left, right } = this.computeBranchRowWidths(branchViewStates);
         // add if node width and height
-        containerHeight += IF_NODE_WIDTH + (NODE_GAP_Y * 5) / 2;
+        const containerHeight = this.computeBranchRowHeight(branchViewStates) + IF_NODE_WIDTH + (NODE_GAP_Y * 5) / 2;
 
         const halfNodeWidth = IF_NODE_WIDTH / 2;
-        const nodeHeight = IF_NODE_WIDTH;
-
-        this.setNodeSize(
-            node,
-            halfNodeWidth,
-            halfNodeWidth,
-            nodeHeight,
-            ifNodeContainerLeftWidth,
-            ifNodeContainerRightWidth,
-            containerHeight
-        );
+        this.setNodeSize(node, halfNodeWidth, halfNodeWidth, IF_NODE_WIDTH, left, right, containerHeight);
     }
 
     endVisitMatch(node: FlowNode, parent?: FlowNode): void {
@@ -254,27 +230,15 @@ export class SizingVisitor implements BaseVisitor {
             return;
         }
 
-        const firstBranch = branchViewStates.at(0);
-        const lastBranch = branchViewStates.at(-1);
-        let containerLeftWidth: number;
-        let containerRightWidth: number;
-        if (branchViewStates.length === 1) {
-            containerLeftWidth = firstBranch.clw;
-            containerRightWidth = firstBranch.crw;
-        } else {
-            const barWidth = firstBranch.crw + lastBranch.clw + NODE_GAP_X * (branchViewStates.length - 1);
-            containerLeftWidth = firstBranch.clw + barWidth / 2;
-            containerRightWidth = barWidth / 2 + lastBranch.crw;
-        }
-
-        let containerHeight = 0;
-        branchViewStates.forEach((viewState) => {
-            containerHeight = Math.max(containerHeight, Math.max(viewState.ch, NODE_GAP_Y));
-        });
+        // a single lane sits inline, so the container is just that lane's width
+        const onlyLane = branchViewStates.length === 1 ? branchViewStates[0] : undefined;
+        const { left, right } = onlyLane
+            ? { left: onlyLane.clw, right: onlyLane.crw }
+            : this.computeBranchRowWidths(branchViewStates);
         // add fork gap above the lanes and join gap below them
-        containerHeight += NODE_GAP_Y + NODE_GAP_Y / 2;
+        const containerHeight = this.computeBranchRowHeight(branchViewStates) + NODE_GAP_Y + NODE_GAP_Y / 2;
 
-        this.setNodeSize(node, 0, 0, 0, containerLeftWidth, containerRightWidth, containerHeight);
+        this.setNodeSize(node, 0, 0, 0, left, right, containerHeight);
     }
 
     endVisitConditional(node: Branch, parent?: FlowNode): void {

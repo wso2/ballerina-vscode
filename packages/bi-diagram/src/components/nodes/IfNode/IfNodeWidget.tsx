@@ -39,7 +39,7 @@ import { FlowNode } from "../../../utils/types";
 import { useDiagramContext } from "../../DiagramContext";
 import { MoreVertIcon } from "../../../resources";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
-import { getDiffContainerStyles, getDiffTitleStyles, nodeHasError } from "../../../utils/node";
+import { getDiffColors, getDiffTitleStyles, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import NodeIcon from "../../NodeIcon";
 import { NodeNoteChip } from "../../NodeNoteChip";
@@ -268,11 +268,7 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
 
     const disabled = model.node.suggested;
     const hasError = nodeHasError(model.node);
-    // Cast to a plain shape here: this package's CSSProperties type resolution doesn't
-    // expose named members for direct reads (only works when passed whole to a `style` prop).
-    const diffStyles = getDiffContainerStyles(model.node) as
-        | { backgroundColor?: string; borderColor?: string }
-        | undefined;
+    const diffColors = getDiffColors(model.node);
 
     return (
         <NodeStyles.Node
@@ -316,8 +312,8 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                             rx="5"
                             ry="5"
                             fill={
-                                diffStyles?.backgroundColor
-                                    ? (diffStyles.backgroundColor as string)
+                                diffColors
+                                    ? diffColors.background
                                     : isActiveBreakpoint
                                     ? NODE_BG_BREAKPOINT_COLOR
                                     : (isHovered || isNoteActive) && !disabled && !readOnly
@@ -325,8 +321,8 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                                     : NODE_BG_COLOR
                             }
                             stroke={
-                                diffStyles?.borderColor
-                                    ? (diffStyles.borderColor as string)
+                                diffColors
+                                    ? diffColors.border
                                     : hasError
                                     ? NODE_BORDER_ERROR_COLOR
                                     : isSelected && !disabled

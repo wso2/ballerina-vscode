@@ -82,6 +82,9 @@ export const DIFF_REMOVED_COLOR = "var(--vscode-gitDecoration-deletedResourceFor
 export const DIFF_REMOVED_BG_COLOR = "var(--vscode-diffEditor-removedTextBackground, rgba(255, 0, 0, 0.2))";
 export const DIFF_ADDED_COLOR = "var(--vscode-gitDecoration-addedResourceForeground, #2ea043)";
 export const DIFF_ADDED_BG_COLOR = "var(--vscode-diffEditor-insertedTextBackground, rgba(0, 255, 0, 0.2))";
+export const DIFF_MODIFIED_COLOR = "var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d)";
+export const DIFF_MODIFIED_BG_COLOR =
+    "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d) 12%, transparent)";
 
 // ─── Link Colors ─────────────────────────────────────────────────────────────
 export const LINK_COLOR = ThemeColors.ON_SURFACE_VARIANT;

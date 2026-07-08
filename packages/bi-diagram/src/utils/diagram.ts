@@ -114,10 +114,12 @@ export function createNodesLink(sourceNode: NodeModel, targetNode: NodeModel, op
     return link;
 }
 
-// get the diff state of the flow node wrapped by a diagram node model, if any
+// get the diff state of the flow node wrapped by a diagram node model, if any.
+// Modified nodes sit inline in the main flow, so their links stay unstyled.
 function getNodeDiffState(nodeModel: NodeModel): FlowNodeDiffState | undefined {
     const flowNode = (nodeModel as { node?: FlowNode }).node;
-    return flowNode?.diffState;
+    const diffState = flowNode?.diffState;
+    return diffState === "added" || diffState === "removed" ? diffState : undefined;
 }
 
 // save diagram zoom level and position to local storage

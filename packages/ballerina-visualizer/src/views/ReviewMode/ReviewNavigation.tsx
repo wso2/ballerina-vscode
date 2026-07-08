@@ -19,6 +19,8 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { Button } from "@wso2/ui-toolkit";
+import { DIFF_ADDED_COLOR, DIFF_MODIFIED_COLOR, DIFF_REMOVED_COLOR } from "@wso2/bi-diagram";
+import { ReviewViewMode } from "./ReadonlyFlowDiagram";
 
 const NavigationContainer = styled.div`
     position: fixed;
@@ -138,10 +140,6 @@ const LegendSwatch = styled.span<{ color: string }>`
     background: ${(props: { color: string }) => props.color};
 `;
 
-const DIFF_REMOVED_LEGEND_COLOR = "var(--vscode-gitDecoration-deletedResourceForeground, #f85149)";
-const DIFF_ADDED_LEGEND_COLOR = "var(--vscode-gitDecoration-addedResourceForeground, #2ea043)";
-
-export type ReviewViewMode = "diff" | "new" | "old";
 
 interface ReviewNavigationProps {
     currentIndex: number;
@@ -254,12 +252,16 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
             {viewMode === "diff" && (
                 <Legend>
                     <LegendItem>
-                        <LegendSwatch color={DIFF_REMOVED_LEGEND_COLOR} />
+                        <LegendSwatch color={DIFF_REMOVED_COLOR} />
                         Removed
                     </LegendItem>
                     <LegendItem>
-                        <LegendSwatch color={DIFF_ADDED_LEGEND_COLOR} />
+                        <LegendSwatch color={DIFF_ADDED_COLOR} />
                         Added
+                    </LegendItem>
+                    <LegendItem>
+                        <LegendSwatch color={DIFF_MODIFIED_COLOR} />
+                        Modified
                     </LegendItem>
                 </Legend>
             )}

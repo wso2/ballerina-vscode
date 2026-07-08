@@ -23,7 +23,23 @@ export const DIFF_HUNK_NODE = "DIFF_HUNK";
 export const DIFF_REMOVED_BRANCH_LABEL = "Removed";
 export const DIFF_ADDED_BRANCH_LABEL = "Added";
 
-type NodeMatch = "exact" | "container" | null;
+type NodeMatch = "exact" | "container" | "container-modified" | "modified" | null;
+
+// Exact matches outrank header-equal containers, which outrank content edits, so an
+// unchanged sibling is always preferred as an alignment anchor over a modified pairing.
+function matchScore(match: NodeMatch): number {
+    switch (match) {
+        case "exact":
+            return 3;
+        case "container":
+            return 2;
+        case "container-modified":
+        case "modified":
+            return 1;
+        default:
+            return 0;
+    }
+}
 
 /**
  * Merges the old and new flow models of the same function into a single flow model
@@ -77,7 +93,36 @@ function isComment(node: FlowNode): boolean {
     return node.codedata?.node === "COMMENT";
 }
 
+/**
+ * Display text of a COMMENT node — shared by the note chip and the diff merge
+ * so edit detection and rendering always read the same accessors.
+ * (Lives here rather than utils/node.ts to keep this module free of UI imports.)
+ */
+export function getCommentText(node: FlowNode): string {
+    const properties = node.properties as Record<string, { value?: unknown }> | undefined;
+    const value = properties?.comment?.value;
+    return node.metadata?.description || (typeof value === "string" ? value : "");
+}
+
+// Comment text normalized for comparison: whitespace-collapsed, sourceCode fallback.
+function commentText(node: FlowNode): string {
+    const raw = getCommentText(node) || node.codedata?.sourceCode || "";
+    return raw.replace(/\s+/g, " ").trim();
+}
+
+// Memoized: alignNodes compares every old/new node pair, so keys are requested O(n·m) times.
+const nodeKeyCache = new WeakMap<FlowNode, string>();
 function nodeKey(node: FlowNode): string {
+    const cached = nodeKeyCache.get(node);
+    if (cached !== undefined) {
+        return cached;
+    }
+    const key = computeNodeKey(node);
+    nodeKeyCache.set(node, key);
+    return key;
+}
+
+function computeNodeKey(node: FlowNode): string {
     // Comments pair positionally regardless of text — a note edit is not a code change.
     if (isComment(node)) {
         return "kind:COMMENT";
@@ -96,16 +141,53 @@ function hasBranches(node: FlowNode): boolean {
     return Array.isArray(node.branches) && node.branches.length > 0;
 }
 
-// Header of a container node: the source up to the first block opening brace,
-// e.g. `if count > 5`, `while true`, `foreach var item in items`.
-function containerHeaderKey(node: FlowNode): string {
-    const source = node.codedata?.sourceCode;
-    if (!source) {
-        return `kind:${node.codedata?.node}`;
+// What a node *refers to*, independent of its content: the called symbol for calls
+// (org/module/object/symbol) or the declared variable name. Two nodes with the same
+// identity but different source are the same node with edited content, not a replacement.
+// Returns null for kinds with no identity (RETURN, EXPRESSION, ...).
+function nodeIdentityKey(node: FlowNode): string | null {
+    const codedata = node.codedata;
+    const symbolParts = [codedata?.org, codedata?.module, codedata?.object, codedata?.symbol].filter(Boolean);
+    if (symbolParts.length > 0) {
+        return `${codedata?.node}:${symbolParts.join("/")}`;
     }
-    const normalized = normalizeSource(stripCommentLines(source));
-    const braceIndex = normalized.indexOf("{");
-    return braceIndex >= 0 ? normalized.slice(0, braceIndex) : normalized;
+    const properties = node.properties as Record<string, { value?: unknown }> | undefined;
+    const variableName = properties?.variable?.value;
+    if (typeof variableName === "string" && variableName) {
+        return `${codedata?.node}:var:${variableName}`;
+    }
+    return null;
+}
+
+// Text before the first block opening brace, e.g. `if count > 5`, `while true`.
+function headerBeforeBrace(text: string): string {
+    const braceIndex = text.indexOf("{");
+    return braceIndex >= 0 ? text.slice(0, braceIndex) : text;
+}
+
+/**
+ * Human-readable source of a node for diff UI (the modified-node hover card):
+ * containers show only their header, since their sourceCode holds the whole body.
+ */
+export function getDiffDisplaySource(node: FlowNode): string {
+    const source = node.codedata?.sourceCode ?? "";
+    const text = hasBranches(node) ? headerBeforeBrace(source) : source;
+    return text.trim();
+}
+
+// Header of a container node, normalized for comparison.
+const containerHeaderKeyCache = new WeakMap<FlowNode, string>();
+function containerHeaderKey(node: FlowNode): string {
+    const cached = containerHeaderKeyCache.get(node);
+    if (cached !== undefined) {
+        return cached;
+    }
+    const source = node.codedata?.sourceCode;
+    const key = source
+        ? headerBeforeBrace(normalizeSource(stripCommentLines(source)))
+        : `kind:${node.codedata?.node}`;
+    containerHeaderKeyCache.set(node, key);
+    return key;
 }
 
 function matchNodes(oldNode: FlowNode, newNode: FlowNode): NodeMatch {
@@ -119,8 +201,14 @@ function matchNodes(oldNode: FlowNode, newNode: FlowNode): NodeMatch {
     if (nodeKey(oldNode) === nodeKey(newNode)) {
         return "exact";
     }
-    if (hasBranches(oldNode) && hasBranches(newNode) && containerHeaderKey(oldNode) === containerHeaderKey(newNode)) {
-        return "container";
+    if (hasBranches(oldNode) && hasBranches(newNode)) {
+        // Same container kind: header equal → recurse silently; header edited (condition,
+        // iterable, ...) → still recurse, but mark the container itself as modified.
+        return containerHeaderKey(oldNode) === containerHeaderKey(newNode) ? "container" : "container-modified";
+    }
+    const identity = nodeIdentityKey(oldNode);
+    if (identity && identity === nodeIdentityKey(newNode)) {
+        return "modified";
     }
     return null;
 }
@@ -138,16 +226,41 @@ function mergeNodeLists(oldNodes: FlowNode[], newNodes: FlowNode[], hunkCounter:
         oldIndex = oldEnd;
         newIndex = newEnd;
 
+        // A one-for-one replacement by the same kind of identity-less node (RETURN,
+        // EXPRESSION, ...) is a content edit: render one modified node, not two lanes.
+        // Identity-carrying kinds pair via matchNodes instead, so differing identities
+        // (a genuinely different call or variable) still fall through to a hunk.
+        const removedCode = removedRun.filter((node) => !isComment(node));
+        const addedCode = addedRun.filter((node) => !isComment(node));
+        if (removedCode.length === 1 && addedCode.length === 1 && isContentEdit(removedCode[0], addedCode[0])) {
+            const removedComments = removedRun.filter(isComment);
+            removedComments.forEach((node) => stampNodeDeep(node, "removed"));
+            merged.push(...removedComments);
+            for (const node of addedRun) {
+                if (node === addedCode[0]) {
+                    merged.push(markModified(node, removedCode[0]));
+                } else {
+                    stampNodeDeep(node, "added");
+                    merged.push(node);
+                }
+            }
+            return;
+        }
+
         // Comments render as note chips on the following node, never as widgets, so a
-        // comment-only lane would render nothing. Comment-only runs are kept out of hunks:
-        // added comments flow through inline (chip on the next node), removed ones drop out.
-        const removedLane = removedRun.some((node) => !isComment(node)) ? removedRun : [];
-        const addedHasCode = addedRun.some((node) => !isComment(node));
-        const addedLane = addedHasCode ? addedRun : [];
+        // comment-only lane would render nothing. Comment-only runs are kept out of hunks
+        // and flow through inline, stamped so the chip renders the change.
+        const removedLane = removedCode.length > 0 ? removedRun : [];
+        const addedLane = addedCode.length > 0 ? addedRun : [];
+        if (removedCode.length === 0) {
+            removedRun.forEach((node) => stampNodeDeep(node, "removed"));
+            merged.push(...removedRun);
+        }
         if (removedLane.length > 0 || addedLane.length > 0) {
             merged.push(createDiffHunk(removedLane, addedLane, hunkCounter));
         }
-        if (!addedHasCode) {
+        if (addedCode.length === 0) {
+            addedRun.forEach((node) => stampNodeDeep(node, "added"));
             merged.push(...addedRun);
         }
     };
@@ -156,11 +269,22 @@ function mergeNodeLists(oldNodes: FlowNode[], newNodes: FlowNode[], hunkCounter:
         flushGap(pair.oldIndex, pair.newIndex);
         const oldNode = oldNodes[pair.oldIndex];
         const newNode = newNodes[pair.newIndex];
-        if (pair.match === "container") {
-            merged.push({
+        if (pair.match === "container" || pair.match === "container-modified") {
+            const mergedContainer: FlowNode = {
                 ...newNode,
                 branches: mergeBranches(oldNode.branches ?? [], newNode.branches ?? [], hunkCounter),
-            });
+            };
+            if (pair.match === "container-modified") {
+                mergedContainer.diffState = "modified";
+                mergedContainer.diffPreviousText = getDiffDisplaySource(oldNode) || undefined;
+            }
+            merged.push(mergedContainer);
+        } else if (pair.match === "modified") {
+            merged.push(markModified(newNode, oldNode));
+        } else if (isComment(newNode) && commentText(oldNode) !== commentText(newNode)) {
+            // Comments pair positionally, so an edited note lands here as an "exact" match.
+            // Mark it modified so the note chip renders the old and new texts.
+            merged.push(markModified(newNode, oldNode));
         } else {
             merged.push(newNode);
         }
@@ -196,6 +320,25 @@ function mergeBranches(oldBranches: Branch[], newBranches: Branch[], hunkCounter
     });
 
     return merged;
+}
+
+function isContentEdit(oldNode: FlowNode, newNode: FlowNode): boolean {
+    return (
+        oldNode.codedata?.node === newNode.codedata?.node &&
+        !hasBranches(oldNode) &&
+        !hasBranches(newNode) &&
+        nodeIdentityKey(oldNode) === null &&
+        nodeIdentityKey(newNode) === null
+    );
+}
+
+function markModified(newNode: FlowNode, oldNode: FlowNode): FlowNode {
+    const previousText = isComment(oldNode) ? commentText(oldNode) : getDiffDisplaySource(oldNode);
+    return {
+        ...newNode,
+        diffState: "modified",
+        diffPreviousText: previousText || undefined,
+    };
 }
 
 function createDiffHunk(removedRun: FlowNode[], addedRun: FlowNode[], hunkCounter: { count: number }): FlowNode {
@@ -257,11 +400,10 @@ function alignNodes(oldNodes: FlowNode[], newNodes: FlowNode[]): AlignedPair[] {
     for (let i = n - 1; i >= 0; i--) {
         for (let j = m - 1; j >= 0; j--) {
             const match = matchTable[i][j];
-            const matchScore = match === "exact" ? 2 : match === "container" ? 1 : 0;
             scores[i][j] = Math.max(
                 scores[i + 1][j],
                 scores[i][j + 1],
-                match ? scores[i + 1][j + 1] + matchScore : 0
+                match ? scores[i + 1][j + 1] + matchScore(match) : 0
             );
         }
     }
@@ -271,8 +413,7 @@ function alignNodes(oldNodes: FlowNode[], newNodes: FlowNode[]): AlignedPair[] {
     let j = 0;
     while (i < n && j < m) {
         const match = matchTable[i][j];
-        const matchScore = match === "exact" ? 2 : match === "container" ? 1 : 0;
-        if (match && scores[i][j] === scores[i + 1][j + 1] + matchScore) {
+        if (match && scores[i][j] === scores[i + 1][j + 1] + matchScore(match)) {
             aligned.push({ oldIndex: i, newIndex: j, match });
             i++;
             j++;
