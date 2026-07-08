@@ -303,7 +303,7 @@ export function McpTransportParams(props: McpTransportParamsProps) {
                 <AdvancedContent>
                     <Typography sx={{ marginBlockEnd: 2 }} variant="h4">Transport Parameters</Typography>
                     <SectionCaption>
-                        Bind transport-level request data to this tool.
+                        Access transport-level request data from within the tool's logic.
                     </SectionCaption>
 
                     {/* Headers */}
