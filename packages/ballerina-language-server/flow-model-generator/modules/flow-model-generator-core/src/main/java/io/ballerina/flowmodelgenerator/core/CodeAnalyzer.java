@@ -1148,7 +1148,7 @@ public class CodeAnalyzer extends NodeVisitor {
         currentProps.clear();
 
         // Collect all named args first for use as fallback for required params
-        java.util.Map<String, String> namedArgs = new java.util.LinkedHashMap<>();
+        Map<String, String> namedArgs = new LinkedHashMap<>();
         for (FunctionArgumentNode arg : args) {
             if (arg instanceof NamedArgumentNode namedArg) {
                 String name = namedArg.argumentName().name().text();
