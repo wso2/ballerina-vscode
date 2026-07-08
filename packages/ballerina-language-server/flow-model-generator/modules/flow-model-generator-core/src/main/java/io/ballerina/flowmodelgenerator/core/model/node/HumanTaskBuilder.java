@@ -313,18 +313,21 @@ public class HumanTaskBuilder extends CallBuilder {
                 .map(p -> p.value() == null || !"false".equals(p.value().toString()))
                 .orElse(true);
 
-        // Required positional args. Use toSourceCode() (not the raw value) so structured/templated
-        // values are converted to valid Ballerina source.
+        // Required positional args. taskName and userRoles are required by the awaitHumanTask signature,
+        // so surface a validation error when they are missing rather than silently emitting an empty
+        // value (in particular, never fall back to a privileged role for userRoles). Use toSourceCode()
+        // (not the raw value) so structured/templated values are converted to valid Ballerina source.
         String taskName = sourceBuilder.getProperty("taskName")
                 .filter(p -> p.value() != null && !p.value().toString().isEmpty())
                 .map(Property::toSourceCode)
-                .orElse("\"\"");
-        // Do not default to a privileged role when userRoles is absent; emit an empty string like
-        // taskName so the generated call never silently inserts a role.
+                .orElseThrow(() -> new IllegalStateException(
+                        "A task name is required for the human task. Provide a value for 'Task Name'."));
         String userRoles = sourceBuilder.getProperty("userRoles")
                 .filter(p -> p.value() != null && !p.value().toString().isEmpty())
                 .map(Property::toSourceCode)
-                .orElse("\"\"");
+                .orElseThrow(() -> new IllegalStateException(
+                        "At least one user role is required for the human task. "
+                                + "Provide a value for 'User Roles'."));
 
         // Optional named args (only when the user provided a value)
         List<String> callArgs = new ArrayList<>();
