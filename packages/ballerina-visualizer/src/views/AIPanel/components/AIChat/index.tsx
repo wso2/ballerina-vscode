@@ -597,6 +597,17 @@ const AIChat: React.FC = () => {
                 console.error('[AIChat] Failed to load initial chat history:', error);
                 // Continue with empty messages - don't block the UI
             }
+            // Re-derive the review flag: it is otherwise only set by the live stream
+            // event, so a webview reload would leave a pending review inactive
+            // (ReviewBar unclickable, auto-accept-on-send skipped).
+            try {
+                const pending = await rpcClient.getAiPanelRpcClient().hasPendingReview();
+                if (pending) {
+                    setHasActiveReview(true);
+                }
+            } catch (error) {
+                console.error('[AIChat] Failed to check pending review state:', error);
+            }
         };
 
         loadHistory();

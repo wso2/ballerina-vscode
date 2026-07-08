@@ -324,3 +324,51 @@ export function sendAgentDidCloseForProjects(tempProjectPath: string, projects: 
   console.log(`[AgentNotification] Sending didClose for ${allFiles.length} files across ${projects.length} project(s)`);
   sendAgentDidCloseBatch(tempProjectPath, allFiles);
 }
+
+/**
+ * Re-opens a pending review's modified files in the Language Server after it has
+ * restarted (e.g. a VS Code window reload): the in-memory file:// (original
+ * baseline) and ai:// (modified) documents are gone, while the temp project on
+ * disk holds the modified content and the generation checkpoint holds the
+ * originals. Restores both schemas so semantic diff and flow-model lookups work.
+ * @param tempProjectPath The root path of the temporary project
+ * @param modifiedFiles Relative paths of the generation's modified files
+ * @param originalContents Checkpoint workspace snapshot ('/'-separated relative path -> original content)
+ */
+export function sendReviewRestoreDidOpenBatch(
+  tempProjectPath: string,
+  modifiedFiles: string[],
+  originalContents: Record<string, string> | undefined
+): void {
+  for (const filePath of modifiedFiles) {
+    if (!filePath.endsWith('.bal') && !filePath.endsWith('Ballerina.toml')) {
+      continue;
+    }
+
+    try {
+      const tempFileFullPath = path.join(tempProjectPath, filePath);
+      if (!fs.existsSync(tempFileFullPath)) {
+        console.warn(`[AgentNotification] File does not exist, skipping review restore: ${tempFileFullPath}`);
+        continue;
+      }
+
+      const modifiedContent = fs.readFileSync(tempFileFullPath, 'utf-8');
+      // Files created by the generation have no snapshot entry: empty baseline (whole file added)
+      const snapshotKey = filePath.split(path.sep).join('/');
+      const originalContent = originalContents?.[snapshotKey] ?? '';
+      const languageId = filePath.endsWith('.bal') ? 'ballerina' : 'toml';
+      const tempFileUri = Uri.file(tempFileFullPath).toString();
+      const aiUri = 'ai' + tempFileUri.substring(4); // Replace 'file' prefix with 'ai'
+
+      StateMachine.langClient().didOpen({
+        textDocument: { uri: tempFileUri, languageId, version: 1, text: originalContent }
+      });
+      StateMachine.langClient().didOpen({
+        textDocument: { uri: aiUri, languageId, version: 1, text: modifiedContent }
+      });
+      console.log(`[AgentNotification] Restored review schemas for: ${filePath}`);
+    } catch (error) {
+      console.error(`[AgentNotification] Failed to restore review schemas for ${filePath}:`, error);
+    }
+  }
+}

@@ -346,7 +346,8 @@ export class VisualizerRpcManager implements VisualizerAPI {
     }
 
     navigateReviewMode(index: number): void {
-        approvalViewManager.navigateReviewMode(index);
+        approvalViewManager.navigateReviewMode(index).catch((err) =>
+            console.error("[Visualizer] Failed to navigate review mode:", err));
     }
 
     async saveEvalThread(params: SaveEvalThreadRequest): Promise<SaveEvalThreadResponse> {

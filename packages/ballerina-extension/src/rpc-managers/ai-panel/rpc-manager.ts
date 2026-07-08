@@ -750,6 +750,11 @@ User reverted the last made changes. The files have been restored to the state b
         return projectPath;
     }
 
+    async hasPendingReview(): Promise<boolean> {
+        const projectRootPath = resolveProjectRootPath();
+        return !!chatStateStorage.getPendingReviewGeneration(projectRootPath, 'default');
+    }
+
     async compactConversation(_params: CompactConversationRequest): Promise<CompactConversationResponse> {
         // Manual compaction is no longer supported. Context is managed automatically
         // server-side via the compact_20260112 API during agent execution.

@@ -16,8 +16,11 @@
  * under the License.
  */
 
-import { MACHINE_VIEW, EVENT_TYPE, VisualizerLocation, PopupVisualizerLocation, AgentMetadata, navigateReviewIndex, reviewModeOpened, reviewModeClosed, ReviewModeData } from '@wso2/ballerina-core';
+import * as fs from 'fs';
+import { MACHINE_VIEW, EVENT_TYPE, VisualizerLocation, PopupVisualizerLocation, AgentMetadata, navigateReviewIndex, reviewModeOpened, reviewModeClosed, ReviewModeData, SemanticDiff, PROJECT_KIND } from '@wso2/ballerina-core';
 import { AiPanelWebview } from '../../../views/ai-panel/webview';
+import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
+import { sendReviewRestoreDidOpenBatch } from '../utils/project/ls-schema-notifications';
 import { VisualizerWebview } from '../../../views/visualizer/webview';
 import { openView as openMainView, StateMachine } from '../../../stateMachine';
 import { openPopupView, StateMachinePopup } from '../../../stateMachinePopup';
@@ -359,9 +362,10 @@ export class ApprovalViewManager {
     /**
      * Navigate ReviewMode to a specific index.
      * If ReviewMode is already open, sends navigateReviewIndex notification directly.
-     * If not open and data is cached, re-opens ReviewMode with cached data then navigates.
+     * If not open, opens it with cached data — rebuilt from the persisted review
+     * state when the cache is gone (extension host restarted mid-review).
      */
-    navigateReviewMode(index: number): void {
+    async navigateReviewMode(index: number): Promise<void> {
         if (!AiPanelWebview.currentPanel) { return; }
         const isReviewModeOpen = StateMachine.context().view === MACHINE_VIEW.ReviewMode && !!VisualizerWebview.currentPanel;
         if (isReviewModeOpen) {
@@ -369,10 +373,65 @@ export class ApprovalViewManager {
                 type: 'webview',
                 webviewType: VisualizerWebview.viewType
             }, index);
-        } else if (this.cachedReviewData) {
+            return;
+        }
+        if (!this.cachedReviewData) {
+            this.cachedReviewData = await this.rebuildReviewDataFromStorage();
+        }
+        if (this.cachedReviewData) {
             openMainView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode, reviewData: { ...this.cachedReviewData, currentIndex: index } });
             RPCLayer._messenger.sendNotification(reviewModeOpened, { type: 'webview', webviewType: AiPanelWebview.viewType });
         }
+    }
+
+    /**
+     * Rebuild ReviewModeData for the pending review from persisted chat state.
+     * Needed after an extension host restart: chatStateStorage (with checkpoint
+     * snapshots) survives on disk, but the in-memory cache and the Language
+     * Server's ai:// and file:// documents do not — so the modified files are
+     * re-opened in the LS and the semantic diffs re-collected.
+     */
+    private async rebuildReviewDataFromStorage(): Promise<ReviewModeData | null> {
+        const ctx = StateMachine.context();
+        const projectRootPath = ctx.workspacePath || ctx.projectPath || '';
+        const generation = chatStateStorage.getPendingReviewGeneration(projectRootPath, 'default');
+        const reviewState = generation?.reviewState;
+        if (!reviewState?.tempProjectPath || !fs.existsSync(reviewState.tempProjectPath)) {
+            return null;
+        }
+
+        const { tempProjectPath, modifiedFiles, affectedPackagePaths } = reviewState;
+        sendReviewRestoreDidOpenBatch(tempProjectPath, modifiedFiles ?? [], generation.checkpoint?.workspaceSnapshot);
+
+        const isWorkspace = ctx.projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+        const affectedPackages = affectedPackagePaths?.length ? affectedPackagePaths : [tempProjectPath];
+        const semanticDiffs: SemanticDiff[] = [];
+        let loadDesignDiagrams = false;
+        for (const pkg of affectedPackages) {
+            // Skip workspace root — it only contains Ballerina.toml, not a real package
+            if (isWorkspace && pkg === tempProjectPath) { continue; }
+            try {
+                const res = await ctx.langClient.getSemanticDiff({ projectPath: pkg });
+                if (res) {
+                    semanticDiffs.push(...res.semanticDiffs);
+                    loadDesignDiagrams = loadDesignDiagrams || res.loadDesignDiagrams;
+                }
+            } catch (err) {
+                console.error(`[ApprovalViewManager] getSemanticDiff failed for package ${pkg} while rebuilding review data`, err);
+                return null;
+            }
+        }
+
+        return {
+            views: [],
+            currentIndex: 0,
+            semanticDiffs,
+            loadDesignDiagrams,
+            affectedPackages,
+            modifiedFiles: modifiedFiles ?? [],
+            tempProjectPath,
+            isWorkspace,
+        };
     }
 
     /**

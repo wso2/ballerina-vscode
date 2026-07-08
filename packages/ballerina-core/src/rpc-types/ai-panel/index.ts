@@ -135,6 +135,7 @@ export interface AIPanelAPI {
     clearChat: () => Promise<void>;
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
     getActiveTempDir: () => Promise<string>;
+    hasPendingReview: () => Promise<boolean>;
     getUsage: () => Promise<UsageResponse | undefined>;
     openFileDiff: (params: OpenFileDiffRequest) => void;
     approveWebTool: (params: WebToolApprovalRequest) => Promise<void>;
