@@ -47,6 +47,7 @@ public class WorkflowNodeTemplateTest extends AbstractLSTest {
                 {Path.of("activity_node_template.json")},
                 {Path.of("human_task_node_template.json")},
                 {Path.of("send_data_node_template.json")},
+                {Path.of("sleep_node_template.json")},
                 {Path.of("wait_data_node_template.json")},
                 {Path.of("workflow_node_template.json")},
                 {Path.of("workflow_run_node_template.json")}
