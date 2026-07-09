@@ -12,7 +12,6 @@
     "packageName": "mssql",
     "object": "Client",
     "symbol": "query",
-    "version": "1.16.1",
     "parentSymbol": "dbClient",
     "resourcePath": "/albums/[albumId]"
   },
@@ -21,7 +20,7 @@
     "metadata": {
       "label": "query",
       "description": "Executes a SQL query and returns multiple results as a stream.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.1.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.17.0.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -30,9 +29,8 @@
       "packageName": "mssql",
       "object": "Client",
       "symbol": "query",
-      "version": "1.16.1",
       "isNew": true,
-      "inferredReturnType": "stream<rowType, sql:Error?>"
+      "inferredReturnType": "stream<rowType, $CompilationError$?>"
     },
     "returning": false,
     "properties": {
@@ -61,17 +59,12 @@
         },
         "types": [
           {
-            "fieldType": "SQL_QUERY",
-            "ballerinaType": "sql:ParameterizedQuery",
-            "selected": true
-          },
-          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "sql:ParameterizedQuery",
+            "ballerinaType": "$CompilationError$",
             "selected": false
           }
         ],
-        "placeholder": "object {}",
+        "placeholder": "",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -79,9 +72,6 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "sqlQuery"
-        },
-        "imports": {
-          "sql": "ballerina/sql"
         }
       },
       "rowType": {
@@ -119,16 +109,13 @@
             "selected": true
           }
         ],
-        "value": "stream<rowType, sql:Error?>",
+        "value": "stream<rowType, $CompilationError$?>",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
         "hidden": false,
-        "codedata": {},
-        "imports": {
-          "sql": "ballerina/sql"
-        }
+        "codedata": {}
       },
       "variable": {
         "metadata": {
@@ -141,7 +128,7 @@
             "selected": true
           }
         ],
-        "value": "streamRowtypeSqlError",
+        "value": "streamRowtypeCompilationerror",
         "optional": false,
         "editable": true,
         "advanced": false,

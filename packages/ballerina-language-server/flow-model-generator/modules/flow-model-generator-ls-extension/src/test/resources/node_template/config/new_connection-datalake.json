@@ -60,7 +60,7 @@
             "selected": false
           }
         ],
-        "placeholder": "{auth: {token: \"\"}}",
+        "placeholder": "{auth: }",
         "optional": false,
         "editable": true,
         "advanced": false,

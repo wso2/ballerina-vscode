@@ -11,7 +11,6 @@
     "module": "snowflake",
     "packageName": "snowflake",
     "object": "Client",
-    "version": "2.1.0",
     "symbol": "query",
     "parentSymbol": "snowflakeCl"
   },
@@ -20,7 +19,7 @@
     "metadata": {
       "label": "query",
       "description": "Executes the query, which may return multiple results.\nWhen processing the stream, make sure to consume all fetched data or close the stream.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.1.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.1.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -29,9 +28,8 @@
       "packageName": "snowflake",
       "object": "Client",
       "symbol": "query",
-      "version": "2.1.0",
       "isNew": true,
-      "inferredReturnType": "stream<rowType, sql:Error?>"
+      "inferredReturnType": "stream<rowType, $CompilationError$?>"
     },
     "returning": false,
     "properties": {
@@ -60,17 +58,12 @@
         },
         "types": [
           {
-            "fieldType": "SQL_QUERY",
-            "ballerinaType": "sql:ParameterizedQuery",
-            "selected": true
-          },
-          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "sql:ParameterizedQuery",
+            "ballerinaType": "$CompilationError$",
             "selected": false
           }
         ],
-        "placeholder": "object {}",
+        "placeholder": "",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -78,9 +71,6 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "sqlQuery"
-        },
-        "imports": {
-          "sql": "ballerina/sql"
         }
       },
       "rowType": {
@@ -118,16 +108,13 @@
             "selected": true
           }
         ],
-        "value": "stream<rowType, sql:Error?>",
+        "value": "stream<rowType, $CompilationError$?>",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
         "hidden": false,
-        "codedata": {},
-        "imports": {
-          "sql": "ballerina/sql"
-        }
+        "codedata": {}
       },
       "variable": {
         "metadata": {
@@ -140,7 +127,7 @@
             "selected": true
           }
         ],
-        "value": "streamRowtypeSqlError",
+        "value": "streamRowtypeCompilationerror",
         "optional": false,
         "editable": true,
         "advanced": false,

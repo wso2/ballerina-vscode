@@ -142,15 +142,15 @@ task resolveBallerinaDependencies {
 
     doLast {
         def tomlFile = file("build-config/ballerina_dependencies/Ballerina.toml")
+        def fixtureVersionsFile = file("build-config/ballerina_dependencies/fixture-versions.txt")
         def hashFile = file("$buildDir/ballerina_dependencies/.toml-hash")
 
-        def currentHash = java.security.MessageDigest
-            .getInstance("SHA-256")
-            .digest(tomlFile.bytes)
-            .collect { String.format("%02x", it) }
-            .join()
+        def digest = java.security.MessageDigest.getInstance("SHA-256")
+        digest.update(tomlFile.bytes)
+        digest.update(fixtureVersionsFile.bytes)
+        def currentHash = digest.digest().collect { String.format("%02x", it) }.join()
 
-        // Skip the bal build only when the TOML is unchanged AND the home it
+        // Skip the bal build only when the inputs are unchanged AND the home it
         // describes still exists — a partially deleted home must trigger
         // re-resolution.
         def homeBalaDir = new File(ballerinaTestHomeDir, "repositories/central.ballerina.io/bala")
@@ -184,6 +184,42 @@ task resolveBallerinaDependencies {
             if (result.exitValue != 0) {
                 println errOutput
                 throw new GradleException("Failed to build Ballerina dependencies")
+            }
+
+            // Supplementary versions that individual fixtures pin and that cannot
+            // live in the single-graph project above. Pull each into the home so
+            // tests can resolve them offline (bal pull is transitive). Provisioning
+            // is allowed to be online; only the tests themselves run offline.
+            fixtureVersionsFile.readLines().each { rawLine ->
+                def spec = rawLine.trim()
+                if (spec.isEmpty() || spec.startsWith("#")) {
+                    return
+                }
+                def parts = spec.split("[/:]")
+                def balaDir = new File(homeBalaDir, "${parts[0]}/${parts[1]}/${parts[2]}")
+                if (balaDir.exists()) {
+                    return
+                }
+                logger.lifecycle("Pulling fixture version: ${spec}")
+                def pullErr = new ByteArrayOutputStream()
+                exec {
+                    ignoreExitValue = true
+                    environment "BALLERINA_HOME_DIR", ballerinaTestHomeDir.absolutePath
+                    def balPullCommand = "bal pull ${spec}"
+                    if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+                        commandLine 'cmd', '/c', balPullCommand
+                    } else {
+                        commandLine '/bin/sh', '-c', balPullCommand
+                    }
+                    errorOutput = pullErr
+                }
+                // These are old versions that may not compile against the current
+                // distribution; a non-zero exit is fine as long as the bala was
+                // fetched into the home. Only fail if it is genuinely absent.
+                if (!balaDir.exists()) {
+                    println pullErr
+                    throw new GradleException("Failed to pull fixture version: ${spec}")
+                }
             }
 
             hashFile.text = currentHash
@@ -392,6 +428,9 @@ allprojects {
     tasks.withType(Test).configureEach {
         dependsOn rootProject.tasks.named("resolveBallerinaDependencies")
         environment "BALLERINA_HOME_DIR", rootProject.ballerinaTestHomeDir.absolutePath
+        // Tests never contact Ballerina Central — they resolve only from the
+        // build-owned home provisioned above. See FORCE_OFFLINE in PackageUtil.
+        systemProperty "ls.test.offline", "true"
     }
 }
 

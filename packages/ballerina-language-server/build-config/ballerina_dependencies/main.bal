@@ -29,3 +29,5 @@ import ballerinax/salesforce as _;
 import ballerina/ftp as _;
 import ballerina/data.csv as _;
 import ballerina/workflow as _;
+import ballerina/grpc as _;
+import ballerina/mqtt as _;

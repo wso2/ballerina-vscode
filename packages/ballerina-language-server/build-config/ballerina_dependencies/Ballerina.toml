@@ -24,6 +24,11 @@ lockingMode = "LOCK"
 sticky = true
 
 [[dependency]]
+org = "ballerina"
+name = "http"
+version = "2.16.4"
+
+[[dependency]]
 org = "ballerinax"
 name = "kafka"
 version = "4.6.5"
@@ -177,3 +182,40 @@ version = "0.8.1"
 org = "ballerina"
 name = "workflow"
 version = "0.5.0"
+
+[[dependency]]
+org = "ballerina"
+name = "grpc"
+version = "1.13.2"
+
+[[dependency]]
+org = "ballerina"
+name = "mqtt"
+version = "1.4.0"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

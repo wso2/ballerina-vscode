@@ -27,6 +27,7 @@ import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -46,6 +47,14 @@ import java.util.Map;
 public class SourceGeneratorTest extends AbstractLSTest {
 
     private static final Type textEditListType = new TypeToken<Map<String, List<TextEdit>>>() { }.getType();
+
+    @DataProvider(name = "data-provider")
+    @Override
+    protected Object[] getConfigsList() {
+        return new Object[][]{
+                {Path.of("data_mapper_definition8.json")},
+        };
+    }
 
     @Override
     @Test(dataProvider = "data-provider")

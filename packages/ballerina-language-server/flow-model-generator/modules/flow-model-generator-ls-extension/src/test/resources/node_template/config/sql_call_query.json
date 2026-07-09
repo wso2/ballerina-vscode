@@ -12,7 +12,6 @@
     "packageName": "mssql",
     "object": "Client",
     "symbol": "call",
-    "version": "1.16.1",
     "parentSymbol": "dbClient",
     "resourcePath": "/albums/[albumId]"
   },
@@ -21,7 +20,7 @@
     "metadata": {
       "label": "call",
       "description": "Calls a stored procedure with the given SQL query.\nOnce the results are processed, invoke the `close` method on the `sql:ProcedureCallResult`.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.1.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.17.0.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -30,7 +29,6 @@
       "packageName": "mssql",
       "object": "Client",
       "symbol": "call",
-      "version": "1.16.1",
       "isNew": true
     },
     "returning": false,
@@ -60,17 +58,12 @@
         },
         "types": [
           {
-            "fieldType": "SQL_QUERY",
-            "ballerinaType": "sql:ParameterizedCallQuery",
-            "selected": true
-          },
-          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "sql:ParameterizedCallQuery",
+            "ballerinaType": "$CompilationError$",
             "selected": false
           }
         ],
-        "placeholder": "object {}",
+        "placeholder": "",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -78,9 +71,6 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "sqlQuery"
-        },
-        "imports": {
-          "sql": "ballerina/sql"
         }
       },
       "rowTypes": {
@@ -135,16 +125,13 @@
             "selected": true
           }
         ],
-        "value": "sql:ProcedureCallResult",
+        "value": "$CompilationError$",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
         "hidden": false,
-        "codedata": {},
-        "imports": {
-          "sql": "ballerina/sql"
-        }
+        "codedata": {}
       },
       "variable": {
         "metadata": {
@@ -157,7 +144,7 @@
             "selected": true
           }
         ],
-        "value": "sqlProcedurecallresult",
+        "value": "compilationerror",
         "optional": false,
         "editable": true,
         "advanced": false,

@@ -153,22 +153,8 @@
         },
         "types": [
           {
-            "fieldType": "RECORD_MAP_EXPRESSION",
-            "ballerinaType": "sql:ConnectionPool",
-            "typeMembers": [
-              {
-                "type": "ConnectionPool",
-                "packageInfo": "ballerina:sql:1.15.0",
-                "packageName": "sql",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "sql:ConnectionPool?",
+            "ballerinaType": "$CompilationError$?",
             "selected": false
           }
         ],

@@ -21,6 +21,7 @@ package io.ballerina.modelgenerator.commons;
 import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.ModuleName;
@@ -68,6 +69,14 @@ import java.util.concurrent.locks.ReentrantLock;
 public class PackageUtil {
 
     private static final String BALLERINA_HOME_PROPERTY = "ballerina.home";
+
+    // Test-only switch (set by the Gradle test tasks via -Dls.test.offline=true). When
+    // enabled, package resolution never contacts Ballerina Central: packages resolve
+    // only from the local repositories the build pre-populates, "latest version"
+    // lookups use the cached version instead of the remote one, and versions that are
+    // not cached fail visibly. Absent in production, so production stays online.
+    private static final boolean FORCE_OFFLINE = Boolean.getBoolean("ls.test.offline");
+
     private static final BuildProject SAMPLE_PROJECT = getSampleProject();
 
     private static final String PULLING_THE_MODULE_MESSAGE = "Pulling the module '%s' from the central";
@@ -76,6 +85,28 @@ public class PackageUtil {
 
     // Concurrent map to store locks for each project
     private static final ConcurrentHashMap<Path, ReentrantLock> PROJECT_LOCKS = new ConcurrentHashMap<>();
+
+    /**
+     * Resolves the version of a package available in the local repositories (offline),
+     * i.e. the version the build has provisioned. Returns null if not cached.
+     */
+    public static String cachedVersion(String org, String name) {
+        try {
+            PackageResolver resolver = SAMPLE_PROJECT.projectEnvironmentContext().getService(PackageResolver.class);
+            Collection<PackageMetadataResponse> responses = resolver.resolvePackageMetadata(
+                    Collections.singletonList(ResolutionRequest.from(
+                            PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name)))),
+                    ResolutionOptions.builder().setOffline(true).build());
+            Optional<PackageMetadataResponse> first = responses.stream().findFirst();
+            if (first.isPresent()
+                    && first.get().resolutionStatus() != ResolutionResponse.ResolutionStatus.UNRESOLVED) {
+                return first.get().resolvedDescriptor().version().toString();
+            }
+        } catch (Exception ignored) {
+            // fall through to null
+        }
+        return null;
+    }
 
     public static BuildProject getSampleProject() {
         // Obtain the Ballerina distribution path
@@ -153,16 +184,18 @@ public class PackageUtil {
         Collection<ResolutionResponse> resolutionResponses =
                 buildProject.projectEnvironmentContext().getService(PackageResolver.class)
                         .resolvePackages(Collections.singletonList(resolutionRequest),
-                                ResolutionOptions.builder().setOffline(false).setSticky(false).build());
+                                ResolutionOptions.builder().setOffline(FORCE_OFFLINE).setSticky(false).build());
         Optional<ResolutionResponse> resolutionResponse = resolutionResponses.stream().findFirst();
-        if (resolutionResponse.isEmpty()) {
+        if (resolutionResponse.isEmpty() || resolutionResponse.get().resolvedPackage() == null) {
+            // Offline and the package could not be resolved from the local repositories.
             return Optional.empty();
         }
 
         Path balaPath = resolutionResponse.get().resolvedPackage().project().sourceRoot();
         ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
         defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
-        BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath);
+        BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath,
+                BuildOptions.builder().setOffline(FORCE_OFFLINE).build());
         return Optional.ofNullable(balaProject.currentPackage());
     }
 
@@ -177,6 +210,10 @@ public class PackageUtil {
         PackageDescriptor packageDescriptor;
         if (pkgMetadata.isEmpty() ||
                 pkgMetadata.get().resolutionStatus() == ResolutionResponse.ResolutionStatus.UNRESOLVED) {
+            if (FORCE_OFFLINE) {
+                // Not in the local repositories and network fallback is disabled.
+                return Optional.empty();
+            }
             // If the package metadata is not found locally, fetch the latest version from the central repository
             CentralAPI centralApi = RemoteCentral.getInstance();
             String version = centralApi.latestPackageVersion(org, name);
@@ -188,16 +225,18 @@ public class PackageUtil {
 
         Collection<ResolutionResponse> resolutionResponses = packageResolver.resolvePackages(
                 Collections.singletonList(ResolutionRequest.from(packageDescriptor)),
-                ResolutionOptions.builder().setOffline(false).build());
+                ResolutionOptions.builder().setOffline(FORCE_OFFLINE).build());
         Optional<ResolutionResponse> resolutionResponse = resolutionResponses.stream().findFirst();
-        if (resolutionResponse.isEmpty()) {
+        if (resolutionResponse.isEmpty() || resolutionResponse.get().resolvedPackage() == null) {
+            // Offline and the package could not be resolved from the local repositories.
             return Optional.empty();
         }
 
         Path balaPath = resolutionResponse.get().resolvedPackage().project().sourceRoot();
         ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
         defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
-        BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath);
+        BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath,
+                BuildOptions.builder().setOffline(FORCE_OFFLINE).build());
         return Optional.ofNullable(balaProject.currentPackage());
     }
 
@@ -326,9 +365,10 @@ public class PackageUtil {
 
     public static ModuleInfo fetchVersionIfNotExists(ModuleInfo moduleInfo) {
         if (moduleInfo.version() == null) {
-            CentralAPI centralApi = RemoteCentral.getInstance();
-            return new ModuleInfo(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(),
-                    centralApi.latestPackageVersion(moduleInfo.org(), moduleInfo.packageName()));
+            String version = FORCE_OFFLINE
+                    ? cachedVersion(moduleInfo.org(), moduleInfo.packageName())
+                    : RemoteCentral.getInstance().latestPackageVersion(moduleInfo.org(), moduleInfo.packageName());
+            return new ModuleInfo(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(), version);
         }
         return moduleInfo;
     }

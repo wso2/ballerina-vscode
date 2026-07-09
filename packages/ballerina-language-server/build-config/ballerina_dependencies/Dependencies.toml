@@ -169,8 +169,32 @@ modules = [
 
 [[package]]
 org = "ballerina"
+name = "grpc"
+version = "1.13.2"
+dependencies = [
+	{org = "ballerina", name = "auth"},
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "jwt"},
+	{org = "ballerina", name = "lang.runtime"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "oauth2"},
+	{org = "ballerina", name = "protobuf"},
+	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc"},
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc.types.any"},
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc.types.duration"},
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc.types.struct"},
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc.types.timestamp"},
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc.types.wrappers"}
+]
+
+[[package]]
+org = "ballerina"
 name = "http"
-version = "2.16.3"
+version = "2.16.4"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
@@ -381,6 +405,18 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
+name = "mqtt"
+version = "1.4.0"
+dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "mqtt", moduleName = "mqtt"}
+]
+
+[[package]]
+org = "ballerina"
 name = "oauth2"
 version = "2.15.0"
 dependencies = [
@@ -407,6 +443,15 @@ version = "1.10.1"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"}
+]
+
+[[package]]
+org = "ballerina"
+name = "protobuf"
+version = "1.7.0"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "time"}
 ]
 
 [[package]]
@@ -467,7 +512,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "time"
-version = "2.8.0"
+version = "2.8.1"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
@@ -475,7 +520,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "url"
-version = "2.6.1"
+version = "2.6.2"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
@@ -1110,6 +1155,8 @@ dependencies = [
 	{org = "ballerina", name = "ai"},
 	{org = "ballerina", name = "data.csv"},
 	{org = "ballerina", name = "ftp"},
+	{org = "ballerina", name = "grpc"},
+	{org = "ballerina", name = "mqtt"},
 	{org = "ballerina", name = "workflow"},
 	{org = "ballerinax", name = "ai"},
 	{org = "ballerinax", name = "ai.anthropic"},
