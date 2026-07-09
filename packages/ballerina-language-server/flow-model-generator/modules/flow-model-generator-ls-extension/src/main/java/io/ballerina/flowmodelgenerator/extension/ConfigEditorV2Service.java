@@ -588,7 +588,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 return tomlValueNode.toString();
             }
             case STRING -> {
-                return DOUBLE_QUOTE + tomlValueNode + DOUBLE_QUOTE;
+                return DOUBLE_QUOTE + CommonUtils.escapeContent(tomlValueNode.toString()) + DOUBLE_QUOTE;
             }
             case ARRAY -> {
                 List<TomlValueNode> elements = ((TomlArrayValueNode) tomlValueNode).elements();
