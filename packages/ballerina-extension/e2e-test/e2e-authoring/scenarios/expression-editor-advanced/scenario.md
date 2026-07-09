@@ -40,8 +40,9 @@ in the spec.
 | 14 | Click the MySQL connector and select the Query action | Side panel opens the query form |
 | 15 | Add an SQL statement and toggle between SQL format and expression format, then save | Save succeeds without error; statement is wrapped in SQL backticks; flow diagram shows the connector addition |
 | 16 | Click AI in the side panel, select Agent, and add a new agent | Each navigation step lands on the expected view |
-| 17 | Open the prompt field's expand mode and use the different markdown formatting tools, then save | Markdown formatting is applied in the prompt without errors |
-| 18 | Verify the generated source | Declarations, connector + query, and agent match the fixture |
+| 17 | Open the prompt field's expand mode and use the different markdown formatting tools; in the Query field, open the helper pane's Variables section and click the `greeting` (int) variable | Markdown formatting applied without errors; `greeting` renders as a blue chip in the Query field, same style as the configurable chip |
+| 18 | Save | Generated agent's query argument is `string \`${greeting}\`` |
+| 19 | Verify the generated source | Declarations, connector + query, and agent match the fixture |
 
 ## Gaps
 
@@ -96,6 +97,36 @@ All items below are CONFIRMED through the authoring daemon (steps 01–12).
   renders as an inline CM widget — `span[contenteditable="false"]` containing
   `i.fw-bi-variable` and the name, with inline style
   `background: rgba(59, 130, 246, 0.15)` (blue). Assert the style + icon.
+- **Variable chip in prompt fields (confirmed)**: inserting a declared
+  variable into a prompt-mode field (Role/Instructions/Query) via the helper
+  pane's Variables section renders the exact same blue chip widget as the
+  configurable chip — identical style and `i.fw-bi-variable` icon. The chip
+  has `title="${varName}"`; Query is a Text-mode field, so the generated call
+  wraps the reference in a string template: `check aiAgent.run(string
+  \`${varName}\`)`. Use a **scalar** variable (e.g. `greeting`, an `int`) —
+  interpolating the `p` record directly into a string template does not
+  compile. Typing further text right after the inserted chip is also
+  unreliable (a subsequent keyboard append can be silently dropped) — treat
+  the chip insertion as the query's whole value rather than fighting cursor
+  placement around it.
+- **Node reopen click — root cause found via trace inspection**: a
+  `click({force:true})` on a diagram node's text to reopen it intermittently
+  did nothing, even though Playwright's own trace confirmed the click
+  completed cleanly (no error, no timeout) with no resulting panel. This is
+  the diagram library not reacting to a synthetic click event the way
+  Playwright's `.click()`/`.click({force:true})` dispatches it — the same
+  class of issue already solved for the diagram's add-button (see
+  `openNodePalette`/`clickNextDiagramPlus`, which dispatch a full
+  `pointerover → mouseover → mouseenter → pointerenter → pointerdown →
+  mousedown → mouseup → click` sequence via `dispatchEvent`). Applying that
+  same synthetic-event sequence to node-reopen clicks (`diagramClick` helper
+  in the spec / `globalThis.diagramClick` in `prelude.js`) is the fix — not a
+  timing/retry workaround. Two retry-based "fixes" were tried first and made
+  things *worse* before this was found: a `hover()` before the click (without
+  `force: true`, hover itself can get blocked by an intercepting overlay and
+  time out), and retrying the click as soon as the target wasn't visible yet
+  (a second click while the first was still slowly succeeding could toggle an
+  already-open panel back closed).
 - **Unchecking an optional field (confirmed)**: in the `parameter-branch`
   tree, a required field's checkbox is `disabled` (e.g. `name`); an optional
   field's checkbox (e.g. `age`, listed under "Optional fields") is enabled.

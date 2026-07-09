@@ -78,6 +78,74 @@ async function domClick(locator: import('@playwright/test').Locator): Promise<vo
     await locator.evaluate((el: HTMLElement) => el.click());
 }
 
+// The diagram library doesn't reliably react to Playwright's native
+// click/force-click on a node's text (the event dispatches without error but
+// the node's onClick handler doesn't fire — confirmed via trace inspection:
+// two force-clicks completed cleanly with no resulting panel open). A full
+// synthetic pointer-event sequence, matching the proven pattern already used
+// for the diagram's add-button, is what the diagram library actually needs.
+async function diagramClick(locator: import('@playwright/test').Locator): Promise<void> {
+    await locator.waitFor({ state: 'visible', timeout: 15000 });
+    await locator.evaluate((el: HTMLElement) => {
+        for (const type of ['pointerover', 'mouseover', 'mouseenter', 'pointerenter', 'pointerdown', 'mousedown', 'mouseup', 'click']) {
+            el.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+        }
+    });
+}
+
+// Focusing the record preview editor is what opens the Record Configuration
+// modal, but the click/focus can be swallowed while the panel is
+// re-rendering after a mode switch — retry with real delays until the modal
+// actually appears, rather than a single click with no fallback.
+//
+// BUG FOUND VIA TRACE INSPECTION: a real CI run failed here with the retry
+// loop's own domClick(recordMode) timing out waiting for the mode-switcher
+// tab itself — the side panel had fully closed mid-retry (e.g. a stray
+// force-click landing on the canvas behind a stale/duplicate testid match).
+// Once the panel is closed, clicking the mode tab can never reopen it — only
+// re-clicking the diagram node can. The loop only had `recordMode`, with no
+// way to get back to the node, so it burned the whole 120s deadline retrying
+// a closed panel. Pass the node in so the loop can recover.
+async function openRecordConfigModal(frame: import('@playwright/test').Frame, node: import('@playwright/test').Locator, recordMode: import('@playwright/test').Locator): Promise<import('@playwright/test').Locator> {
+    const overlay = frame.locator('.unq-modal-overlay').last();
+    const modalMarker = overlay.getByText('Select fields to construct the record');
+    // Generous deadline: under real system load in this environment a single
+    // supposedly-instant JS evaluate() has been observed to stall for ~30s
+    // (confirmed via Playwright trace inspection, not a logic issue) — a
+    // tight deadline can expire mid-stall even though the click sequence
+    // itself is correct.
+    const deadline = Date.now() + 120000;
+    while (Date.now() < deadline) {
+        if (await modalMarker.isVisible({ timeout: 1000 }).catch(() => false)) { break; }
+        if (!(await recordMode.isVisible().catch(() => false))) {
+            // Panel closed entirely — reopen it via the diagram node before
+            // trying to click the (currently nonexistent) mode tab.
+            await diagramClick(node).catch(() => { });
+            await page.page.waitForTimeout(1000);
+        }
+        await domClick(recordMode).catch(() => { });
+        await page.page.waitForTimeout(1000);
+        const preview = frame.locator('[data-testid="ex-editor-expression"] textarea, [data-testid="ex-editor-expression"] input, [data-testid="ex-editor-expression"] .cm-content').last();
+        await preview.click({ force: true, timeout: 5000 }).catch(() => { });
+        await preview.evaluate((el: HTMLElement) => el.focus()).catch(() => { });
+        await page.page.waitForTimeout(1500);
+    }
+    await modalMarker.waitFor({ timeout: 15000 });
+    return overlay;
+}
+
+// Style used by both the configurable chip and the variable chip in the
+// multi-mode expression / prompt editors — a blue inline CM widget with the
+// fw-bi-variable icon.
+const CHIP_BACKGROUND_STYLE = 'rgba(59, 130, 246';
+const CHIP_ICON_SELECTOR = 'i.fw-bi-variable';
+
+async function expectBlueChip(chip: import('@playwright/test').Locator): Promise<void> {
+    const style = await chip.getAttribute('style');
+    expect(style).toContain(CHIP_BACKGROUND_STYLE);
+    expect(await chip.locator(CHIP_ICON_SELECTOR).count()).toBeGreaterThan(0);
+}
+
 async function dismissHelperPanel(): Promise<void> {
     await page.page.keyboard.press('Escape');
     await page.page.waitForTimeout(300);
@@ -336,11 +404,13 @@ export default function createTests() {
             // record-typed field is reopened for editing on a saved node —
             // so wait generously here since this is the one point it appears.
             const node = frame.getByText(new RegExp(`${recordVarName} = \\{name`)).last();
-            await node.waitFor({ state: 'visible', timeout: 15000 });
-            await node.click({ force: true });
+            await diagramClick(node);
             const recordMode = frame.getByTestId('primary-mode');
             const expressionMode = frame.getByTestId('expression-mode');
-            await recordMode.waitFor({ state: 'visible', timeout: 30000 });
+            if (!(await recordMode.isVisible({ timeout: 15000 }).catch(() => false))) {
+                await diagramClick(node);
+                await recordMode.waitFor({ state: 'visible', timeout: 30000 });
+            }
             expect(await recordMode.innerText()).toBe('Record');
             expect(await expressionMode.innerText()).toBe('Expression');
             logStep('Record/Expression mode switcher visible on edit');
@@ -348,22 +418,7 @@ export default function createTests() {
             // Record mode → focus preview → Record Configuration modal. The
             // panel re-renders after the mode switch, so retry the focus click
             // until the modal actually appears.
-            const overlay = frame.locator('.unq-modal-overlay').last();
-            const modalMarker = overlay.getByText('Select fields to construct the record');
-            const modalDeadline = Date.now() + 90000;
-            while (Date.now() < modalDeadline) {
-                if (await modalMarker.isVisible({ timeout: 1000 }).catch(() => false)) { break; }
-                // (Re)assert Record mode — the click can be swallowed while the
-                // panel re-renders — then focus the preview editor. The modal
-                // opens on focus, so dispatch a real DOM focus as well.
-                await domClick(recordMode).catch(() => { });
-                await page.page.waitForTimeout(1000);
-                const preview = frame.locator('[data-testid="ex-editor-expression"] textarea, [data-testid="ex-editor-expression"] input, [data-testid="ex-editor-expression"] .cm-content').last();
-                await preview.click({ force: true, timeout: 5000 }).catch(() => { });
-                await preview.evaluate((el: HTMLElement) => el.focus()).catch(() => { });
-                await page.page.waitForTimeout(1500);
-            }
-            await modalMarker.waitFor({ timeout: 5000 });
+            const overlay = await openRecordConfigModal(frame, node, recordMode);
             const branchText = await overlay.getByTestId('parameter-branch').first().innerText();
             expect(branchText).toContain('name');
             expect(branchText).toContain('age');
@@ -427,9 +482,7 @@ export default function createTests() {
             // is safer than a "recovery" path that destroys the edit.
             const chip = overlay.locator('.cm-content span[contenteditable="false"]', { hasText: configName }).first();
             await chip.waitFor({ state: 'visible', timeout: 30000 });
-            const chipStyle = await chip.getAttribute('style');
-            expect(chipStyle).toContain('rgba(59, 130, 246');
-            expect(await chip.locator('i.fw-bi-variable').count()).toBeGreaterThan(0);
+            await expectBlueChip(chip);
             logStep('Configurable rendered as blue chip at the exact insertion point');
 
             // The record's surrounding structure must have survived the
@@ -449,24 +502,13 @@ export default function createTests() {
             // Reopen the node and untick the optional "age" field: its entry
             // must drop entirely from the combined Expression value (not
             // just go blank), and the change must flow through to source.
-            // The node click occasionally doesn't register (panel stays
-            // closed) — retry with real delays between attempts.
             const node2 = frame.getByText(new RegExp(`${recordVarName} = \\{`)).last();
-            await node2.waitFor({ state: 'visible', timeout: 15000 });
-            const reopenDeadline = Date.now() + 30000;
-            while (Date.now() < reopenDeadline) {
-                await node2.click({ force: true }).catch(() => { });
-                if (await recordMode.isVisible({ timeout: 3000 }).catch(() => false)) { break; }
-                await page.page.waitForTimeout(1000);
+            await diagramClick(node2);
+            if (!(await recordMode.isVisible({ timeout: 15000 }).catch(() => false))) {
+                await diagramClick(node2);
+                await recordMode.waitFor({ state: 'visible', timeout: 30000 });
             }
-            await recordMode.waitFor({ state: 'visible', timeout: 10000 });
-            await domClick(recordMode);
-            await page.page.waitForTimeout(1500);
-            const preview2 = frame.locator('[data-testid="ex-editor-expression"] textarea, [data-testid="ex-editor-expression"] input, [data-testid="ex-editor-expression"] .cm-content').last();
-            await preview2.click({ force: true });
-            await page.page.waitForTimeout(2000);
-            const overlay2 = frame.locator('.unq-modal-overlay').last();
-            await overlay2.getByText('Select fields to construct the record').waitFor({ timeout: 15000 });
+            const overlay2 = await openRecordConfigModal(frame, node2, recordMode);
             logStep('Reopened Record Configuration modal');
 
             // The required "name" field's checkbox is disabled; "age" (an
@@ -619,12 +661,26 @@ export default function createTests() {
             await frame.locator('[title="Minimize Editor"], [title="Minimize"]').last().click({ force: true });
             await page.page.waitForTimeout(1500);
 
-            // Fill required Query and save
+            // Fill required Query: insert the "greeting" (int) variable via
+            // the helper pane's Variables section — it renders as the same
+            // blue chip widget used for configurables. NOTE: use a scalar
+            // variable here, not the "p" record — interpolating a record
+            // directly into a string template doesn't compile.
             const queryEd = panel.locator('.cm-content, [contenteditable="true"]').last();
             await queryEd.click({ force: true });
-            await page.page.keyboard.type('Summarize the user data', { delay: 20 });
+            await page.page.waitForTimeout(1000);
+            await frame.getByText('Variables', { exact: true }).last().waitFor({ timeout: 10000 });
+            await frame.getByText('Variables', { exact: true }).last().click({ force: true });
             await page.page.waitForTimeout(1500);
+            await frame.getByText(greetingName, { exact: true }).last().click({ force: true });
+            await page.page.waitForTimeout(1500);
+
+            const varChip = queryEd.locator('span[contenteditable="false"]', { hasText: greetingName }).first();
+            await varChip.waitFor({ state: 'visible', timeout: 10000 });
+            await expectBlueChip(varChip);
+            logStep(`${greetingName} variable rendered as blue chip in the prompt editor`);
             await page.page.keyboard.press('Escape');
+
             const save = panel.getByRole('button', { name: 'Save' }).last();
             await expect(save).toBeEnabled({ timeout: 15000 });
             await save.click({ force: true });
@@ -632,8 +688,8 @@ export default function createTests() {
 
             const agents = await pollGenerated('agents.bal', '**You are a helpful assistant**');
             expect(agents).toContain('* Answer briefly');
-            await pollGenerated('automation.bal', '.run("Summarize the user data")');
-            logStep('agents.bal markdown + automation.bal run call verified');
+            await pollGenerated('automation.bal', `aiAgent.run(string \`\${${greetingName}}\`)`);
+            logStep('agents.bal markdown + automation.bal run call with variable chip verified');
         });
     });
 }

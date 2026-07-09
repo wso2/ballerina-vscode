@@ -9,7 +9,7 @@
       'int greeting = "Hello World".length()',
       'name: personName',
       'mysqlClient->query(`SELECT * FROM users`)',
-      '.run("Summarize the user data")'
+      'aiAgent.run(string `${greeting}`)'
     ]],
     ['config.bal', ['configurable string personName = "Anne"']],
     ['connections.bal', ['final mysql:Client mysqlClient = check new ()']],

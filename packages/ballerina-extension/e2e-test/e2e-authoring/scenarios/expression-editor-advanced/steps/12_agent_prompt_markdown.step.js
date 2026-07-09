@@ -42,12 +42,24 @@
   await frame.locator('[title="Minimize Editor"], [title="Minimize"]').last().click({ force: true });
   await window.waitForTimeout(1500);
 
-  // Fill the required Query field and save
+  // Fill the required Query field: insert the "greeting" (int) variable via
+  // the helper pane's Variables section — it renders as the same blue chip
+  // widget used for configurables (fw-bi-variable icon, blue background).
+  // NOTE: use a scalar variable here, not the "p" record — interpolating a
+  // record directly into a string template doesn't compile.
   const queryEd = panel.locator('.cm-content, [contenteditable="true"]').last();
   await queryEd.click({ force: true });
-  await window.waitForTimeout(500);
-  await window.keyboard.type('Summarize the user data', { delay: 20 });
+  await window.waitForTimeout(1000);
+  await frame.getByText('Variables', { exact: true }).last().waitFor({ timeout: 10000 });
+  await frame.getByText('Variables', { exact: true }).last().click({ force: true });
   await window.waitForTimeout(1500);
+  await frame.getByText('greeting', { exact: true }).last().click({ force: true });
+  await window.waitForTimeout(1500);
+
+  const chip = queryEd.locator('span[contenteditable="false"]', { hasText: 'greeting' }).first();
+  await chip.waitFor({ state: 'visible', timeout: 10000 });
+  await assertBlueChip(chip, 'greeting variable');
+  console.log('greeting variable rendered as blue chip in the prompt editor');
   await window.keyboard.press('Escape');
   const save = panel.getByRole('button', { name: 'Save' }).last();
   const deadline = Date.now() + 15000;
@@ -74,8 +86,8 @@
     throw new Error(`agents.bal missing markdown instructions:\n${agents}`);
   }
   const source = fs.readFileSync(path.join(state.integrationDir, 'automation.bal'), 'utf8');
-  if (!source.includes('.run("Summarize the user data")')) {
-    throw new Error(`automation.bal missing agent run call:\n${source}`);
+  if (!source.includes('aiAgent.run(string `${greeting}`)')) {
+    throw new Error(`automation.bal missing agent run call with greeting interpolation:\n${source}`);
   }
-  console.log('agents.bal has markdown instructions; automation.bal has agent.run');
+  console.log('agents.bal has markdown instructions; automation.bal has agent.run(string `${greeting}`)');
 }

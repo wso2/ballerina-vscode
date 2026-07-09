@@ -9,26 +9,15 @@
   };
 
   // Reopen p:Person (saved with {name: personName, age: 30} in step 07) and
-  // switch to Record mode to reach the Record Configuration modal. The node
-  // click occasionally doesn't register (panel stays closed) — retry with
-  // real delays between attempts.
+  // switch to Record mode to reach the Record Configuration modal.
   const node = frame.getByText(/p = \{/).last();
-  await node.waitFor({ state: 'visible', timeout: 15000 });
+  await diagramClick(node);
   const record = frame.locator('[data-testid="primary-mode"]');
-  const reopenDeadline = Date.now() + 30000;
-  while (Date.now() < reopenDeadline) {
-    await node.click({ force: true }).catch(() => {});
-    if (await record.isVisible({ timeout: 3000 }).catch(() => false)) break;
-    await window.waitForTimeout(1000);
+  if (!(await record.isVisible({ timeout: 15000 }).catch(() => false))) {
+    await diagramClick(node);
   }
-  await record.waitFor({ state: 'visible', timeout: 10000 });
-  await domClick(record);
-  await window.waitForTimeout(1500);
-  const preview = frame.locator('[data-testid="ex-editor-expression"] textarea, [data-testid="ex-editor-expression"] input, [data-testid="ex-editor-expression"] .cm-content').last();
-  await preview.click({ force: true });
-  await window.waitForTimeout(2000);
-  const overlay = frame.locator('.unq-modal-overlay').last();
-  await overlay.getByText('Select fields to construct the record').waitFor({ timeout: 15000 });
+  await record.waitFor({ state: 'visible', timeout: 30000 });
+  const overlay = await openRecordConfigModal(node, record);
   console.log('Record Configuration modal open');
 
   // Uncheck the optional "age" field (its checkbox is the only enabled one —

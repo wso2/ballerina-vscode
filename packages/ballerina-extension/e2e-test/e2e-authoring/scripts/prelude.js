@@ -117,6 +117,75 @@ globalThis.recordSelectorGap = (description, preferredTestId) => {
   return out;
 };
 
+// Style shared by both the configurable chip and the variable chip in the
+// multi-mode expression / prompt editors — a blue inline CM widget with the
+// fw-bi-variable icon.
+globalThis.CHIP_BACKGROUND_STYLE = 'rgba(59, 130, 246';
+globalThis.CHIP_ICON_SELECTOR = 'i.fw-bi-variable';
+
+globalThis.assertBlueChip = async (chip, label) => {
+  const style = await chip.getAttribute('style');
+  if (!style || !style.includes(CHIP_BACKGROUND_STYLE)) {
+    throw new Error(`${label} chip is not blue: ${style}`);
+  }
+  if ((await chip.locator(CHIP_ICON_SELECTOR).count()) === 0) {
+    throw new Error(`${label} chip missing variable icon`);
+  }
+};
+
+// The diagram library doesn't reliably react to Playwright's native
+// click/force-click on a node's text — the event dispatches without error
+// but the node's onClick handler doesn't always fire. A full synthetic
+// pointer-event sequence (matching the diagram's own add-button click
+// pattern) is what it actually needs to register reliably.
+globalThis.diagramClick = async (locator) => {
+  await locator.waitFor({ state: 'visible', timeout: 15000 });
+  await locator.evaluate((el) => {
+    for (const type of ['pointerover', 'mouseover', 'mouseenter', 'pointerenter', 'pointerdown', 'mousedown', 'mouseup', 'click']) {
+      el.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+    }
+  });
+};
+
+// Focusing the record preview editor is what opens the Record Configuration
+// modal, but the click/focus can be swallowed while the panel is
+// re-rendering after a mode switch — retry with real delays until the modal
+// actually appears, rather than a single click with no fallback.
+//
+// BUG FOUND VIA TRACE INSPECTION (promoted spec CI run): the retry loop's own
+// click on the mode-switcher tab timed out because the side panel had fully
+// closed mid-retry (e.g. a stray force-click landing on the canvas behind a
+// stale/duplicate testid match). Once the panel is closed, clicking the mode
+// tab can never reopen it — only re-clicking the diagram node can. Take the
+// node locator too so the loop can recover instead of burning the whole
+// deadline retrying a closed panel.
+globalThis.openRecordConfigModal = async (nodeLocator, recordModeLocator) => {
+  const frame = await getBIWebview();
+  const overlay = frame.locator('.unq-modal-overlay').last();
+  const modalMarker = overlay.getByText('Select fields to construct the record');
+  // Generous deadline: under real system load a single supposedly-instant
+  // JS evaluate() has been observed to stall for ~30s (confirmed via
+  // Playwright trace inspection, not a logic issue).
+  const deadline = Date.now() + 120000;
+  while (Date.now() < deadline) {
+    if (await modalMarker.isVisible({ timeout: 1000 }).catch(() => false)) break;
+    if (!(await recordModeLocator.isVisible().catch(() => false))) {
+      // Panel closed entirely — reopen it via the diagram node before trying
+      // to click the (currently nonexistent) mode tab.
+      await diagramClick(nodeLocator).catch(() => {});
+      await window.waitForTimeout(1000);
+    }
+    await recordModeLocator.evaluate((el) => el.click()).catch(() => {});
+    await window.waitForTimeout(1000);
+    const preview = frame.locator('[data-testid="ex-editor-expression"] textarea, [data-testid="ex-editor-expression"] input, [data-testid="ex-editor-expression"] .cm-content').last();
+    await preview.click({ force: true, timeout: 5000 }).catch(() => {});
+    await preview.evaluate((el) => el.focus()).catch(() => {});
+    await window.waitForTimeout(1500);
+  }
+  await modalMarker.waitFor({ timeout: 15000 });
+  return overlay;
+};
+
 globalThis.waitForEndpoint = async (url, timeout = 60000, opts = {}) => {
   const deadline = Date.now() + timeout;
   const body = opts.bodyFile ? fs.readFileSync(opts.bodyFile) : opts.body;

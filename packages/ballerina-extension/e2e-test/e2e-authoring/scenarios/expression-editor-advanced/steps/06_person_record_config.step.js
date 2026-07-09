@@ -41,10 +41,12 @@
   // once the record-typed field is reopened for editing on a SAVED node.
   // Wait generously here since this is the one point it actually appears.
   const node = frame.getByText(/p = \{name/).last();
-  await node.waitFor({ state: 'visible', timeout: 15000 });
-  await node.click({ force: true });
+  await diagramClick(node);
   const record = frame.locator('[data-testid="primary-mode"]');
   const expression = frame.locator('[data-testid="expression-mode"]');
+  if (!(await record.isVisible({ timeout: 15000 }).catch(() => false))) {
+    await diagramClick(node);
+  }
   await record.waitFor({ state: 'visible', timeout: 30000 });
   await expression.waitFor({ state: 'visible', timeout: 5000 });
   const labels = [await record.innerText(), await expression.innerText()];
@@ -54,14 +56,9 @@
   }
 
   // Switch to Record mode and open the Record Configuration modal by
-  // focusing the preview editor
-  await domClick(record);
-  await window.waitForTimeout(1500);
-  const preview = frame.locator('[data-testid="ex-editor-expression"] textarea, [data-testid="ex-editor-expression"] input, [data-testid="ex-editor-expression"] .cm-content').last();
-  await preview.click({ force: true });
-  await window.waitForTimeout(2500);
-  const overlay = frame.locator('.unq-modal-overlay').last();
-  await overlay.getByText('Select fields to construct the record').waitFor({ timeout: 15000 });
+  // focusing the preview editor (retry-based helper — the click can be
+  // swallowed while the panel re-renders after the mode switch)
+  const overlay = await openRecordConfigModal(node, record);
   const branchText = await overlay.locator('[data-testid="parameter-branch"]').first().innerText();
   if (!branchText.includes('name') || !branchText.includes('age')) {
     throw new Error(`record field tree incomplete: ${branchText}`);

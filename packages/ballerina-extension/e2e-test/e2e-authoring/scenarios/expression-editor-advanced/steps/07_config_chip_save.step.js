@@ -11,15 +11,12 @@
 
   // Continue editing p (form open from step 06, Expression mode active).
   // Reopen the Record Configuration modal and create a configurable from the
-  // helper pane, then reference it in the record value.
+  // helper pane, then reference it in the record value. Keep a node locator
+  // on hand too — openRecordConfigModal needs it to reopen the panel via the
+  // diagram if it closes entirely mid-retry (the mode tab alone can't do that).
+  const node = frame.getByText(/p = \{name/).last();
   const record = frame.locator('[data-testid="primary-mode"]');
-  await domClick(record);
-  await window.waitForTimeout(1500);
-  const preview = frame.locator('[data-testid="ex-editor-expression"] textarea, [data-testid="ex-editor-expression"] input, [data-testid="ex-editor-expression"] .cm-content').last();
-  await preview.click({ force: true });
-  await window.waitForTimeout(2500);
-  const overlay = frame.locator('.unq-modal-overlay').last();
-  await overlay.getByText('Select fields to construct the record').waitFor({ timeout: 15000 });
+  const overlay = await openRecordConfigModal(node, record);
 
   // Focusing the modal's expression editor opens the helper pane menu
   const modalCm = overlay.locator('.cm-content').last();
@@ -89,11 +86,7 @@
   // "recovery" path that destroys the edit.
   const chip = overlay.locator('.cm-content span[contenteditable="false"]', { hasText: 'personName' }).first();
   await chip.waitFor({ state: 'visible', timeout: 30000 });
-  const chipStyle = await chip.getAttribute('style');
-  console.log('chip style:', chipStyle);
-  if (!chipStyle.includes('rgba(59, 130, 246')) {
-    throw new Error(`configurable chip is not blue: ${chipStyle}`);
-  }
+  await assertBlueChip(chip, 'configurable');
   console.log('chip rendered blue at the exact insertion point');
 
   // Verify the record's surrounding structure survived the insertion —
