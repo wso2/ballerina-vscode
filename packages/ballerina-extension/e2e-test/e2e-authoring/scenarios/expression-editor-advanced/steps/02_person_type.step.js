@@ -44,23 +44,23 @@
   console.log('added field: age');
   console.log('testids now:', JSON.stringify(await listTestIds().catch(() => [])));
 
-  // Try to edit the age field's type to int via the type cell + helper panel
+  // Edit the age field's type to int via the type cell + helper panel. Retry
+  // the dblclick until the popup appears (isVisible() with no timeout is a
+  // correct instant check here — the loop itself provides the real retry
+  // cadence), then hard-fail via the unconditional waitFor below rather than
+  // silently leaving age at its default type if the cell is momentarily slow
+  // to render.
   const typeCell = frame.locator('[data-testid="type-field"]').last();
-  if (await typeCell.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await typeCell.dblclick();
-    await window.waitForTimeout(1000);
-    console.log('after type-cell dblclick snapshot:\n' + (await snapshot('int|string|Primitive').catch(() => '')));
-    const intOption = frame.locator('.unq-modal-overlay').getByText('int', { exact: true }).last();
-    if (await intOption.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await intOption.click({ force: true });
-      console.log('selected int for age');
-    } else {
-      await typeCell.type('int');
-      console.log('typed int into type cell (helper option not found)');
-    }
-  } else {
-    console.log('no [data-testid="type-field"] cell found — age keeps default type');
+  const intOption = frame.locator('.unq-modal-overlay').getByText('int', { exact: true }).last();
+  const typePopupDeadline = Date.now() + 30000;
+  while (Date.now() < typePopupDeadline) {
+    await typeCell.dblclick({ timeout: 5000 }).catch(() => {});
+    if (await intOption.isVisible().catch(() => false)) break;
   }
+  console.log('after type-cell dblclick snapshot:\n' + (await snapshot('int|string|Primitive').catch(() => '')));
+  await intOption.waitFor({ state: 'visible', timeout: 5000 });
+  await intOption.click({ force: true });
+  console.log('selected int for age');
 
   // Mark age as optional — the "?" icon button next to the field
   // (vscode-button[title="Set as an Optional Field"]); active state flips the

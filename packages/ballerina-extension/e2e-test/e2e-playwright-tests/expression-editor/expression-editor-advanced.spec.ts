@@ -93,6 +93,21 @@ async function diagramClick(locator: import('@playwright/test').Locator): Promis
     });
 }
 
+// A single retry after diagramClick can still leave the panel closed under
+// real CI load (the same swallowed-click issue diagramClick itself works
+// around, just needing more than one attempt) — confirmed by a real failure
+// where two clicks in a row both failed to open the mode switcher. Keep
+// re-clicking the node until it actually appears rather than giving up.
+async function reopenRecordNode(node: import('@playwright/test').Locator, recordMode: import('@playwright/test').Locator): Promise<void> {
+    const deadline = Date.now() + 60000;
+    while (Date.now() < deadline) {
+        if (await recordMode.isVisible().catch(() => false)) return;
+        await diagramClick(node);
+        await page.page.waitForTimeout(1500);
+    }
+    await recordMode.waitFor({ state: 'visible', timeout: 15000 });
+}
+
 // Focusing the record preview editor is what opens the Record Configuration
 // modal, but the click/focus can be swallowed while the panel is
 // re-rendering after a mode switch — retry with real delays until the modal
@@ -404,13 +419,9 @@ export default function createTests() {
             // record-typed field is reopened for editing on a saved node —
             // so wait generously here since this is the one point it appears.
             const node = frame.getByText(new RegExp(`${recordVarName} = \\{name`)).last();
-            await diagramClick(node);
             const recordMode = frame.getByTestId('primary-mode');
             const expressionMode = frame.getByTestId('expression-mode');
-            if (!(await recordMode.isVisible({ timeout: 15000 }).catch(() => false))) {
-                await diagramClick(node);
-                await recordMode.waitFor({ state: 'visible', timeout: 30000 });
-            }
+            await reopenRecordNode(node, recordMode);
             expect(await recordMode.innerText()).toBe('Record');
             expect(await expressionMode.innerText()).toBe('Expression');
             logStep('Record/Expression mode switcher visible on edit');
@@ -503,11 +514,7 @@ export default function createTests() {
             // must drop entirely from the combined Expression value (not
             // just go blank), and the change must flow through to source.
             const node2 = frame.getByText(new RegExp(`${recordVarName} = \\{`)).last();
-            await diagramClick(node2);
-            if (!(await recordMode.isVisible({ timeout: 15000 }).catch(() => false))) {
-                await diagramClick(node2);
-                await recordMode.waitFor({ state: 'visible', timeout: 30000 });
-            }
+            await reopenRecordNode(node2, recordMode);
             const overlay2 = await openRecordConfigModal(frame, node2, recordMode);
             logStep('Reopened Record Configuration modal');
 
@@ -581,8 +588,10 @@ export default function createTests() {
             // longer than the source-file write. Only fall back to opening a
             // fresh node palette if the panel actually closed (diagram-only).
             const mysqlEntry = panel.getByText('mysqlClient', { exact: false }).first();
-            if (!(await mysqlEntry.isVisible({ timeout: 20000 }).catch(() => false))) {
-                if (!(await panel.isVisible({ timeout: 2000 }).catch(() => false))) {
+            const mysqlEntryVisible = await mysqlEntry.waitFor({ state: 'visible', timeout: 20000 }).then(() => true).catch(() => false);
+            if (!mysqlEntryVisible) {
+                const panelStillOpen = await panel.waitFor({ state: 'visible', timeout: 2000 }).then(() => true).catch(() => false);
+                if (!panelStillOpen) {
                     await openNodePalette(frame);
                 }
                 await mysqlEntry.waitFor({ state: 'visible', timeout: 30000 });

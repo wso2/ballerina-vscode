@@ -11,12 +11,8 @@
   // Reopen p:Person (saved with {name: personName, age: 30} in step 07) and
   // switch to Record mode to reach the Record Configuration modal.
   const node = frame.getByText(/p = \{/).last();
-  await diagramClick(node);
   const record = frame.locator('[data-testid="primary-mode"]');
-  if (!(await record.isVisible({ timeout: 15000 }).catch(() => false))) {
-    await diagramClick(node);
-  }
-  await record.waitFor({ state: 'visible', timeout: 30000 });
+  await reopenRecordNode(node, record);
   const overlay = await openRecordConfigModal(node, record);
   console.log('Record Configuration modal open');
 

@@ -147,6 +147,22 @@ globalThis.diagramClick = async (locator) => {
   });
 };
 
+// A single retry after diagramClick can still leave the panel closed under
+// real CI load (the same swallowed-click issue diagramClick itself works
+// around, just needing more than one attempt) — confirmed by a real failure
+// in the promoted spec where two clicks in a row both failed to open the
+// mode switcher. Keep re-clicking the node until it actually appears rather
+// than giving up after one retry.
+globalThis.reopenRecordNode = async (node, recordMode) => {
+  const deadline = Date.now() + 60000;
+  while (Date.now() < deadline) {
+    if (await recordMode.isVisible().catch(() => false)) return;
+    await diagramClick(node);
+    await window.waitForTimeout(1500);
+  }
+  await recordMode.waitFor({ state: 'visible', timeout: 15000 });
+};
+
 // Focusing the record preview editor is what opens the Record Configuration
 // modal, but the click/focus can be swallowed while the panel is
 // re-rendering after a mode switch — retry with real delays until the modal

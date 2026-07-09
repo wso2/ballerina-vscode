@@ -41,13 +41,9 @@
   // once the record-typed field is reopened for editing on a SAVED node.
   // Wait generously here since this is the one point it actually appears.
   const node = frame.getByText(/p = \{name/).last();
-  await diagramClick(node);
   const record = frame.locator('[data-testid="primary-mode"]');
   const expression = frame.locator('[data-testid="expression-mode"]');
-  if (!(await record.isVisible({ timeout: 15000 }).catch(() => false))) {
-    await diagramClick(node);
-  }
-  await record.waitFor({ state: 'visible', timeout: 30000 });
+  await reopenRecordNode(node, record);
   await expression.waitFor({ state: 'visible', timeout: 5000 });
   const labels = [await record.innerText(), await expression.innerText()];
   console.log('mode switcher labels:', JSON.stringify(labels));

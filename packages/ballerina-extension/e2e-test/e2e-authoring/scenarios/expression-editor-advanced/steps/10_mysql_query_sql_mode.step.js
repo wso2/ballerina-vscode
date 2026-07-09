@@ -4,7 +4,9 @@
 
   // After saving the connection the node palette reopens with the client
   // listed under Connections. Open its Query action.
-  if (!(await panel.getByText('mysqlClient', { exact: false }).first().isVisible({ timeout: 3000 }).catch(() => false))) {
+  const mysqlEntryVisible = await panel.getByText('mysqlClient', { exact: false }).first()
+    .waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false);
+  if (!mysqlEntryVisible) {
     await clickNextDiagramPlus();
   }
   await panel.getByText('mysqlClient', { exact: false }).first().click({ force: true });
