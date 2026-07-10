@@ -25,6 +25,7 @@ import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
@@ -35,6 +36,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourc
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.HttpUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import io.ballerina.tools.text.LinePosition;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
@@ -287,17 +289,6 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
                 .findFirst();
     }
 
-    /**
-     * Finds the first TextEdit in the result map.
-     *
-     * @param textEdits Map of text edits
-     * @return Optional containing the first TextEdit
-     */
-    private static Optional<TextEdit> findFirstEdit(Map<String, List<TextEdit>> textEdits) {
-        return textEdits.values().stream()
-                .flatMap(List::stream)
-                .findFirst();
-    }
 
     /**
      * Parses the markdown documentation string and populates the function model.
@@ -388,33 +379,73 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
         String toolDescription = extractToolDescription(context.function());
         String returnType = getReturnTypeDescription(context.function());
 
-        Optional<TextEdit> firstEdit = findFirstEdit(result);
-        if (firstEdit.isEmpty()) {
-            return result;
-        }
-
-        TextEdit edit = firstEdit.get();
-        String originalText = edit.getNewText();
-
-        if (originalText == null) {
-            return result;
-        }
-
-        String stripped = originalText.stripLeading();
-
-        if (stripped.startsWith("#")) {
-            // Has documentation - keep it and add tool desc + return type
-            updateDocumentationEdit(edit, originalText, toolDescription, returnType);
-        } else if (stripped.isEmpty()) {
-            // Empty string - add only tool desc and return type
-            String newDoc = buildCompleteDocumentation(toolDescription, "", returnType);
-            edit.setNewText(newDoc);
+        Optional<TextEdit> docEdit = findDocumentationEdit(result);
+        if (docEdit.isPresent()) {
+            TextEdit edit = docEdit.get();
+            String originalText = edit.getNewText();
+            if (originalText != null && originalText.stripLeading().startsWith("#")) {
+                // Existing doc comment - keep it and add tool desc + return type
+                updateDocumentationEdit(edit, originalText, toolDescription, returnType);
+            } else {
+                // Empty doc edit - replace with a full doc comment
+                edit.setNewText(buildCompleteDocumentation(toolDescription, "", returnType));
+            }
         } else {
-            // Non-documentation content - skip update
-            // This could be other code content that shouldn't have documentation prepended
+            // No doc edit at all - the tool has no doc comment. Insert one before the function so the
+            // description (which the mcp compiler reads from the doc) is actually written.
+            insertNewDocumentation(context, result, toolDescription, returnType);
         }
 
         return result;
+    }
+
+    /**
+     * Finds the edit that carries the function's documentation (its text is empty or starts with '#').
+     *
+     * @param textEdits the update edits
+     * @return the documentation edit, if any
+     */
+    private static Optional<TextEdit> findDocumentationEdit(Map<String, List<TextEdit>> textEdits) {
+        return textEdits.values().stream()
+                .flatMap(List::stream)
+                .filter(edit -> {
+                    String text = edit.getNewText();
+                    if (text == null) {
+                        return false;
+                    }
+                    String stripped = text.stripLeading();
+                    return stripped.isEmpty() || stripped.startsWith("#");
+                })
+                .findFirst();
+    }
+
+    /**
+     * Inserts a fresh doc comment before a tool that has none, so its description is written.
+     *
+     * @param context         the update context
+     * @param result          the update edits to append to
+     * @param toolDescription the tool description
+     * @param returnType      the return type description
+     */
+    private static void insertNewDocumentation(UpdateModelContext context, Map<String, List<TextEdit>> result,
+                                               String toolDescription, String returnType) {
+        if (toolDescription == null || toolDescription.trim().isEmpty()) {
+            return;
+        }
+        List<TextEdit> edits = result.get(context.filePath());
+        if (edits == null) {
+            return;
+        }
+        FunctionDefinitionNode functionNode = context.functionNode();
+        Token firstToken = functionNode.qualifierList().isEmpty()
+                ? functionNode.functionKeyword() : functionNode.qualifierList().get(0);
+        LinePosition startLine = firstToken.lineRange().startLine();
+        String indent = SPACE.repeat(startLine.offset());
+        String doc = DOC_COMMENT_PREFIX + toolDescription + NEW_LINE
+                + indent + "#" + NEW_LINE
+                + indent + "# + return - " + returnType + NEW_LINE
+                + indent;
+        edits.add(new TextEdit(Utils.toRange(startLine), doc));
     }
 
     @Override
