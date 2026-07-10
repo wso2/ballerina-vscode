@@ -31,3 +31,10 @@ import ballerina/data.csv as _;
 import ballerina/workflow as _;
 import ballerina/grpc as _;
 import ballerina/mqtt as _;
+import ballerinax/oracledb as _;
+import ballerinax/nats as _;
+import ballerinax/covid19 as _;
+import ballerinax/azure_cosmosdb as _;
+import ballerinax/azure.datalake as _;
+import ballerinax/docusign.dsesign as _;
+

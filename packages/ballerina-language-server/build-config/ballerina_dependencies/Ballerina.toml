@@ -193,6 +193,35 @@ org = "ballerina"
 name = "mqtt"
 version = "1.4.0"
 
+[[dependency]]
+org = "ballerinax"
+name = "oracledb"
+version = "1.14.0"
+
+[[dependency]]
+org = "ballerinax"
+name = "nats"
+version = "3.2.0"
+
+[[dependency]]
+org = "ballerinax"
+name = "covid19"
+version = "1.5.1"
+
+[[dependency]]
+org = "ballerinax"
+name = "azure.cosmosdb"
+version = "4.2.0"
+
+[[dependency]]
+org = "ballerinax"
+name = "azure.datalake"
+version = "1.5.1"
+
+[[dependency]]
+org = "ballerinax"
+name = "docusign.dsesign"
+version = "1.0.1"
 
 
 
