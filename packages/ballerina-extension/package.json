@@ -342,7 +342,7 @@
                 },
                 "ballerina.ai.autoMemory.enabled": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "Enable auto-memory: the Copilot automatically captures and persists facts from conversations so it remembers your preferences, integration patterns, and project context across sessions."
                 },
                 "ballerina.ai.autoDream.enabled": {

@@ -103,7 +103,7 @@ function isDreamEnabled(): boolean {
 /** Optional provider for VS Code autoMemory settings — injected from the extension layer. */
 export type MemorySettingsProvider = () => { autoMemoryEnabled: boolean };
 
-let memorySettingsProvider: MemorySettingsProvider = () => ({ autoMemoryEnabled: true });
+let memorySettingsProvider: MemorySettingsProvider = () => ({ autoMemoryEnabled: false });
 
 /** Registers the VS Code autoMemory settings provider. */
 export function setMemorySettingsProvider(provider: MemorySettingsProvider): void {

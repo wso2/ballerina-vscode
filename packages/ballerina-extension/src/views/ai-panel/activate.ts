@@ -47,7 +47,7 @@ export function activateAiPanel(ballerinaExtInstance: BallerinaExtension) {
 
     // Wire VS Code settings providers (read dynamically so toggling takes effect without restart)
     setMemorySettingsProvider(() => ({
-        autoMemoryEnabled: vscode.workspace.getConfiguration('ballerina.ai.autoMemory').get<boolean>('enabled', true),
+        autoMemoryEnabled: vscode.workspace.getConfiguration('ballerina.ai.autoMemory').get<boolean>('enabled', false),
     }));
     setDreamSettingsProvider(() => ({
         autoDreamEnabled: vscode.workspace.getConfiguration('ballerina.ai.autoDream').get<boolean>('enabled', true),
