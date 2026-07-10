@@ -318,19 +318,20 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
         return await rpcClient.getAiPanelRpcClient().isCopilotSignedIn();
     };
 
-    const handleViewMemories = (scope: 'global' | 'workspace') => {
-        rpcClient.getAiPanelRpcClient().openMemoryFiles({ scope });
-    };
-
-    const handleClearConfirm = async (scope: 'workspace' | 'all') => {
-        try {
-            await rpcClient.getAiPanelRpcClient().clearMemory({ scope });
-        } catch (e: unknown) {
-            console.error('[SettingsPanel] clearMemory failed:', e instanceof Error ? e.message : String(e));
-        } finally {
-            setClearing(null);
-        }
-    };
+    // TODO(auto-memory): memory management temporarily disabled for this release — restore once the memory feature is refined.
+    // const handleViewMemories = (scope: 'global' | 'workspace') => {
+    //     rpcClient.getAiPanelRpcClient().openMemoryFiles({ scope });
+    // };
+    //
+    // const handleClearConfirm = async (scope: 'workspace' | 'all') => {
+    //     try {
+    //         await rpcClient.getAiPanelRpcClient().clearMemory({ scope });
+    //     } catch (e: unknown) {
+    //         console.error('[SettingsPanel] clearMemory failed:', e instanceof Error ? e.message : String(e));
+    //     } finally {
+    //         setClearing(null);
+    //     }
+    // };
 
     return (
         <AIChatView>
@@ -373,7 +374,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
                     </SettingRow>
                 </Section>
 
-                {/* Memory */}
+                {/* TODO(auto-memory): Memory settings section temporarily disabled for this release — restore once the memory feature is refined.
                 <Section>
                     <SectionHeader>Memory</SectionHeader>
                     <SettingRow>
@@ -435,6 +436,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
                         )}
                     </SettingRow>
                 </Section>
+                */}
 
                 {/* Account */}
                 <Section>

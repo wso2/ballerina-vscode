@@ -528,13 +528,14 @@ export interface DeleteThreadRequest {
     threadId: string;
 }
 
-export interface ClearMemoryRequest {
-    scope: 'workspace' | 'all';
-}
-
-export interface OpenMemoryRequest {
-    scope: 'global' | 'workspace';
-}
+// TODO(auto-memory): temporarily disabled for this release — restore once the memory feature is refined.
+// export interface ClearMemoryRequest {
+//     scope: 'workspace' | 'all';
+// }
+//
+// export interface OpenMemoryRequest {
+//     scope: 'global' | 'workspace';
+// }
 
 /**
  * Request to abort AI generation

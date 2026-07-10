@@ -23,9 +23,10 @@ import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, addCacheControlToMessages, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage, buildChatError } from '../utils/ai-utils';
 import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
-import { getSystemPromptWithMemory, getUserPrompt } from './prompts';
+import { getSystemPrompt, getUserPrompt } from './prompts';
 import { prepareAgentsMdForTurn } from './agents-md';
-import { executeAutoDream, isMemoryEnabled } from '../memory/autoDream';
+// TODO(auto-memory): temporarily disabled for this release.
+// import { executeAutoDream, isMemoryEnabled } from '../memory/autoDream';
 import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { loadSkillsContext } from './skills/context';
@@ -280,7 +281,8 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const userMessageContent = getUserPrompt(params, tempProjectPath, projects, projectSkills, agentsMd.text);
 
             // Estimate fixed overhead (system prompt + codebase) to decide if compaction is viable
-            const systemPromptText = getSystemPromptWithMemory(projects, params.operationType, projectRootPath, userSkills, allDisabled, disabledSkillMetas);
+            // TODO(auto-memory): memory-augmented prompt disabled for this release — using base system prompt.
+            const systemPromptText = getSystemPrompt(projects, params.operationType, userSkills, allDisabled, disabledSkillMetas);
             const floorTokens = estimateFloorTokens(systemPromptText, JSON.stringify(userMessageContent));
 
 
@@ -341,7 +343,8 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 runningServices: runningServicesManager,
                 webSearchEnabled: params.webSearchEnabled ?? false,
                 ctx: this.config.executionContext,
-                autoMemoryEnabled: isMemoryEnabled(),
+                // TODO(auto-memory): temporarily disabled for this release.
+                // autoMemoryEnabled: isMemoryEnabled(),
             });
 
             // Accumulate tool call/result character counts across steps for breakdown estimation
@@ -849,11 +852,12 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         // Emit UI events
         await this.emitReviewActions(context);
 
-        // autoDream consolidation — skipped on compaction turns (no real user activity)
-        const workspacePath = context.ctx.workspacePath || context.ctx.projectPath || '';
-        if (workspacePath && !context.wasCompactionTurn) {
-            executeAutoDream({ workspacePath });
-        }
+        // TODO(auto-memory): auto-dream consolidation temporarily disabled for this release.
+        // // autoDream consolidation — skipped on compaction turns (no real user activity)
+        // const workspacePath = context.ctx.workspacePath || context.ctx.projectPath || '';
+        // if (workspacePath && !context.wasCompactionTurn) {
+        //     executeAutoDream({ workspacePath });
+        // }
     }
 
     /**

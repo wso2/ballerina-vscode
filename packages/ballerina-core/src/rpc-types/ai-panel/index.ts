@@ -77,8 +77,9 @@ import {
     ThreadSummary,
     SwitchThreadRequest,
     DeleteThreadRequest,
-    ClearMemoryRequest,
-    OpenMemoryRequest,
+    // TODO(auto-memory): temporarily disabled for this release.
+    // ClearMemoryRequest,
+    // OpenMemoryRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -150,9 +151,9 @@ export interface AIPanelAPI {
     listThreads: () => Promise<ThreadSummary[]>;
     switchThread: (params: SwitchThreadRequest) => Promise<void>;
     deleteThread: (params: DeleteThreadRequest) => Promise<void>;
-    // Memory management
-    clearMemory: (params: ClearMemoryRequest) => Promise<void>;
-    openMemoryFiles: (params: OpenMemoryRequest) => void;
+    // TODO(auto-memory): memory management temporarily disabled for this release.
+    // clearMemory: (params: ClearMemoryRequest) => Promise<void>;
+    // openMemoryFiles: (params: OpenMemoryRequest) => void;
     // ==================================
     // Prompt Enhancement
     // ==================================

@@ -78,8 +78,9 @@ import {
     ThreadSummary,
     SwitchThreadRequest,
     DeleteThreadRequest,
-    ClearMemoryRequest,
-    OpenMemoryRequest,
+    // TODO(auto-memory): temporarily disabled for this release.
+    // ClearMemoryRequest,
+    // OpenMemoryRequest,
 } from "@wso2/ballerina-core";
 import {
     getAgentsMdFileInfo as getAgentsMdFileInfoImpl,
@@ -94,12 +95,13 @@ import path from "path";
 import * as vscode from 'vscode';
 import { window, workspace } from 'vscode';
 import { LOGIN_REQUIRED_WARNING, SIGN_IN_BI_COPILOT } from '../../features/ai/constants';
-import {
-    getGlobalMemoryDir,
-    getMemoryDir,
-    invalidateMemoryPromptCache,
-} from '@wso2/copilot-utilities/auto-memory';
-import { computeWorkspaceHash } from '@wso2/copilot-utilities/chat-persistence';
+// TODO(auto-memory): temporarily disabled for this release.
+// import {
+//     getGlobalMemoryDir,
+//     getMemoryDir,
+//     invalidateMemoryPromptCache,
+// } from '@wso2/copilot-utilities/auto-memory';
+// import { computeWorkspaceHash } from '@wso2/copilot-utilities/chat-persistence';
 
 import { isNumber } from "lodash";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
@@ -144,7 +146,7 @@ import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/Con
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { clearPendingReviewRestore, getPendingReviewRestore } from '../../features/ai/state/reviewRestoreStore';
 import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
-import { chatStateStorage, resolveWorkspaceIdentity } from '../../views/ai-panel/chatStateStorage';
+import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
 import { executeRun } from "../../features/ai/agent/tools/ballerina-run";
@@ -723,46 +725,47 @@ User reverted the last made changes. The files have been restored to the state b
         await chatStateStorage.deleteThread(projectRootPath, params.threadId);
     }
 
-    async clearMemory(params: ClearMemoryRequest): Promise<void> {
-        const projectRootPath = resolveProjectRootPath();
-        const workspaceHash = computeWorkspaceHash(resolveWorkspaceIdentity(projectRootPath));
-        const wipeDir = (dir: string) => {
-            try {
-                for (const f of fs.readdirSync(dir)) {
-                    if (f.endsWith('.md') || f === '.consolidate-lock') {
-                        try { fs.unlinkSync(path.join(dir, f)); } catch { /* best-effort */ }
-                    }
-                }
-            } catch { /* dir may not exist yet */ }
-        };
-        if (params.scope === 'all') { wipeDir(getGlobalMemoryDir()); }
-        wipeDir(getMemoryDir(workspaceHash));
-        invalidateMemoryPromptCache(workspaceHash);
-    }
-
-    async openMemoryFiles(params: OpenMemoryRequest): Promise<void> {
-        const projectRootPath = resolveProjectRootPath();
-        const workspaceHash = computeWorkspaceHash(resolveWorkspaceIdentity(projectRootPath));
-        const dir = params.scope === 'global'
-            ? getGlobalMemoryDir()
-            : getMemoryDir(workspaceHash);
-        const indexPath = path.join(dir, 'MEMORY.md');
-        if (fs.existsSync(indexPath)) {
-            await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(indexPath));
-            return;
-        }
-        // MEMORY.md is missing — fall back to opening any topic file so the user
-        let firstTopicFile: string | undefined;
-        try {
-            firstTopicFile = fs.readdirSync(dir)
-                .find(f => f.endsWith('.md') && f !== 'MEMORY.md' && !f.startsWith('.'));
-        } catch { /* dir may not exist yet */ }
-        if (firstTopicFile) {
-            await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(path.join(dir, firstTopicFile)));
-            return;
-        }
-        vscode.window.showInformationMessage('No memories saved yet for this scope.');
-    }
+    // TODO(auto-memory): memory management temporarily disabled for this release — restore once the memory feature is refined.
+    // async clearMemory(params: ClearMemoryRequest): Promise<void> {
+    //     const projectRootPath = resolveProjectRootPath();
+    //     const workspaceHash = computeWorkspaceHash(resolveWorkspaceIdentity(projectRootPath));
+    //     const wipeDir = (dir: string) => {
+    //         try {
+    //             for (const f of fs.readdirSync(dir)) {
+    //                 if (f.endsWith('.md') || f === '.consolidate-lock') {
+    //                     try { fs.unlinkSync(path.join(dir, f)); } catch { /* best-effort */ }
+    //                 }
+    //             }
+    //         } catch { /* dir may not exist yet */ }
+    //     };
+    //     if (params.scope === 'all') { wipeDir(getGlobalMemoryDir()); }
+    //     wipeDir(getMemoryDir(workspaceHash));
+    //     invalidateMemoryPromptCache(workspaceHash);
+    // }
+    //
+    // async openMemoryFiles(params: OpenMemoryRequest): Promise<void> {
+    //     const projectRootPath = resolveProjectRootPath();
+    //     const workspaceHash = computeWorkspaceHash(resolveWorkspaceIdentity(projectRootPath));
+    //     const dir = params.scope === 'global'
+    //         ? getGlobalMemoryDir()
+    //         : getMemoryDir(workspaceHash);
+    //     const indexPath = path.join(dir, 'MEMORY.md');
+    //     if (fs.existsSync(indexPath)) {
+    //         await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(indexPath));
+    //         return;
+    //     }
+    //     // MEMORY.md is missing — fall back to opening any topic file so the user
+    //     let firstTopicFile: string | undefined;
+    //     try {
+    //         firstTopicFile = fs.readdirSync(dir)
+    //             .find(f => f.endsWith('.md') && f !== 'MEMORY.md' && !f.startsWith('.'));
+    //     } catch { /* dir may not exist yet */ }
+    //     if (firstTopicFile) {
+    //         await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(path.join(dir, firstTopicFile)));
+    //         return;
+    //     }
+    //     vscode.window.showInformationMessage('No memories saved yet for this scope.');
+    // }
 
     async updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
         const projectRootPath = resolveProjectRootPath();
