@@ -50,12 +50,33 @@ const AI_GENERATE_AGENT_FOR_TEST = "ballerina.test.ai.generateAgentForTest";
 const ACTIVATION_RETRY_INTERVAL_MS = 2000;
 const MAX_ACTIVATION_ATTEMPTS = 30;
 
+// Structured event trace. In addition to the stdout `[copilot-event]` lines (which
+// the benchmark captures only as lossy, truncated terminal I/O), every event is
+// appended as one JSON line to this file. The benchmark harness globs it
+// (agents.toml native_log_glob, format "wso2-copilot") and transcodes the tool_call /
+// tool_result lines into structured trajectory events, so tool input/output shows up
+// in the report. Kept OUTSIDE the workspace so it is never graded or overwritten by
+// copyGeneratedToWorkspace. Best-effort: any write failure is swallowed (on a dev host
+// the default /app path does not exist, so the file is simply not written).
+const TRACE_PATH = process.env.COPILOT_TRACE_PATH || "/app/copilot-trace.jsonl";
+
 function emit(kind: string, payload: Record<string, unknown>): void {
+    let line: string;
+    try {
+        line = JSON.stringify({ kind, ...payload });
+    } catch {
+        return; // non-serializable payload — never let logging break generation
+    }
     try {
         // Single line so the benchmark's terminal_io capture keeps it intact.
-        process.stdout.write(`[copilot-event] ${JSON.stringify({ kind, ...payload })}\n`);
+        process.stdout.write(`[copilot-event] ${line}\n`);
     } catch {
         /* never let logging break generation */
+    }
+    try {
+        fs.appendFileSync(TRACE_PATH, line + "\n");
+    } catch {
+        /* trace file is best-effort — absent on dev hosts, never fatal */
     }
 }
 
@@ -133,10 +154,21 @@ function createStdoutEventHandler(): {
                 emit("content_replace", {});
                 break;
             case "tool_call":
-                emit("tool_call", { toolName: e.toolName });
+                // Include the full input so the benchmark can log tool arguments.
+                emit("tool_call", {
+                    toolName: e.toolName,
+                    toolInput: e.toolInput,
+                    toolCallId: e.toolCallId
+                });
                 break;
             case "tool_result":
-                emit("tool_result", { toolName: e.toolName });
+                // Include the full output + failure flag so the benchmark can log results.
+                emit("tool_result", {
+                    toolName: e.toolName,
+                    toolOutput: e.toolOutput,
+                    toolCallId: e.toolCallId,
+                    failed: e.failed
+                });
                 break;
             case "diagnostics":
                 emit("diagnostics", { count: Array.isArray(e.diagnostics) ? e.diagnostics.length : 0 });

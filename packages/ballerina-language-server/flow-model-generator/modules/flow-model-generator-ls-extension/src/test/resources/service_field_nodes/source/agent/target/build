@@ -1,0 +1,68 @@
+{
+  "last_build_time": 1783337043125,
+  "last_update_time": 1783337043125,
+  "last_bal_toml_update_time": 1782979818698,
+  "distribution_version": "2201.13.4",
+  "last_modified_time": {
+    "proj": 1782979818699
+  },
+  "last_build_options": {
+    "compilationOptions": {
+      "observabilityIncluded": true,
+      "dumpBir": false,
+      "cloud": "",
+      "dumpGraph": false,
+      "dumpRawGraphs": false
+    }
+  },
+  "src_meta_info": [
+    {
+      "file": "/Users/admin/Desktop/Copilot-frontier/ballerina-vscode/packages/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/service_field_nodes/source/agent/main.bal",
+      "hash": "af6e72eb00b8dbb98e5900e4d4bb36be1aa8480bf2dc6c061fb9bb680a9a0dea",
+      "size": 733,
+      "lastModifiedTime": 1782979818699
+    },
+    {
+      "file": "/Users/admin/Desktop/Copilot-frontier/ballerina-vscode/packages/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/service_field_nodes/source/agent/agents.bal",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "lastModifiedTime": 1782979818698
+    },
+    {
+      "file": "/Users/admin/Desktop/Copilot-frontier/ballerina-vscode/packages/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/service_field_nodes/source/agent/connections.bal",
+      "hash": "b744795afc586114f346b1f2d7da7477ea29650b25645a58bb0d8e84967436d4",
+      "size": 161,
+      "lastModifiedTime": 1782979818698
+    },
+    {
+      "file": "/Users/admin/Desktop/Copilot-frontier/ballerina-vscode/packages/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/service_field_nodes/source/agent/Ballerina.toml",
+      "hash": "c71464ca2360ecf1ea1f5bc7458c7db99f2dd11f98b4ec9df4f1fa6c60b26024",
+      "size": 127,
+      "lastModifiedTime": 1782979818698
+    }
+  ],
+  "target_exec_meta_info": {
+    "file": "/Users/admin/Desktop/Copilot-frontier/ballerina-vscode/packages/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/service_field_nodes/source/agent/target/backup/bin/proj.jar",
+    "hash": "c08e89a1ec0c54db67e011ee50d7c871da1822f98978555f8d93f017c84ef946",
+    "size": 73848087,
+    "lastModifiedTime": 1783337044348
+  },
+  "settings_meta_info": {
+    "file": "/Users/admin/.ballerina/Settings.toml",
+    "hash": "92b1fbfe812f1f88156f02096f8c54be09c5fef849e15298772156ec40abce0f",
+    "size": 3942,
+    "lastModifiedTime": 1781084067862
+  },
+  "ballerina_toml_meta_info": {
+    "file": "/Users/admin/Desktop/Copilot-frontier/ballerina-vscode/packages/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/service_field_nodes/source/agent/Ballerina.toml",
+    "hash": "c71464ca2360ecf1ea1f5bc7458c7db99f2dd11f98b4ec9df4f1fa6c60b26024",
+    "size": 127,
+    "lastModifiedTime": 1782979818698
+  },
+  "imports": [
+    "ballerina/grpc",
+    "ballerinax/redis",
+    "ballerina/http",
+    "ballerinax/ai"
+  ]
+}
