@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
  * Tests for {@link Main#protectJsonRpcStream()}, which guards the JSON-RPC (stdout) stream of the stdio launcher
  * against stray writes that would otherwise corrupt the protocol and crash the client connection.
  *
- * @since 1.0.0
+ * @since 1.7.3
  */
 public class MainTest {
 
