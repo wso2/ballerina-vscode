@@ -35,8 +35,11 @@ import {
     McpTransportParams,
     buildMcpHeaderSchema,
     deriveMcpAdvancedParams,
+    deriveMcpMetaParam,
     isMcpAdvancedType,
     isMcpHeaderParam,
+    isMcpMetaParam,
+    isMcpSessionParam,
 } from "./McpTransportParams";
 
 interface McpToolFormProps {
@@ -59,6 +62,7 @@ export function McpToolForm(props: McpToolFormProps) {
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [headerParams, setHeaderParams] = useState<ParameterModel[]>([]);
     const [advancedParams, setAdvancedParams] = useState<ParameterModel[]>([]);
+    const [metaParam, setMetaParam] = useState<ParameterModel>(() => deriveMcpMetaParam(initialModel.parameters ?? []));
     const [model] = useState<FunctionModel>(() => {
         const cloned = structuredClone(initialModel);
         const properties = cloned.properties ?? {};
@@ -164,17 +168,19 @@ export function McpToolForm(props: McpToolFormProps) {
         return paramList;
     };
 
-    // Split transport-specific params (headers + raw http:Request/http:Headers) out of the ordinary
-    // tool inputs, so they render in their own sections instead of the parameter manager.
+    // Split out params that render in the Advanced Configurations section (Metadata, and — for
+    // Streamable HTTP — headers and raw http:Request/http:Headers) so they don't show in the
+    // ordinary parameter manager.
     const isTransportParam = (param: ParameterModel) =>
         isMcpHeaderParam(param) || isMcpAdvancedType(param.type?.value);
 
-    const regularParameters = isStreamableHttp
-        ? model.parameters.filter((param) => !isTransportParam(param))
-        : model.parameters;
+    const regularParameters = model.parameters.filter(
+        (param) => !isMcpMetaParam(param) && !(isStreamableHttp && isTransportParam(param))
+    );
 
-    // Initialize header + advanced param state from the model
+    // Initialize advanced param state (meta always; headers + raw objects for Streamable HTTP)
     useEffect(() => {
+        setMetaParam(deriveMcpMetaParam(model.parameters));
         if (!isStreamableHttp) {
             return;
         }
@@ -275,12 +281,18 @@ export function McpToolForm(props: McpToolFormProps) {
     const handleFunctionCreate = (data: FormValues, formImports: FormImports) => {
         console.log("Function create with data:", data);
         const { name, returnType, parameters: params } = data;
-        const paramList = params ? getFunctionParametersList(params) : [];
-        // Append transport-specific params for Streamable HTTP services: header params and any
-        // enabled advanced params (http:Request / http:Headers).
+        const regularParams = params ? getFunctionParametersList(params) : [];
+        // Assemble parameters in the order the mcp compiler plugin requires: mcp:Session first,
+        // mcp:Meta? last, with the tool inputs and any transport params in between.
+        const sessionParams = regularParams.filter(isMcpSessionParam);
+        const toolArgs = regularParams.filter((param) => !isMcpSessionParam(param));
+        const paramList: ParameterModel[] = [...sessionParams, ...toolArgs];
         if (isStreamableHttp) {
             paramList.push(...headerParams);
             paramList.push(...advancedParams.filter((param) => param.enabled));
+        }
+        if (metaParam.enabled) {
+            paramList.push(metaParam);
         }
         const newFunctionModel = { ...model };
         newFunctionModel.name.value = name;
@@ -295,22 +307,25 @@ export function McpToolForm(props: McpToolFormProps) {
         onSave(newFunctionModel);
     };
 
-    const injectedComponents = isStreamableHttp
-        ? [
-              {
-                  index: Number.MAX_SAFE_INTEGER,
-                  component: (
-                      <McpTransportParams
-                          headerSchema={(model.schema?.header as ParameterModel) ?? buildMcpHeaderSchema()}
-                          headerParams={headerParams}
-                          advancedParams={advancedParams}
-                          onHeaderParamsChange={setHeaderParams}
-                          onAdvancedParamsChange={setAdvancedParams}
-                      />
-                  ),
-              },
-          ]
-        : undefined;
+    // Rendered for every MCP tool: Metadata is available to all, the Transport Parameters subsection
+    // only to Streamable HTTP services.
+    const injectedComponents = [
+        {
+            index: Number.MAX_SAFE_INTEGER,
+            component: (
+                <McpTransportParams
+                    showTransport={!!isStreamableHttp}
+                    metaParam={metaParam}
+                    onMetaChange={setMetaParam}
+                    headerSchema={(model.schema?.header as ParameterModel) ?? buildMcpHeaderSchema()}
+                    headerParams={headerParams}
+                    advancedParams={advancedParams}
+                    onHeaderParamsChange={setHeaderParams}
+                    onAdvancedParamsChange={setAdvancedParams}
+                />
+            ),
+        },
+    ];
 
     return (
         <>

@@ -20,7 +20,7 @@
 import { useState } from "react";
 import styled from "@emotion/styled";
 import { CheckBox, Codicon, Divider, LinkButton, ThemeColors, Typography } from "@wso2/ui-toolkit";
-import { ParameterModel } from "@wso2/ballerina-core";
+import { ParameterModel, PropertyModel } from "@wso2/ballerina-core";
 import { ParamItem } from "../ResourceForm/Parameters/ParamItem";
 import { ParamEditor } from "../ResourceForm/Parameters/ParamEditor";
 
@@ -154,6 +154,21 @@ export function buildMcpHeaderSchema(): ParameterModel {
     } as ParameterModel;
 }
 
+// A disabled default-value slot. Synthesized params must carry one: the LS param sorter floats
+// params whose `defaultValue` is null to the front of the signature, which would otherwise move a
+// newly-added mcp:Meta? (or a raw http:Request/http:Headers) ahead of the real, read-back params.
+function disabledDefaultValue(): PropertyModel {
+    return {
+        value: "",
+        types: [{ fieldType: "EXPRESSION", selected: true }],
+        enabled: false,
+        editable: true,
+        isType: false,
+        optional: true,
+        advanced: false
+    };
+}
+
 function buildMcpAdvancedParam(label: string, type: string): ParameterModel {
     return {
         metadata: { label, description: advancedParamDescriptions[label] },
@@ -176,6 +191,7 @@ function buildMcpAdvancedParam(label: string, type: string): ParameterModel {
             optional: false,
             advanced: false
         },
+        defaultValue: disabledDefaultValue(),
         enabled: false,
         editable: true,
         optional: true,
@@ -198,7 +214,64 @@ export function deriveMcpAdvancedParams(params: ParameterModel[]): ParameterMode
     });
 }
 
+// mcp:Meta? is an MCP-level (not transport) param: it must be nilable and the last parameter.
+// mcp:Session must be the first parameter. Both apply to all MCP tools, not just Streamable HTTP.
+const MCP_META_TYPE = "mcp:Meta?";
+const MCP_META_DESCRIPTION = "Access the metadata (_meta) the MCP client sends with the request.";
+
+export function isMcpMetaParam(param: ParameterModel): boolean {
+    return (param.type?.value ?? "").replace(/\s/g, "").startsWith("mcp:Meta");
+}
+
+export function isMcpSessionParam(param: ParameterModel): boolean {
+    return (param.type?.value ?? "").replace(/\s/g, "").startsWith("mcp:Session");
+}
+
+function buildMcpMetaParam(): ParameterModel {
+    return {
+        metadata: { label: "Metadata", description: MCP_META_DESCRIPTION },
+        kind: "REQUIRED",
+        type: {
+            value: MCP_META_TYPE,
+            types: [{ fieldType: "TYPE", selected: true }],
+            enabled: true,
+            editable: false,
+            isType: true,
+            optional: false,
+            advanced: false
+        },
+        name: {
+            value: "meta",
+            types: [{ fieldType: "IDENTIFIER", selected: true }],
+            enabled: true,
+            editable: true,
+            isType: false,
+            optional: false,
+            advanced: false
+        },
+        defaultValue: disabledDefaultValue(),
+        enabled: false,
+        editable: true,
+        optional: true,
+        advanced: true
+    } as ParameterModel;
+}
+
+// The mcp:Meta? param, reused from the model if present (so the variable name round-trips), else a
+// disabled template. `enabled` reflects whether the checkbox is ticked.
+export function deriveMcpMetaParam(params: ParameterModel[]): ParameterModel {
+    const existing = params.find(isMcpMetaParam);
+    if (existing) {
+        return { ...existing, enabled: true, metadata: { label: "Metadata", description: MCP_META_DESCRIPTION } };
+    }
+    return buildMcpMetaParam();
+}
+
 export interface McpTransportParamsProps {
+    // Whether to show the Transport Parameters subsection (only for mcp:StreamableHttpService).
+    showTransport: boolean;
+    metaParam: ParameterModel;
+    onMetaChange: (param: ParameterModel) => void;
     headerSchema: ParameterModel;
     headerParams: ParameterModel[];
     advancedParams: ParameterModel[];
@@ -207,14 +280,17 @@ export interface McpTransportParamsProps {
 }
 
 export function McpTransportParams(props: McpTransportParamsProps) {
-    const { headerSchema, headerParams, advancedParams, onHeaderParamsChange, onAdvancedParamsChange } = props;
+    const {
+        showTransport, metaParam, onMetaChange,
+        headerSchema, headerParams, advancedParams, onHeaderParamsChange, onAdvancedParamsChange
+    } = props;
 
     const [editModel, setEditModel] = useState<ParameterModel>(undefined);
     const [isNew, setIsNew] = useState<boolean>(false);
     const [editingIndex, setEditingIndex] = useState<number>(-1);
-    // Collapsed by default; auto-expand when the tool already binds transport params so they're visible.
+    // Collapsed by default; auto-expand when the tool already binds any advanced param so it's visible.
     const [expanded, setExpanded] = useState<boolean>(
-        headerParams.length > 0 || advancedParams.some((param) => param.enabled)
+        metaParam.enabled || headerParams.length > 0 || advancedParams.some((param) => param.enabled)
     );
 
     const onAddHeaderClick = () => {
@@ -303,53 +379,67 @@ export function McpTransportParams(props: McpTransportParamsProps) {
 
             {expanded && (
                 <AdvancedContent>
-                    <Typography sx={{ marginBlockEnd: 2 }} variant="h4">Transport Parameters</Typography>
-                    <SectionCaption>
-                        Access transport-level request data from within the tool's logic.
-                    </SectionCaption>
+                    {/* Metadata — an MCP-level param, available for all MCP tools */}
+                    <CheckBoxRow>
+                        <CheckBox
+                            label={metaParam.metadata?.label}
+                            checked={metaParam.enabled}
+                            onChange={(checked) => onMetaChange({ ...metaParam, enabled: checked })}
+                        />
+                        <ParamDescription>{MCP_META_DESCRIPTION}</ParamDescription>
+                    </CheckBoxRow>
 
-                    {/* Headers */}
-                    <SubLabel>HTTP Headers</SubLabel>
-                    {headerParams.map((param, index) => (
-                        <ParamItem
-                            key={`mcp-header-${index}`}
-                            param={param}
-                            onDelete={onDeleteHeader}
-                            onEditClick={onEditHeader}
-                        />
-                    ))}
-                    {editModel && editModel.httpParamType === "HEADER" && (
-                        <ParamEditor
-                            isNew={isNew}
-                            param={editModel}
-                            onChange={onChangeHeader}
-                            onSave={onSaveHeader}
-                            onCancel={onCancelHeader}
-                            type="HEADER"
-                        />
+                    {showTransport && (
+                        <>
+                            <Typography sx={{ marginBlockEnd: 2, marginBlockStart: 12 }} variant="h4">Transport Parameters</Typography>
+                            <SectionCaption>
+                                Access transport-level request data from within the tool's logic.
+                            </SectionCaption>
+
+                            {/* Headers */}
+                            <SubLabel>HTTP Headers</SubLabel>
+                            {headerParams.map((param, index) => (
+                                <ParamItem
+                                    key={`mcp-header-${index}`}
+                                    param={param}
+                                    onDelete={onDeleteHeader}
+                                    onEditClick={onEditHeader}
+                                />
+                            ))}
+                            {editModel && editModel.httpParamType === "HEADER" && (
+                                <ParamEditor
+                                    isNew={isNew}
+                                    param={editModel}
+                                    onChange={onChangeHeader}
+                                    onSave={onSaveHeader}
+                                    onCancel={onCancelHeader}
+                                    type="HEADER"
+                                />
+                            )}
+                            <AddButtonWrapper>
+                                <LinkButton
+                                    sx={editModel ? { opacity: 0.5, pointerEvents: "none" } : {}}
+                                    onClick={editModel ? undefined : onAddHeaderClick}
+                                >
+                                    <Codicon name="add" />
+                                    <>Header</>
+                                </LinkButton>
+                            </AddButtonWrapper>
+
+                            {/* Raw transport parameter toggles */}
+                            <SubLabel>Request Access</SubLabel>
+                            {advancedParams.map((param, index) => (
+                                <CheckBoxRow key={`mcp-advanced-${index}`}>
+                                    <CheckBox
+                                        label={param.metadata?.label}
+                                        checked={param.enabled}
+                                        onChange={(checked) => onAdvancedChecked(param, checked)}
+                                    />
+                                    <ParamDescription>{advancedParamDescriptions[param.metadata?.label]}</ParamDescription>
+                                </CheckBoxRow>
+                            ))}
+                        </>
                     )}
-                    <AddButtonWrapper>
-                        <LinkButton
-                            sx={editModel ? { opacity: 0.5, pointerEvents: "none" } : {}}
-                            onClick={editModel ? undefined : onAddHeaderClick}
-                        >
-                            <Codicon name="add" />
-                            <>Header</>
-                        </LinkButton>
-                    </AddButtonWrapper>
-
-                    {/* Raw transport parameter toggles */}
-                    <SubLabel>Request Access</SubLabel>
-                    {advancedParams.map((param, index) => (
-                        <CheckBoxRow key={`mcp-advanced-${index}`}>
-                            <CheckBox
-                                label={param.metadata?.label}
-                                checked={param.enabled}
-                                onChange={(checked) => onAdvancedChecked(param, checked)}
-                            />
-                            <ParamDescription>{advancedParamDescriptions[param.metadata?.label]}</ParamDescription>
-                        </CheckBoxRow>
-                    ))}
                 </AdvancedContent>
             )}
             <Divider />
