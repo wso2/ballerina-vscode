@@ -44,11 +44,26 @@ import type {
     GenerateAgentForTestParams,
     GenerateAgentForTestResult
 } from "../../src/features/ai/activator";
+import { AgentTranscript, TranscriptEvent } from "../../src/features/ai/agent/agentTranscript";
 
 const AI_GENERATE_AGENT_FOR_TEST = "ballerina.test.ai.generateAgentForTest";
 // Match the eval harness activation budget (30 attempts * 2s = 60s).
 const ACTIVATION_RETRY_INTERVAL_MS = 2000;
 const MAX_ACTIVATION_ATTEMPTS = 30;
+
+// Plain-text transcript of exactly what the chat window shows (assistant text, tool
+// calls + results, markers, in order). Written OUTSIDE the workspace so it is never
+// graded; the benchmark harness copies it into the attempt dir as agent_exact_output.txt
+// (agents.toml output_capture_file, WSO2 Copilot only). Best-effort — absent on dev hosts.
+const AGENT_OUTPUT_PATH = process.env.COPILOT_AGENT_OUTPUT_PATH || "/app/agent_exact_output.txt";
+
+function writeAgentOutput(text: string): void {
+    try {
+        fs.writeFileSync(AGENT_OUTPUT_PATH, text);
+    } catch {
+        /* best-effort — the /app path is absent on dev hosts; never fatal */
+    }
+}
 
 // Structured event trace. In addition to the stdout `[copilot-event]` lines (which
 // the benchmark captures only as lossy, truncated terminal I/O), every event is
@@ -132,16 +147,22 @@ async function waitForActivation(): Promise<void> {
     );
 }
 
-/** Serializes each ChatNotify to stdout; tracks completion/error for the exit summary. */
+/** Serializes each ChatNotify to stdout, accumulates the exact chat transcript, and
+ * tracks completion/error for the exit summary. */
 function createStdoutEventHandler(): {
     handler: (event: ChatNotify) => void;
     getState: () => { completed: boolean; error: string | null };
+    transcript: AgentTranscript;
 } {
     let completed = false;
     let error: string | null = null;
+    const transcript = new AgentTranscript();
 
     const handler = (event: ChatNotify): void => {
         const e = event as unknown as Record<string, any>;
+        // Fold every event into the transcript (arrival order = chat order). This is the
+        // source for agent_exact_output.txt and is independent of the stdout logging below.
+        transcript.add(event as unknown as TranscriptEvent);
         switch (event.type) {
             case "start":
                 emit("start", {});
@@ -197,7 +218,7 @@ function createStdoutEventHandler(): {
         }
     };
 
-    return { handler, getState: () => ({ completed, error }) };
+    return { handler, getState: () => ({ completed, error }), transcript };
 }
 
 /**
@@ -214,6 +235,10 @@ export function run(_testsRoot?: string, clb?: (err: any, failures?: number) => 
             process.exitCode = 1;
         }
     };
+
+    // Created up front so the finally block can always flush the transcript, even if
+    // the run throws before/after the generation call.
+    const events = createStdoutEventHandler();
 
     (async () => {
         try {
@@ -242,7 +267,7 @@ export function run(_testsRoot?: string, clb?: (err: any, failures?: number) => 
             await waitForActivation();
             emit("activated", {});
 
-            const { handler, getState } = createStdoutEventHandler();
+            const { handler, getState } = events;
 
             // Identical shape to test/ai/evals/code (the validated path). We do NOT
             // set a `model` override — the command uses the shipped default model,
@@ -287,6 +312,10 @@ export function run(_testsRoot?: string, clb?: (err: any, failures?: number) => 
         } catch (err) {
             emit("headless_error", { message: (err as Error).message });
             done(err);
+        } finally {
+            // Always flush the exact chat transcript — the harness copies it out as
+            // agent_exact_output.txt. Done even on error/abort so partial output survives.
+            writeAgentOutput(events.transcript.render());
         }
     })();
 }
