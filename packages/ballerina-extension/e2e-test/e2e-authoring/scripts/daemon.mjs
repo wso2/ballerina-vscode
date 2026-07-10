@@ -182,6 +182,16 @@ const ctx = vm.createContext({
   http,
   https,
   execSync,
+  // Node globals not auto-present in a vm context. Without these, prelude
+  // helpers such as waitForEndpoint (which use URL + Buffer) throw, and an
+  // uncaught throw inside an async http callback crashes the whole daemon.
+  Buffer,
+  URL,
+  URLSearchParams,
+  setTimeout,
+  clearTimeout,
+  setInterval,
+  clearInterval,
   Form,
   ExtendedPage,
   switchToIFrame,
@@ -253,8 +263,11 @@ http.createServer((req, res) => {
       },
       (error) => {
         log(`err: ${error.message}`);
-        res.writeHead(500);
-        res.end(logPrefix() + (error.stack ?? error.message) + '\n');
+        // A step may have already streamed console output (res.write), so the
+        // headers are sent — writeHead would throw ERR_HTTP_HEADERS_SENT and
+        // crash the daemon (masking the real error and taking VS Code down).
+        if (!res.headersSent) res.writeHead(500);
+        if (!res.writableEnded) res.end(logPrefix() + (error.stack ?? error.message) + '\n');
       }
     );
   });

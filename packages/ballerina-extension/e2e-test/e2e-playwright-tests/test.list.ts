@@ -50,6 +50,7 @@ import expressionEditorAdvanced from './expression-editor/expression-editor-adva
 
 import httpService from './api-integration/http-service.spec';
 import httpUpload from './api-integration/http-upload.spec';
+import httpTryIt from './api-integration/http-try-it.spec';
 import aiChatService from './api-integration/ai-chat-service.spec';
 import graphqlService from './api-integration/graphql-service.spec';
 import tcpService from './api-integration/tcp-service.spec';
@@ -133,6 +134,7 @@ test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
     // <----Integration as API Test---->
     test.describe(httpService);
     test.describe(httpUpload);
+    test.describe(httpTryIt);
 
     // <----Event Integration Test---->
     test.describe(kafkaIntegration);
