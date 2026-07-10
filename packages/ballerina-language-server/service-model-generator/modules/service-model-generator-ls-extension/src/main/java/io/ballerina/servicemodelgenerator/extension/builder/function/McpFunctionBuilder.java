@@ -53,6 +53,7 @@ import java.util.regex.Pattern;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_HEADER_PARAM_ANNOTATION;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_PARAM_TYPE_HEADER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
@@ -469,6 +470,14 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
         // Seed the advanced toggles (Request, Headers, Metadata) and the header schema the same way a
         // new tool gets them, so the tool form is driven entirely by the model.
         reconcileAdvancedSeeds(function);
+
+        // A tool is a `remote` function, but the generic read-back leaves it as OBJECT_METHOD. Reflect
+        // the real kind so add and update both route to this builder (matching a newly-created tool).
+        boolean isRemote = functionNode.qualifierList().stream()
+                .anyMatch(qualifier -> qualifier.text().trim().equals(REMOTE));
+        if (isRemote) {
+            function.setKind(KIND_REMOTE);
+        }
 
         return function;
     }
