@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
 
     private static final String MCP_FUNCTION_MODEL_LOCATION = "functions/mcp_tool.json";
     private static final String TOOL_DESCRIPTION_PROPERTY = "toolDescription";
+    private static final String HEADER_SCHEMA_KEY = "header";
 
     // Documentation format constants
     private static final String DOC_COMMENT_PREFIX = "# ";
@@ -433,7 +435,63 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
         // header / advanced params instead of ordinary tool inputs.
         enrichTransportParams(function, functionNode);
 
+        // Seed the advanced toggles (Request, Headers, Metadata) and the header schema the same way a
+        // new tool gets them, so the tool form is driven entirely by the model.
+        reconcileAdvancedSeeds(function);
+
         return function;
+    }
+
+    /**
+     * Ensures the read-back model carries the same advanced seeds (Request, Headers, Metadata) and
+     * header schema a new tool gets from the template, so the tool form does not have to synthesize
+     * them. A seed is added (disabled) only when the source does not already bind that param.
+     *
+     * @param function the function model built from source
+     */
+    private static void reconcileAdvancedSeeds(Function function) {
+        Optional<Function> template = getMcpFunctionModel();
+        if (template.isEmpty()) {
+            return;
+        }
+        Function templateModel = template.get();
+
+        // Make the header schema available for the "Add Header" editor. getSchema() may return an
+        // immutable map (Map.of(...)), so copy it into a mutable one before adding.
+        Map<String, Parameter> schema = function.getSchema() == null
+                ? new HashMap<>() : new HashMap<>(function.getSchema());
+        function.setSchema(schema);
+        Map<String, Parameter> templateSchema = templateModel.getSchema();
+        if (templateSchema != null && templateSchema.containsKey(HEADER_SCHEMA_KEY)
+                && !schema.containsKey(HEADER_SCHEMA_KEY)) {
+            schema.put(HEADER_SCHEMA_KEY, templateSchema.get(HEADER_SCHEMA_KEY));
+        }
+
+        List<Parameter> parameters = function.getParameters() == null
+                ? new ArrayList<>() : new ArrayList<>(function.getParameters());
+        function.setParameters(parameters);
+        for (Parameter seed : templateModel.getParameters()) {
+            boolean bound = parameters.stream().anyMatch(param -> matchesSeedType(param, seed));
+            if (!bound) {
+                parameters.add(seed);
+            }
+        }
+    }
+
+    private static boolean matchesSeedType(Parameter param, Parameter seed) {
+        String paramType = normalizeParamType(param);
+        String seedType = normalizeParamType(seed);
+        if (seedType.startsWith("mcp:Meta")) {
+            return paramType.startsWith("mcp:Meta");
+        }
+        return paramType.equals(seedType);
+    }
+
+    private static String normalizeParamType(Parameter param) {
+        if (param.getType() == null || param.getType().getValue() == null) {
+            return "";
+        }
+        return param.getType().getValue().replaceAll("\\s", "");
     }
 
     /**

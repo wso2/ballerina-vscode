@@ -74,6 +74,20 @@
         "optional": false,
         "advanced": false
       },
+      "defaultValue": {
+        "value": "",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "enabled": false,
+        "editable": true,
+        "isType": false,
+        "optional": true,
+        "advanced": false
+      },
       "enabled": false,
       "editable": true,
       "optional": true,
@@ -113,6 +127,75 @@
         "isType": false,
         "placeholder": "headers",
         "optional": false,
+        "advanced": false
+      },
+      "defaultValue": {
+        "value": "",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "enabled": false,
+        "editable": true,
+        "isType": false,
+        "optional": true,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": true,
+      "advanced": true
+    },
+    {
+      "metadata": {
+        "label": "Metadata",
+        "description": "Access the metadata (_meta) the MCP client sends with the request."
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": false,
+        "value": "mcp:Meta?",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "mcp:Meta?",
+        "optional": false,
+        "advanced": false
+      },
+      "name": {
+        "enabled": true,
+        "editable": true,
+        "value": "meta",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "meta",
+        "optional": false,
+        "advanced": false
+      },
+      "defaultValue": {
+        "value": "",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "enabled": false,
+        "editable": true,
+        "isType": false,
+        "optional": true,
         "advanced": false
       },
       "enabled": false,

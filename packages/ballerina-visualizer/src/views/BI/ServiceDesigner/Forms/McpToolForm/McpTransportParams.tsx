@@ -20,7 +20,7 @@
 import { useState } from "react";
 import styled from "@emotion/styled";
 import { CheckBox, Codicon, Divider, LinkButton, ThemeColors, Typography } from "@wso2/ui-toolkit";
-import { ParameterModel, PropertyModel } from "@wso2/ballerina-core";
+import { ParameterModel } from "@wso2/ballerina-core";
 import { ParamItem } from "../ResourceForm/Parameters/ParamItem";
 import { ParamEditor } from "../ResourceForm/Parameters/ParamEditor";
 
@@ -104,119 +104,8 @@ export function isMcpHeaderParam(param: ParameterModel): boolean {
     return param.httpParamType === "HEADER";
 }
 
-// Fallback header schema for the "Add Header" editor when the function model does not carry one
-// (e.g. when editing an existing tool, whose read-back model only ships the basic parameter schema).
-export function buildMcpHeaderSchema(): ParameterModel {
-    return {
-        metadata: { label: "Header", description: "The Header Parameter" },
-        kind: "REQUIRED",
-        type: {
-            value: "string",
-            types: [{ fieldType: "TYPE", selected: true }],
-            enabled: true,
-            editable: true,
-            isType: true,
-            optional: false,
-            advanced: false
-        },
-        name: {
-            value: "",
-            types: [{ fieldType: "IDENTIFIER", selected: true }],
-            enabled: true,
-            editable: true,
-            isType: false,
-            optional: true,
-            advanced: false
-        },
-        headerName: {
-            value: "",
-            types: [{ fieldType: "IDENTIFIER", selected: true }],
-            enabled: true,
-            editable: true,
-            isType: false,
-            optional: false,
-            advanced: false
-        },
-        defaultValue: {
-            metadata: { label: "Default Value", description: "The default value" },
-            value: "",
-            types: [{ fieldType: "EXPRESSION", selected: true }],
-            enabled: false,
-            editable: true,
-            isType: false,
-            optional: true,
-            advanced: false
-        },
-        enabled: false,
-        editable: true,
-        optional: false,
-        httpParamType: "HEADER"
-    } as ParameterModel;
-}
-
-// A disabled default-value slot. Synthesized params must carry one: the LS param sorter floats
-// params whose `defaultValue` is null to the front of the signature, which would otherwise move a
-// newly-added mcp:Meta? (or a raw http:Request/http:Headers) ahead of the real, read-back params.
-function disabledDefaultValue(): PropertyModel {
-    return {
-        value: "",
-        types: [{ fieldType: "EXPRESSION", selected: true }],
-        enabled: false,
-        editable: true,
-        isType: false,
-        optional: true,
-        advanced: false
-    };
-}
-
-function buildMcpAdvancedParam(label: string, type: string): ParameterModel {
-    return {
-        metadata: { label, description: advancedParamDescriptions[label] },
-        kind: "REQUIRED",
-        type: {
-            value: type,
-            types: [{ fieldType: "TYPE", selected: true }],
-            enabled: true,
-            editable: false,
-            isType: true,
-            optional: false,
-            advanced: false
-        },
-        name: {
-            value: "",
-            types: [{ fieldType: "IDENTIFIER", selected: true }],
-            enabled: true,
-            editable: true,
-            isType: false,
-            optional: false,
-            advanced: false
-        },
-        defaultValue: disabledDefaultValue(),
-        enabled: false,
-        editable: true,
-        optional: true,
-        advanced: true
-    } as ParameterModel;
-}
-
-// Produces the canonical [Request, Headers] advanced param list. An entry present in the model
-// (a seed from the new-tool template, or a real param read back from source) is reused as-is; a
-// missing entry is synthesised as a disabled template.
-export function deriveMcpAdvancedParams(params: ParameterModel[]): ParameterModel[] {
-    return MCP_ADVANCED_PARAMS.map(({ label, type }) => {
-        const existing = params.find((p) => p.type?.value === type);
-        if (existing) {
-            // Use the canonical label/description; a read-back param's metadata label is its variable
-            // name (kept on name.value for codegen), which would otherwise mislabel the checkbox.
-            return { ...existing, metadata: { label, description: advancedParamDescriptions[label] } };
-        }
-        return buildMcpAdvancedParam(label, type);
-    });
-}
-
 // mcp:Meta? is an MCP-level (not transport) param: it must be nilable and the last parameter.
 // mcp:Session must be the first parameter. Both apply to all MCP tools, not just Streamable HTTP.
-const MCP_META_TYPE = "mcp:Meta?";
 const MCP_META_DESCRIPTION = "Access the metadata (_meta) the MCP client sends with the request.";
 
 export function isMcpMetaParam(param: ParameterModel): boolean {
@@ -227,50 +116,37 @@ export function isMcpSessionParam(param: ParameterModel): boolean {
     return (param.type?.value ?? "").replace(/\s/g, "").startsWith("mcp:Session");
 }
 
-function buildMcpMetaParam(): ParameterModel {
-    return {
-        metadata: { label: "Metadata", description: MCP_META_DESCRIPTION },
-        kind: "REQUIRED",
-        type: {
-            value: MCP_META_TYPE,
-            types: [{ fieldType: "TYPE", selected: true }],
-            enabled: true,
-            editable: false,
-            isType: true,
-            optional: false,
-            advanced: false
-        },
-        name: {
-            value: "meta",
-            types: [{ fieldType: "IDENTIFIER", selected: true }],
-            enabled: true,
-            editable: true,
-            isType: false,
-            optional: false,
-            advanced: false
-        },
-        defaultValue: disabledDefaultValue(),
-        enabled: false,
-        editable: true,
-        optional: true,
-        advanced: true
-    } as ParameterModel;
+// The advanced/meta params are seeded by the language server (mcp_tool.json for new tools, read-back
+// enrichment for existing ones), so these helpers only locate them in the model and apply the
+// canonical display label/description — they never synthesize a param shape. A read-back param's own
+// metadata label is its variable name, so the canonical label is applied for display; name.value and
+// the LS-produced shape (including defaultValue) are left untouched.
+
+// The [Request, Headers] toggles present in the model, in canonical order.
+export function deriveMcpAdvancedParams(params: ParameterModel[]): ParameterModel[] {
+    return MCP_ADVANCED_PARAMS
+        .map(({ label, type }): ParameterModel | undefined => {
+            const existing = params.find((p) => p.type?.value === type);
+            return existing
+                ? { ...existing, metadata: { label, description: advancedParamDescriptions[label] } }
+                : undefined;
+        })
+        .filter((param): param is ParameterModel => param !== undefined);
 }
 
-// The mcp:Meta? param, reused from the model if present (so the variable name round-trips), else a
-// disabled template. `enabled` reflects whether the checkbox is ticked.
-export function deriveMcpMetaParam(params: ParameterModel[]): ParameterModel {
+// The mcp:Meta? toggle from the model, or undefined if the model carries no meta seed.
+export function deriveMcpMetaParam(params: ParameterModel[]): ParameterModel | undefined {
     const existing = params.find(isMcpMetaParam);
-    if (existing) {
-        return { ...existing, enabled: true, metadata: { label: "Metadata", description: MCP_META_DESCRIPTION } };
-    }
-    return buildMcpMetaParam();
+    return existing
+        ? { ...existing, metadata: { label: "Metadata", description: MCP_META_DESCRIPTION } }
+        : undefined;
 }
 
 export interface McpTransportParamsProps {
     // Whether to show the Transport Parameters subsection (only for mcp:StreamableHttpService).
     showTransport: boolean;
-    metaParam: ParameterModel;
+    // The mcp:Meta? toggle from the model, or undefined if the model carries no meta seed.
+    metaParam: ParameterModel | undefined;
     onMetaChange: (param: ParameterModel) => void;
     headerSchema: ParameterModel;
     headerParams: ParameterModel[];
@@ -290,7 +166,7 @@ export function McpTransportParams(props: McpTransportParamsProps) {
     const [editingIndex, setEditingIndex] = useState<number>(-1);
     // Collapsed by default; auto-expand when the tool already binds any advanced param so it's visible.
     const [expanded, setExpanded] = useState<boolean>(
-        metaParam.enabled || headerParams.length > 0 || advancedParams.some((param) => param.enabled)
+        !!metaParam?.enabled || headerParams.length > 0 || advancedParams.some((param) => param.enabled)
     );
 
     const onAddHeaderClick = () => {
@@ -380,14 +256,16 @@ export function McpTransportParams(props: McpTransportParamsProps) {
             {expanded && (
                 <AdvancedContent>
                     {/* Metadata — an MCP-level param, available for all MCP tools */}
-                    <CheckBoxRow>
-                        <CheckBox
-                            label={metaParam.metadata?.label}
-                            checked={metaParam.enabled}
-                            onChange={(checked) => onMetaChange({ ...metaParam, enabled: checked })}
-                        />
-                        <ParamDescription>{MCP_META_DESCRIPTION}</ParamDescription>
-                    </CheckBoxRow>
+                    {metaParam && (
+                        <CheckBoxRow>
+                            <CheckBox
+                                label={metaParam.metadata?.label}
+                                checked={metaParam.enabled}
+                                onChange={(checked) => onMetaChange({ ...metaParam, enabled: checked })}
+                            />
+                            <ParamDescription>{MCP_META_DESCRIPTION}</ParamDescription>
+                        </CheckBoxRow>
+                    )}
 
                     {showTransport && (
                         <>

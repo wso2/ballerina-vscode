@@ -33,7 +33,6 @@ import { getImportsForProperty } from "../../../../../utils/bi";
 import ArtifactForm from "../../../Forms/ArtifactForm";
 import {
     McpTransportParams,
-    buildMcpHeaderSchema,
     deriveMcpAdvancedParams,
     deriveMcpMetaParam,
     isMcpAdvancedType,
@@ -62,7 +61,7 @@ export function McpToolForm(props: McpToolFormProps) {
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [headerParams, setHeaderParams] = useState<ParameterModel[]>([]);
     const [advancedParams, setAdvancedParams] = useState<ParameterModel[]>([]);
-    const [metaParam, setMetaParam] = useState<ParameterModel>(() => deriveMcpMetaParam(initialModel.parameters ?? []));
+    const [metaParam, setMetaParam] = useState<ParameterModel | undefined>(() => deriveMcpMetaParam(initialModel.parameters ?? []));
     const [model] = useState<FunctionModel>(() => {
         const cloned = structuredClone(initialModel);
         const properties = cloned.properties ?? {};
@@ -175,7 +174,7 @@ export function McpToolForm(props: McpToolFormProps) {
         isMcpHeaderParam(param) || isMcpAdvancedType(param.type?.value);
 
     const regularParameters = model.parameters.filter(
-        (param) => !isMcpMetaParam(param) && !(isStreamableHttp && isTransportParam(param))
+        (param) => !isMcpMetaParam(param) && !isTransportParam(param)
     );
 
     // Initialize advanced param state (meta always; headers + raw objects for Streamable HTTP)
@@ -291,7 +290,7 @@ export function McpToolForm(props: McpToolFormProps) {
             paramList.push(...headerParams);
             paramList.push(...advancedParams.filter((param) => param.enabled));
         }
-        if (metaParam.enabled) {
+        if (metaParam?.enabled) {
             paramList.push(metaParam);
         }
         const newFunctionModel = { ...model };
@@ -317,7 +316,7 @@ export function McpToolForm(props: McpToolFormProps) {
                     showTransport={!!isStreamableHttp}
                     metaParam={metaParam}
                     onMetaChange={setMetaParam}
-                    headerSchema={(model.schema?.header as ParameterModel) ?? buildMcpHeaderSchema()}
+                    headerSchema={model.schema?.header as ParameterModel}
                     headerParams={headerParams}
                     advancedParams={advancedParams}
                     onHeaderParamsChange={setHeaderParams}
