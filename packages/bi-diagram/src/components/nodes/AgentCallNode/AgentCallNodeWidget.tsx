@@ -871,7 +871,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                 width={NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT + LABEL_WIDTH + 10}
                 height={model.node.viewState?.ch}
                 viewBox={`0 0 300 ${containerHeight}`}
-                style={{ marginLeft: "-10px", position: "relative", zIndex: 1 }}
+                style={{ marginLeft: "-10px", position: "relative", zIndex: 1, cursor: "default" }}
             >
                 {/* ai agent model circle */}
                 <g style={{ opacity: isModelActive ? 1 : 0.55, transition: "opacity 0.4s ease-out" }}>
