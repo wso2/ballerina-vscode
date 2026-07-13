@@ -551,6 +551,7 @@ export interface AbortAIGenerationRequest {
 export interface UsageResponse {
     remainingUsagePercentage: number;
     resetsIn: number; // in seconds
+    orgId?: string;  // org UUID for the quota request portal link
 }
 
 export interface OpenFileDiffRequest {

@@ -150,6 +150,7 @@ import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
 import { executeRun } from "../../features/ai/agent/tools/ballerina-run";
+import { platformExtStore } from "../platform-ext/platform-store";
 
 /** Validate an MCP server config DTO. Returns an error message or null on success. */
 function validateMcpServerConfig(cfg: any): string | null {
@@ -865,8 +866,9 @@ User reverted the last made changes. The files have been restored to the state b
             const url = BACKEND_URL + LLM_API_BASE_PATH + "/usage";
             const response = await fetchWithAuth(url, { method: "GET" });
             if (response && response.ok) {
-                const data = await response.json();
-                return data as UsageResponse;
+                const data = await response.json() as UsageResponse;
+                const orgId = platformExtStore.getState().state?.selectedContext?.org?.uuid;
+                return { ...data, orgId };
             }
             console.error("Failed to fetch usage: ", response?.status, response?.statusText);
             return undefined;
