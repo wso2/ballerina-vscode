@@ -157,6 +157,8 @@ task resolveBallerinaDependencies {
         if (skipResolution) {
             logger.lifecycle("Ballerina.toml unchanged — skipping dependency resolution")
         } else {
+            delete targetDir
+
             // Copy the directory to build location
             copy {
                 from sourceDir
