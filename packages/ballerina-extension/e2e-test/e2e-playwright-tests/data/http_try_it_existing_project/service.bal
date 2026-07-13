@@ -10,4 +10,20 @@ service / on httpListener {
     resource function get greeting() returns json {
         return {message: "Hello, Ballerina!"};
     }
+
+    resource function get greeting/[string name]() returns json {
+        return {message: "Hello, " + name + "!"};
+    }
+
+    resource function get search(string q) returns json {
+        return {query: q};
+    }
+
+    resource function get secure(@http:Header {name: "X-Api-Key"} string apiKey) returns json {
+        return {header: apiKey};
+    }
+
+    resource function post echo(@http:Payload record {|string message;|} payload) returns json {
+        return {echoed: payload.message};
+    }
 }

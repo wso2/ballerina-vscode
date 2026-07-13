@@ -56,16 +56,16 @@ async function clickNotificationButton(name: string, timeoutMs: number) {
     throw new Error(`Notification action "${name}" not found within ${timeoutMs}ms`);
 }
 
-async function fetchEndpoint(url: string): Promise<{ status: number; body: string; headers: Headers }> {
-    const response = await fetch(url, { method: 'GET' });
+async function fetchEndpoint(url: string, init: RequestInit = { method: 'GET' }): Promise<{ status: number; body: string; headers: Headers }> {
+    const response = await fetch(url, init);
     return { status: response.status, body: await response.text(), headers: response.headers };
 }
 
-async function waitForEndpoint(url: string, timeoutMs: number): Promise<{ status: number; body: string; headers: Headers }> {
+async function waitForEndpoint(url: string, timeoutMs: number, init?: RequestInit): Promise<{ status: number; body: string; headers: Headers }> {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
         try {
-            return await fetchEndpoint(url);
+            return await fetchEndpoint(url, init);
         } catch {
             await page.page.waitForTimeout(1000);
         }
@@ -171,6 +171,57 @@ export default function createTests() {
             expect(response.status).toBe(200);
             expect(response.body).toContain(GREETING_JSON);
             expect(response.headers.get('content-type') ?? '').toContain('application/json');
+        });
+
+        // Service-level Try It (already triggered above) generates one
+        // markdown+hurl cell pair per resource in the service, so the same
+        // notebook from the previous test already contains cells for path
+        // param / query param / header param / POST JSON body. The notebook
+        // is virtualized (only 1-2 code cells ever mount), so per-cell
+        // navigation is unreliable — use "Run All" instead (confirmed via the
+        // authoring daemon) and verify each live response with a direct probe,
+        // same approach as the GET case above.
+        test('POST, path param, query param and header param requests all work as generated', async () => {
+            logStep('Verify the generated Hurl cells for the additional resources');
+            const hurlPath = path.join(newProjectPath, 'target', 'TryIt.hurl');
+            const hurl = fs.readFileSync(hurlPath, 'utf8');
+            expect(hurl).toContain(`GET ${BASE_URL}/greeting/name`);
+            expect(hurl).toContain(`GET ${BASE_URL}/search`);
+            expect(hurl).toContain('q: q');
+            expect(hurl).toContain(`GET ${BASE_URL}/secure`);
+            expect(hurl).toContain('X-Api-Key: X-Api-Key');
+            expect(hurl).toContain(`POST ${BASE_URL}/echo`);
+            expect(hurl).toContain('Content-Type: application/json');
+
+            logStep('Run all notebook cells');
+            await page.page.getByRole('button', { name: /Run All/i }).first().click({ force: true });
+            await page.page.waitForTimeout(4000);
+
+            logStep('Verify the path param request');
+            const pathParamResponse = await waitForEndpoint(`${BASE_URL}/greeting/name`, 30000);
+            expect(pathParamResponse.status).toBe(200);
+            expect(pathParamResponse.body).toContain('Hello, name!');
+
+            logStep('Verify the query param request');
+            const queryParamResponse = await waitForEndpoint(`${BASE_URL}/search?q=q`, 30000);
+            expect(queryParamResponse.status).toBe(200);
+            expect(queryParamResponse.body).toContain('"query":"q"');
+
+            logStep('Verify the header param request');
+            const headerParamResponse = await waitForEndpoint(`${BASE_URL}/secure`, 30000, {
+                method: 'GET', headers: { 'X-Api-Key': 'X-Api-Key' }
+            });
+            expect(headerParamResponse.status).toBe(200);
+            expect(headerParamResponse.body).toContain('"header":"X-Api-Key"');
+
+            logStep('Verify the POST request with a JSON body');
+            const postResponse = await waitForEndpoint(`${BASE_URL}/echo`, 30000, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"message":"{?}"}'
+            });
+            // Ballerina's default response status for a POST resource is 201
+            // (Created), not 200 — assert on the actual product behavior.
+            expect(postResponse.status).toBe(201);
+            expect(postResponse.body).toContain('"echoed":"{?}"');
         });
     });
 }
