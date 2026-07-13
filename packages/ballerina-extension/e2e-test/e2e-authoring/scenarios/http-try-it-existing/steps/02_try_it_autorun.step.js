@@ -1,10 +1,7 @@
 {
-  // Drive Try It entirely from the Service Designer toolbar button — no palette
-  // run command. On a service that is not running, the button flow is:
-  //   Try It -> Hurl-vs-AI pick -> "Run Integration" (starts the service)
-  //          -> post-run "Test with Try It Client?" -> Test (builds the notebook)
-  // Notification actions must be reached via the Notification Center (info
-  // toasts collapse), and clicked plainly (force clicks fail "outside viewport").
+  // Same auto-start-and-wait-for-hurl pattern as http-try-it steps 04-05,
+  // driven from the Service Designer toolbar Try It button (service is not
+  // running yet, since the project was never run in this session).
   await ensureWorkbench();
 
   globalThis.clickNotificationButton = async (name, timeoutMs) => {
@@ -20,10 +17,7 @@
     throw new Error(`Notification action "${name}" not found within ${timeoutMs}ms`);
   };
 
-  // Navigate to the Service Designer (the toolbar Try It button lives here).
-  const tree = window.getByRole('treeitem', { name: /HTTP Service/ }).first();
-  await tree.click({ force: true }).catch(() => {});
-  await window.waitForTimeout(2500);
+  const projectPath = path.join(e2eRoot, 'e2e-playwright-tests', 'data', 'http_try_it_existing_project');
 
   const frame = await getBIWebview();
   await frame.getByText('Try It', { exact: true }).first().waitFor({ timeout: 30000 });
@@ -38,11 +32,7 @@
   await clickNotificationButton('Run Integration', 30000);
   console.log('clicked Run Integration (Try It auto-start)');
 
-  // The notebook is produced by one of two racing flows after the run starts:
-  // the button's continuation, or a debug-session hook re-prompting "Test with
-  // Try It Client?". Poll for the file while clicking Test (toast or center)
-  // whenever it surfaces.
-  const hurlPath = path.join(newProjectPath, 'target', 'TryIt.hurl');
+  const hurlPath = path.join(projectPath, 'target', 'TryIt.hurl');
   const deadline = Date.now() + 180000;
   let openedCenterAt = 0;
   while (Date.now() < deadline && !fs.existsSync(hurlPath)) {
@@ -73,8 +63,15 @@
   if (running.status !== 200 || !running.body.includes('Hello, Ballerina!')) {
     throw new Error('service did not auto-start correctly: ' + JSON.stringify(running));
   }
-  const host = await hostSnapshot();
+  // The hurl file write and the notebook tab opening are not atomic — the file
+  // can exist a beat before the editor tab renders. Poll instead of a single check.
+  const tabDeadline = Date.now() + 15000;
+  let host = await hostSnapshot();
+  while (Date.now() < tabDeadline && !/tab "TryIt\.hurl/.test(host)) {
+    await window.waitForTimeout(500);
+    host = await hostSnapshot();
+  }
   if (!/tab "TryIt\.hurl/.test(host)) throw new Error('TryIt.hurl notebook tab did not open');
 
-  console.log('Try It auto-started the service and built the notebook:\n' + hurl);
+  console.log('Try It auto-started the existing service and built the notebook:\n' + hurl);
 }
