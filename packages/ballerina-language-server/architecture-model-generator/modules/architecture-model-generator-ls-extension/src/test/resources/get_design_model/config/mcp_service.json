@@ -55,7 +55,7 @@
           "functions": [],
           "remoteFunctions": [],
           "resourceFunctions": [],
-          "absolutePath": "/mcp ",
+          "absolutePath": "/mcp",
           "type": "mcp:Service",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_1.0.3.png",
           "uuid": "9d7deb9b-633a-1087-8a9b-1ee7fd1091ec",
