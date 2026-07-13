@@ -352,6 +352,10 @@ const AIChat: React.FC = () => {
     const processChatNotifyRef = useRef<(r: ChatNotify) => void | Promise<void>>();
     // Ensures the reconnect/replay runs at most once for this panel mount.
     const didReconnectRef = useRef(false);
+    // Request ids of interactive prompts still awaiting a response, captured at reconnect. During
+    // replay, a journaled prompt is re-shown only if its id is in here (still pending); prompts
+    // resolved earlier in the run are skipped so their banner doesn't reappear.
+    const pendingRequestIdsRef = useRef<Set<string>>(new Set());
 
     /* REFACTORED CODE START [2] */
     // custom hooks: commands + attachments
@@ -654,6 +658,10 @@ const AIChat: React.FC = () => {
                 } catch (e) {
                     console.error('[AIChat] Failed to query active generation state:', e);
                 }
+                // Prompts still awaiting an answer — used by the replay skip guard to re-show only
+                // still-pending interactive prompts (see processChatNotify).
+                pendingRequestIdsRef.current = new Set(genState?.pendingRequestIds ?? []);
+
                 const journalEvents = genState?.events;
                 const generationId = genState?.generationId;
                 const hasJournal = !!(journalEvents && journalEvents.length > 0 && generationId);
@@ -829,13 +837,18 @@ const AIChat: React.FC = () => {
     const processChatNotify = async (response: ChatNotify) => {
         const type = response.type;
 
-        // When replaying a journal on reopen, suppress interactive-prompt events. Closing the
-        // panel already cancelled any pending approvals (webview dispose → cancelAllPending), so
-        // these requests are resolved/stale — re-showing them would pop dead dialogs. The tool
-        // cards they relate to render from their own (non-skipped) tool_call/tool_result events,
-        // and any approval the live run still needs after reopen arrives as a fresh live event.
+        // When replaying a journal on reopen, an interactive prompt is only re-shown if it's still
+        // awaiting a response (its requestId is in pendingRequestIdsRef). Prompts resolved earlier
+        // in the run are skipped so their banner doesn't reappear — the transcript around them is
+        // still rebuilt from their non-skipped tool_call/tool_result/text events. A pending prompt,
+        // by contrast, is re-surfaced so the user can answer it (the backend keeps it alive across
+        // panel close), fixing the "question lost on reopen" case.
         if (replayingRef.current && REPLAY_SKIP_EVENT_TYPES.has(type)) {
-            return;
+            const reqId = (response as any).requestId;
+            if (!reqId || !pendingRequestIdsRef.current.has(reqId)) {
+                return;
+            }
+            // still pending → fall through and render the live prompt
         }
 
         if (type === "content_block") {

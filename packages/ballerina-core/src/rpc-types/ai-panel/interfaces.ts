@@ -543,6 +543,12 @@ export interface ActiveGenerationState {
      * these through its normal renderer to rebuild everything it missed while it was closed.
      */
     events?: ChatNotify[];
+    /**
+     * Request ids of interactive prompts (clarify/approval/etc.) that are still awaiting a user
+     * response. On reopen the panel re-surfaces the journaled prompt for these (so the question can
+     * be answered) and skips prompts already resolved earlier in the run.
+     */
+    pendingRequestIds?: string[];
 }
 
 export interface OpenFileDiffRequest {
