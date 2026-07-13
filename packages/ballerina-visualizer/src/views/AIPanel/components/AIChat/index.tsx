@@ -26,6 +26,7 @@ import {
     Command,
     TemplateId,
     ChatNotify,
+    ActiveGenerationState,
     DocumentationGeneratorIntermediaryState,
     OperationType,
     DocGenerationRequest,
@@ -188,6 +189,16 @@ function appendToLastEntry(entries: StreamEntry[], item: StreamItem): StreamEntr
     return [...entries.slice(0, -1), { ...last, items: [...last.items, item] }];
 }
 
+// Interactive-prompt event types skipped while replaying a journal on reopen (their live
+// interaction is already resolved/cancelled; only the passive transcript should be rebuilt).
+const REPLAY_SKIP_EVENT_TYPES = new Set<string>([
+    "task_approval_request",
+    "web_tool_approval_request",
+    "configuration_collection_event",
+    "clarify_event",
+    "skill_enable_event",
+]);
+
 const SCAFFOLD_DONE_PREFIX = "ballerina.scaffold.done:";
 
 // Stable, non-crypto hash for keying scaffold runs by (prompt + steps).
@@ -214,15 +225,30 @@ const AIChat: React.FC = () => {
         return -1;
     };
 
+    const getLatestUserMessageIndex = (chatMessages: Array<{ role: string }>): number => {
+        for (let i = chatMessages.length - 1; i >= 0; i--) {
+            const role = chatMessages[i]?.role;
+            if (role === "User" || role === "user") {
+                return i;
+            }
+        }
+        return -1;
+    };
+
     const ensureAssistantMessage = (
         chatMessages: Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>
     ): number => {
-        let targetIndex = getLatestAssistantMessageIndex(chatMessages);
-        if (targetIndex === -1) {
-            chatMessages.push({ role: "Copilot", content: "", type: "assistant_message" });
-            targetIndex = chatMessages.length - 1;
+        const targetIndex = getLatestAssistantMessageIndex(chatMessages);
+        // Reuse the trailing assistant bubble only if it belongs to the CURRENT turn — i.e. it
+        // comes after the most recent user message. Otherwise (a newer user prompt exists, or there
+        // is no assistant yet) start a fresh bubble so streamed content lands under the right turn.
+        // Without this, replaying a follow-up turn's events on reopen merges them into the previous
+        // turn's bubble and the follow-up prompt is pushed below its own response.
+        if (targetIndex !== -1 && targetIndex > getLatestUserMessageIndex(chatMessages)) {
+            return targetIndex;
         }
-        return targetIndex;
+        chatMessages.push({ role: "Copilot", content: "", type: "assistant_message" });
+        return chatMessages.length - 1;
     };
 
     const updateLastMessage = (updater: (content: string) => string) => {
@@ -312,6 +338,20 @@ const AIChat: React.FC = () => {
     const activeScaffoldKeyRef = useRef<string | null>(null);
 
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+    // ── Reconnect / replay plumbing ─────────────────────────────────────────────
+    // True while replaying a journal on reopen, so the notify handler can suppress
+    // side effects (e.g. the save_chat round-trip) that only make sense for live events.
+    const replayingRef = useRef(false);
+    // Always-fresh mirror of `messages`, used to read the rebuilt transcript after a replay
+    // (the notify handler's own closure would be stale inside an async replay loop).
+    const latestMessagesRef = useRef(messages);
+    useEffect(() => { latestMessagesRef.current = messages; }, [messages]);
+    // Stable handle to the latest notify handler so the reconnect/replay effect can invoke it
+    // without depending on the (re-created-every-render) closure.
+    const processChatNotifyRef = useRef<(r: ChatNotify) => void | Promise<void>>();
+    // Ensures the reconnect/replay runs at most once for this panel mount.
+    const didReconnectRef = useRef(false);
 
     /* REFACTORED CODE START [2] */
     // custom hooks: commands + attachments
@@ -589,9 +629,81 @@ const AIChat: React.FC = () => {
         const loadHistory = async () => {
             try {
                 const historyMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
-                if (historyMessages && historyMessages.length > 0) {
-                    const uiMessages = convertToUIMessages(historyMessages);
-                    setMessages((prevMessages) => (prevMessages.length > 0 ? prevMessages : uiMessages));
+                let baseMessages = (historyMessages && historyMessages.length > 0)
+                    ? convertToUIMessages(historyMessages)
+                    : [];
+
+                // Reconnect to a run that was in progress (or finished but never recorded) while the
+                // panel was closed. The extension host keeps generating even after the panel is torn
+                // down, and records every event in a journal — replay it so the conversation comes
+                // back complete and the spinner reflects the real state.
+                //
+                // Guard against double-execution (React StrictMode remount, or an rpcClient identity
+                // change): replaying the journal twice would duplicate the recovered transcript.
+                // History loading above stays idempotent (the setMessages below keeps any existing
+                // messages), so only the reconnect/replay is gated.
+                if (didReconnectRef.current) {
+                    setMessages((prevMessages) => (prevMessages.length > 0 ? prevMessages : baseMessages));
+                    return;
+                }
+                didReconnectRef.current = true;
+
+                let genState: ActiveGenerationState | undefined;
+                try {
+                    genState = await rpcClient.getAiPanelRpcClient().getActiveGenerationState({ includeEvents: true });
+                } catch (e) {
+                    console.error('[AIChat] Failed to query active generation state:', e);
+                }
+                const journalEvents = genState?.events;
+                const generationId = genState?.generationId;
+                const hasJournal = !!(journalEvents && journalEvents.length > 0 && generationId);
+                // The persisted transcript already covers a finished turn once its uiResponse is
+                // saved (getChatMessages then returns its assistant bubble). Only replay the journal
+                // when a run is genuinely live, or when the last turn's transcript is missing
+                // (finished while the panel was closed) — otherwise a stale journal would re-render a
+                // resolved turn, including its review card.
+                const assistantAlreadyLoaded = !!generationId &&
+                    baseMessages.some((m) => m.role === "Copilot" && m.messageId === generationId);
+                const shouldReplay = hasJournal && (!!genState?.isGenerating || !assistantAlreadyLoaded);
+
+                if (shouldReplay) {
+                    // Drop any assistant bubble already loaded for this generation; the journal
+                    // replays the full turn from the start, so we rebuild it cleanly from scratch.
+                    baseMessages = baseMessages.filter(
+                        (m) => !(m.role === "Copilot" && m.messageId === generationId)
+                    );
+                }
+
+                setMessages((prevMessages) => (prevMessages.length > 0 ? prevMessages : baseMessages));
+
+                if (shouldReplay) {
+                    replayingRef.current = true;
+                    try {
+                        for (const ev of journalEvents) {
+                            await processChatNotifyRef.current?.(ev as ChatNotify);
+                        }
+                    } finally {
+                        replayingRef.current = false;
+                    }
+                }
+
+                if (genState?.isGenerating) {
+                    // A run is genuinely still executing — show the spinner and let live events continue.
+                    setIsLoading(true);
+                } else if (shouldReplay && generationId) {
+                    // Finished while we were closed and uiResponse was never captured. Persist the
+                    // rebuilt transcript once (after React commits the replayed messages) so it's
+                    // durable and getChatMessages returns it thereafter.
+                    setTimeout(() => {
+                        const msgs = latestMessagesRef.current;
+                        const idx = getLatestAssistantMessageIndex(msgs);
+                        const content = idx >= 0 ? msgs[idx]?.content : "";
+                        if (content) {
+                            rpcClient.getAiPanelRpcClient()
+                                .updateChatMessage({ messageId: generationId, content })
+                                .catch((e) => console.error('[AIChat] Failed to persist recovered transcript:', e));
+                        }
+                    }, 0);
                 }
             } catch (error) {
                 console.error('[AIChat] Failed to load initial chat history:', error);
@@ -601,6 +713,68 @@ const AIChat: React.FC = () => {
 
         loadHistory();
     }, [rpcClient]);
+
+    /**
+     * Effect: Spinner watchdog. Streaming completion normally arrives as a `stop`/`abort`/`error`
+     * event that clears `isLoading`. If that terminal signal is ever missed (e.g. dropped while the
+     * panel was reconnecting), the panel would spin forever. While loading, poll the backend for the
+     * real run state; once the run is genuinely no longer active, clear the spinner. The on-screen
+     * transcript is already complete (streamed live and/or replayed from the journal), so we only
+     * release the loading state and don't touch the messages.
+     */
+    useEffect(function generationWatchdog() {
+        if (!isLoading) {
+            return;
+        }
+        let cancelled = false;
+        let sawActive = false;      // confirmed the run was actually in flight at least once
+        let negativePolls = 0;
+        const POLL_MS = 4000;
+        const MAX_STUCK_MS = 5 * 60 * 1000; // absolute ceiling before force-clearing
+        const startedAt = Date.now();
+
+        const clearSpinner = () => {
+            setIsLoading(false);
+            setIsCodeLoading(false);
+            setIsCompacting(false);
+            setIsMigrationEnhancementRunning(false);
+        };
+
+        const intervalId = setInterval(async () => {
+            if (cancelled) {
+                return;
+            }
+            let stillGenerating = false;
+            try {
+                const s = await rpcClient.getAiPanelRpcClient().getActiveGenerationState({ includeEvents: false });
+                stillGenerating = !!s?.isGenerating;
+            } catch (e) {
+                // Transient poll failure — treat as inconclusive, don't clear on it.
+                return;
+            }
+            if (stillGenerating) {
+                sawActive = true;
+                negativePolls = 0;
+                return;
+            }
+            const exceededCeiling = Date.now() - startedAt > MAX_STUCK_MS;
+            // Ignore "not generating" until we've confirmed a run was actually active, to avoid the
+            // startup race before the run registers in the extension host.
+            if (!sawActive && !exceededCeiling) {
+                return;
+            }
+            negativePolls += 1;
+            if (negativePolls >= 2 || exceededCeiling) {
+                console.warn('[AIChat] Watchdog clearing a stuck spinner (missed terminal signal).');
+                clearSpinner();
+            }
+        }, POLL_MS);
+
+        return () => {
+            cancelled = true;
+            clearInterval(intervalId);
+        };
+    }, [isLoading, rpcClient]);
 
     /**
      * Effect: Check for an active migration session that needs AI enhancement.
@@ -649,8 +823,20 @@ const AIChat: React.FC = () => {
         }
     });
 
-    rpcClient?.onChatNotify(async (response: ChatNotify) => {
+    // The notify handler is (re)registered every render; the messenger keeps a single handler
+    // per method (Map.set semantics), so this replaces rather than stacks — each registration
+    // closes over fresh state. It is also invoked directly during journal replay on reopen.
+    const processChatNotify = async (response: ChatNotify) => {
         const type = response.type;
+
+        // When replaying a journal on reopen, suppress interactive-prompt events. Closing the
+        // panel already cancelled any pending approvals (webview dispose → cancelAllPending), so
+        // these requests are resolved/stale — re-showing them would pop dead dialogs. The tool
+        // cards they relate to render from their own (non-skipped) tool_call/tool_result events,
+        // and any approval the live run still needs after reopen arrives as a fresh live event.
+        if (replayingRef.current && REPLAY_SKIP_EVENT_TYPES.has(type)) {
+            return;
+        }
 
         if (type === "content_block") {
             const content = response.content;
@@ -1025,6 +1211,12 @@ const AIChat: React.FC = () => {
 
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
+            // During replay we're rebuilding the transcript from the journal; the live `messages`
+            // closure is stale and persisting here would clobber uiResponse with empty content.
+            // The reconnect effect persists the rebuilt transcript once, after the replay settles.
+            if (replayingRef.current) {
+                return;
+            }
             const assistantIndex = getLatestAssistantMessageIndex(messages);
             const contentToSave = assistantIndex >= 0 ? messages[assistantIndex]?.content : messages[messages.length - 1]?.content;
             await rpcClient.getAiPanelRpcClient().updateChatMessage({
@@ -1083,7 +1275,9 @@ const AIChat: React.FC = () => {
             setIsLoading(false);
             isErrorChunkReceivedRef.current = true;
         }
-    });
+    };
+    processChatNotifyRef.current = processChatNotify;
+    rpcClient?.onChatNotify(processChatNotify);
 
     function generateNaturalProgrammingTemplate(isReqFileExists: boolean) {
         if (isReqFileExists) {

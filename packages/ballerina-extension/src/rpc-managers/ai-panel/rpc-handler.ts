@@ -90,6 +90,8 @@ import {
     declineWebTool,
     WebToolApprovalRequest,
     getUsage,
+    getActiveGenerationState,
+    GetActiveGenerationStateRequest,
     compactConversation,
     CompactConversationRequest,
     getShowContextUsage,
@@ -191,6 +193,7 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(updateChatMessage, (args: UpdateChatMessageRequest) => rpcManger.updateChatMessage(args));
     messenger.onRequest(getActiveTempDir, () => rpcManger.getActiveTempDir());
     messenger.onRequest(getUsage, () => rpcManger.getUsage());
+    messenger.onRequest(getActiveGenerationState, (args: GetActiveGenerationStateRequest) => rpcManger.getActiveGenerationState(args));
     messenger.onNotification(openFileDiff, (args: OpenFileDiffRequest) => rpcManger.openFileDiff(args));
     messenger.onRequest(approveWebTool, (args: WebToolApprovalRequest) => rpcManger.approveWebTool(args));
     messenger.onRequest(declineWebTool, (args: WebToolApprovalRequest) => rpcManger.declineWebTool(args));

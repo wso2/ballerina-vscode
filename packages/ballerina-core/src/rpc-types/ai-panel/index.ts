@@ -43,6 +43,8 @@ import {
     CheckpointInfo,
     AbortAIGenerationRequest,
     UsageResponse,
+    ActiveGenerationState,
+    GetActiveGenerationStateRequest,
     OpenFileDiffRequest,
     WebToolApprovalRequest,
     CompactConversationRequest,
@@ -136,6 +138,7 @@ export interface AIPanelAPI {
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
     getActiveTempDir: () => Promise<string>;
     getUsage: () => Promise<UsageResponse | undefined>;
+    getActiveGenerationState: (params: GetActiveGenerationStateRequest) => Promise<ActiveGenerationState>;
     openFileDiff: (params: OpenFileDiffRequest) => void;
     approveWebTool: (params: WebToolApprovalRequest) => Promise<void>;
     declineWebTool: (params: WebToolApprovalRequest) => Promise<void>;

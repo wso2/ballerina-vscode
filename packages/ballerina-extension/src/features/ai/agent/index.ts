@@ -95,6 +95,16 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
             existingTempPath: pendingReview?.reviewState.tempProjectPath
         });
 
+        // Record the UI event stream for this generation so a panel that is closed mid-run and
+        // reopened can replay everything it missed. The generation runs in the extension host and
+        // survives the panel, but the streamed notifications don't — the journal bridges that gap.
+        chatStateStorage.startJournal(projectRootPath, threadId, config.generationId);
+        const forwardEvent = config.eventHandler;
+        config.eventHandler = (event) => {
+            chatStateStorage.appendJournalEvent(projectRootPath, threadId, config.generationId, event);
+            forwardEvent(event);
+        };
+
         // Inject migration source tools for projects that have been AI-enhanced
         const migrationSourcePath = getMigrationSourcePathForProject(projectRootPath);
         if (migrationSourcePath) {

@@ -49,6 +49,8 @@ import {
     UIChatMessage,
     UpdateChatMessageRequest,
     UsageResponse,
+    ActiveGenerationState,
+    GetActiveGenerationStateRequest,
     WebToolApprovalRequest,
     ClarifyAnswerRequest,
     ClarifyCancelRequest,
@@ -103,6 +105,7 @@ import {
     updateChatMessage,
     updateRequirementSpecification,
     getUsage,
+    getActiveGenerationState,
     compactConversation,
     CompactConversationRequest,
     CompactConversationResponse,
@@ -341,6 +344,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getUsage(): Promise<UsageResponse | undefined> {
         return this._messenger.sendRequest(getUsage, HOST_EXTENSION);
+    }
+
+    getActiveGenerationState(params: GetActiveGenerationStateRequest): Promise<ActiveGenerationState> {
+        return this._messenger.sendRequest(getActiveGenerationState, HOST_EXTENSION, params);
     }
 
     openFileDiff(params: OpenFileDiffRequest): void {

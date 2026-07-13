@@ -45,6 +45,8 @@ import {
     UIChatMessage,
     UpdateChatMessageRequest,
     UsageResponse,
+    ActiveGenerationState,
+    GetActiveGenerationStateRequest,
     WebToolApprovalRequest,
     CompactConversationRequest,
     CompactConversationResponse,
@@ -684,6 +686,14 @@ User reverted the last made changes. The files have been restored to the state b
             uiResponse: params.content
         });
 
+        // Once the transcript is durably saved as uiResponse and the run is no longer active, the
+        // event journal is redundant — drop it so a future reopen doesn't replay a finished run.
+        const active = chatStateStorage.getActiveExecution(projectRootPath, threadId);
+        const journal = chatStateStorage.getJournal(projectRootPath, threadId);
+        if (journal?.generationId === params.messageId && active?.generationId !== params.messageId) {
+            chatStateStorage.clearJournal(projectRootPath, threadId);
+        }
+
         console.log(`[RPC] Updated generation ${params.messageId} UI response`);
     }
 
@@ -781,6 +791,25 @@ User reverted the last made changes. The files have been restored to the state b
             console.error("Failed to fetch usage:", error);
             return undefined;
         }
+    }
+
+    async getActiveGenerationState(params?: GetActiveGenerationStateRequest): Promise<ActiveGenerationState> {
+        const projectRootPath = resolveProjectRootPath();
+        const threadId = 'default';
+
+        const active = chatStateStorage.getActiveExecution(projectRootPath, threadId);
+        const journal = chatStateStorage.getJournal(projectRootPath, threadId);
+
+        // isGenerating reflects the real run state (an AbortController is registered for the whole
+        // run lifetime). The journal is only serialized when explicitly requested (reopen/replay);
+        // the spinner watchdog polls without it. The journal is returned whenever one exists —
+        // including when a run finished while the panel was closed and its uiResponse was never
+        // recorded — so the reopened panel can replay it and re-persist the transcript.
+        return {
+            isGenerating: !!active,
+            generationId: active?.generationId ?? journal?.generationId,
+            events: params?.includeEvents ? journal?.events : undefined,
+        };
     }
 
     private static diffContentProviderRegistered = false;

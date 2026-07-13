@@ -18,7 +18,7 @@
  */
 
 import { FunctionDefinition } from "@wso2/syntax-tree";
-import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
+import { AIMachineContext, AIMachineStateValue, ChatNotify } from "../../state-machine-types";
 import { Command, SkillCommand, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
 import { ComponentInfo, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, OperationType } from "../..";
@@ -519,6 +519,30 @@ export interface AbortAIGenerationRequest {
 export interface UsageResponse {
     remainingUsagePercentage: number;
     resetsIn: number; // in seconds
+}
+
+/**
+ * Request for the active generation state. The event journal can be large, so it is only
+ * included when explicitly requested (reopen/replay); the spinner watchdog omits it.
+ */
+export interface GetActiveGenerationStateRequest {
+    includeEvents?: boolean;
+}
+
+/**
+ * State of the in-flight (or just-finished-but-unrecorded) generation for a thread.
+ * Returned to a reopened panel so it can reflect the real run state and replay missed steps.
+ */
+export interface ActiveGenerationState {
+    /** True while a generation is actively executing in the extension host. */
+    isGenerating: boolean;
+    /** Id of the active (or most recently journaled) generation, if any. */
+    generationId?: string;
+    /**
+     * The recorded UI event stream for the generation, if a journal exists. The panel replays
+     * these through its normal renderer to rebuild everything it missed while it was closed.
+     */
+    events?: ChatNotify[];
 }
 
 export interface OpenFileDiffRequest {

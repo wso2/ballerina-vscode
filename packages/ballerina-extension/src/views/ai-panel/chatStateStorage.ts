@@ -24,6 +24,7 @@ import {
     GenerationMetadata,
     GenerationReviewState,
     Checkpoint,
+    ChatNotify,
 } from '@wso2/ballerina-core/lib/state-machine-types';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { generateId } from './idGenerators';
@@ -57,6 +58,23 @@ function resolveWorkspaceIdentity(projectRootPath: string): string {
 export interface ActiveExecution {
     generationId: string;              // For logging and correlation with generation
     abortController: AbortController;  // For actual abort operation
+}
+
+/**
+ * In-memory recording of the UI event stream for the most recent generation on a thread.
+ *
+ * The agent generation runs in the extension host and survives the webview panel being
+ * closed/reopened. This journal lets a reopened panel replay every ChatNotify it missed
+ * (text, tool calls/results, review/plan cards, terminal signals) through the exact same
+ * renderer it uses for live events, so the conversation comes back complete.
+ *
+ * Runtime-only (like activeExecutions): scoped to a single VS Code session. A full window
+ * reload restarts the extension host and also kills the running generation, so there is no
+ * live run to reconnect to in that case.
+ */
+export interface GenerationJournal {
+    generationId: string;
+    events: ChatNotify[];
 }
 
 // ============================================
@@ -251,6 +269,10 @@ export class ChatStateStorage {
     // Track active executions per workspace/thread for abort functionality (runtime-only)
     private activeExecutions: Map<string, Map<string, ActiveExecution>> = new Map();
 
+    // Record the UI event stream of the latest generation per workspace/thread so a reopened
+    // panel can replay what it missed (runtime-only; see GenerationJournal).
+    private generationJournals: Map<string, Map<string, GenerationJournal>> = new Map();
+
     // File-based persistence store
     private readonly persistenceStore: CopilotPersistenceStore;
 
@@ -441,6 +463,8 @@ export class ChatStateStorage {
         }
 
         this.storage.delete(projectRootPath);
+        // Drop any recorded event journals so a cleared chat can't be replayed
+        this.generationJournals.delete(projectRootPath);
         // Also remove persisted data
         this.persistenceStore.deleteWorkspace(projectRootPath);
         console.log(`[ChatStateStorage] Cleared workspace: ${projectRootPath}`);
@@ -1152,6 +1176,63 @@ export class ChatStateStorage {
      */
     getActiveExecution(projectRootPath: string, threadId: string): ActiveExecution | undefined {
         return this.activeExecutions.get(projectRootPath)?.get(threadId);
+    }
+
+    // ============================================
+    // Generation event journal (reconnect/replay)
+    // ============================================
+
+    /**
+     * Begin recording the UI event stream for a new generation on a thread.
+     * Replaces any prior journal for the thread (only the latest generation is retained).
+     */
+    startJournal(projectRootPath: string, threadId: string, generationId: string): void {
+        let threadMap = this.generationJournals.get(projectRootPath);
+        if (!threadMap) {
+            threadMap = new Map();
+            this.generationJournals.set(projectRootPath, threadMap);
+        }
+        threadMap.set(threadId, { generationId, events: [] });
+    }
+
+    /**
+     * Append an emitted event to the journal for the given generation.
+     * No-op if journaling wasn't started or the generationId doesn't match the current journal
+     * (e.g. a stale event from a superseded run).
+     */
+    appendJournalEvent(
+        projectRootPath: string,
+        threadId: string,
+        generationId: string,
+        event: ChatNotify
+    ): void {
+        const journal = this.generationJournals.get(projectRootPath)?.get(threadId);
+        if (!journal || journal.generationId !== generationId) {
+            return;
+        }
+        journal.events.push(event);
+    }
+
+    /**
+     * Get the recorded journal for a thread (the latest generation), if any.
+     */
+    getJournal(projectRootPath: string, threadId: string): GenerationJournal | undefined {
+        return this.generationJournals.get(projectRootPath)?.get(threadId);
+    }
+
+    /**
+     * Discard the journal for a thread. Called once the transcript is durably persisted as
+     * uiResponse (so replay is no longer needed) and on chat clear.
+     */
+    clearJournal(projectRootPath: string, threadId: string): void {
+        const threadMap = this.generationJournals.get(projectRootPath);
+        if (!threadMap) {
+            return;
+        }
+        threadMap.delete(threadId);
+        if (threadMap.size === 0) {
+            this.generationJournals.delete(projectRootPath);
+        }
     }
 }
 
