@@ -285,6 +285,56 @@ export class ChatStateStorage {
     }
 
     /**
+     * Append a single generation record to the thread log (upsert).
+     *
+     * This is the incremental counterpart to {@link flushThread}: instead of
+     * re-serializing and rewriting the entire thread, it appends one record for
+     * just the changed generation. On reload the log is replayed and the latest
+     * record for a generation wins, so this covers both "add" and "in-place
+     * update". Used on the hot path (persisting after every agent step), where a
+     * full rewrite would cost O(whole conversation) per tiny change.
+     */
+    private appendGeneration(projectRootPath: string, threadId: string, generation: Generation): void {
+        if (!this.storage.get(projectRootPath)?.threads.has(threadId)) {
+            return;
+        }
+        try {
+            this.persistenceStore.appendGeneration(projectRootPath, threadId, toPersistedGeneration(generation));
+        } catch (err) {
+            console.error(`[ChatStateStorage] Failed to append generation ${generation.id} to thread ${threadId}:`, err);
+        }
+    }
+
+    /**
+     * Append a tombstone removing a generation from the thread log.
+     */
+    private appendGenerationRemoval(projectRootPath: string, threadId: string, generationId: string): void {
+        if (!this.storage.get(projectRootPath)?.threads.has(threadId)) {
+            return;
+        }
+        try {
+            this.persistenceStore.removeGenerationRecord(projectRootPath, threadId, generationId);
+        } catch (err) {
+            console.error(`[ChatStateStorage] Failed to append removal of generation ${generationId} from thread ${threadId}:`, err);
+        }
+    }
+
+    /**
+     * Append a truncation record dropping `fromGenerationId` and every
+     * generation appended after it (restore-to-checkpoint).
+     */
+    private appendTruncation(projectRootPath: string, threadId: string, fromGenerationId: string): void {
+        if (!this.storage.get(projectRootPath)?.threads.has(threadId)) {
+            return;
+        }
+        try {
+            this.persistenceStore.truncateFromGeneration(projectRootPath, threadId, fromGenerationId);
+        } catch (err) {
+            console.error(`[ChatStateStorage] Failed to append truncation of thread ${threadId} from ${fromGenerationId}:`, err);
+        }
+    }
+
+    /**
      * Flush workspace metadata to disk.
      */
     private flushWorkspaceMetadata(projectRootPath: string): void {
@@ -549,8 +599,9 @@ export class ChatStateStorage {
         thread.generations.push(generation);
         thread.updatedAt = Date.now();
 
-        // Persist immediately
-        this.flushThread(projectRootPath, threadId);
+        // Persist immediately — append just this generation instead of rewriting
+        // the whole thread.
+        this.appendGeneration(projectRootPath, threadId, generation);
         console.log(`[ChatStateStorage] Added generation: ${generation.id} to thread: ${threadId}`);
 
         // Capture checkpoint for this generation asynchronously (skip for synthetic compacted generations)
@@ -618,8 +669,10 @@ export class ChatStateStorage {
         Object.assign(generation, updates);
         thread.updatedAt = Date.now();
 
-        // Persist immediately
-        this.flushThread(projectRootPath, threadId);
+        // Persist immediately — append the updated generation (last write wins on
+        // replay). This is the hot path: it fires after every agent step, so a
+        // full-thread rewrite here is what made long conversations lag.
+        this.appendGeneration(projectRootPath, threadId, generation);
         console.log(`[ChatStateStorage] Updated generation: ${generationId}`);
     }
 
@@ -635,8 +688,8 @@ export class ChatStateStorage {
         if (index !== -1) {
             thread.generations.splice(index, 1);
             thread.updatedAt = Date.now();
-            // Persist immediately
-            this.flushThread(projectRootPath, threadId);
+            // Persist immediately — append a tombstone instead of rewriting.
+            this.appendGenerationRemoval(projectRootPath, threadId, generationId);
             // Also clean up checkpoint file if it exists
             this.persistenceStore.deleteCheckpoint(projectRootPath, threadId, generationId);
             console.log(`[ChatStateStorage] Removed generation: ${generationId}`);
@@ -779,8 +832,8 @@ export class ChatStateStorage {
         Object.assign(generation.reviewState, state);
         thread.updatedAt = Date.now();
 
-        // Persist immediately
-        this.flushThread(projectRootPath, threadId);
+        // Persist immediately — append just the affected generation.
+        this.appendGeneration(projectRootPath, threadId, generation);
         console.log(`[ChatStateStorage] Updated review state for generation: ${generationId}, status: ${generation.reviewState.status}`);
     }
 
@@ -795,17 +848,22 @@ export class ChatStateStorage {
         const thread = this.getOrCreateThread(projectRootPath, threadId);
         let count = 0;
 
+        const modified: Generation[] = [];
         for (const generation of thread.generations) {
             if (generation.reviewState.status === 'under_review') {
                 generation.reviewState.status = 'accepted';
                 generation.reviewState.affectedPackagePaths = [];
+                modified.push(generation);
                 count++;
             }
         }
 
         if (count > 0) {
             thread.updatedAt = Date.now();
-            this.flushThread(projectRootPath, threadId);
+            // Append an upsert per changed generation.
+            for (const generation of modified) {
+                this.appendGeneration(projectRootPath, threadId, generation);
+            }
         }
         console.log(`[ChatStateStorage] Accepted ${count} review(s) in thread: ${threadId}`);
     }
@@ -821,18 +879,23 @@ export class ChatStateStorage {
         const thread = this.getOrCreateThread(projectRootPath, threadId);
         let count = 0;
 
+        const modified: Generation[] = [];
         for (const generation of thread.generations) {
             if (generation.reviewState.status === 'under_review') {
                 generation.reviewState.status = 'error';
                 generation.reviewState.errorMessage = 'Declined by user';
                 generation.reviewState.affectedPackagePaths = [];
+                modified.push(generation);
                 count++;
             }
         }
 
         if (count > 0) {
             thread.updatedAt = Date.now();
-            this.flushThread(projectRootPath, threadId);
+            // Append an upsert per changed generation.
+            for (const generation of modified) {
+                this.appendGeneration(projectRootPath, threadId, generation);
+            }
         }
         console.log(`[ChatStateStorage] Declined ${count} review(s) in thread: ${threadId}`);
     }
@@ -1009,6 +1072,11 @@ export class ChatStateStorage {
             return false;
         }
 
+        // The generation that carries the checkpoint is the truncation point:
+        // it and everything after it are removed. Capture its id before slicing
+        // so we can persist the truncation as a single log record.
+        const truncateFromId = thread.generations[checkpointGenerationIndex].id;
+
         // Clean up checkpoint files for removed generations
         for (let i = checkpointGenerationIndex; i < thread.generations.length; i++) {
             this.persistenceStore.deleteCheckpoint(projectRootPath, threadId, thread.generations[i].id);
@@ -1020,8 +1088,8 @@ export class ChatStateStorage {
         thread.generations = thread.generations.slice(0, checkpointGenerationIndex);
         thread.updatedAt = Date.now();
 
-        // Persist immediately
-        this.flushThread(projectRootPath, threadId);
+        // Persist immediately — append a truncation record instead of rewriting.
+        this.appendTruncation(projectRootPath, threadId, truncateFromId);
         return true;
     }
 
