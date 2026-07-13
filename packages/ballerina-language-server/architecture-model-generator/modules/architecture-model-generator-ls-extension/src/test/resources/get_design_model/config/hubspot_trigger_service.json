@@ -29,7 +29,7 @@
               "value": "{clientSecret: \"secret\", callbackURL: \"http://localhost:8090\"}"
             }
           ],
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trigger.hubspot_0.11.0.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trigger.hubspot_0.12.0.png",
           "uuid": "f6b029f0-719f-f488-25e2-26c2725d0f11",
           "enableFlowModel": true,
           "sortText": "main.bal2"
@@ -148,7 +148,7 @@
           "resourceFunctions": [],
           "absolutePath": "",
           "type": "hubspot:CompanyService",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trigger.hubspot_0.11.0.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trigger.hubspot_0.12.0.png",
           "uuid": "009a8f69-a564-7ae6-e40b-4aebf2bf8a39",
           "enableFlowModel": true,
           "sortText": "main.bal4"
