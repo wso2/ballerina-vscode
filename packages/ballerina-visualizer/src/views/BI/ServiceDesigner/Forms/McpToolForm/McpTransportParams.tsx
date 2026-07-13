@@ -84,20 +84,13 @@ const ParamDescription = styled.div`
     user-select: text;
 `;
 
-// The raw transport types an MCP tool on a Streamable HTTP service may bind. Caller is intentionally
-// excluded — the mcp compiler plugin does not allow it in tool methods.
-const MCP_ADVANCED_PARAMS: { label: string; type: string }[] = [
-    { label: "Request", type: "http:Request" },
-    { label: "Headers", type: "http:Headers" }
-];
-
-const advancedParamDescriptions: { [key: string]: string } = {
-    Request: "Access the complete HTTP request object of the underlying Streamable HTTP transport.",
-    Headers: "Access all HTTP headers sent by the client on the underlying Streamable HTTP transport."
-};
+// The raw transport types an MCP tool on a Streamable HTTP service may bind, in canonical display
+// order. Caller is intentionally excluded — the mcp compiler plugin does not allow it in tool
+// methods. Labels and descriptions come from the language server model (mcp_tool.json), not here.
+const MCP_ADVANCED_TYPES: string[] = ["http:Request", "http:Headers"];
 
 export function isMcpAdvancedType(typeValue?: string): boolean {
-    return MCP_ADVANCED_PARAMS.some((p) => p.type === typeValue);
+    return typeValue !== undefined && MCP_ADVANCED_TYPES.includes(typeValue);
 }
 
 export function isMcpHeaderParam(param: ParameterModel): boolean {
@@ -106,8 +99,6 @@ export function isMcpHeaderParam(param: ParameterModel): boolean {
 
 // mcp:Meta? is an MCP-level (not transport) param: it must be nilable and the last parameter.
 // mcp:Session must be the first parameter. Both apply to all MCP tools, not just Streamable HTTP.
-const MCP_META_DESCRIPTION = "Access the metadata (_meta) the MCP client sends with the request.";
-
 export function isMcpMetaParam(param: ParameterModel): boolean {
     return (param.type?.value ?? "").replace(/\s/g, "").startsWith("mcp:Meta");
 }
@@ -117,29 +108,20 @@ export function isMcpSessionParam(param: ParameterModel): boolean {
 }
 
 // The advanced/meta params are seeded by the language server (mcp_tool.json for new tools, read-back
-// enrichment for existing ones), so these helpers only locate them in the model and apply the
-// canonical display label/description — they never synthesize a param shape. A read-back param's own
-// metadata label is its variable name, so the canonical label is applied for display; name.value and
-// the LS-produced shape (including defaultValue) are left untouched.
+// enrichment for existing ones), which also supplies each param's label/description metadata. These
+// helpers only locate them in the model and apply canonical ordering — they never synthesize a param
+// shape or its display text.
 
 // The [Request, Headers] toggles present in the model, in canonical order.
 export function deriveMcpAdvancedParams(params: ParameterModel[]): ParameterModel[] {
-    return MCP_ADVANCED_PARAMS
-        .map(({ label, type }): ParameterModel | undefined => {
-            const existing = params.find((p) => p.type?.value === type);
-            return existing
-                ? { ...existing, metadata: { label, description: advancedParamDescriptions[label] } }
-                : undefined;
-        })
+    return MCP_ADVANCED_TYPES
+        .map((type) => params.find((p) => p.type?.value === type))
         .filter((param): param is ParameterModel => param !== undefined);
 }
 
 // The mcp:Meta? toggle from the model, or undefined if the model carries no meta seed.
 export function deriveMcpMetaParam(params: ParameterModel[]): ParameterModel | undefined {
-    const existing = params.find(isMcpMetaParam);
-    return existing
-        ? { ...existing, metadata: { label: "Metadata", description: MCP_META_DESCRIPTION } }
-        : undefined;
+    return params.find(isMcpMetaParam);
 }
 
 export interface McpTransportParamsProps {
@@ -263,7 +245,7 @@ export function McpTransportParams(props: McpTransportParamsProps) {
                                 checked={metaParam.enabled}
                                 onChange={(checked) => onMetaChange({ ...metaParam, enabled: checked })}
                             />
-                            <ParamDescription>{MCP_META_DESCRIPTION}</ParamDescription>
+                            <ParamDescription>{metaParam.metadata?.description}</ParamDescription>
                         </CheckBoxRow>
                     )}
 
@@ -271,7 +253,7 @@ export function McpTransportParams(props: McpTransportParamsProps) {
                         <>
                             <Typography sx={{ marginBlockEnd: 2, marginBlockStart: 12 }} variant="h4">Transport Parameters</Typography>
                             <SectionCaption>
-                                Access transport-level request data from within the tool's logic.
+                                Access transport-level request data.
                             </SectionCaption>
 
                             {/* Headers */}
@@ -313,7 +295,7 @@ export function McpTransportParams(props: McpTransportParamsProps) {
                                         checked={param.enabled}
                                         onChange={(checked) => onAdvancedChecked(param, checked)}
                                     />
-                                    <ParamDescription>{advancedParamDescriptions[param.metadata?.label]}</ParamDescription>
+                                    <ParamDescription>{param.metadata?.description}</ParamDescription>
                                 </CheckBoxRow>
                             ))}
                         </>

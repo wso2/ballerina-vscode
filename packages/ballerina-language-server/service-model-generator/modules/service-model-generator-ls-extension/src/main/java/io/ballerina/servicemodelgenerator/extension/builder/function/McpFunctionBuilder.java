@@ -511,8 +511,14 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
                 ? new ArrayList<>() : new ArrayList<>(function.getParameters());
         function.setParameters(parameters);
         for (Parameter seed : templateModel.getParameters()) {
-            boolean bound = parameters.stream().anyMatch(param -> matchesSeedType(param, seed));
-            if (!bound) {
+            Optional<Parameter> bound = parameters.stream()
+                    .filter(param -> matchesSeedType(param, seed))
+                    .findFirst();
+            if (bound.isPresent()) {
+                // Overlay the template's canonical label/description so the tool form shows a
+                // consistent metadata regardless of the source variable name.
+                bound.get().setMetadata(seed.getMetadata());
+            } else {
                 parameters.add(seed);
             }
         }

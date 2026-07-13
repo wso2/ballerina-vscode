@@ -41,7 +41,7 @@
     {
       "metadata": {
         "label": "Request",
-        "description": "The HTTP Request. Only available on Streamable HTTP MCP services."
+        "description": "Access the complete HTTP request object."
       },
       "kind": "REQUIRED",
       "type": {
@@ -96,7 +96,7 @@
     {
       "metadata": {
         "label": "Headers",
-        "description": "The HTTP Headers. Only available on Streamable HTTP MCP services."
+        "description": "Access all HTTP headers sent by the client in the request."
       },
       "kind": "REQUIRED",
       "type": {
@@ -151,7 +151,7 @@
     {
       "metadata": {
         "label": "Metadata",
-        "description": "Access the metadata (_meta) the MCP client sends with the request."
+        "description": "Access the `_meta` property sent by the MCP client with the request."
       },
       "kind": "REQUIRED",
       "type": {
