@@ -223,5 +223,71 @@ export default function createTests() {
             expect(postResponse.status).toBe(201);
             expect(postResponse.body).toContain('"echoed":"{?}"');
         });
+
+        // Resource-level Try It: a DIFFERENT button than the Service
+        // Designer's (this one lives on a specific resource's flow diagram
+        // title bar, tooltip "Try Resource") and is scoped to just that one
+        // resource. This only works reliably when the service is ALREADY
+        // running (true here, left running by the previous tests) — if it
+        // isn't, the click races against the debug-session's own auto-start
+        // hook, which calls Try It generically and produces the full
+        // multi-resource notebook instead of a scoped one.
+        test('Try It from a resource\'s own menu is scoped to just that resource', async () => {
+            const webview = await getWebView();
+
+            logStep('Navigate to the secure resource\'s flow diagram');
+            await webview.getByText('HTTP Service - /', { exact: false }).first().click({ force: true });
+            await page.page.waitForTimeout(1000);
+            const secureRow = webview.getByText('secure', { exact: false }).first();
+            await secureRow.waitFor({ timeout: 15000 });
+            await secureRow.click({ force: true });
+            await page.page.waitForTimeout(1500);
+
+            const hurlPath = path.join(newProjectPath, 'target', 'TryIt.hurl');
+            const before = fs.statSync(hurlPath).mtimeMs;
+
+            logStep('Click the resource\'s own Try It button');
+            const tryResourceBtn = webview.locator('vscode-button[title="Try Resource"]').first();
+            await tryResourceBtn.waitFor({ timeout: 15000 });
+            await tryResourceBtn.click({ force: true });
+            await page.page.waitForTimeout(1500);
+
+            const hurlOption = page.page.getByRole('option', { name: /Try It.*Hurl Client/ }).first();
+            if (await hurlOption.isVisible({ timeout: 5000 }).catch(() => false)) {
+                await hurlOption.click({ force: true });
+            }
+
+            logStep('Discard the prior notebook\'s unsaved state and wait for the scoped notebook');
+            const deadline = Date.now() + 30000;
+            while (Date.now() < deadline && fs.statSync(hurlPath).mtimeMs <= before) {
+                // Re-opening TryIt.hurl scoped to one resource replaces the
+                // still-open (executed) service-level notebook at the same
+                // path, which triggers a blocking "save changes?" dialog.
+                const saveDialog = page.page.locator('.monaco-dialog-box', { hasText: 'Do you want to save the changes' });
+                if (await saveDialog.isVisible({ timeout: 300 }).catch(() => false)) {
+                    await saveDialog.getByRole('button', { name: "Don't Save", exact: true }).click({ timeout: 3000 }).catch(() => {});
+                }
+                const testBtn = page.page.locator('.notifications-toasts, .notifications-center').getByRole('button', { name: 'Test', exact: true }).first();
+                if (await testBtn.isVisible({ timeout: 300 }).catch(() => false)) {
+                    await testBtn.click({ timeout: 3000 }).catch(() => {});
+                }
+                await page.page.waitForTimeout(500);
+            }
+            expect(fs.statSync(hurlPath).mtimeMs).toBeGreaterThan(before);
+
+            logStep('Verify the notebook is scoped to just /secure');
+            const hurl = fs.readFileSync(hurlPath, 'utf8');
+            expect(hurl).toContain(`GET ${BASE_URL}/secure`);
+            expect(hurl).not.toContain('/greeting');
+            expect(hurl).not.toContain('/search');
+            expect(hurl).not.toContain('/echo');
+
+            logStep('Verify the live response');
+            const response = await waitForEndpoint(`${BASE_URL}/secure`, 15000, {
+                method: 'GET', headers: { 'X-Api-Key': 'X-Api-Key' }
+            });
+            expect(response.status).toBe(200);
+            expect(response.body).toContain('"header":"X-Api-Key"');
+        });
     });
 }

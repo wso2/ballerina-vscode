@@ -52,6 +52,7 @@ the scenario starts from this fixture directly.
 | 02 | Click **Try It** from the Service Designer toolbar, auto-start via **Run Integration**, confirm **Test** | Reuse the auto-start-and-wait-for-hurl pattern from `http-try-it` steps 04–05. Service-level Try It (no `resourceMetadata`) generates one markdown+hurl cell pair per resource in the service — all 5 resources land in one notebook. |
 | 03 | Execute the `GET /greeting` request cell and verify a live response | Notebook cell success state + direct HTTP probe. |
 | 04 | Run **all** notebook cells via the notebook toolbar's **Run All** action, then verify each of path param / query param / header param / POST-JSON-body via a direct HTTP probe | See "Decisions" below for why Run All instead of per-cell navigation, and why probes use the placeholder values as-is instead of editing the cell. |
+| 05 | Navigate to a specific resource's flow diagram (e.g. `secure`) and click **its own** "Try It" button, verify the regenerated notebook is scoped to just that resource | Requires the service to already be running — see "Decisions" below. |
 
 ## Decisions (read before re-authoring this scenario)
 
@@ -64,19 +65,32 @@ the scenario starts from this fixture directly.
   `fetch`/`waitForEndpoint` — this still exercises the real product code
   (hurl-builder.ts generation + the running service) end-to-end without
   inventing new, unproven Monaco/CodeMirror keyboard-editing automation.
-- **Resource-level Try It ("Try It from resource menu") was attempted and
-  dropped.** The button lives in the resource's Flow Diagram title bar
+- **Resource-level Try It ("Try It from resource menu") IS in scope (step
+  05) — an earlier attempt to drop it was based on a self-inflicted mistake,
+  corrected after a screenshot showed the button plainly visible in a real
+  session.** The button lives in the resource's Flow Diagram title bar
   (`DiagramWrapper/index.tsx`, `<vscode-button title="Try Resource">`, no
-  `data-testid`, only rendered on CSS hover of its title-bar ancestor — plain
-  Playwright `.click({force:true})` reports "Element is not visible" even
-  with `force`). Dispatching a full synthetic pointer-event sequence directly
-  on the `vscode-button[title="Try Resource"]` node *does* register (the
-  button flips to a `"Loading"` state), but the notebook never regenerated
-  within 30s across repeated attempts — `target/TryIt.hurl`'s mtime and
-  content stayed unchanged (still the 5-resource service-level content from
-  step 02). Per the "disregard if harder" instruction, this item is out of
-  scope for this scenario; the original `http-try-it` scenario's own Gaps
-  section already deferred this same item for similar reasons.
+  `data-testid` — locate via `frame.locator('vscode-button[title="Try
+  Resource"]')`). Two things had to be understood before it worked reliably:
+  - **It only scopes correctly to one resource if the service is ALREADY
+    running.** If the service isn't running yet, the click still starts it,
+    but the resulting notebook build races against the debug-session's own
+    "Test with Try It Client?" hook (`config-provider.ts:433`), which calls
+    Try It generically (no `resourceMetadata`) and wins the race — producing
+    the full multi-resource notebook instead of a single-resource one. This
+    was the root cause of the original "dropped" conclusion: that attempt
+    happened to hit this race, was misread as "the button doesn't work", and
+    the earlier synthetic-pointer-event workaround was solving the wrong
+    problem. With the service already running (true here, since step 05 runs
+    after steps 02-04 leave it running), a **plain** `.click({force:true})` on
+    that locator works with no workaround needed.
+  - **A blocking "Do you want to save the changes you made to TryIt.hurl?"
+    dialog appears** because the prior (executed) service-level notebook has
+    unsaved cell-execution state at the same `target/TryIt.hurl` path, which
+    `openHurlNotebook` tries to close/replace. Must be dismissed (**"Don't
+    Save"**) or the flow hangs indefinitely on a `"Loading"` button state.
+    See `steps/05_resource_level_tryit.step.js` for the polling loop that
+    handles this alongside the usual "Test" prompt.
 - **Multiple-services quick pick was scoped out before authoring.** Source
   investigation (`activator.ts`) confirmed the native "Available Services"
   quick pick only fires when Try It runs *without* service metadata — which
@@ -102,7 +116,21 @@ Emotion/generated class selectors.
 
 ## Status / Coverage (confirmed via authoring daemon)
 
-**Authored & proven (steps 01–04, run end-to-end in a fresh daemon session):**
+**Authored & proven (steps 01–05, run end-to-end in a fresh daemon session):**
+
+- Step 05 confirmed: clicking `secure`'s own Try It button (service already
+  running) regenerates `target/TryIt.hurl` containing **only**:
+  ```
+  # md: ### Try Service: '/' (http://localhost:9090)
+
+  # md: #### GET /secure
+
+  GET http://localhost:9090/secure
+  X-Api-Key: X-Api-Key
+  ```
+  (no `/greeting`, `/search`, or `/echo` cells) — confirming `resourceMetadata`
+  scoping works correctly via this entry point. Live probe of `GET /secure`
+  with header `X-Api-Key: X-Api-Key` → 200 `{"header":"X-Api-Key"}`.
 
 - Step 04 confirmed the exact generated Hurl text for all four new resources
   (from `hurl-builder.ts`, matches source-level prediction):
@@ -155,8 +183,9 @@ Emotion/generated class selectors.
 
 ## Gaps
 
-None outstanding for the in-scope flow (steps 01–04: GET, POST+JSON body,
-path param, query param, header param, all via the Service Designer's Try It
-button). Deliberately out of scope (see "Decisions" above): resource-level
-Try It (attempted, unreliable), multiple-services quick pick (not reachable
-via the real button-click entry point).
+None outstanding for the in-scope flow (steps 01–05: GET, POST+JSON body,
+path param, query param, header param via the Service Designer's Try It
+button, plus resource-level Try It scoping). Deliberately out of scope (see
+"Decisions" above): the multiple-services quick pick (not reachable via the
+real button-click entry point — the only way to trigger it bypasses the UI
+a real user would use).
