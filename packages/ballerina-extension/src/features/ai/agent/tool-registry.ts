@@ -106,14 +106,19 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
             projects[0]?.projectName,
             modifiedFiles
         ),
-        [CONFIG_COLLECTOR_TOOL]: createConfigCollectorTool(
-            eventHandler,
-            {
-                tempPath: tempProjectPath,
-                workspacePath: projectRootPath
-            },
-            modifiedFiles
-        ),
+        // Config collector is an interactive tool (opens a form and awaits a user
+        // response). In headless / non-interactive test runs (AI_TEST_ENV) there is no
+        // user, so it would stall for 30 minutes then error — omit it there.
+        ...(process.env.AI_TEST_ENV ? {} : {
+            [CONFIG_COLLECTOR_TOOL]: createConfigCollectorTool(
+                eventHandler,
+                {
+                    tempPath: tempProjectPath,
+                    workspacePath: projectRootPath
+                },
+                modifiedFiles
+            ),
+        }),
         [FILE_WRITE_TOOL_NAME]: createWriteTool(
             createWriteExecute(eventHandler, tempProjectPath, modifiedFiles)
         ),
@@ -139,7 +144,13 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [BALLERINA_STOP_TOOL_NAME]: createBallerinaStopTool(opts.runningServices, eventHandler),
         [WEB_SEARCH_TOOL_NAME]: createWebSearchTool(eventHandler, webSearchEnabled),
         [WEB_FETCH_TOOL_NAME]: createWebFetchTool(eventHandler, webSearchEnabled),
-        [CLARIFY_TOOL]: createClarifyTool(eventHandler),
+        // Clarify is an interactive tool (asks the user a question and awaits an
+        // answer). In headless / non-interactive test runs (AI_TEST_ENV) there is no
+        // user; the answer Promise would stall for 30 minutes then reject (uncaught),
+        // surfacing as a tool failure — omit it there.
+        ...(process.env.AI_TEST_ENV ? {} : {
+            [CLARIFY_TOOL]: createClarifyTool(eventHandler),
+        }),
         [SKILL_TOOL_NAME]: createSkillTool(REGISTERED_SKILLS, projectRootPath, eventHandler),
         ...getMcpTools(eventHandler),
     };

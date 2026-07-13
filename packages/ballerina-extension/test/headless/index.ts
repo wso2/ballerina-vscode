@@ -273,11 +273,16 @@ export function run(_testsRoot?: string, clb?: (err: any, failures?: number) => 
             // set a `model` override — the command uses the shipped default model,
             // preserving generation behavior. isPlanMode:false = Edit mode (Plan mode
             // would require interactive plan approval, which cannot complete headless).
+            // webSearchEnabled:true pre-approves the web_search/web_fetch tools so they
+            // run without an interactive approval prompt — headless has no user to
+            // approve, and the approval Promise would otherwise stall for 30 minutes
+            // (DEFAULT_TIMEOUT_MS) before auto-denying.
             const params: GenerateAgentForTestParams = {
                 usecase: instructionText,
                 operationType: undefined,
                 fileAttachmentContents: [],
                 isPlanMode: false,
+                webSearchEnabled: true,
                 codeContext: undefined,
                 projectPath: workspacePath
             };

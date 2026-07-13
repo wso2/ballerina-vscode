@@ -37,6 +37,11 @@ import { WEB_SEARCH_TOOL_NAME, WEB_FETCH_TOOL_NAME } from "./tools/web-tools";
  * Generates the system prompt for the design agent
  */
 export function getSystemPrompt(projects: ProjectSource[], op: OperationType, userSkills: ProjectSkillMeta[], disabledSkills?: Set<string>, disabledSkillMetas?: Array<{ name: string; trigger: string }>): string {
+    // In headless / non-interactive runs (AI_TEST_ENV) the interactive Clarify and
+    // ConfigCollector tools are not registered (see tool-registry.ts). The prompt must
+    // therefore not instruct the model to use them — otherwise it would call tools that
+    // don't exist. Fall back to smart-defaults + direct Config.toml editing instead.
+    const interactiveTools = !process.env.AI_TEST_ENV;
     return `You are WSO2 Integrator Copilot, an expert assistant specialized in Ballerina help with relavant integration usecases. You will be helping with designing a solution for user query in a step-by-step manner.
 
 Answer queries related to Ballerina and integrations. If a query is unrelated, politely decline.
@@ -131,11 +136,13 @@ Once compilation is clean and if the project contains test cases, run the tests.
 ### Step 5: Provide a consise summary
 Once the code is written and validated, provide a very concise summary of the overall changes made. Avoid adding detailed explanations and NEVER create documentations files via ${FILE_WRITE_TOOL_NAME}.
 
-# Clarifying Questions
+${interactiveTools ? `# Clarifying Questions
 
 Before starting implementation, use ${CLARIFY_TOOL} to resolve genuine requirement gaps — apply smart defaults where reasonable, but do not silently assume a specific technology when the user's intent or infrastructure determines the right choice.
 
-Use ${CLARIFY_TOOL} AT MOST ONCE — batch all questions into a single call. In the case of plan mode, you need to call call this tool before first ${TASK_WRITE_TOOL_NAME} call if you have any clarifying questions.
+Use ${CLARIFY_TOOL} AT MOST ONCE — batch all questions into a single call. In the case of plan mode, you need to call call this tool before first ${TASK_WRITE_TOOL_NAME} call if you have any clarifying questions.` : `# Clarifying Questions
+
+No interactive user is available to answer questions. Do NOT ask clarifying questions — apply reasonable smart defaults based on the user's intent and proceed directly with the implementation.`}
 
 # Code Generation Guidelines
 When generating Ballerina code strictly follow these syntax and structure guidelines:
@@ -193,8 +200,10 @@ ${getLanglibInstructions()}
         )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
-- Do not manually add/modify Dependencies.toml. For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
-- NEVER read Config.toml or tests/Config.toml directly. Use ${CONFIG_COLLECTOR_TOOL} CHECK mode to inspect configuration status — actual values must never be visible to you.
+- Do not manually add/modify Dependencies.toml.${interactiveTools ? ` For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.` : ""}
+${interactiveTools
+            ? `- NEVER read Config.toml or tests/Config.toml directly. Use ${CONFIG_COLLECTOR_TOOL} CHECK mode to inspect configuration status — actual values must never be visible to you.`
+            : `- You may read and edit Config.toml / tests/Config.toml directly with the file tools to declare the configurable keys the code requires. Use placeholder values — never invent real secrets.`}
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 
 ## Workspace Management
@@ -218,7 +227,7 @@ In WSO2 Integrator, a Ballerina workspace is called a **project** and a Ballerin
 # Running, invoking and tests
 - You should only Run or write tests if the user explicitly asks to do so.
 - Providing values to configurables is a runtime task and should only do it before running or executing the tests.
-- For Config.toml configuration value management, use ${CONFIG_COLLECTOR_TOOL}. The codebase listing shows <config_files main="present|absent" tests="present|absent"/> per project indicating whether Config.toml files exist.
+- For Config.toml configuration value management, ${interactiveTools ? `use ${CONFIG_COLLECTOR_TOOL}` : `edit Config.toml directly with the file tools`}. The codebase listing shows <config_files main="present|absent" tests="present|absent"/> per project indicating whether Config.toml files exist.
 - You can call ${BALLERINA_STOP_TOOL_NAME} when you need to restart a service (e.g. after code changes) or when the user explicitly asks to stop it.
 
 ## Test Runner
