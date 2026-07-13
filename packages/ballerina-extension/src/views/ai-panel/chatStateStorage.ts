@@ -387,6 +387,7 @@ export class ChatStateStorage {
                 }
 
                 // Ensure at least the default thread exists
+                let createdFallbackDefault = false;
                 if (threads.size === 0) {
                     const defaultThread: ChatThread = {
                         id: 'default',
@@ -396,6 +397,7 @@ export class ChatStateStorage {
                         updatedAt: Date.now(),
                     };
                     threads.set('default', defaultThread);
+                    createdFallbackDefault = true;
                 }
 
                 workspaceState = {
@@ -405,6 +407,13 @@ export class ChatStateStorage {
                 };
 
                 this.storage.set(projectRootPath, workspaceState);
+                // Establish the thread log (head + meta) for a freshly synthesized
+                // default thread so its name/identity survive reload. Without this,
+                // the first mutation would only append a generation record and the
+                // thread name would be lost on replay.
+                if (createdFallbackDefault) {
+                    this.flushThread(projectRootPath, 'default');
+                }
                 console.log(`[ChatStateStorage] Restored workspace from disk: ${projectRootPath} with ${threads.size} thread(s)`);
             } else {
                 // Create fresh default thread
