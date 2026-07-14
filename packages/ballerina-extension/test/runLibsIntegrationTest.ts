@@ -17,10 +17,8 @@
  */
 
 import * as path from 'path';
-import * as cp from 'child_process';
-import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath, runTests } from '@vscode/test-electron';
+import { runTests } from './lib/index';
 const dotenv = require('dotenv');
-const packageJson = require('../../package.json');
 const { createEnvDefinePlugin } = require('../../../../common/scripts/env-webpack-helper');
 
 async function main() {
@@ -42,30 +40,11 @@ async function main() {
             );
         }
 
-        // Download VS Code and get CLI path
-        const vscodeExecutablePath = await downloadAndUnzipVSCode();
-        const [cli, ...args] = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
-
-        // Install extension dependencies if they exist
-        if (packageJson.extensionDependencies && packageJson.extensionDependencies.length > 0) {
-            console.log(`Installing ${packageJson.extensionDependencies.length} extension dependencies...`);
-            for (const extensionId of packageJson.extensionDependencies) {
-                console.log(`Installing extension: ${extensionId}`);
-                cp.spawnSync(cli, [...args, '--install-extension', extensionId], {
-                    encoding: 'utf-8',
-                    stdio: 'inherit',
-                });
-            }
-            console.log('Extension dependencies installed successfully');
-        } else {
-            console.log('No extension dependencies to install');
-        }
-
         console.log('\n🧪 Running Library Integration Tests...\n');
 
-        // Run tests
+        // Run tests. The shared runTests helper downloads VS Code and installs the extension
+        // dependencies into the launched extensions dir
         await runTests({
-            vscodeExecutablePath,
             extensionDevelopmentPath,
             extensionTestsPath,
             launchArgs: [

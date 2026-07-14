@@ -192,10 +192,11 @@ public class SendDataBuilder extends FunctionCall {
 
     private static String toStringLiteral(String value) {
         String trimmed = value == null ? "" : value.trim();
-        if (trimmed.isEmpty() || (trimmed.startsWith("\"") && trimmed.endsWith("\""))) {
+        // Already a string literal: needs a distinct pair of quotes (a lone quote does not qualify)
+        if (trimmed.length() >= 2 && trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
             return trimmed;
         }
-        return "\"" + trimmed + "\"";
+        return "\"" + trimmed.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     /**
