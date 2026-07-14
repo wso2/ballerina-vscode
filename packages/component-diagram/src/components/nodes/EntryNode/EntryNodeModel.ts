@@ -22,7 +22,11 @@ import { NodePortModel } from "../../NodePort";
 import { NODE_LOCKED, NodeTypes } from "../../../resources/constants";
 import { EntryPoint, EntryPointType } from "../../../utils/types";
 import { CDFunction, CDResourceFunction, CDService, CDWorkflow, CDWorkflowEvent } from "@wso2/ballerina-core";
-import { getEntryNodeFunctionPortName, getWorkflowEventPortName } from "../../../utils/diagram";
+import {
+    getEntryNodeFunctionPortName,
+    getWorkflowEventPortName,
+    getWorkflowEventPortNameByEventName,
+} from "../../../utils/diagram";
 
 export interface BaseNodeWidgetProps {
     model: EntryNodeModel;
@@ -136,6 +140,12 @@ export class EntryNodeModel extends NodeModel {
 
     getEventPort(event: CDWorkflowEvent): NodePortModel | undefined {
         return this.eventPorts.find((port) => port.getOptions().name === getWorkflowEventPortName(event));
+    }
+
+    getEventPortByName(eventName: string): NodePortModel | undefined {
+        return this.eventPorts.find(
+            (port) => port.getOptions().name === getWorkflowEventPortNameByEventName(eventName)
+        );
     }
 
     getViewAllResourcesPort(): NodePortModel | undefined {

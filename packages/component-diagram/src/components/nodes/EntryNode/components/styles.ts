@@ -163,6 +163,28 @@ export const EventTypeText = styled(StyledText)`
     opacity: 0.7;
 `;
 
+export const PlayButtonCircle = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border: ${NODE_BORDER_WIDTH}px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 50%;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    color: ${ThemeColors.ON_SURFACE};
+    margin-right: -8px;
+    z-index: 1;
+    position: relative;
+`;
+
+export const PlayButtonPortWrapper = styled.div`
+    position: absolute;
+    left: 0;
+    top: 50%;
+`;
+
 export const RowIconWrapper = styled.div`
     display: flex;
     align-items: center;

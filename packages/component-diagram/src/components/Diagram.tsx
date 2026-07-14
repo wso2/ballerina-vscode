@@ -334,13 +334,26 @@ export function Diagram(props: DiagramProps) {
                 }
             });
 
-            // link the entry points that send data to this workflow via workflow:sendData
+            // link the entry points that send data to this workflow via workflow:sendData. Edges
+            // from a specific service function row are already drawn by createFunctionConnections;
+            // only fall back to a service-level edge when no function row carries the link
+            const serviceFunctionSendsTo = (service: CDService, workflowUuid: string, eventName: string) =>
+                [...(service.remoteFunctions ?? []), ...(service.resourceFunctions ?? [])].some((func) =>
+                    func.workflowSendData?.[workflowUuid]?.includes(eventName)
+                );
             workflow.events?.forEach((event) => {
                 const eventPort = workflowNode.getEventPort(event);
                 if (!eventPort) {
                     return;
                 }
-                [...(event.attachedServices ?? []), ...(event.attachedFunctions ?? [])].forEach((senderUuid) => {
+                const senderUuids = [
+                    ...(event.attachedServices ?? []).filter((serviceUuid) => {
+                        const service = project.services?.find((item) => item.uuid === serviceUuid);
+                        return !(service && serviceFunctionSendsTo(service, workflow.uuid, event.name));
+                    }),
+                    ...(event.attachedFunctions ?? []),
+                ];
+                senderUuids.forEach((senderUuid) => {
                     const senderNode = nodes.find((node) => node.getID() === senderUuid);
                     if (senderNode && senderNode.getOutPort()) {
                         const link = createPortsLink(senderNode.getOutPort(), eventPort);
@@ -551,6 +564,23 @@ function createFunctionConnections(
                     }
                 }
             }
+        });
+        // link workflow:sendData calls to the specific data event of the workflow
+        Object.entries(func.workflowSendData ?? {}).forEach(([workflowUuid, eventNames]) => {
+            const workflowNode = nodes.find((n) => n.getID() === workflowUuid) as EntryNodeModel;
+            if (!workflowNode) {
+                return;
+            }
+            eventNames.forEach((eventName) => {
+                const eventPort = workflowNode.getEventPortByName(eventName);
+                const port = portGetter(func, group);
+                if (eventPort && port) {
+                    const link = createPortsLink(port, eventPort);
+                    link.setSourceNode(node);
+                    link.setTargetNode(workflowNode);
+                    links.push(link);
+                }
+            });
         });
     });
 }

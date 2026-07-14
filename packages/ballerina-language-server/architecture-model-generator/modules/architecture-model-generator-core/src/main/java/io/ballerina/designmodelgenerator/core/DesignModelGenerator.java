@@ -139,7 +139,8 @@ public class DesignModelGenerator {
                 });
                 buildConnectionAndWorkflowGraph(intermediateModel, otherFunction, serviceModel);
                 functions.add(new Function(otherFunction.name, otherFunction.location,
-                        otherFunction.allDependentConnections, otherFunction.allDependentWorkflows));
+                        otherFunction.allDependentConnections, otherFunction.allDependentWorkflows,
+                        otherFunction.allDependentWorkflowSendData));
                 connections.addAll(otherFunction.allDependentConnections);
                 workflows.addAll(otherFunction.allDependentWorkflows);
                 mergeSendData(serviceSendData, otherFunction.allDependentWorkflowSendData);
@@ -157,7 +158,8 @@ public class DesignModelGenerator {
                 });
                 buildConnectionAndWorkflowGraph(intermediateModel, remoteFunction, serviceModel);
                 remoteFunctions.add(new Function(remoteFunction.name, remoteFunction.location,
-                        remoteFunction.allDependentConnections, remoteFunction.allDependentWorkflows));
+                        remoteFunction.allDependentConnections, remoteFunction.allDependentWorkflows,
+                        remoteFunction.allDependentWorkflowSendData));
                 connections.addAll(remoteFunction.allDependentConnections);
                 workflows.addAll(remoteFunction.allDependentWorkflows);
                 mergeSendData(serviceSendData, remoteFunction.allDependentWorkflowSendData);
@@ -176,7 +178,7 @@ public class DesignModelGenerator {
                 buildConnectionAndWorkflowGraph(intermediateModel, resourceFunction, serviceModel);
                 resourceFunctions.add(new ResourceFunction(resourceFunction.name, resourceFunction.path,
                         resourceFunction.location, resourceFunction.allDependentConnections,
-                        resourceFunction.allDependentWorkflows));
+                        resourceFunction.allDependentWorkflows, resourceFunction.allDependentWorkflowSendData));
                 connections.addAll(resourceFunction.allDependentConnections);
                 workflows.addAll(resourceFunction.allDependentWorkflows);
                 mergeSendData(serviceSendData, resourceFunction.allDependentWorkflowSendData);

@@ -81,6 +81,7 @@ import io.ballerina.compiler.syntax.tree.RollbackStatementNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.StartActionNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
@@ -124,6 +125,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private static final String SEND_DATA_NAME_ARG = "dataName";
     private static final String HUMAN_TASK_NAME_ARG = "taskName";
     private static final String CALL_ACTIVITY_FN_ARG = "activityFunction";
+    private static final String CALL_ACTIVITY_ARGS_ARG = "args";
     private static final int SEND_DATA_NAME_ARG_INDEX = 2;
     private static final Map<String, String> BUILTIN_ACTIVITY_LABELS = Map.of(
             Constants.Workflow.BUILTIN_REST_FUNCTION, Constants.Workflow.BUILTIN_REST_LABEL,
@@ -464,7 +466,32 @@ public class CodeAnalyzer extends NodeVisitor {
         if (activity != null) {
             this.currentWorkflow.addActivity(activity.getUuid());
             activity.addAttachedWorkflow(this.currentWorkflow.getUuid());
+            // Connections can be passed to the activity as arguments,
+            // e.g. ctx->callActivity(fetchStatus, {"apiClient": httpClient})
+            Activity resolvedActivity = activity;
+            ExpressionNode argsExpr = getArgExpression(arguments, 1, CALL_ACTIVITY_ARGS_ARG);
+            if (argsExpr instanceof MappingConstructorExpressionNode mappingConstructor) {
+                for (Node field : mappingConstructor.fields()) {
+                    if (field instanceof SpecificFieldNode specificFieldNode) {
+                        specificFieldNode.valueExpr()
+                                .flatMap(this::resolveConnection)
+                                .ifPresent(connection -> resolvedActivity.addConnection(connection.getUuid()));
+                    }
+                }
+            }
         }
+    }
+
+    private Optional<Connection> resolveConnection(ExpressionNode expressionNode) {
+        Optional<Symbol> symbol = semanticModel.symbol(expressionNode);
+        if (symbol.isEmpty() || symbol.get().getLocation().isEmpty()) {
+            return Optional.empty();
+        }
+        String hashCode = String.valueOf(symbol.get().getLocation().get().hashCode());
+        if (!intermediateModel.connectionMap.containsKey(hashCode)) {
+            connectionFinder.findConnection(symbol.get(), new ArrayList<>());
+        }
+        return Optional.ofNullable(intermediateModel.connectionMap.get(hashCode));
     }
 
     private boolean isBuiltinActivityModule(Symbol symbol) {

@@ -13,3 +13,9 @@ function reserveInventory(OrderInput input) returns string|error {
 function notifyCustomer(string orderId) returns string|error {
     return "notified: " + orderId;
 }
+
+@workflow:Activity
+function fetchStatus(http:Client apiClient, string orderId) returns string|error {
+    string result = check apiClient->/status/[orderId];
+    return result;
+}

@@ -388,8 +388,12 @@ export const getEntryNodeFunctionPortName = (func: CDFunction | CDResourceFuncti
     return (func as CDFunction).name;
 };
 
+export const getWorkflowEventPortNameByEventName = (eventName: string) => {
+    return "event-" + eventName;
+};
+
 export const getWorkflowEventPortName = (event: CDWorkflowEvent) => {
-    return "event-" + event.name;
+    return getWorkflowEventPortNameByEventName(event.name);
 };
 
 // calculate workflow node height based on the number of event and human task rows

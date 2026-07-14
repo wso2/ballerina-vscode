@@ -7,7 +7,8 @@ function orderWorkflow(workflow:Context ctx, OrderInput input, OrderEvents event
     boolean approved = check ctx->awaitHumanTask("approveOrder", "MANAGER", payload = {"orderId": input.orderId});
     ShipmentData shipment = check wait events.shipmentReady;
     string note = check ctx->callActivity(notifyCustomer, {"orderId": input.orderId});
-    return input.orderId + reservation + payment.method + approved.toString() + shipment.trackingId + note;
+    string status = check ctx->callActivity(fetchStatus, {"apiClient": inventoryClient, "orderId": input.orderId});
+    return input.orderId + reservation + payment.method + approved.toString() + shipment.trackingId + note + status;
 }
 
 @workflow:Workflow

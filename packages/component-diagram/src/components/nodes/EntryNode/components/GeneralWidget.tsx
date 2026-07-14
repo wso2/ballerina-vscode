@@ -45,6 +45,8 @@ import {
     ResourceAccessor,
     EventTypeText,
     RowIconWrapper,
+    PlayButtonCircle,
+    PlayButtonPortWrapper,
     colors
 } from "./styles";
 
@@ -193,12 +195,12 @@ function WorkflowEventBox(props: { event: CDWorkflowEvent; model: EntryNodeModel
     return (
         <FunctionBoxWrapper>
             <PortWidget port={model.getPort(getWorkflowEventPortName(event))!} engine={engine} />
-            <StyledServiceBox hovered={false} readonly={true}>
+            <StyledServiceBox hovered={false} readonly={true} title={event.type}>
                 <RowIconWrapper>
                     <Icon name="bi-import" sx={{ fontSize: 16, width: 16, height: 16 }} />
                 </RowIconWrapper>
                 <Title hovered={false}>{event.name}</Title>
-                {event.type && <EventTypeText>{event.type}</EventTypeText>}
+                <EventTypeText>Data Event</EventTypeText>
             </StyledServiceBox>
         </FunctionBoxWrapper>
     );
@@ -315,7 +317,17 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     return (
         <Node>
-            <TopPortWidget port={model.getPort("in")!} engine={engine} />
+            {model.type === "workflow" ? (
+                // Explicit "run workflow" target: workflow:run edges point at this play button
+                <PlayButtonCircle>
+                    <Icon isCodicon name="play" sx={{ fontSize: 14, width: 14, height: 14 }} />
+                    <PlayButtonPortWrapper>
+                        <PortWidget port={model.getPort("in")!} engine={engine} />
+                    </PlayButtonPortWrapper>
+                </PlayButtonCircle>
+            ) : (
+                <TopPortWidget port={model.getPort("in")!} engine={engine} />
+            )}
             <Box hovered={!readonly && isHovered}>
                 <ServiceBox
                     onMouseEnter={() => !readonly && setIsHovered(true)}
