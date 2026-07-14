@@ -298,15 +298,24 @@ export function getUserPrompt(
                     type: 'image' as const,
                     image: attachment.content,
                 });
+            } else if (attachment.mimeType === 'application/pdf'
+                || attachment.fileName?.toLowerCase().endsWith('.pdf')) {
+                // Add PDF as a native file block so the model reads it directly
+                content.push({
+                    type: 'file' as const,
+                    data: attachment.content,
+                    mediaType: 'application/pdf',
+                });
             } else {
                 // Add text file attachment
-                const attachmentsText = params.fileAttachmentContents.map((attachment) =>
-                    `## File: ${attachment.fileName}\n\`\`\`\n${attachment.content}\n\`\`\``).join('\n\n');
                 content.push({
                     type: 'text' as const,
                     text: `<User Attachments>
-                            ${attachmentsText}
-                        </User Attachments>`
+## File: ${attachment.fileName}
+\`\`\`
+${attachment.content}
+\`\`\`
+</User Attachments>`
                 });
             }
         }

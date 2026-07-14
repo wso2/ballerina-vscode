@@ -78,3 +78,31 @@ export const readFileAsBase64 = (file: File): Promise<string> => {
         reader.readAsDataURL(file);
     });
 };
+
+/**
+ * Read a file as raw base64 (without the `data:...;base64,` prefix).
+ * Used for binary documents such as PDFs that are sent to the model as native
+ * file blocks. `readAsDataURL` emits single-line base64, so the stripped string
+ * has no embedded newlines.
+ */
+export const readFileAsRawBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            if (typeof reader.result === "string") {
+                const base64String = reader.result.split(",")[1];
+                if (base64String) {
+                    resolve(base64String);
+                } else {
+                    reject(new Error("Failed to extract Base64 content."));
+                }
+            } else {
+                reject(new Error("File content is not a string."));
+            }
+        };
+
+        reader.onerror = () => reject(new Error("Error reading the file."));
+        reader.readAsDataURL(file);
+    });
+};
