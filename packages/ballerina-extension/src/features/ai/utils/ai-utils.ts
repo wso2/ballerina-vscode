@@ -326,7 +326,18 @@ export function sendWebToolToggleNotification(active: boolean): void {
 }
 
 export function sendAIPanelNotification(msg: ChatNotify): void {
-    RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
+    // The agent keeps running after the panel is closed (by design), but posting to a disposed
+    // webview throws "Webview is disposed" and floods the logs. The event is already recorded in
+    // the journal before this call, so skipping the post loses nothing — reconnect replays it from
+    // the journal on reopen. Guard on the live panel, and swallow any late-dispose race defensively.
+    if (!AiPanelWebview.currentPanel) {
+        return;
+    }
+    try {
+        RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
+    } catch (e) {
+        // Panel was disposed between the guard and the send — safe to ignore (journal has the event).
+    }
 }
 
 /**

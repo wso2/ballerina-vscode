@@ -356,6 +356,13 @@ const AIChat: React.FC = () => {
     // replay, a journaled prompt is re-shown only if its id is in here (still pending); prompts
     // resolved earlier in the run are skipped so their banner doesn't reappear.
     const pendingRequestIdsRef = useRef<Set<string>>(new Set());
+    // Live-event gate. The onChatNotify subscription is active from the first render, but reconnect
+    // (history load + journal replay) happens later and asynchronously. While the gate is CLOSED,
+    // incoming live events are queued instead of processed, so they can't race the replay (arrive
+    // mid-replay and interleave, or arrive before the base transcript is set and corrupt it). The
+    // reconnect effect drains the queue in order and opens the gate once replay is done.
+    const liveGateClosedRef = useRef(true);
+    const liveQueueRef = useRef<ChatNotify[]>([]);
 
     /* REFACTORED CODE START [2] */
     // custom hooks: commands + attachments
@@ -631,6 +638,14 @@ const AIChat: React.FC = () => {
      */
     useEffect(function loadInitialChatHistory() {
         const loadHistory = async () => {
+            // Duplicate/concurrent mount (React StrictMode, or an rpcClient identity change): the
+            // primary run owns history load, gate and replay. Bail immediately so we never replay
+            // twice, double-open the gate, or race the primary's setMessages.
+            if (didReconnectRef.current) {
+                return;
+            }
+            didReconnectRef.current = true;
+
             try {
                 const historyMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
                 let baseMessages = (historyMessages && historyMessages.length > 0)
@@ -641,23 +656,20 @@ const AIChat: React.FC = () => {
                 // panel was closed. The extension host keeps generating even after the panel is torn
                 // down, and records every event in a journal — replay it so the conversation comes
                 // back complete and the spinner reflects the real state.
-                //
-                // Guard against double-execution (React StrictMode remount, or an rpcClient identity
-                // change): replaying the journal twice would duplicate the recovered transcript.
-                // History loading above stays idempotent (the setMessages below keeps any existing
-                // messages), so only the reconnect/replay is gated.
-                if (didReconnectRef.current) {
-                    setMessages((prevMessages) => (prevMessages.length > 0 ? prevMessages : baseMessages));
-                    return;
-                }
-                didReconnectRef.current = true;
-
                 let genState: ActiveGenerationState | undefined;
                 try {
                     genState = await rpcClient.getAiPanelRpcClient().getActiveGenerationState({ includeEvents: true });
                 } catch (e) {
                     console.error('[AIChat] Failed to query active generation state:', e);
                 }
+
+                // The journal snapshot above (taken on the backend when getActiveGenerationState ran)
+                // already contains every event up to that point. Any live event queued before now is
+                // therefore ≤ snapshot and would be a duplicate of a journaled event — discard them.
+                // Events that arrive AFTER this point are post-snapshot and are drained (below) once
+                // replay completes. (Messenger delivery is FIFO, so the RPC response ordering holds.)
+                liveQueueRef.current = [];
+
                 // Prompts still awaiting an answer — used by the replay skip guard to re-show only
                 // still-pending interactive prompts (see processChatNotify).
                 pendingRequestIdsRef.current = new Set(genState?.pendingRequestIds ?? []);
@@ -716,6 +728,22 @@ const AIChat: React.FC = () => {
             } catch (error) {
                 console.error('[AIChat] Failed to load initial chat history:', error);
                 // Continue with empty messages - don't block the UI
+            } finally {
+                // Open the gate: replay is done (or was skipped). Drain any live events that arrived
+                // after the snapshot, IN ORDER, then resume direct dispatch. Events that arrive during
+                // this drain re-queue and are picked up by the loop, so opening the gate right after
+                // the loop (synchronously) can't drop anything.
+                const q = liveQueueRef.current;
+                while (q.length > 0) {
+                    const ev = q.shift();
+                    if (!ev) { continue; }
+                    try {
+                        await processChatNotifyRef.current?.(ev);
+                    } catch (e) {
+                        console.error('[AIChat] live drain failed:', e);
+                    }
+                }
+                liveGateClosedRef.current = false;
             }
         };
 
@@ -1290,7 +1318,16 @@ const AIChat: React.FC = () => {
         }
     };
     processChatNotifyRef.current = processChatNotify;
-    rpcClient?.onChatNotify(processChatNotify);
+    // Live subscription. While the reconnect gate is closed (mount → replay done), queue events so
+    // they can't race the async replay; the reconnect effect drains them in order and opens the gate.
+    const onLiveChatNotify = (response: ChatNotify) => {
+        if (liveGateClosedRef.current) {
+            liveQueueRef.current.push(response);
+            return;
+        }
+        return processChatNotify(response);
+    };
+    rpcClient?.onChatNotify(onLiveChatNotify);
 
     function generateNaturalProgrammingTemplate(isReqFileExists: boolean) {
         if (isReqFileExists) {
