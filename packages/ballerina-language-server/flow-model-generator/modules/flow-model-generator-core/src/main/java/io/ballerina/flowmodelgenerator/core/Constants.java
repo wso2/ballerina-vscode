@@ -106,6 +106,7 @@ public class Constants {
         public static final String ACTIVITY_MODULE = "workflow.activity";
         public static final String CONTEXT_CLASS_NAME = "Context";
         public static final String RUN_METHOD_NAME = "run";
+        public static final String RUN_PROCESS_FUNCTION_PARAM = "processFunction";
         public static final String RUN_LABEL = "Run Workflow";
         public static final String RUN_DESCRIPTION = "Run a new workflow instance";
         public static final String SEND_DATA_METHOD_NAME = "sendData";
