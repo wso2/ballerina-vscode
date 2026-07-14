@@ -1,6 +1,6 @@
 # Test Implementation Guide
 
-How to run, write, and add tests for the Ballerina VSCode extension — one section per level, each with **what it is · how to run · how to add · example files**.
+How to run, write, and add tests for the Ballerina VSCode extension — one section per scope level (plus the orthogonal perf/QA suite), each with **what it is · how to run · how to add · example files**.
 
 > **North star:** prefer **suite-level invariant tests that catch a whole _class_ of bug** over one targeted test per issue. A good test specifies *correct behaviour over a corpus*, so it also catches the next, not-yet-reported instance.
 
@@ -15,8 +15,8 @@ nvm use 22.21.1
 node common/scripts/install-run-rush.js update    # install/refresh all deps
 ```
 
-- **L0–L2** (the fast PR suite) need nothing extra.
-- **L3 (LS-integration)** and **L5 (perf)** additionally need **Java 21** + a **Ballerina distribution** (`~/.ballerina/ballerina-home/bin/bal`). These tests **auto-skip** when no distribution is found, so they never block the fast suite.
+- **L1–L2** (the fast PR suite) need nothing extra.
+- **L3 (LS-integration)** and the **perf suite** additionally need **Java 21** + a **Ballerina distribution** (`~/.ballerina/ballerina-home/bin/bal`). These tests **auto-skip** when no distribution is found, so they never block the fast suite.
 - **L4 (E2E)** needs the built `.vsix` + a downloaded VSCode (via `extest`).
 
 **The rule that keeps the PR suite fast:** the fast CI job auto-discovers a package's tests **only if its config file is named exactly `jest.config.js`**. LS/perf/E2E use other config names (`jest.ls-integration.config.js`, `jest.perf.config.js`, `jest.realdata.config.js`, `jest.headless-view.config.js`) so they never run on every PR.
@@ -25,54 +25,43 @@ node common/scripts/install-run-rush.js update    # install/refresh all deps
 
 ## The levels
 
+Four **scope levels**, ordered by how much of the system each test actually runs, plus one **orthogonal** suite (perf/QA) that cuts across all of them.
+
 | Level | Tests | Runtime | Env | PR-gated | Location |
 |---|---|---|---|---|---|
-| **L0** Static / contract | shared-type (enum) invariants | ms | node | ✅ | `ballerina-core/src/test` |
-| **L1** Unit (pure logic) | util/transform functions | ms | node/jsdom | ✅ | `<pkg>/src/**` |
+| **L1** Unit / contract | pure logic + shared-type (enum) invariants | ms | node/jsdom | ✅ | `<pkg>/src/**`, `ballerina-core/src/test` |
 | **L2** Component (render) | React components from data | 10–100 ms | jsdom | ✅ | `<pkg>/src/**` |
 | **L3** LS-integration | real headless LS over stdio | seconds | node/jsdom | ❌ nightly | `ballerina-extension/.../ls-integration` + `*.capture.test.ts` |
 | **L4** E2E smoke | full VSCode via Playwright | minutes | vscode | matrix | `ballerina-extension/e2e-test` |
-| **L5** Perf / QA | latency baselines, visual/a11y | seconds | node | ❌ manual | `ballerina-extension/.../perf` |
+| _orthogonal_ · **Perf / QA** | latency baselines, visual/a11y | seconds | node | ❌ manual | `ballerina-extension/.../perf` |
 
-Push tests **down** the pyramid: anything provable lower never gets written higher. The host↔LS/webview **rpc contract** is not its own tier — the request/response ride on captured fixtures (consumed at L2) and are re-checked by the L3 drift-check; see [L2 → captured data](#choice-2--the-data-source-by-intent).
-
----
-
-## L0 — Static / contract
-
-**What.** `@wso2/ballerina-core` is ~95% compile-time-only types (erased at runtime, guarded by the TS build). The runtime-testable surface is the **enums** — the discriminants both the host and webviews branch on and that cross the LS/RPC wire as JSON. L0 auto-discovers every exported enum and asserts rules over all of them: unique/non-empty values, valid keys, no barrel name-collision, and **wire-safety** (string-valued unless an audited numeric exception).
-
-**How to run.**
-```bash
-pnpm --filter @wso2/ballerina-core test        # or: cd packages/ballerina-core && npx jest
-```
-
-**How to add.** Add an enum-bearing module to the `MODULES` map in the suite — discovery covers its enums automatically. For a *new* invariant, add an assertion inside the `describe.each` over `ENUMS`.
-
-**Example files.**
-- [`enums.contract.test.ts`](../packages/ballerina-core/src/test/enums.contract.test.ts) — the auto-discovering enum invariant suite.
+Push tests **down** the pyramid: anything provable at a lower scope level never gets written higher. **Perf/QA is not a scope tier** — performance is a non-functional dimension that cuts across L1–L4 — so it's tracked as its own suite rather than a numbered level. The host↔LS/webview **rpc contract** likewise isn't its own tier — the request/response ride on captured fixtures (consumed at L2) and are re-checked by the L3 drift-check; see [L2 → captured data](#choice-2--the-data-source-by-intent).
 
 ---
 
-## L1 — Unit (pure logic)
+## L1 — Unit / contract (pure logic + shared-type invariants)
 
-**What.** Pure functions: transforms, codegen, search/matching, diagnostic filtering, range math, validation. No DOM. Fast and precise. Where the target lives in a heavy module (e.g. `bi.tsx`), **extract it into a narrow-import sibling module and re-export** so it's testable without dragging UI deps — e.g. `utils/diagnostics.ts`, `utils/range.ts`.
+**What.** In-process tests with no I/O, in two flavours:
+- **Unit (pure logic):** transforms, codegen, search/matching, diagnostic filtering, range math, validation. No DOM. Fast and precise. Where the target lives in a heavy module (e.g. `bi.tsx`), **extract it into a narrow-import sibling module and re-export** so it's testable without dragging UI deps — e.g. `utils/diagnostics.ts`, `utils/range.ts`.
+- **Contract (shared-type invariants):** `@wso2/ballerina-core` is ~95% compile-time-only types (erased at runtime, guarded by the TS build). The runtime-testable surface is the **enums** — the discriminants both the host and webviews branch on and that cross the LS/RPC wire as JSON. The contract suite auto-discovers every exported enum and asserts rules over all of them: unique/non-empty values, valid keys, no barrel name-collision, and **wire-safety** (string-valued unless an audited numeric exception). These assert over an enum *table* rather than a function, but they still execute code in-process — so they're unit-level contract tests, not a separate static tier (`tsc`/lint are the actual static checks).
 
 **How to run.**
 ```bash
+pnpm --filter @wso2/ballerina-core test        # contract invariants
 pnpm --filter @wso2/ballerina-side-panel test
 pnpm --filter @wso2/ballerina-visualizer test
 ```
 
-**How to add.** Write a table-driven suite that asserts a *rule* over inputs, not one case:
+**How to add.** For pure logic, write a table-driven suite that asserts a *rule* over inputs, not one case:
 ```ts
 import { filterTypeBrowserItems } from "./utils";
 it.each([["case", input, expected], ...])("%s", (_n, input, expected) =>
     expect(fn(input)).toEqual(expected));
 ```
-If the function is trapped in a heavy file, extract it first (move + re-export; verify importers still resolve + `tsc --noEmit`).
+If the function is trapped in a heavy file, extract it first (move + re-export; verify importers still resolve + `tsc --noEmit`). For a contract invariant, add the enum-bearing module to the `MODULES` map in the suite (discovery covers its enums automatically); for a *new* invariant, add an assertion inside the `describe.each` over `ENUMS`.
 
 **Example files.**
+- [`enums.contract.test.ts`](../packages/ballerina-core/src/test/enums.contract.test.ts) — the auto-discovering enum contract-invariant suite.
 - [`editorUtils.test.ts`](../packages/ballerina-side-panel/src/test/editorUtils.test.ts) · [`typeCompletionUtils.test.ts`](../packages/ballerina-side-panel/src/test/typeCompletionUtils.test.ts) · [`formValidationUtils.test.ts`](../packages/ballerina-side-panel/src/test/formValidationUtils.test.ts) — side-panel value/validation utils.
 - [`diagnostics.test.ts`](../packages/ballerina-visualizer/src/utils/diagnostics.test.ts) · [`range.test.ts`](../packages/ballerina-visualizer/src/utils/range.test.ts) · [`convertConfig.test.ts`](../packages/ballerina-visualizer/src/utils/convertConfig.test.ts) — visualizer diagnostic filtering / range math / form assembly (extracted from `bi.tsx`).
 - [`TypeBrowser/utils.test.ts`](../packages/ballerina-visualizer/src/views/BI/ServiceDesigner/components/TypeBrowser/utils.test.ts) — type-search matching invariants (#602/#619).
@@ -184,9 +173,9 @@ pnpm run e2e-test           # runs the Playwright specs
 
 ---
 
-## L5 — Perf / QA (not pass/fail gates)
+## Perf / QA (orthogonal — not a scope level)
 
-**What.** Latency baselines and trend records (LS request latency, search, form-open), plus human-owned visual/UX/a11y review. Reported as trends, not merge gates.
+**What.** Latency baselines and trend records (LS request latency, search, form-open), plus human-owned visual/UX/a11y review. **Not a level in the scope pyramid** — performance is a non-functional dimension that cuts across L1–L4 — so it's an orthogonal suite. Reported as trends, not merge gates.
 
 **How to run.**
 ```bash

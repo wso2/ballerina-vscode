@@ -136,13 +136,13 @@ Running that exact command locally is the closest reproduction.
 
 **Read [`docs/TEST_GUIDE.md`](docs/TEST_GUIDE.md) first — it has, per level, what it is / how to run / how to add / example files to copy.** This is the authoritative how-to; the rules below are the non-negotiables.
 
-**Levels & where they run.** L0 static (enum contracts), L1 unit (pure logic), L2 component (render) are **fast, PR-gated** — a package's tests run in CI **only** via a file named exactly `jest.config.js`. L3 (headless LS), L4 (E2E), L5 (perf) need Java + a Ballerina distribution (or VSCode) and **must use another config filename** (`jest.ls-integration.config.js`, `jest.realdata.config.js`, `jest.headless-view.config.js`, `jest.perf.config.js`) so they never run on every PR; they `describe.skip` when no distro is found. **Never rename an LS/E2E/perf config to `jest.config.js`.**
+**Levels & where they run.** Four **scope levels** ordered by how much of the system each test runs — L1 unit/contract (pure logic + shared-type/enum invariants), L2 component (render), L3 LS-integration, L4 E2E — plus an **orthogonal Perf/QA suite** (performance is non-functional and cuts across L1–L4, so it isn't a numbered level). L1 and L2 are **fast, PR-gated** — a package's tests run in CI **only** via a file named exactly `jest.config.js`. L3 (headless LS), L4 (E2E), and perf need Java + a Ballerina distribution (or VSCode) and **must use another config filename** (`jest.ls-integration.config.js`, `jest.realdata.config.js`, `jest.headless-view.config.js`, `jest.perf.config.js`) so they never run on every PR; they `describe.skip` when no distro is found. **Never rename an LS/E2E/perf config to `jest.config.js`.**
 
 **Core rules (apply at every level):**
 - **Invariants over per-issue tests.** Assert a *rule over a corpus* ("every array-typed field renders an array editor"), not one reported case. A bug fix ⇒ a fixture feeding the relevant invariant, named `issue-<n>.json`.
 - **Don't touch production code to make something testable** — except the one sanctioned move: if a pure function is trapped in a heavy module (e.g. `bi.tsx`), **extract it into a narrow-import sibling and re-export** so importers are unaffected (see `utils/diagnostics.ts`, `utils/range.ts`). Verify importers still resolve + `tsc --noEmit` clean.
 - **New test file** = WSO2 Apache-2.0 header, year **2026**. Copy from any existing test.
-- **Before pushing:** the affected package's `test` is green (or intentionally red with a documented comment + issue link). L3/L4/L5 need the distro.
+- **Before pushing:** the affected package's `test` is green (or intentionally red with a documented comment + issue link). L3/L4 + perf need the distro.
 
 **Adding tests to a package with none** (3 lines): add the devDeps + `@wso2/test-config`, create `jest.config.js` = `{ ...require('@wso2/test-config/jest-preset'), rootDir: '.' }` (add `testEnvironment: 'node'` for host-side), `rush update`. Recipe: [`packages/test-config/README.md`](packages/test-config/README.md).
 

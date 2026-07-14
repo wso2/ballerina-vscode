@@ -16,7 +16,7 @@
  * under the License.
  */
 
-// L0 — enum contract INVARIANTS.
+// L1 (contract) — enum contract INVARIANTS.
 //
 // `@wso2/ballerina-core` is ~95% compile-time-only types; the runtime-testable
 // contract surface is its enums, which are the discriminants that both the
