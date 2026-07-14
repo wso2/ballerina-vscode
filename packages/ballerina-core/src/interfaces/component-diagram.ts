@@ -124,6 +124,7 @@ export type CDFunction = {
     name: string;
     location: CDLocation;
     connections?: string[];
+    workflows?: string[];
 };
 
 export type CDResourceFunction = {
@@ -131,4 +132,5 @@ export type CDResourceFunction = {
     path: string;
     location: CDLocation;
     connections?: string[];
+    workflows?: string[];
 };

@@ -185,6 +185,20 @@ export function Diagram(props: DiagramProps) {
 
         let startY = 100;
 
+        // Create workflow nodes first so service function rows can link to them.
+        // Their edges are created after the services and the automation below.
+        const sortedWorkflows = sortItems(project.workflows || []) as CDWorkflow[];
+        let workflowStartY = 100;
+        sortedWorkflows.forEach((workflow) => {
+            const workflowNode = new EntryNodeModel(workflow, "workflow");
+            const numRows = (workflow.events?.length ?? 0) + (workflow.humanTasks?.length ?? 0);
+            const nodeHeight = calculateWorkflowNodeHeight(numRows);
+            workflowNode.height = nodeHeight;
+            workflowNode.setPosition(0, workflowStartY);
+            nodes.push(workflowNode);
+            workflowStartY += nodeHeight + 16;
+        });
+
         // Sort services by sortText before creating nodes
         const sortedServices = sortItems(project.services || []) as CDService[];
         sortedServices.forEach((service) => {
@@ -281,19 +295,36 @@ export function Diagram(props: DiagramProps) {
             });
         }
 
-        // create workflows
-        const sortedWorkflows = sortItems(project.workflows || []) as CDWorkflow[];
+        // create workflow edges
         sortedWorkflows.forEach((workflow) => {
-            const workflowNode = new EntryNodeModel(workflow, "workflow");
-            const numRows = (workflow.events?.length ?? 0) + (workflow.humanTasks?.length ?? 0);
-            const nodeHeight = calculateWorkflowNodeHeight(numRows);
-            workflowNode.height = nodeHeight;
-            workflowNode.setPosition(0, startY);
-            nodes.push(workflowNode);
-            startY += nodeHeight + 16;
+            const workflowNode = nodes.find((node) => node.getID() === workflow.uuid) as EntryNodeModel;
+            if (!workflowNode) {
+                return;
+            }
 
-            // link the entry points that trigger this workflow via workflow:run
-            [...(workflow.attachedServices ?? []), ...(workflow.attachedFunctions ?? [])].forEach((triggerUuid) => {
+            // link the services that trigger this workflow via workflow:run. When a specific
+            // function of the service runs the workflow, the link is already drawn from the
+            // function row (createFunctionConnections); only fall back to a service-level edge
+            const serviceFunctionLinksTo = (service: CDService, workflowUuid: string) =>
+                [...(service.remoteFunctions ?? []), ...(service.resourceFunctions ?? [])].some((func) =>
+                    func.workflows?.includes(workflowUuid)
+                );
+            workflow.attachedServices?.forEach((serviceUuid) => {
+                const service = project.services?.find((item) => item.uuid === serviceUuid);
+                if (service && serviceFunctionLinksTo(service, workflow.uuid)) {
+                    return;
+                }
+                const triggerNode = nodes.find((node) => node.getID() === serviceUuid);
+                if (triggerNode) {
+                    const link = createNodesLink(triggerNode, workflowNode);
+                    if (link) {
+                        links.push(link);
+                    }
+                }
+            });
+
+            // link the automation that triggers this workflow via workflow:run
+            workflow.attachedFunctions?.forEach((triggerUuid) => {
                 const triggerNode = nodes.find((node) => node.getID() === triggerUuid);
                 if (triggerNode) {
                     const link = createNodesLink(triggerNode, workflowNode);
@@ -509,12 +540,12 @@ function createFunctionConnections(
     group?: GroupKey
 ) {
     funcs.forEach((func) => {
-        func.connections?.forEach((connectionUuid) => {
-            const connectionNode = nodes.find((n) => n.getID() === connectionUuid);
-            if (connectionNode) {
+        [...(func.connections ?? []), ...(func.workflows ?? [])].forEach((targetUuid) => {
+            const targetNode = nodes.find((n) => n.getID() === targetUuid);
+            if (targetNode) {
                 const port = portGetter(func, group);
                 if (port) {
-                    const link = createPortNodeLink(port, connectionNode);
+                    const link = createPortNodeLink(port, targetNode);
                     if (link) {
                         links.push(link);
                     }
