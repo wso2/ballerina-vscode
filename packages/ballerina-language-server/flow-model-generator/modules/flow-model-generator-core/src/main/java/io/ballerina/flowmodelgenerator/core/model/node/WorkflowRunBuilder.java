@@ -33,6 +33,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
+import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -100,14 +101,16 @@ public class WorkflowRunBuilder extends NodeBuilder {
                     .addProperty(INPUT_KEY);
         }
 
-        // Variable property for result
+        // Variable property for result. Generate a unique default name so that adding
+        // multiple Run Workflow nodes does not produce duplicate variable declarations.
+        String workflowIdVarName = NameUtil.generateTypeName("workflowId", context.getAllVisibleSymbolNames());
         properties().custom()
                 .metadata()
                     .label("Workflow ID Variable Name")
                     .description("Variable name to receive the started workflow ID.")
                     .stepOut()
                 .type(Property.ValueType.IDENTIFIER)
-                .value("workflowId")
+                .value(workflowIdVarName)
                 .editable(true)
                 .stepOut()
                 .addProperty(Property.VARIABLE_KEY);
