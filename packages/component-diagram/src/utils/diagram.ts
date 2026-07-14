@@ -176,7 +176,7 @@ export function autoDistribute(engine: DiagramEngine) {
     // Position unconnected listeners below all other nodes
     if (unconnectedListeners.length > 0) {
         // Find the maximum Y position among all nodes
-        const allNodes = [...connectedListeners, ...entryNodes, ...workflowNodes, ...connectionNodes];
+        const allNodes = [...connectedListeners, ...entryNodes, ...workflowNodes, ...activityNodes, ...connectionNodes];
         let maxY = 100; // Default starting position if no other nodes
 
         if (allNodes.length > 0) {

@@ -122,6 +122,8 @@ public class CodeAnalyzer extends NodeVisitor {
     private String serviceClassName;
     private Workflow currentWorkflow;
 
+    private static final String RUN_WORKFLOW_FN_ARG = "processFunction";
+    private static final String SEND_DATA_WORKFLOW_FN_ARG = "workflow";
     private static final String SEND_DATA_NAME_ARG = "dataName";
     private static final String HUMAN_TASK_NAME_ARG = "taskName";
     private static final String CALL_ACTIVITY_FN_ARG = "activityFunction";
@@ -327,13 +329,9 @@ public class CodeAnalyzer extends NodeVisitor {
         if (arguments.isEmpty()) {
             return;
         }
-        FunctionArgumentNode firstArg = arguments.get(0);
-        ExpressionNode workflowArg;
-        if (firstArg instanceof PositionalArgumentNode positionalArgumentNode) {
-            workflowArg = positionalArgumentNode.expression();
-        } else if (firstArg instanceof NamedArgumentNode namedArgumentNode) {
-            workflowArg = namedArgumentNode.expression();
-        } else {
+        ExpressionNode workflowArg = getArgExpression(arguments, 0,
+                isRun ? RUN_WORKFLOW_FN_ARG : SEND_DATA_WORKFLOW_FN_ARG);
+        if (workflowArg == null) {
             return;
         }
         Optional<Symbol> workflowFnSymbol = semanticModel.symbol(workflowArg);
@@ -456,26 +454,33 @@ public class CodeAnalyzer extends NodeVisitor {
             return;
         }
         String activityName = activityFnSymbol.get().getName().get();
-        Activity activity = intermediateModel.activityMap.get(activityName);
-        if (activity == null && isBuiltinActivityModule(activityFnSymbol.get())) {
+        // Builtin activities are keyed by their qualified name so that a user-defined activity
+        // sharing the same function name gets its own Activity entry
+        boolean isBuiltin = isBuiltinActivityModule(activityFnSymbol.get());
+        String activityKey = isBuiltin
+                ? Constants.Workflow.ACTIVITY_MODULE + ":" + activityName : activityName;
+        Activity activity = intermediateModel.activityMap.get(activityKey);
+        if (activity == null && isBuiltin) {
             LineRange lineRange = remoteMethodCallActionNode.lineRange();
             activity = new Activity(BUILTIN_ACTIVITY_LABELS.getOrDefault(activityName, activityName),
                     lineRange.fileName() + lineRange.startLine().line(), getLocation(lineRange));
-            intermediateModel.activityMap.put(activityName, activity);
+            intermediateModel.activityMap.put(activityKey, activity);
             intermediateModel.uuidToActivityMap.put(activity.getUuid(), activity);
         }
         if (activity != null) {
             this.currentWorkflow.addActivity(activity.getUuid());
             activity.addAttachedWorkflow(this.currentWorkflow.getUuid());
             // Connections can be passed to the activity as arguments,
-            // e.g. ctx->callActivity(fetchStatus, {"apiClient": httpClient})
+            // e.g. ctx->callActivity(fetchStatus, {"apiClient": httpClient}) or {httpClient}
             Activity resolvedActivity = activity;
             ExpressionNode argsExpr = getArgExpression(arguments, 1, CALL_ACTIVITY_ARGS_ARG);
             if (argsExpr instanceof MappingConstructorExpressionNode mappingConstructor) {
                 for (Node field : mappingConstructor.fields()) {
                     if (field instanceof SpecificFieldNode specificFieldNode) {
-                        specificFieldNode.valueExpr()
-                                .flatMap(this::resolveConnection)
+                        // Shorthand fields ({httpClient}) carry the reference in the field name
+                        Node valueNode = specificFieldNode.valueExpr().map(expr -> (Node) expr)
+                                .orElse(specificFieldNode.fieldName());
+                        resolveConnection(valueNode)
                                 .ifPresent(connection -> resolvedActivity.addConnection(connection.getUuid()));
                     }
                 }
@@ -483,8 +488,8 @@ public class CodeAnalyzer extends NodeVisitor {
         }
     }
 
-    private Optional<Connection> resolveConnection(ExpressionNode expressionNode) {
-        Optional<Symbol> symbol = semanticModel.symbol(expressionNode);
+    private Optional<Connection> resolveConnection(Node node) {
+        Optional<Symbol> symbol = semanticModel.symbol(node);
         if (symbol.isEmpty() || symbol.get().getLocation().isEmpty()) {
             return Optional.empty();
         }

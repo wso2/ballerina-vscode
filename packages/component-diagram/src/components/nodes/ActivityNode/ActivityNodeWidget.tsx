@@ -124,12 +124,22 @@ export function ActivityNodeWidget(props: ActivityNodeWidgetProps) {
 
     const { handleMouseDown, handleMouseUp } = useClickWithDragTolerance(handleOnClick);
 
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleOnClick();
+        }
+    };
+
     return (
         <Node>
             <LeftPortWidget port={model.getPort("in")!} engine={engine} />
             <Box
                 hovered={!readonly && isHovered}
                 readonly={readonly}
+                role="button"
+                tabIndex={readonly ? -1 : 0}
+                onKeyDown={!readonly ? handleKeyDown : undefined}
                 onMouseEnter={() => !readonly && setIsHovered(true)}
                 onMouseLeave={() => !readonly && setIsHovered(false)}
                 onMouseDown={!readonly ? handleMouseDown : undefined}

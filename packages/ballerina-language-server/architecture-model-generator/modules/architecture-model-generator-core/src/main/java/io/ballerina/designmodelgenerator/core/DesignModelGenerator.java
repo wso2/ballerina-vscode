@@ -132,65 +132,32 @@ public class DesignModelGenerator {
             Set<String> serviceInvalidSendData = new HashSet<>();
             List<Function> functions = new ArrayList<>();
             serviceModel.otherFunctions.values().forEach(otherFunction -> {
-                otherFunction.connections.forEach(connection -> {
-                    Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
-                    if (conn != null) {
-                        otherFunction.dependentFuncs.addAll(conn.getDependentFunctions());
-                        otherFunction.allDependentConnections.addAll(
-                                conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
-                    }
-                });
-                buildConnectionAndWorkflowGraph(intermediateModel, otherFunction, serviceModel);
+                analyzeServiceFunction(intermediateModel, otherFunction, serviceModel, connections, workflows,
+                        serviceSendData, serviceInvalidSendData);
                 functions.add(new Function(otherFunction.name, otherFunction.location,
                         otherFunction.allDependentConnections, otherFunction.allDependentWorkflows,
                         otherFunction.allDependentWorkflowSendData,
                         otherFunction.allDependentInvalidWorkflowSendData));
-                connections.addAll(otherFunction.allDependentConnections);
-                workflows.addAll(otherFunction.allDependentWorkflows);
-                mergeSendData(serviceSendData, otherFunction.allDependentWorkflowSendData);
-                serviceInvalidSendData.addAll(otherFunction.allDependentInvalidWorkflowSendData);
             });
 
             List<Function> remoteFunctions = new ArrayList<>();
             serviceModel.remoteFunctions.forEach(remoteFunction -> {
-                remoteFunction.connections.forEach(connection -> {
-                    Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
-                    if (conn != null) {
-                        remoteFunction.dependentFuncs.addAll(conn.getDependentFunctions());
-                        remoteFunction.allDependentConnections.addAll(
-                                conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
-                    }
-                });
-                buildConnectionAndWorkflowGraph(intermediateModel, remoteFunction, serviceModel);
+                analyzeServiceFunction(intermediateModel, remoteFunction, serviceModel, connections, workflows,
+                        serviceSendData, serviceInvalidSendData);
                 remoteFunctions.add(new Function(remoteFunction.name, remoteFunction.location,
                         remoteFunction.allDependentConnections, remoteFunction.allDependentWorkflows,
                         remoteFunction.allDependentWorkflowSendData,
                         remoteFunction.allDependentInvalidWorkflowSendData));
-                connections.addAll(remoteFunction.allDependentConnections);
-                workflows.addAll(remoteFunction.allDependentWorkflows);
-                mergeSendData(serviceSendData, remoteFunction.allDependentWorkflowSendData);
-                serviceInvalidSendData.addAll(remoteFunction.allDependentInvalidWorkflowSendData);
             });
 
             List<ResourceFunction> resourceFunctions = new ArrayList<>();
             serviceModel.resourceFunctions.forEach(resourceFunction -> {
-                resourceFunction.connections.forEach(connection -> {
-                    Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
-                    if (conn != null) {
-                        resourceFunction.dependentFuncs.addAll(conn.getDependentFunctions());
-                        resourceFunction.allDependentConnections.addAll(
-                                conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
-                    }
-                });
-                buildConnectionAndWorkflowGraph(intermediateModel, resourceFunction, serviceModel);
+                analyzeServiceFunction(intermediateModel, resourceFunction, serviceModel, connections, workflows,
+                        serviceSendData, serviceInvalidSendData);
                 resourceFunctions.add(new ResourceFunction(resourceFunction.name, resourceFunction.path,
                         resourceFunction.location, resourceFunction.allDependentConnections,
                         resourceFunction.allDependentWorkflows, resourceFunction.allDependentWorkflowSendData,
                         resourceFunction.allDependentInvalidWorkflowSendData));
-                connections.addAll(resourceFunction.allDependentConnections);
-                workflows.addAll(resourceFunction.allDependentWorkflows);
-                mergeSendData(serviceSendData, resourceFunction.allDependentWorkflowSendData);
-                serviceInvalidSendData.addAll(resourceFunction.allDependentInvalidWorkflowSendData);
             });
             List<Listener> allAttachedListeners = serviceModel.anonListeners;
             for (String listener : serviceModel.namedListeners) {
@@ -240,6 +207,31 @@ public class DesignModelGenerator {
                 .setWorkflows(intermediateModel.workflowMap.values().stream().toList())
                 .setActivities(intermediateModel.activityMap.values().stream().toList())
                 .build();
+    }
+
+    /**
+     * Resolves the dependency graph of a service function and folds its connections, workflows and
+     * sendData attributions into the service-level aggregates.
+     */
+    private void analyzeServiceFunction(IntermediateModel intermediateModel,
+                                        IntermediateModel.FunctionModel functionModel,
+                                        IntermediateModel.ServiceModel serviceModel,
+                                        Set<String> connections, Set<String> workflows,
+                                        Map<String, Set<String>> serviceSendData,
+                                        Set<String> serviceInvalidSendData) {
+        functionModel.connections.forEach(connection -> {
+            Connection conn = intermediateModel.uuidToConnectionMap.get(connection);
+            if (conn != null) {
+                functionModel.dependentFuncs.addAll(conn.getDependentFunctions());
+                functionModel.allDependentConnections.addAll(
+                        conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
+            }
+        });
+        buildConnectionAndWorkflowGraph(intermediateModel, functionModel, serviceModel);
+        connections.addAll(functionModel.allDependentConnections);
+        workflows.addAll(functionModel.allDependentWorkflows);
+        mergeSendData(serviceSendData, functionModel.allDependentWorkflowSendData);
+        serviceInvalidSendData.addAll(functionModel.allDependentInvalidWorkflowSendData);
     }
 
     private void mergeSendData(Map<String, Set<String>> target, Map<String, Set<String>> source) {
