@@ -205,7 +205,7 @@ public class PackageUtil {
         ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
         defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
         BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath,
-                BuildOptions.builder().setOffline(FORCE_OFFLINE).setSticky(!FORCE_OFFLINE).build());
+                BuildOptions.builder().setOffline(FORCE_OFFLINE).build());
         return Optional.ofNullable(balaProject.currentPackage());
     }
 
