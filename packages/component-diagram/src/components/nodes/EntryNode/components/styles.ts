@@ -112,6 +112,7 @@ export const Box = styled.div<NodeStyleProp>`
     align-items: center;
     gap: 8px;
     width: 100%;
+    position: relative;
     border: ${NODE_BORDER_WIDTH}px solid
         ${(props: NodeStyleProp) => (props.hovered ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT)};
     border-radius: 8px;
@@ -169,14 +170,14 @@ export const PlayButtonCircle = styled.div`
     align-items: center;
     width: 28px;
     height: 28px;
-    min-width: 28px;
+    position: absolute;
+    left: -15px;
+    top: 22px;
     border: ${NODE_BORDER_WIDTH}px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 50%;
     background-color: ${ThemeColors.SURFACE_DIM};
     color: ${ThemeColors.ON_SURFACE};
-    margin-right: -8px;
     z-index: 1;
-    position: relative;
 `;
 
 export const PlayButtonPortWrapper = styled.div`

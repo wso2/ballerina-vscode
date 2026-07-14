@@ -34,17 +34,25 @@ const Node = styled.div`
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    width: ${ACTIVITY_NODE_WIDTH}px;
     height: ${ACTIVITY_NODE_HEIGHT}px;
     color: ${ThemeColors.ON_SURFACE};
 `;
 
-const ClickableArea = styled.div<{ readonly?: boolean }>`
+const Box = styled.div<NodeStyleProp & { readonly?: boolean }>`
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
+    height: 100%;
+    padding: 0 12px;
+    border: ${NODE_BORDER_WIDTH}px solid
+        ${(props: NodeStyleProp) => (props.hovered ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT)};
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    color: ${ThemeColors.ON_SURFACE};
     cursor: ${(props) => (props.readonly ? "default" : "pointer")};
 `;
 
@@ -56,18 +64,17 @@ const Header = styled.div`
     gap: 6px;
 `;
 
-const Box = styled.div<NodeStyleProp>`
+const IconWrapper = styled.div`
     display: flex;
-    justify-content: center;
     align-items: center;
-    width: ${ACTIVITY_NODE_HEIGHT}px;
-    height: ${ACTIVITY_NODE_HEIGHT}px;
-    border: ${NODE_BORDER_WIDTH}px solid
-        ${(props: NodeStyleProp) => (props.hovered ? ThemeColors.HIGHLIGHT : ThemeColors.OUTLINE_VARIANT)};
-    border-radius: 8px;
-    background-color: ${ThemeColors.SURFACE_DIM};
-    color: ${ThemeColors.ON_SURFACE};
-    aspect-ratio: 1 / 1;
+    svg {
+        fill: ${ThemeColors.ON_SURFACE};
+    }
+    > div:first-child {
+        width: 24px;
+        height: 24px;
+        font-size: 24px;
+    }
 `;
 
 const LeftPortWidget = styled(PortWidget)`
@@ -120,21 +127,22 @@ export function ActivityNodeWidget(props: ActivityNodeWidgetProps) {
     return (
         <Node>
             <LeftPortWidget port={model.getPort("in")!} engine={engine} />
-            <ClickableArea
+            <Box
+                hovered={!readonly && isHovered}
+                readonly={readonly}
                 onMouseEnter={() => !readonly && setIsHovered(true)}
                 onMouseLeave={() => !readonly && setIsHovered(false)}
                 onMouseDown={!readonly ? handleMouseDown : undefined}
                 onMouseUp={!readonly ? handleMouseUp : undefined}
-                readonly={readonly}
             >
-                <Box hovered={!readonly && isHovered}>
+                <IconWrapper>
                     <Icon name="bi-task" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                </Box>
+                </IconWrapper>
                 <Header>
                     <Title hovered={!readonly && isHovered}>{model.node.symbol}</Title>
                     <Description>Activity</Description>
                 </Header>
-            </ClickableArea>
+            </Box>
             <RightPortWidget port={model.getPort("out")!} engine={engine} />
         </Node>
     );

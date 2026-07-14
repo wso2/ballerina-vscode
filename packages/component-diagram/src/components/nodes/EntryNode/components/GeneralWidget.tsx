@@ -317,18 +317,17 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     return (
         <Node>
-            {model.type === "workflow" ? (
-                // Explicit "run workflow" target: workflow:run edges point at this play button
-                <PlayButtonCircle>
-                    <Icon isCodicon name="play" sx={{ fontSize: 14, width: 14, height: 14 }} />
-                    <PlayButtonPortWrapper>
-                        <PortWidget port={model.getPort("in")!} engine={engine} />
-                    </PlayButtonPortWrapper>
-                </PlayButtonCircle>
-            ) : (
-                <TopPortWidget port={model.getPort("in")!} engine={engine} />
-            )}
+            {model.type !== "workflow" && <TopPortWidget port={model.getPort("in")!} engine={engine} />}
             <Box hovered={!readonly && isHovered}>
+                {model.type === "workflow" && (
+                    // Explicit "run workflow" target: workflow:run edges point at this play button
+                    <PlayButtonCircle>
+                        <Icon isCodicon name="play" sx={{ fontSize: 14, width: 14, height: 14 }} />
+                        <PlayButtonPortWrapper>
+                            <PortWidget port={model.getPort("in")!} engine={engine} />
+                        </PlayButtonPortWrapper>
+                    </PlayButtonCircle>
+                )}
                 <ServiceBox
                     onMouseEnter={() => !readonly && setIsHovered(true)}
                     onMouseLeave={() => !readonly && setIsHovered(false)}
