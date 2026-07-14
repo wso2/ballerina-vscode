@@ -25,6 +25,7 @@ export type CDModel = {
     listeners: CDListener[];
     services: CDService[];
     workflows?: CDWorkflow[];
+    activities?: CDActivity[];
 };
 
 export type CDAutomation = {
@@ -40,6 +41,31 @@ export type CDWorkflow = {
     location: CDLocation;
     attachedServices: string[];
     attachedFunctions: string[];
+    events?: CDWorkflowEvent[];
+    humanTasks?: CDWorkflowHumanTask[];
+    activities?: string[];
+    uuid: string;
+    enableFlowModel: boolean;
+    sortText: string;
+};
+
+export type CDWorkflowEvent = {
+    name: string;
+    type?: string;
+    attachedServices: string[];
+    attachedFunctions: string[];
+};
+
+export type CDWorkflowHumanTask = {
+    name: string;
+    location: CDLocation;
+};
+
+export type CDActivity = {
+    symbol: string;
+    location: CDLocation;
+    connections: string[];
+    attachedWorkflows: string[];
     uuid: string;
     enableFlowModel: boolean;
     sortText: string;

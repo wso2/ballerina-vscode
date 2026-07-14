@@ -23,8 +23,10 @@ import {
     autoDistribute,
     calculateEntryNodeHeight,
     calculateGraphQLNodeHeight,
+    calculateWorkflowNodeHeight,
     createNodesLink,
     createPortNodeLink,
+    createPortsLink,
     generateEngine,
     sortItems,
 } from "../utils/diagram";
@@ -47,7 +49,8 @@ import {
 import { EntryNodeModel } from "./nodes/EntryNode";
 import { ListenerNodeModel } from "./nodes/ListenerNode";
 import { ConnectionNodeModel } from "./nodes/ConnectionNode";
-import { ENTRY_NODE_HEIGHT } from "../resources/constants";
+import { ActivityNodeModel } from "./nodes/ActivityNode";
+import { ACTIVITY_NODE_HEIGHT } from "../resources/constants";
 
 export type GroupKey = "Query" | "Subscription" | "Mutation";
 export const PREVIEW_COUNT = 2;
@@ -282,10 +285,68 @@ export function Diagram(props: DiagramProps) {
         const sortedWorkflows = sortItems(project.workflows || []) as CDWorkflow[];
         sortedWorkflows.forEach((workflow) => {
             const workflowNode = new EntryNodeModel(workflow, "workflow");
+            const numRows = (workflow.events?.length ?? 0) + (workflow.humanTasks?.length ?? 0);
+            const nodeHeight = calculateWorkflowNodeHeight(numRows);
+            workflowNode.height = nodeHeight;
             workflowNode.setPosition(0, startY);
             nodes.push(workflowNode);
-            startY += ENTRY_NODE_HEIGHT + 16;
-            // workflows currently have no connections to link
+            startY += nodeHeight + 16;
+
+            // link the entry points that trigger this workflow via workflow:run
+            [...(workflow.attachedServices ?? []), ...(workflow.attachedFunctions ?? [])].forEach((triggerUuid) => {
+                const triggerNode = nodes.find((node) => node.getID() === triggerUuid);
+                if (triggerNode) {
+                    const link = createNodesLink(triggerNode, workflowNode);
+                    if (link) {
+                        links.push(link);
+                    }
+                }
+            });
+
+            // link the entry points that send data to this workflow via workflow:sendData
+            workflow.events?.forEach((event) => {
+                const eventPort = workflowNode.getEventPort(event);
+                if (!eventPort) {
+                    return;
+                }
+                [...(event.attachedServices ?? []), ...(event.attachedFunctions ?? [])].forEach((senderUuid) => {
+                    const senderNode = nodes.find((node) => node.getID() === senderUuid);
+                    if (senderNode && senderNode.getOutPort()) {
+                        const link = createPortsLink(senderNode.getOutPort(), eventPort);
+                        link.setSourceNode(senderNode);
+                        link.setTargetNode(workflowNode);
+                        links.push(link);
+                    }
+                });
+            });
+
+            // create the activities called by this workflow and link them to their connections
+            workflow.activities?.forEach((activityUuid) => {
+                const activity = project.activities?.find((item) => item.uuid === activityUuid);
+                if (!activity) {
+                    return;
+                }
+                let activityNode = nodes.find((node) => node.getID() === activityUuid) as ActivityNodeModel;
+                if (!activityNode) {
+                    activityNode = new ActivityNodeModel(activity);
+                    activityNode.height = ACTIVITY_NODE_HEIGHT;
+                    activityNode.setPosition(0, startY);
+                    nodes.push(activityNode);
+                    activity.connections?.forEach((connectionUuid) => {
+                        const connectionNode = nodes.find((node) => node.getID() === connectionUuid);
+                        if (connectionNode) {
+                            const link = createNodesLink(activityNode, connectionNode);
+                            if (link) {
+                                links.push(link);
+                            }
+                        }
+                    });
+                }
+                const link = createNodesLink(workflowNode, activityNode);
+                if (link) {
+                    links.push(link);
+                }
+            });
         });
 
         // create listeners

@@ -151,6 +151,31 @@ export const StyledServiceBox = styled(ServiceBox) <NodeStyleProp>`
     background-color: ${ThemeColors.SURFACE_DIM};
 `;
 
+export const EventTypeText = styled(StyledText)`
+    margin-left: auto;
+    font-size: 12px;
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: monospace;
+    color: ${ThemeColors.ON_SURFACE};
+    opacity: 0.7;
+`;
+
+export const RowIconWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    svg {
+        fill: ${ThemeColors.ON_SURFACE};
+    }
+    > div:first-child {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+    }
+`;
+
 export const GroupContainer = styled.div<{ accent: string }>`
     display: flex;
     flex-direction: column;

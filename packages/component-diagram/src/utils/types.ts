@@ -17,11 +17,12 @@
  */
 
 import { CDAutomation, CDService, CDWorkflow } from "@wso2/ballerina-core";
+import { ActivityNodeModel } from "../components/nodes/ActivityNode";
 import { ConnectionNodeModel } from "../components/nodes/ConnectionNode";
 import { EntryNodeModel } from "../components/nodes/EntryNode";
 import { ListenerNodeModel } from "../components/nodes/ListenerNode";
 
-export type NodeModel = ListenerNodeModel | EntryNodeModel | ConnectionNodeModel;
+export type NodeModel = ListenerNodeModel | EntryNodeModel | ConnectionNodeModel | ActivityNodeModel;
 
 export type EntryPointType = "service" | "automation" | "workflow";
 

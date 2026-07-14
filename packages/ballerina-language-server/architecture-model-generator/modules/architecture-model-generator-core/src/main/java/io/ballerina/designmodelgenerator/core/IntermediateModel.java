@@ -18,6 +18,7 @@
 
 package io.ballerina.designmodelgenerator.core;
 
+import io.ballerina.designmodelgenerator.core.model.Activity;
 import io.ballerina.designmodelgenerator.core.model.Connection;
 import io.ballerina.designmodelgenerator.core.model.Listener;
 import io.ballerina.designmodelgenerator.core.model.Location;
@@ -45,6 +46,8 @@ public class IntermediateModel {
     protected final Map<String, ServiceClassModel> serviceClassModelMap;
     protected final Map<String, Workflow> workflowMap;
     protected final Map<String, Workflow> uuidToWorkflowMap;
+    protected final Map<String, Activity> activityMap;
+    protected final Map<String, Activity> uuidToActivityMap;
 
     public IntermediateModel() {
         this.functionModelMap = new HashMap<>();
@@ -55,6 +58,8 @@ public class IntermediateModel {
         this.serviceClassModelMap = new HashMap<>();
         this.workflowMap = new HashMap<>();
         this.uuidToWorkflowMap = new HashMap<>();
+        this.activityMap = new HashMap<>();
+        this.uuidToActivityMap = new HashMap<>();
     }
 
     public static class ServiceModel {
@@ -94,6 +99,13 @@ public class IntermediateModel {
         protected final Set<String> connections = new HashSet<>();
         protected final Set<String> workflows = new HashSet<>();
         protected final Set<String> usedClasses = new HashSet<>();
+        // workflow uuid -> data event names sent via workflow:sendData
+        protected final Map<String, Set<String>> workflowSendData = new HashMap<>();
+        protected final Map<String, Set<String>> allDependentWorkflowSendData = new HashMap<>();
+
+        protected void addSentEvent(String workflowUuid, String eventName) {
+            this.workflowSendData.computeIfAbsent(workflowUuid, k -> new HashSet<>()).add(eventName);
+        }
 
         public FunctionModel(String name) {
             this.name = name;

@@ -21,8 +21,8 @@ import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { NodePortModel } from "../../NodePort";
 import { NODE_LOCKED, NodeTypes } from "../../../resources/constants";
 import { EntryPoint, EntryPointType } from "../../../utils/types";
-import { CDFunction, CDResourceFunction, CDService } from "@wso2/ballerina-core";
-import { getEntryNodeFunctionPortName } from "../../../utils/diagram";
+import { CDFunction, CDResourceFunction, CDService, CDWorkflow, CDWorkflowEvent } from "@wso2/ballerina-core";
+import { getEntryNodeFunctionPortName, getWorkflowEventPortName } from "../../../utils/diagram";
 
 export interface BaseNodeWidgetProps {
     model: EntryNodeModel;
@@ -39,6 +39,7 @@ export class EntryNodeModel extends NodeModel {
     readonly type: EntryPointType;
     protected inPort: NodePortModel;
     protected outPorts: NodePortModel[];
+    protected eventPorts: NodePortModel[];
 
     constructor(node: EntryPoint, type: EntryPointType) {
         super({
@@ -50,8 +51,18 @@ export class EntryNodeModel extends NodeModel {
         this.type = type || "service";
 
         this.outPorts = [];
+        this.eventPorts = [];
         this.addInPort("in");
         this.addOutPort("out");
+
+        // Add per-event in-ports for workflow nodes so senders can link to a specific data event
+        if (this.type === "workflow") {
+            ((node as CDWorkflow).events ?? []).forEach((event) => {
+                const port = new NodePortModel(true, getWorkflowEventPortName(event));
+                super.addPort(port);
+                this.eventPorts.push(port);
+            });
+        }
 
         const serviceFunctions = [
             ...(node as CDService).remoteFunctions ?? [],
@@ -121,6 +132,10 @@ export class EntryNodeModel extends NodeModel {
 
     getFunctionPort(func: CDFunction | CDResourceFunction): NodePortModel | undefined {
         return this.outPorts.find((port) => port.getOptions().name === getEntryNodeFunctionPortName(func));
+    }
+
+    getEventPort(event: CDWorkflowEvent): NodePortModel | undefined {
+        return this.eventPorts.find((port) => port.getOptions().name === getWorkflowEventPortName(event));
     }
 
     getViewAllResourcesPort(): NodePortModel | undefined {
