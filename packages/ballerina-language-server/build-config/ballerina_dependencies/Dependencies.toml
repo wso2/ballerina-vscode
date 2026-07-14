@@ -465,6 +465,15 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
+name = "regex"
+version = "1.4.3"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.string"}
+]
+
+[[package]]
+org = "ballerina"
 name = "soap"
 version = "2.3.1"
 dependencies = [
@@ -764,6 +773,19 @@ dependencies = [
 
 [[package]]
 org = "ballerinax"
+name = "azure.datalake"
+version = "1.5.1"
+dependencies = [
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "url"},
+	{org = "ballerinai", name = "observe"}
+]
+modules = [
+	{org = "ballerinax", packageName = "azure.datalake", moduleName = "azure.datalake"}
+]
+
+[[package]]
+org = "ballerinax"
 name = "azure.openai.chat"
 version = "3.0.2"
 dependencies = [
@@ -782,6 +804,29 @@ dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "url"},
 	{org = "ballerinai", name = "observe"}
+]
+
+[[package]]
+org = "ballerinax"
+name = "azure_cosmosdb"
+version = "4.2.0"
+dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.array"},
+	{org = "ballerina", name = "lang.runtime"},
+	{org = "ballerina", name = "lang.string"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "os"},
+	{org = "ballerina", name = "regex"},
+	{org = "ballerina", name = "time"},
+	{org = "ballerina", name = "url"},
+	{org = "ballerinai", name = "observe"},
+	{org = "ballerinax", name = "client.config"}
+]
+modules = [
+	{org = "ballerinax", packageName = "azure_cosmosdb", moduleName = "azure_cosmosdb"}
 ]
 
 [[package]]
@@ -830,6 +875,19 @@ dependencies = [
 
 [[package]]
 org = "ballerinax"
+name = "covid19"
+version = "1.5.1"
+dependencies = [
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "url"},
+	{org = "ballerinai", name = "observe"}
+]
+modules = [
+	{org = "ballerinax", packageName = "covid19", moduleName = "covid19"}
+]
+
+[[package]]
+org = "ballerinax"
 name = "docusign.dsadmin"
 version = "2.0.0"
 dependencies = [
@@ -842,6 +900,23 @@ dependencies = [
 ]
 modules = [
 	{org = "ballerinax", packageName = "docusign.dsadmin", moduleName = "docusign.dsadmin"}
+]
+
+[[package]]
+org = "ballerinax"
+name = "docusign.dsesign"
+version = "1.0.1"
+dependencies = [
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "lang.array"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "mime"},
+	{org = "ballerina", name = "os"},
+	{org = "ballerina", name = "url"}
+]
+modules = [
+	{org = "ballerinax", packageName = "docusign.dsesign", moduleName = "docusign.dsesign"}
 ]
 
 [[package]]
@@ -873,6 +948,20 @@ dependencies = [
 ]
 modules = [
 	{org = "ballerinax", packageName = "kafka", moduleName = "kafka"}
+]
+
+[[package]]
+org = "ballerinax"
+name = "mongodb"
+version = "5.2.4"
+dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerinax", packageName = "mongodb", moduleName = "mongodb"}
 ]
 
 [[package]]
@@ -941,6 +1030,19 @@ version = "1.8.0"
 
 [[package]]
 org = "ballerinax"
+name = "nats"
+version = "3.2.0"
+dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerinai", name = "observe"}
+]
+modules = [
+	{org = "ballerinax", packageName = "nats", moduleName = "nats"}
+]
+
+[[package]]
+org = "ballerinax"
 name = "openai.chat"
 version = "4.0.1"
 dependencies = [
@@ -961,6 +1063,21 @@ dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "url"},
 	{org = "ballerinai", name = "observe"}
+]
+
+[[package]]
+org = "ballerinax"
+name = "oracledb"
+version = "1.14.0"
+dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "sql"},
+	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerinax", packageName = "oracledb", moduleName = "oracledb"}
 ]
 
 [[package]]
@@ -1166,14 +1283,21 @@ dependencies = [
 	{org = "ballerinax", name = "ai.ollama"},
 	{org = "ballerinax", name = "ai.openai"},
 	{org = "ballerinax", name = "ai.pinecone"},
+	{org = "ballerinax", name = "azure.datalake"},
+	{org = "ballerinax", name = "azure_cosmosdb"},
 	{org = "ballerinax", name = "cdc"},
+	{org = "ballerinax", name = "covid19"},
 	{org = "ballerinax", name = "docusign.dsadmin"},
+	{org = "ballerinax", name = "docusign.dsesign"},
 	{org = "ballerinax", name = "github"},
 	{org = "ballerinax", name = "kafka"},
+	{org = "ballerinax", name = "mongodb"},
 	{org = "ballerinax", name = "mssql"},
 	{org = "ballerinax", name = "mssql.cdc.driver"},
 	{org = "ballerinax", name = "mysql"},
 	{org = "ballerinax", name = "mysql.cdc.driver"},
+	{org = "ballerinax", name = "nats"},
+	{org = "ballerinax", name = "oracledb"},
 	{org = "ballerinax", name = "postgresql"},
 	{org = "ballerinax", name = "postgresql.driver"},
 	{org = "ballerinax", name = "rabbitmq"},

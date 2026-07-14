@@ -37,4 +37,5 @@ import ballerinax/covid19 as _;
 import ballerinax/azure_cosmosdb as _;
 import ballerinax/azure.datalake as _;
 import ballerinax/docusign.dsesign as _;
+import ballerinax/mongodb as _;
 

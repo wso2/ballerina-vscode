@@ -77,6 +77,16 @@ public class PackageUtil {
     // not cached fail visibly. Absent in production, so production stays online.
     private static final boolean FORCE_OFFLINE = Boolean.getBoolean("ls.test.offline");
 
+    /**
+     * Whether resolution is forced offline (test runs). When true, callers must avoid contacting Ballerina Central
+     * (e.g. live catalog/keyword lookups) so behaviour is deterministic and reproducible from the build-owned home.
+     *
+     * @return {@code true} if offline resolution is forced; {@code false} in production.
+     */
+    public static boolean isOffline() {
+        return FORCE_OFFLINE;
+    }
+
     private static final BuildProject SAMPLE_PROJECT = getSampleProject();
 
     private static final String PULLING_THE_MODULE_MESSAGE = "Pulling the module '%s' from the central";
@@ -195,7 +205,7 @@ public class PackageUtil {
         ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
         defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
         BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath,
-                BuildOptions.builder().setOffline(FORCE_OFFLINE).build());
+                BuildOptions.builder().setOffline(FORCE_OFFLINE).setSticky(!FORCE_OFFLINE).build());
         return Optional.ofNullable(balaProject.currentPackage());
     }
 
