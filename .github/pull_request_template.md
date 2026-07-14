@@ -8,14 +8,10 @@
 > Describe how you are implementing the solutions. Include an animated GIF or screenshot if the change affects the UI (email documentation@wso2.com to review all UI text). Include a link to a Markdown file or Google doc if the feature write-up is too long to paste here.
 
 ## UI Component Development
-> Specify the reason if following are not followed.
-- [ ] Added reusable UI components to the ui-toolkit. Follow the [intructions](./workspaces/common-libs/ui-toolkit/README.md) when adding the componenent.
-- [ ] Use ui-toolkit components wherever possible. Run `npm run storybook` from the root directory to view current components.
+> The ui-toolkit lives in the [wso2/vscode-extensions](https://github.com/wso2/vscode-extensions) repository, pulled in here as the `submodules/wso2-vscode-extensions` submodule. Specify the reason if following are not followed.
+- [ ] Added reusable UI components to the ui-toolkit. Follow the [instructions](../submodules/wso2-vscode-extensions/workspaces/common-libs/ui-toolkit/README.md) when adding the component.
+- [ ] Use ui-toolkit components wherever possible. Run `npm run storybook` from `submodules/wso2-vscode-extensions/workspaces/common-libs/ui-toolkit` to view current components.
 - [ ] Matches with the native VSCode look and feel.
-
-## Manage Icons
-> Specify the reason if following are not followed.
-- [ ] Added Icons to the font-wso2-vscode. Follow the [instructions](./workspaces/common-libs/font-wso2-vscode/README.md).
 
 ## User stories
 > Summary of user stories addressed by this change>
@@ -56,7 +52,7 @@
 > Describe migration steps and platforms on which migration has been tested
 
 ## Test environment
-> List all JDK versions, operating systems, databases, and browser/versions on which this feature/fix was tested
+> List all JDK versions and operating systems on which this feature/fix was tested
  
 ## Learning
 > Describe the research phase and any blog posts, patterns, libraries, or add-ons you used to solve the problem.
