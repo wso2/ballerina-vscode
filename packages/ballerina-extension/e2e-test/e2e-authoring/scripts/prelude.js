@@ -82,6 +82,13 @@ globalThis.guestClick = async (locator) => {
   await locator.click({ force: true });
 };
 
+globalThis.domClick = async (locator) => {
+  // Mode-switcher labels can render outside the viewport at this window
+  // size — dispatch a DOM click instead of a pointer click.
+  await locator.waitFor({ state: 'attached', timeout: 15000 });
+  await locator.evaluate((el) => el.click());
+};
+
 globalThis.guestFill = async (locator, text) => {
   await locator.waitFor({ state: 'visible', timeout: 30000 });
   await locator.click({ force: true });

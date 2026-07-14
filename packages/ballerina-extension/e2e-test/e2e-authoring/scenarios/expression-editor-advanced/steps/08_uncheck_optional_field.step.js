@@ -1,13 +1,6 @@
 {
   const frame = await getBIWebview();
 
-  // Mode-switcher labels can render outside the viewport at this window
-  // size — dispatch a DOM click instead of a pointer click.
-  const domClick = async (locator) => {
-    await locator.waitFor({ state: 'attached', timeout: 15000 });
-    await locator.evaluate((el) => el.click());
-  };
-
   // Reopen p:Person (saved with {name: personName, age: 30} in step 07) and
   // switch to Record mode to reach the Record Configuration modal.
   const node = frame.getByText(/p = \{/).last();

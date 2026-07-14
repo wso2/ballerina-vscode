@@ -32,15 +32,18 @@
   await window.waitForTimeout(2000);
 
   // Toggle to Expression: the value becomes a backtick template; toggle back:
-  // the raw SQL returns. No errors in either direction.
-  await exprMode.click({ force: true });
+  // the raw SQL returns. No errors in either direction. The mode switcher
+  // labels can render outside the viewport at this window size, so use a
+  // DOM click instead of a pointer click (consistent with steps 06-08 and
+  // the downstream Playwright spec).
+  await domClick(exprMode);
   await window.waitForTimeout(2000);
   const exprText = await panel.locator('.cm-content').first().innerText();
   if (!exprText.includes('`SELECT * FROM users`')) {
     throw new Error(`expression mode did not show backtick template: ${JSON.stringify(exprText)}`);
   }
   console.log('expression mode shows backtick template');
-  await sqlMode.click({ force: true });
+  await domClick(sqlMode);
   await window.waitForTimeout(2000);
   const sqlText = await panel.locator('.cm-content').first().innerText();
   if (sqlText.trim() !== 'SELECT * FROM users') {

@@ -1,13 +1,6 @@
 {
   const frame = await getBIWebview();
 
-  // Mode-switcher labels can render outside the viewport at this window
-  // size — dispatch a DOM click instead of a pointer click.
-  const domClick = async (locator) => {
-    await locator.waitFor({ state: 'attached', timeout: 15000 });
-    await locator.evaluate((el) => el.click());
-  };
-
   // Create p:Person with a typed record literal and save. The Record mode
   // switcher only appears when EDITING a saved record-typed variable (the
   // node template must carry the record type), so creation uses the plain

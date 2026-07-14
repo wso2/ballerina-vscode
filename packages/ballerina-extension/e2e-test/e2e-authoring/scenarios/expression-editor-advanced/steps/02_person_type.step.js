@@ -86,5 +86,12 @@
 
   const state = JSON.parse(fs.readFileSync(path.join(sessionDir, 'state.json'), 'utf8'));
   const typesBal = path.join(state.integrationDir, 'types.bal');
-  console.log('types.bal:\n' + fs.readFileSync(typesBal, 'utf8'));
+  const typesSource = fs.readFileSync(typesBal, 'utf8');
+  if (!typesSource.includes('string name;')) {
+    throw new Error(`types.bal missing 'string name;':\n${typesSource}`);
+  }
+  if (!typesSource.includes('int age?;')) {
+    throw new Error(`types.bal missing 'int age?;':\n${typesSource}`);
+  }
+  console.log('types.bal verified (name: string, age: int?)');
 }

@@ -2,13 +2,6 @@
   const frame = await getBIWebview();
   const panel = frame.locator('[data-testid="side-panel"]').first();
 
-  // Mode-switcher labels can render outside the viewport at this window
-  // size — dispatch a DOM click instead of a pointer click.
-  const domClick = async (locator) => {
-    await locator.waitFor({ state: 'attached', timeout: 15000 });
-    await locator.evaluate((el) => el.click());
-  };
-
   // Continue editing p (form open from step 06, Expression mode active).
   // Reopen the Record Configuration modal and create a configurable from the
   // helper pane, then reference it in the record value. Keep a node locator
