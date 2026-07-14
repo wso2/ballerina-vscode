@@ -31,15 +31,7 @@
   await frame.locator('[data-testid="close-panel-btn"]').first().click({ force: true }).catch(() => {});
 
   // Verify source: renaming updates all references across the project
-  const state = JSON.parse(fs.readFileSync(path.join(sessionDir, 'state.json'), 'utf8'));
-  const typesBal = path.join(state.integrationDir, 'types.bal');
-  const deadline = Date.now() + 30000;
-  let source = '';
-  while (Date.now() < deadline) {
-    source = fs.existsSync(typesBal) ? fs.readFileSync(typesBal, 'utf8') : '';
-    if (source.includes('type Location record')) break;
-    await window.waitForTimeout(1000);
-  }
+  const source = await waitForTypesBalContent((s) => s.includes('type Location record'));
   if (!source.includes('type Location record')) throw new Error('types.bal missing Location record:\n' + source);
   if (source.includes('type Address record')) throw new Error('types.bal still contains Address record:\n' + source);
   if (!source.includes('Location customer')) throw new Error('types.bal Order.customer reference not renamed:\n' + source);

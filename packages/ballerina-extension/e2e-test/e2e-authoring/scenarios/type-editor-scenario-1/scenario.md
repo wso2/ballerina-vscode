@@ -14,7 +14,7 @@ Start Integration project. Then navigate to the type diagram through the project
 | 5 | Click Add New Type Next to the Type | Check whther move to the type diagram and the Add new type side panel is open or not |
 | 6 | Click the Add new fields | Helper plane is visible |
 | 7 | Click create New Type | Verify popup is opened |
-| 8 | Fill the type and save it | 
+| 8 | Fill the type and save it | Popup closes and the new field's type shows the created type name |
 | 9 | Click the type field again | Verify the type is present or not in the helper plane |
 | 10 | Select the type and fill the earlier created Type | Verify the type is present or not |
 | 11 | Add another field and click the optional button next to the type field | Verify the optional button click changed the colour |

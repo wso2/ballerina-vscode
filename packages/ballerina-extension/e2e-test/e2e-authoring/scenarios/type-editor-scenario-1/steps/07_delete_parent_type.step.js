@@ -20,15 +20,7 @@
   console.log('Order node removed from diagram');
 
   // Verify source no longer contains the deleted type
-  const state = JSON.parse(fs.readFileSync(path.join(sessionDir, 'state.json'), 'utf8'));
-  const typesBal = path.join(state.integrationDir, 'types.bal');
-  const deadline = Date.now() + 30000;
-  let source = fs.readFileSync(typesBal, 'utf8');
-  while (Date.now() < deadline) {
-    source = fs.readFileSync(typesBal, 'utf8');
-    if (!source.includes('Order')) break;
-    await window.waitForTimeout(1000);
-  }
+  const source = await waitForTypesBalContent((s) => !s.includes('Order'));
   if (source.includes('Order')) throw new Error('types.bal still contains Order after delete:\n' + source);
   if (!source.includes('type Customer record')) throw new Error('types.bal missing Customer record after delete:\n' + source);
   if (!source.includes('type Location record')) throw new Error('types.bal missing Location record after delete:\n' + source);

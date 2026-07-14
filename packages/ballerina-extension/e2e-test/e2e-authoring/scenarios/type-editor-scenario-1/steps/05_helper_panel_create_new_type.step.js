@@ -90,15 +90,7 @@
   console.log('Order and Address nodes plus Order/customer->Address link visible');
 
   // Verify generated source
-  const state = JSON.parse(fs.readFileSync(path.join(sessionDir, 'state.json'), 'utf8'));
-  const typesBal = path.join(state.integrationDir, 'types.bal');
-  const deadline = Date.now() + 30000;
-  let source = '';
-  while (Date.now() < deadline) {
-    source = fs.existsSync(typesBal) ? fs.readFileSync(typesBal, 'utf8') : '';
-    if (source.includes('Order') && source.includes('Address')) break;
-    await window.waitForTimeout(1000);
-  }
+  const source = await waitForTypesBalContent((s) => s.includes('Order') && s.includes('Address'));
   if (!source.includes('type Order record')) throw new Error('types.bal missing Order record:\n' + source);
   if (!source.includes('type Address record')) throw new Error('types.bal missing Address record:\n' + source);
   if (!source.includes('Address customer')) throw new Error('types.bal missing Order.customer: Address field:\n' + source);

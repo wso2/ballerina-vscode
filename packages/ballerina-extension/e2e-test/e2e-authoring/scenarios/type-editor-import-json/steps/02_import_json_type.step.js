@@ -41,7 +41,6 @@
   console.log('clicked Import');
 
   // Step 14-15: Wait for diagram to reload and verify type node
-  await new Promise(r => setTimeout(r, 3000));
   const typeNode = frame.locator('[data-testid="type-node-PersonJson"]');
   await typeNode.waitFor({ timeout: 30000 });
   console.log('type-node-PersonJson visible in diagram');

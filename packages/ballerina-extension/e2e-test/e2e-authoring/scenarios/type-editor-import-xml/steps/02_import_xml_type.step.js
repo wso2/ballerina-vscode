@@ -27,8 +27,8 @@
   console.log('format changed to XML');
 
   // Step 8: Verify Name field is NOT visible for XML format
-  await new Promise(r => setTimeout(r, 500));
   const nameInput = frame.getByRole('textbox', { name: 'Name' });
+  await nameInput.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   const nameVisible = await nameInput.isVisible().catch(() => false);
   if (nameVisible) throw new Error('Name field should not be visible in XML import mode');
   console.log('confirmed: Name field not visible in XML mode');
@@ -49,7 +49,6 @@
   console.log('clicked Import');
 
   // Step 14-15: Wait for diagram reload; type name is inferred from root element "person"
-  await new Promise(r => setTimeout(r, 3000));
   const typeNode = frame.locator('[data-testid^="type-node-"]').first();
   await typeNode.waitFor({ timeout: 30000 });
   const testId = await typeNode.getAttribute('data-testid');

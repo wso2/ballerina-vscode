@@ -38,7 +38,7 @@ async function clickTypesInlineAction(actionLabel: string): Promise<void> {
 
 export default function createTests() {
     test.describe.serial('Type Editor Explorer Navigation', {
-    }, async () => {
+    }, () => {
         initTest();
 
         test('Navigate to Type Diagram via Project Explorer', async ({ }, testInfo) => {
@@ -108,9 +108,11 @@ export default function createTests() {
             await nameInput.fill(orderName);
 
             logStep('Adding field "customer" and opening the helper panel');
-            await artifactWebView.locator('[data-testid="add-field-button"]').click();
             const identifierFields = artifactWebView.locator('[data-testid="identifier-field"]');
-            await typeUtils.fillIdentifierField(await identifierFields.count() - 1, 'customer');
+            const priorFieldCount = await identifierFields.count();
+            await artifactWebView.locator('[data-testid="add-field-button"]').click();
+            await expect(identifierFields).toHaveCount(priorFieldCount + 1, { timeout: 5000 });
+            await typeUtils.fillIdentifierField(priorFieldCount, 'customer');
             const typeField = artifactWebView.locator('[data-testid="type-field"]').last();
             await typeField.dblclick();
 
@@ -142,8 +144,10 @@ export default function createTests() {
             await expect(fieldTypeInput).toHaveValue(addressName, { timeout: 15000 });
 
             logStep('Adding field "note" and marking it optional');
+            const priorNoteFieldCount = await identifierFields.count();
             await artifactWebView.locator('[data-testid="add-field-button"]').click();
-            await typeUtils.fillIdentifierField(await identifierFields.count() - 1, 'note');
+            await expect(identifierFields).toHaveCount(priorNoteFieldCount + 1, { timeout: 5000 });
+            await typeUtils.fillIdentifierField(priorNoteFieldCount, 'note');
             // The optional toggle sits next to the type field; its icon colour
             // flips from descriptionForeground (inactive) to button-background
             // (active) when enabled

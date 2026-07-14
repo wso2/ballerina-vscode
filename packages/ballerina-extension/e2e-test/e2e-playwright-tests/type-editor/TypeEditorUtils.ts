@@ -384,7 +384,7 @@ export class TypeEditorUtils {
         await this.page.waitForLoadState('domcontentloaded');
     }
 
-        /**
+    /**
      * Click the Import button and wait for the diagram to reload
      */
     async clickImportButton(): Promise<void> {

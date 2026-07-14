@@ -60,7 +60,16 @@ globalThis.createProjectAndIntegration = async (baseName = 'Authoring') => {
     path.join(dataFolder, projectName.toLowerCase(), integrationName.toLowerCase()),
     path.join(dataFolder, integrationName.toLowerCase()),
   ];
-  const integrationDir = candidates.find((p) => fs.existsSync(p)) ?? candidates[1];
+  const dirDeadline = Date.now() + 30000;
+  let integrationDir;
+  while (Date.now() < dirDeadline) {
+    integrationDir = candidates.find((p) => fs.existsSync(p));
+    if (integrationDir) break;
+    await window.waitForTimeout(500);
+  }
+  if (!integrationDir) {
+    throw new Error(`Integration directory not found. Checked: ${candidates.join(', ')}`);
+  }
   const projectDir = path.dirname(integrationDir);
   globalThis.newProjectPath = integrationDir;
   return { projectName, integrationName, projectDir, integrationDir };

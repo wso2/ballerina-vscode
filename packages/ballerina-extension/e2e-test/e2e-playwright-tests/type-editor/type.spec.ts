@@ -17,7 +17,7 @@
  */
 
 import { test } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, getWebview, initTest, logStep, page, verifyGeneratedSource } from '../utils/helpers';
+import { addArtifact, BI_INTEGRATOR_LABEL, getWebview, initTest, logStep, page, verifyGeneratedSource, verifyRecordFields } from '../utils/helpers';
 import { Form } from '@wso2/playwright-vscode-tester';
 import { TypeEditorUtils } from './TypeEditorUtils';
 import path from 'path';
@@ -169,6 +169,9 @@ export default function createTests() {
 
             logStep(`Verifying type node ${typeName}`);
             await typeUtils.verifyTypeNodeExists(typeName);
+
+            logStep('Verifying generated record fields in types.bal');
+            await verifyRecordFields('types.bal', typeName, ['name', 'age', 'city']);
         });
 
         test('Import Type from XML', async ({ }, testInfo) => {
@@ -199,6 +202,10 @@ export default function createTests() {
             await typeNode.waitFor({ timeout: 30000 });
             const testId = await typeNode.getAttribute('data-testid');
             logStep(`Type node visible: ${testId}`);
+
+            const generatedTypeName = testId!.replace('type-node-', '');
+            logStep('Verifying generated record fields in types.bal');
+            await verifyRecordFields('types.bal', generatedTypeName, ['name', 'age']);
         });
 
     });

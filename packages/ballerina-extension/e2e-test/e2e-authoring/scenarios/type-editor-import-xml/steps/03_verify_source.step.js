@@ -19,12 +19,16 @@
     if (fs.existsSync(p)) { source = fs.readFileSync(p, 'utf8'); break; }
   }
   if (!source) throw new Error('types.bal not found');
-  if (!source.includes(typeName)) {
-    throw new Error(`types.bal does not contain "${typeName}".\n---\n${source}`);
+  // Scope the field check to the generated record's own block so matches
+  // elsewhere in the file (e.g. from prior scenarios) can't false-positive.
+  const recordMatch = source.match(new RegExp(`type\\s+${typeName}\\s+record\\s*{[|]?\\s*([\\s\\S]*?)\\};`));
+  if (!recordMatch) {
+    throw new Error(`types.bal does not contain a "${typeName}" record.\n---\n${source}`);
   }
-  // Verify child elements name and age were captured
-  if (!source.includes('name') || !source.includes('age')) {
-    throw new Error(`types.bal is missing expected fields from XML.\n---\n${source}`);
+  const recordBody = recordMatch[1];
+  // Verify child elements name and age were captured as fields
+  if (!/\bname\s*;/.test(recordBody) || !/\bage\s*;/.test(recordBody)) {
+    throw new Error(`"${typeName}" record is missing expected fields from XML.\n---\n${recordBody}`);
   }
   console.log(`source verified: ${typeName} record with name/age fields present`);
 
