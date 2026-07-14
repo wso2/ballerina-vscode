@@ -131,6 +131,7 @@ import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.flowmodelgenerator.core.model.Branch;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.CommentProperty;
+import io.ballerina.flowmodelgenerator.core.model.Diagnostics;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.ItemOption;
@@ -3363,13 +3364,7 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         // The workflow's input parameter is the first parameter that is a subtype of anydata.
-        TypeSymbol inputType = null;
-        for (ParameterSymbol param : workflowFuncSymbol.typeDescriptor().params().orElse(List.of())) {
-            if (param.typeDescriptor().subtypeOf(semanticModel.types().ANYDATA)) {
-                inputType = param.typeDescriptor();
-                break;
-            }
-        }
+        TypeSymbol inputType = WorkflowRunBuilder.findWorkflowInputType(workflowFuncSymbol, semanticModel);
         if (inputType == null) {
             // The workflow function declares no input; drop the library-derived input property.
             currentProps.remove(WorkflowRunBuilder.INPUT_KEY);
@@ -3387,10 +3382,16 @@ public class CodeAnalyzer extends NodeVisitor {
                 valueNode = namedArg.expression();
             }
         }
+        // The input property built by processFunctionSymbol already consumed the diagnostic-handler
+        // cursor for this value node, so its diagnostics are correct — only its type is wrong
+        // (library map<anydata>? vs the workflow's declared type). Capture those diagnostics and
+        // re-apply them, and rebuild the type WITHOUT the handler so the single-pass cursor is not
+        // advanced a second time for the same node (which would drop or misattribute diagnostics).
         Property existingInputProp = currentProps.get(WorkflowRunBuilder.INPUT_KEY);
         String value = valueNode != null ? valueNode.toSourceCode().strip()
                 : (existingInputProp != null && existingInputProp.value() != null
                         ? existingInputProp.value().toString() : "");
+        Diagnostics existingDiagnostics = existingInputProp != null ? existingInputProp.diagnostics() : null;
 
         // Re-adding at the same key preserves the property's position in the form.
         Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom();
@@ -3403,8 +3404,13 @@ public class CodeAnalyzer extends NodeVisitor {
                 .placeholder("")
                 .editable()
                 .stepOut();
-        customPropBuilder.typeWithExpression(inputType, moduleInfo, valueNode, semanticModel,
-                customPropBuilder, diagnosticHandler);
+        customPropBuilder.typeWithExpression(inputType, moduleInfo, valueNode, semanticModel, customPropBuilder);
+        if (existingDiagnostics != null && existingDiagnostics.hasDiagnostics()) {
+            customPropBuilder.diagnostics().hasDiagnostics();
+            if (existingDiagnostics.diagnostics() != null) {
+                customPropBuilder.diagnostics().diagnostics(existingDiagnostics.diagnostics());
+            }
+        }
         formBuilder.addProperty(WorkflowRunBuilder.INPUT_KEY, valueNode);
     }
 

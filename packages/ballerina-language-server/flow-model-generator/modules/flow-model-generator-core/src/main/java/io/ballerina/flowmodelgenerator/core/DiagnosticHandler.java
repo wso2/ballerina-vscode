@@ -57,7 +57,8 @@ public class DiagnosticHandler {
         iterator = diagnostics.stream()
                 .filter(diagnostic -> diagnostic.diagnosticInfo().severity() == DiagnosticSeverity.ERROR)
                 .sorted(Comparator
-                        .comparing((Diagnostic diagnostic) -> diagnostic.location().lineRange().fileName())
+                        .comparing((Diagnostic diagnostic) -> diagnostic.location().lineRange().fileName(),
+                                Comparator.nullsFirst(Comparator.naturalOrder()))
                         .thenComparingInt(diagnostic -> diagnostic.location().lineRange().startLine().line())
                         .thenComparingInt(diagnostic -> diagnostic.location().lineRange().startLine().offset()))
                 .iterator();

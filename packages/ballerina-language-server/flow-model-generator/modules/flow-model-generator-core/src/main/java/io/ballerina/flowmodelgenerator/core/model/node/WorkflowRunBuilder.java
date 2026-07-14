@@ -20,7 +20,6 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
-import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
@@ -194,19 +193,29 @@ public class WorkflowRunBuilder extends NodeBuilder {
 
         Symbol sym = targetSymbol.get();
         if (sym.kind() == SymbolKind.FUNCTION) {
-            FunctionTypeSymbol functionType = ((FunctionSymbol) sym).typeDescriptor();
-            Optional<List<ParameterSymbol>> params = functionType.params();
-
-            if (params.isPresent()) {
-                // Find the parameter whose type is a subtype of anydata
-                for (ParameterSymbol param : params.get()) {
-                    if (param.typeDescriptor().subtypeOf(semanticModel.types().ANYDATA)) {
-                        return param.typeDescriptor();
-                    }
-                }
-            }
+            return findWorkflowInputType((FunctionSymbol) sym, semanticModel);
         }
 
+        return null;
+    }
+
+    /**
+     * Returns the type of a workflow function's input parameter: the first parameter whose type is
+     * a subtype of {@code anydata} (the {@code workflow:Context} and events-record parameters are
+     * not subtypes of {@code anydata}, so they are skipped). Returns {@code null} when the function
+     * declares no input parameter.
+     *
+     * @param functionSymbol the workflow function symbol
+     * @param semanticModel  the semantic model
+     * @return the input parameter type, or {@code null} if the function takes no input
+     */
+    public static TypeSymbol findWorkflowInputType(FunctionSymbol functionSymbol, SemanticModel semanticModel) {
+        List<ParameterSymbol> params = functionSymbol.typeDescriptor().params().orElse(List.of());
+        for (ParameterSymbol param : params) {
+            if (param.typeDescriptor().subtypeOf(semanticModel.types().ANYDATA)) {
+                return param.typeDescriptor();
+            }
+        }
         return null;
     }
 }
