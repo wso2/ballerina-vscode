@@ -138,6 +138,18 @@ async function prepareExtensionsForLaunch(profileName) {
   return launchExtensionsFolder;
 }
 
+// macOS caps Unix domain socket paths at ~104 chars. VS Code binds its main
+// IPC socket at `<user-data-dir>/<ver>-main.sock`, and the launcher derives the
+// user-data-dir from `process.env.TEST_RESOURCES` (falling back to os.tmpdir(),
+// which on macOS is a ~48-char path under /var/folders). The profile name embeds
+// the scenario name, so a longer scenario pushes the socket path over the limit
+// and VS Code exits before a window ever opens. Point launch-time storage at a
+// short, stable root so even long scenario names stay well under the cap.
+// (Profile names include the pid, so per-profile subdirs never collide.)
+const launchStorageRoot = '/tmp/bae-store';
+fs.mkdirSync(launchStorageRoot, { recursive: true });
+process.env.TEST_RESOURCES = launchStorageRoot;
+
 async function launchIDE() {
   resetAuthoringDataFolder();
   const profileName = `bi-authoring-${sessionName}-${process.pid}`;
@@ -205,9 +217,13 @@ http.createServer((req, res) => {
   req.on('data', (chunk) => { body += chunk; });
   req.on('end', () => {
     const preview = body.trim().slice(0, 120).replace(/\n/g, ' ');
+    // Buffer step console output instead of streaming it: writing to the
+    // response before an error would lock the status code at 200 and make
+    // the later writeHead(500) crash the daemon (ERR_HTTP_HEADERS_SENT).
+    const logs = [];
     const run = async () => {
       log(`run: ${preview}`);
-      ctx.console = { log: (...args) => { if (!res.writableEnded) res.write(args.map(String).join(' ') + '\n'); } };
+      ctx.console = { log: (...args) => { logs.push(args.map(String).join(' ')); } };
       const wrapped = `(async()=>{return(${body})})()`;
       let code;
       try {
@@ -231,12 +247,14 @@ http.createServer((req, res) => {
       (result) => {
         log(`ok: ${preview}`);
         const out = typeof result === 'string' ? result : JSON.stringify(result) ?? '';
-        res.end(out || (result === undefined ? 'ok' : String(result)));
+        const prefix = logs.length ? logs.join('\n') + '\n' : '';
+        res.end(prefix + (out || (result === undefined ? 'ok' : String(result))));
       },
       (error) => {
         log(`err: ${error.message}`);
+        const prefix = logs.length ? logs.join('\n') + '\n' : '';
         res.writeHead(500);
-        res.end((error.stack ?? error.message) + '\n');
+        res.end(prefix + (error.stack ?? error.message) + '\n');
       }
     );
   });

@@ -25,6 +25,7 @@ coverage/
 .vscode-test/
 test-resources/
 extractedDistribution/
+packages/ballerina-extension/test-results/
 .npmrc
 .env
 .hintrc

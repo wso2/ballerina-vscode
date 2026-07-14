@@ -342,4 +342,56 @@ export class TypeEditorUtils {
             await checkbox.click();
         }
     }
+
+    /**
+     * Set the Format dropdown on the Import tab (JSON or XML)
+     */
+    async setImportFormat(format: 'JSON' | 'XML'): Promise<void> {
+        const dropdown = this.webView.locator('vscode-dropdown#format-selector');
+        await this.waitForElement(dropdown);
+        await dropdown.click();
+        const option = this.webView.locator(`vscode-option[value="${format}"]`);
+        await option.waitFor();
+        await option.click();
+        await this.page.waitForTimeout(500);
+    }
+
+    /**
+     * Fill the Name field on the Import tab (JSON format only)
+     */
+    async setImportTypeName(name: string): Promise<void> {
+        // vscode-text-field with label="Name" renders an accessible textbox
+        const input = this.webView.getByRole('textbox', { name: 'Name' });
+        await input.waitFor({ timeout: 10000 });
+        await input.fill(name);
+    }
+
+    /**
+     * Paste content into the Import textarea (JSON or XML)
+     */
+    async fillImportTextArea(content: string): Promise<void> {
+        const textarea = this.webView.locator('vscode-text-area textarea').first();
+        await this.waitForElement(textarea);
+        await textarea.click();
+        await textarea.fill(content);
+    }
+
+    async switchToImportTab(): Promise<void> {
+        const importBtn = this.webView.getByRole('button', { name: 'Import' });
+        await this.waitForElement(importBtn);
+        await importBtn.click();
+        await this.page.waitForTimeout(2000);
+        await this.page.waitForLoadState('domcontentloaded');
+    }
+
+    /**
+     * Click the Import button and wait for the diagram to reload
+     */
+    async clickImportButton(): Promise<void> {
+        const importBtn = this.webView.getByTestId('import-tab').getByRole('button', { name: 'Import' });
+        await this.waitForElement(importBtn);
+        await importBtn.click();
+        await this.page.waitForTimeout(2000);
+        await this.page.waitForLoadState('domcontentloaded');
+    }
 }
