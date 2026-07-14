@@ -102,6 +102,10 @@ public class IntermediateModel {
         // workflow uuid -> data event names sent via workflow:sendData
         protected final Map<String, Set<String>> workflowSendData = new HashMap<>();
         protected final Map<String, Set<String>> allDependentWorkflowSendData = new HashMap<>();
+        // workflow uuids targeted by workflow:sendData calls whose data event name is unknown
+        // or does not match any event declared by the workflow function
+        protected final Set<String> invalidWorkflowSendData = new HashSet<>();
+        protected final Set<String> allDependentInvalidWorkflowSendData = new HashSet<>();
 
         protected void addSentEvent(String workflowUuid, String eventName) {
             this.workflowSendData.computeIfAbsent(workflowUuid, k -> new HashSet<>()).add(eventName);

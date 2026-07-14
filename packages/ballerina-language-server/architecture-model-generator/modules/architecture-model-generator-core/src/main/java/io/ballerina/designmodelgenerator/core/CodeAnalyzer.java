@@ -355,8 +355,9 @@ public class CodeAnalyzer extends NodeVisitor {
         if (eventName != null && workflow.getEvent(eventName).isPresent()) {
             this.currentFunctionModel.addSentEvent(workflow.getUuid(), eventName);
         } else {
-            // The event cannot be resolved statically; fall back to a workflow-level edge
-            this.currentFunctionModel.workflows.add(workflow.getUuid());
+            // The data name is either not statically resolvable or does not match any event declared
+            // by the workflow function (e.g. the event was renamed); track it as an invalid send
+            this.currentFunctionModel.invalidWorkflowSendData.add(workflow.getUuid());
         }
     }
 

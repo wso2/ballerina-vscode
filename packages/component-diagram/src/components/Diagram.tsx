@@ -334,6 +334,29 @@ export function Diagram(props: DiagramProps) {
                 }
             });
 
+            // draw broken links for workflow:sendData calls whose data event cannot be matched.
+            // Edges from a specific service function row are already drawn by createFunctionConnections
+            const serviceFunctionInvalidSendsTo = (service: CDService, workflowUuid: string) =>
+                [...(service.remoteFunctions ?? []), ...(service.resourceFunctions ?? [])].some((func) =>
+                    func.invalidWorkflowSendData?.includes(workflowUuid)
+                );
+            const invalidSenderUuids = [
+                ...(workflow.invalidSendDataServices ?? []).filter((serviceUuid) => {
+                    const service = project.services?.find((item) => item.uuid === serviceUuid);
+                    return !(service && serviceFunctionInvalidSendsTo(service, workflow.uuid));
+                }),
+                ...(workflow.invalidSendDataFunctions ?? []),
+            ];
+            invalidSenderUuids.forEach((senderUuid) => {
+                const senderNode = nodes.find((node) => node.getID() === senderUuid);
+                if (senderNode) {
+                    const link = createNodesLink(senderNode, workflowNode, { visible: true, broken: true });
+                    if (link) {
+                        links.push(link);
+                    }
+                }
+            });
+
             // link the entry points that send data to this workflow via workflow:sendData. Edges
             // from a specific service function row are already drawn by createFunctionConnections;
             // only fall back to a service-level edge when no function row carries the link
@@ -581,6 +604,19 @@ function createFunctionConnections(
                     links.push(link);
                 }
             });
+        });
+        // workflow:sendData calls whose data event cannot be matched are drawn as broken links
+        func.invalidWorkflowSendData?.forEach((workflowUuid) => {
+            const workflowNode = nodes.find((n) => n.getID() === workflowUuid);
+            if (workflowNode) {
+                const port = portGetter(func, group);
+                if (port) {
+                    const link = createPortNodeLink(port, workflowNode, { visible: true, broken: true });
+                    if (link) {
+                        links.push(link);
+                    }
+                }
+            }
         });
     });
 }

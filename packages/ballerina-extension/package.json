@@ -1433,7 +1433,7 @@
         "clean": "del-cli ./dist ./out ./ballerina-*.vsix ./coverage ./.nyc_output",
         "compile": "webpack --mode production",
         "watch-ballerina": "webpack --mode none --watch",
-        "test-compile": "tsc -p ./",
+        "test-compile": "tsc -p ./ && copyfiles -u 1 \"src/**/*.md\" out/src",
         "test": "pnpm run test-compile && node ./out/test/runTest.js",
         "test:ai": "pnpm run test-compile && node ./out/test/runAiTest.js",
         "test:libs-integration": "pnpm run test-compile && node ./out/test/runLibsIntegrationTest.js",

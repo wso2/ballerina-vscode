@@ -21,7 +21,7 @@ import * as cp from 'child_process';
 import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath, runTests } from '@vscode/test-electron';
 const dotenv = require('dotenv');
 const packageJson = require('../../package.json');
-const { createEnvDefinePlugin } = require('../../../../../common/scripts/env-webpack-helper');
+const { createEnvDefinePlugin } = require('../../../../common/scripts/env-webpack-helper');
 
 async function main() {
     try {

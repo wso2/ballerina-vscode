@@ -1,6 +1,6 @@
 {
   "source": "workflow_function_empty/main.bal",
-  "description": "Generate workflow:sendData call",
+  "description": "Update workflow:sendData call with a changed data event name",
   "diagram": {
     "id": "1",
     "metadata": {
@@ -84,19 +84,28 @@
           {
             "fieldType": "SINGLE_SELECT",
             "ballerinaType": "string",
-            "options": [],
+            "options": [
+              {
+                "label": "paymentReceived",
+                "value": "paymentReceived"
+              },
+              {
+                "label": "y",
+                "value": "y"
+              }
+            ],
             "selected": true
           }
         ],
-        "value": "y",
+        "value": "paymentReceived",
         "optional": false,
-        "editable": false,
+        "editable": true,
         "advanced": false,
         "hidden": false,
         "codedata": {
           "kind": "REQUIRED"
         },
-        "modified": false
+        "modified": true
       },
       "data": {
         "metadata": {
@@ -151,7 +160,7 @@
             "character": 0
           }
         },
-        "newText": "\ncheck workflow:sendData(workflow1, workflowIde3, \"y\", 2);"
+        "newText": "\ncheck workflow:sendData(workflow1, workflowIde3, \"paymentReceived\", 2);"
       }
     ]
   }

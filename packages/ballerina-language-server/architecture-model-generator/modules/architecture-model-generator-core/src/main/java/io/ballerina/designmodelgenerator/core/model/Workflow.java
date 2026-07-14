@@ -39,6 +39,8 @@ public final class Workflow extends DesignGraphNode {
     private final List<Event> events;
     private final List<HumanTask> humanTasks;
     private final Set<String> activities;
+    private final Set<String> invalidSendDataServices;
+    private final Set<String> invalidSendDataFunctions;
 
     public Workflow(String symbol, String sortText, Location location) {
         super(true, sortText);
@@ -49,6 +51,24 @@ public final class Workflow extends DesignGraphNode {
         this.events = new ArrayList<>();
         this.humanTasks = new ArrayList<>();
         this.activities = new HashSet<>();
+        this.invalidSendDataServices = new HashSet<>();
+        this.invalidSendDataFunctions = new HashSet<>();
+    }
+
+    public Set<String> getInvalidSendDataServices() {
+        return invalidSendDataServices;
+    }
+
+    public Set<String> getInvalidSendDataFunctions() {
+        return invalidSendDataFunctions;
+    }
+
+    public void addInvalidSendDataService(String serviceUuid) {
+        this.invalidSendDataServices.add(serviceUuid);
+    }
+
+    public void addInvalidSendDataFunction(String functionUuid) {
+        this.invalidSendDataFunctions.add(functionUuid);
     }
 
     public String getSymbol() {
@@ -161,7 +181,8 @@ public final class Workflow extends DesignGraphNode {
     @Override
     public int hashCode() {
         return Objects.hash(symbol, location, attachedServices.size(), attachedFunctions.size(),
-                events.size(), humanTasks.size(), activities.size());
+                events.size(), humanTasks.size(), activities.size(),
+                invalidSendDataServices.size(), invalidSendDataFunctions.size());
     }
 
     @Override
@@ -175,6 +196,8 @@ public final class Workflow extends DesignGraphNode {
                 && workflow.attachedFunctions.size() == this.attachedFunctions.size()
                 && workflow.events.size() == this.events.size()
                 && workflow.humanTasks.size() == this.humanTasks.size()
-                && workflow.activities.size() == this.activities.size();
+                && workflow.activities.size() == this.activities.size()
+                && workflow.invalidSendDataServices.size() == this.invalidSendDataServices.size()
+                && workflow.invalidSendDataFunctions.size() == this.invalidSendDataFunctions.size();
     }
 }

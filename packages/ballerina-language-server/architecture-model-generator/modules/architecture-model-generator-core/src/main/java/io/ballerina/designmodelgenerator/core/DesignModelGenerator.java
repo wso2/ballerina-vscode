@@ -118,6 +118,8 @@ public class DesignModelGenerator {
                 }
             }
             attachSendDataEdges(intermediateModel, main.allDependentWorkflowSendData, automation.getUuid(), true);
+            attachInvalidSendDataEdges(intermediateModel, main.allDependentInvalidWorkflowSendData,
+                    automation.getUuid(), true);
             builder.setAutomation(automation);
         }
 
@@ -127,6 +129,7 @@ public class DesignModelGenerator {
             Set<String> connections = new HashSet<>();
             Set<String> workflows = new HashSet<>();
             Map<String, Set<String>> serviceSendData = new HashMap<>();
+            Set<String> serviceInvalidSendData = new HashSet<>();
             List<Function> functions = new ArrayList<>();
             serviceModel.otherFunctions.values().forEach(otherFunction -> {
                 otherFunction.connections.forEach(connection -> {
@@ -140,10 +143,12 @@ public class DesignModelGenerator {
                 buildConnectionAndWorkflowGraph(intermediateModel, otherFunction, serviceModel);
                 functions.add(new Function(otherFunction.name, otherFunction.location,
                         otherFunction.allDependentConnections, otherFunction.allDependentWorkflows,
-                        otherFunction.allDependentWorkflowSendData));
+                        otherFunction.allDependentWorkflowSendData,
+                        otherFunction.allDependentInvalidWorkflowSendData));
                 connections.addAll(otherFunction.allDependentConnections);
                 workflows.addAll(otherFunction.allDependentWorkflows);
                 mergeSendData(serviceSendData, otherFunction.allDependentWorkflowSendData);
+                serviceInvalidSendData.addAll(otherFunction.allDependentInvalidWorkflowSendData);
             });
 
             List<Function> remoteFunctions = new ArrayList<>();
@@ -159,10 +164,12 @@ public class DesignModelGenerator {
                 buildConnectionAndWorkflowGraph(intermediateModel, remoteFunction, serviceModel);
                 remoteFunctions.add(new Function(remoteFunction.name, remoteFunction.location,
                         remoteFunction.allDependentConnections, remoteFunction.allDependentWorkflows,
-                        remoteFunction.allDependentWorkflowSendData));
+                        remoteFunction.allDependentWorkflowSendData,
+                        remoteFunction.allDependentInvalidWorkflowSendData));
                 connections.addAll(remoteFunction.allDependentConnections);
                 workflows.addAll(remoteFunction.allDependentWorkflows);
                 mergeSendData(serviceSendData, remoteFunction.allDependentWorkflowSendData);
+                serviceInvalidSendData.addAll(remoteFunction.allDependentInvalidWorkflowSendData);
             });
 
             List<ResourceFunction> resourceFunctions = new ArrayList<>();
@@ -178,10 +185,12 @@ public class DesignModelGenerator {
                 buildConnectionAndWorkflowGraph(intermediateModel, resourceFunction, serviceModel);
                 resourceFunctions.add(new ResourceFunction(resourceFunction.name, resourceFunction.path,
                         resourceFunction.location, resourceFunction.allDependentConnections,
-                        resourceFunction.allDependentWorkflows, resourceFunction.allDependentWorkflowSendData));
+                        resourceFunction.allDependentWorkflows, resourceFunction.allDependentWorkflowSendData,
+                        resourceFunction.allDependentInvalidWorkflowSendData));
                 connections.addAll(resourceFunction.allDependentConnections);
                 workflows.addAll(resourceFunction.allDependentWorkflows);
                 mergeSendData(serviceSendData, resourceFunction.allDependentWorkflowSendData);
+                serviceInvalidSendData.addAll(resourceFunction.allDependentInvalidWorkflowSendData);
             });
             List<Listener> allAttachedListeners = serviceModel.anonListeners;
             for (String listener : serviceModel.namedListeners) {
@@ -199,6 +208,7 @@ public class DesignModelGenerator {
                 }
             }
             attachSendDataEdges(intermediateModel, serviceSendData, service.getUuid(), false);
+            attachInvalidSendDataEdges(intermediateModel, serviceInvalidSendData, service.getUuid(), false);
             int size = allAttachedListeners.size();
             if (size > 0) {
                 Listener listener = allAttachedListeners.get(0);
@@ -251,6 +261,21 @@ public class DesignModelGenerator {
                     event.addAttachedService(senderUuid);
                 }
             }));
+        });
+    }
+
+    private void attachInvalidSendDataEdges(IntermediateModel intermediateModel, Set<String> invalidSendData,
+                                            String senderUuid, boolean isFunction) {
+        invalidSendData.forEach(workflowUuid -> {
+            Workflow workflow = intermediateModel.uuidToWorkflowMap.get(workflowUuid);
+            if (workflow == null) {
+                return;
+            }
+            if (isFunction) {
+                workflow.addInvalidSendDataFunction(senderUuid);
+            } else {
+                workflow.addInvalidSendDataService(senderUuid);
+            }
         });
     }
 
@@ -352,6 +377,7 @@ public class DesignModelGenerator {
         Set<String> connections = new HashSet<>();
         Set<String> workflows = new HashSet<>();
         Map<String, Set<String>> workflowSendData = new HashMap<>();
+        Set<String> invalidWorkflowSendData = new HashSet<>();
         Set<String> dependentServiceClasses = new HashSet<>();
         if (!functionModel.visited && !functionModel.analyzed) {
             functionModel.visited = true;
@@ -364,7 +390,7 @@ public class DesignModelGenerator {
                             buildConnectionAndWorkflowGraph(intermediateModel, serviceClassFunctionModel, serviceModel);
                         }
                         extractFieldsFromFunctionModel(serviceClassFunctionModel, connections,
-                                workflows, workflowSendData, dependentServiceClasses);
+                                workflows, workflowSendData, invalidWorkflowSendData, dependentServiceClasses);
                     });
                 }
             });
@@ -378,7 +404,7 @@ public class DesignModelGenerator {
                     buildConnectionAndWorkflowGraph(intermediateModel, dependentFunctionModel, serviceModel);
                 }
                 extractFieldsFromFunctionModel(dependentFunctionModel, connections, workflows, workflowSendData,
-                        dependentServiceClasses);
+                        invalidWorkflowSendData, dependentServiceClasses);
             });
 
             functionModel.dependentObjFuncs.forEach(dependentObjFunc -> {
@@ -394,13 +420,14 @@ public class DesignModelGenerator {
                     buildConnectionAndWorkflowGraph(intermediateModel, dependentFunctionModel, serviceModel);
                 }
                 extractFieldsFromFunctionModel(dependentFunctionModel, connections, workflows, workflowSendData,
-                        dependentServiceClasses);
+                        invalidWorkflowSendData, dependentServiceClasses);
             });
         }
         functionModel.visited = true;
         functionModel.allDependentConnections.addAll(functionModel.connections);
         functionModel.allDependentWorkflows.addAll(functionModel.workflows);
         mergeSendData(functionModel.allDependentWorkflowSendData, functionModel.workflowSendData);
+        functionModel.allDependentInvalidWorkflowSendData.addAll(functionModel.invalidWorkflowSendData);
         functionModel.usedClasses.addAll(dependentServiceClasses);
         // Also add transitive dependent connections
         for (String connectionUuid : functionModel.connections) {
@@ -413,12 +440,14 @@ public class DesignModelGenerator {
         functionModel.allDependentConnections.addAll(connections);
         functionModel.allDependentWorkflows.addAll(workflows);
         mergeSendData(functionModel.allDependentWorkflowSendData, workflowSendData);
+        functionModel.allDependentInvalidWorkflowSendData.addAll(invalidWorkflowSendData);
         functionModel.analyzed = true;
     }
 
     private void extractFieldsFromFunctionModel(IntermediateModel.FunctionModel functionModel, Set<String> connections,
                                                 Set<String> workflows,
                                                 Map<String, Set<String>> workflowSendData,
+                                                Set<String> invalidWorkflowSendData,
                                                 Set<String> dependentServiceClasses) {
         connections.addAll(functionModel.allDependentConnections);
         connections.addAll(functionModel.connections);
@@ -426,6 +455,8 @@ public class DesignModelGenerator {
         workflows.addAll(functionModel.workflows);
         mergeSendData(workflowSendData, functionModel.allDependentWorkflowSendData);
         mergeSendData(workflowSendData, functionModel.workflowSendData);
+        invalidWorkflowSendData.addAll(functionModel.allDependentInvalidWorkflowSendData);
+        invalidWorkflowSendData.addAll(functionModel.invalidWorkflowSendData);
         dependentServiceClasses.addAll(functionModel.usedClasses);
     }
 

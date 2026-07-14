@@ -31,18 +31,22 @@ import java.util.Set;
  * @param connections dependent connections of the resource function
  * @param workflows dependent workflows of the resource function (referenced via workflow:run())
  * @param workflowSendData workflow data events sent by the function via workflow:sendData(), keyed by workflow uuid
+ * @param invalidWorkflowSendData uuids of workflows targeted by workflow:sendData() calls whose data event name is
+ *                                unknown or does not match any event declared by the workflow function
  *
  * @since 1.0.0
  */
 public record ResourceFunction(String accessor, String path, Location location, Set<String> connections,
-                               Set<String> workflows, Map<String, Set<String>> workflowSendData) {
+                               Set<String> workflows, Map<String, Set<String>> workflowSendData,
+                               Set<String> invalidWorkflowSendData) {
 
     @Override
     public int hashCode() {
         int connections = connections() != null ? connections().size() : 0;
         int workflows = workflows() != null ? workflows().size() : 0;
         int workflowSendData = workflowSendData() != null ? workflowSendData().size() : 0;
+        int invalidWorkflowSendData = invalidWorkflowSendData() != null ? invalidWorkflowSendData().size() : 0;
         return Objects.hash(accessor().hashCode(), path().hashCode(), location().hashCode(), connections, workflows,
-                workflowSendData);
+                workflowSendData, invalidWorkflowSendData);
     }
 }

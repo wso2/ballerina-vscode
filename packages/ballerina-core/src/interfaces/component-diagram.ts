@@ -44,6 +44,8 @@ export type CDWorkflow = {
     events?: CDWorkflowEvent[];
     humanTasks?: CDWorkflowHumanTask[];
     activities?: string[];
+    invalidSendDataServices?: string[];
+    invalidSendDataFunctions?: string[];
     uuid: string;
     enableFlowModel: boolean;
     sortText: string;
@@ -126,6 +128,7 @@ export type CDFunction = {
     connections?: string[];
     workflows?: string[];
     workflowSendData?: Record<string, string[]>;
+    invalidWorkflowSendData?: string[];
 };
 
 export type CDResourceFunction = {
@@ -135,4 +138,5 @@ export type CDResourceFunction = {
     connections?: string[];
     workflows?: string[];
     workflowSendData?: Record<string, string[]>;
+    invalidWorkflowSendData?: string[];
 };
