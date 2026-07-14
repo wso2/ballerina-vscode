@@ -18,7 +18,7 @@
 
 import { AttachmentHandler } from "./attachmentHandler";
 import { Attachment, AttachmentStatus } from "@wso2/ballerina-core";
-import { readFileAsText, readFileAsBase64, readFileAsRawBase64, validateFileSize, validateFileType } from "./attachmentUtils";
+import { readFileAsText, readFileAsBase64, readFileAsRawBase64, resolveMimeType, validateFileSize, validateFileType } from "./attachmentUtils";
 
 /**
  * Abstract base class that provides common file-attachment handling logic.
@@ -60,14 +60,13 @@ export abstract class BaseAttachment implements AttachmentHandler {
 
             try {
                 const content = await this.readFileContent(file);
-                // Normalize the mime type so a PDF is always labelled application/pdf,
-                // even when the browser reports an empty file.type for a .pdf file.
-                const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
                 results.push({
                     name: file.name,
                     content,
                     status: AttachmentStatus.Success,
-                    mimeType: isPdf ? "application/pdf" : file.type,
+                    // Resolve the mime type (falling back to the extension) so images
+                    // and PDFs stay correctly typed even when file.type is empty.
+                    mimeType: resolveMimeType(file),
                 });
             } catch {
                 results.push({
@@ -85,13 +84,15 @@ export abstract class BaseAttachment implements AttachmentHandler {
     /**
      * Default method to read file content.
      * Images are read as base64 data URLs, PDFs as raw base64, text files as plain text.
-     * Subclasses can override this if needed.
+     * The mime type is resolved from file.type with an extension fallback so binary
+     * files are never mis-read as text. Subclasses can override this if needed.
      */
     protected async readFileContent(file: File): Promise<string> {
-        if (file.type.startsWith('image/')) {
+        const mimeType = resolveMimeType(file);
+        if (mimeType.startsWith('image/')) {
             return readFileAsBase64(file);
         }
-        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+        if (mimeType === 'application/pdf') {
             return readFileAsRawBase64(file);
         }
         return readFileAsText(file);
