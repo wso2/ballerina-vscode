@@ -216,7 +216,9 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     const [mcpServers, setMcpServers] = useState<McpServerStatusDTO[]>([]);
     const [skills, setSkills] = useState<SkillEntry[]>([]);
     const [agentsMdInfo, setAgentsMdInfo] = useState<AgentsMdFileInfoDTO | null>(null);
-    const [clearing, setClearing] = React.useState<'workspace' | 'all' | null>(null);
+    // TODO(auto-memory): memory UI state temporarily disabled for this release — restore once the memory feature is refined.
+    // const [clearing, setClearing] = React.useState<'workspace' | 'all' | null>(null);
+    // const [clearError, setClearError] = React.useState<string | null>(null);
 
     useEffect(() => {
         isCopilotAuthorized().then(setCopilotAuthorized);
@@ -324,12 +326,16 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     // };
     //
     // const handleClearConfirm = async (scope: 'workspace' | 'all') => {
+    //     setClearError(null);
     //     try {
     //         await rpcClient.getAiPanelRpcClient().clearMemory({ scope });
+    //         setClearing(null);  // success — close the confirm UI
     //     } catch (e: unknown) {
-    //         console.error('[SettingsPanel] clearMemory failed:', e instanceof Error ? e.message : String(e));
-    //     } finally {
-    //         setClearing(null);
+    //         const msg = e instanceof Error ? e.message : String(e);
+    //         console.error('[SettingsPanel] clearMemory failed:', msg);
+    //         // Surface the failure to the user; keep `clearing` set so the confirm row
+    //         // and error message stay visible instead of silently disappearing as on success.
+    //         setClearError(`Failed to clear ${scope === 'all' ? 'all' : 'workspace'} memories: ${msg}`);
     //     }
     // };
 
@@ -435,6 +441,11 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
                             <DestructiveButton onClick={() => setClearing('all')}>Clear</DestructiveButton>
                         )}
                     </SettingRow>
+                    {clearError && (
+                        <SettingRow>
+                            <SettingDescription style={{ color: 'var(--vscode-errorForeground)' }}>{clearError}</SettingDescription>
+                        </SettingRow>
+                    )}
                 </Section>
                 */}
 
