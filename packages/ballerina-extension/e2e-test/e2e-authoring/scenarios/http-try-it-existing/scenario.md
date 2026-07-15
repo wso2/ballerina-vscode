@@ -120,7 +120,7 @@ Emotion/generated class selectors.
 
 - Step 05 confirmed: clicking `secure`'s own Try It button (service already
   running) regenerates `target/TryIt.hurl` containing **only**:
-  ```
+  ```hurl
   # md: ### Try Service: '/' (http://localhost:9090)
 
   # md: #### GET /secure

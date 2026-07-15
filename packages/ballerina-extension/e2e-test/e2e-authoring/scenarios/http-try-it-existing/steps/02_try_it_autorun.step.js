@@ -55,7 +55,9 @@
   if (!fs.existsSync(hurlPath)) throw new Error('target/TryIt.hurl was not generated');
 
   const hurl = fs.readFileSync(hurlPath, 'utf8');
-  if (!hurl.includes('GET http://localhost:9090/greeting')) {
+  // A plain substring check would also match "GET .../greeting/name", so the
+  // request line is checked for an exact match instead.
+  if (!hurl.split('\n').some((line) => line.trim() === 'GET http://localhost:9090/greeting')) {
     throw new Error('TryIt.hurl missing GET /greeting cell:\n' + hurl);
   }
 

@@ -56,6 +56,12 @@ async function clickNotificationButton(name: string, timeoutMs: number) {
     throw new Error(`Notification action "${name}" not found within ${timeoutMs}ms`);
 }
 
+// hurl.toContain(`GET ${url}/greeting`) also matches `GET .../greeting/name`,
+// so a request line is checked for an exact match instead.
+function hasExactHurlLine(hurl: string, line: string): boolean {
+    return hurl.split('\n').some((l) => l.trim() === line);
+}
+
 async function fetchEndpoint(url: string, init: RequestInit = { method: 'GET' }): Promise<{ status: number; body: string; headers: Headers }> {
     const response = await fetch(url, init);
     return { status: response.status, body: await response.text(), headers: response.headers };
@@ -148,7 +154,7 @@ export default function createTests() {
 
             const hurl = await tryItAutoStartAndWaitForHurl(webview);
             logStep('Verify the generated TryIt.hurl request cell');
-            expect(hurl).toContain(`GET ${BASE_URL}/greeting`);
+            expect(hasExactHurlLine(hurl, `GET ${BASE_URL}/greeting`)).toBe(true);
 
             logStep('Verify the notebook opened');
             await expect(page.page.locator('.tabs-container .tab', { hasText: 'TryIt.hurl' }).first())
@@ -195,7 +201,15 @@ export default function createTests() {
 
             logStep('Run all notebook cells');
             await page.page.getByRole('button', { name: /Run All/i }).first().click({ force: true });
-            await page.page.waitForTimeout(4000);
+            // The notebook is virtualized (only 1-2 cells ever mount, per the
+            // comment above), so per-cell success states can't be counted to
+            // confirm all 4 cells finished. Wait for a visible success state
+            // as confirmation execution actually started/completed (same
+            // signal used for the single-cell case above), then rely on the
+            // endpoint probes below — each already polls for up to 30s — for
+            // the real correctness check.
+            await expect(page.page.locator('.codicon-notebook-state-success').first())
+                .toBeVisible({ timeout: 15000 });
 
             logStep('Verify the path param request');
             const pathParamResponse = await waitForEndpoint(`${BASE_URL}/greeting/name`, 30000);
