@@ -177,7 +177,8 @@ export class TypeEditorUtils {
      */
     async clickAddType(): Promise<void> {
         const addTypeButton = this.webView.getByRole('button', { name: 'Add Type' });
-        await this.waitForElement(addTypeButton);
+        // The type diagram's first load is slow while the language server warms up
+        await this.waitForElement(addTypeButton, 120000);
         await addTypeButton.click();
     }
 

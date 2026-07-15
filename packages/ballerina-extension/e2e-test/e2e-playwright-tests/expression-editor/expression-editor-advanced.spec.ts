@@ -181,8 +181,10 @@ async function openNodePalette(frame: Frame): Promise<SidePanel> {
     const diagram = new Diagram(page.page);
     await diagram.init();
     // Click the last visible plus button on the flow (works for a growing flow)
+    // The diagram can still be re-rendering right after the previous node's
+    // panel closes, so give it the same headroom as saveOpenForm's wait.
     const canvas = frame.getByTestId('bi-diagram-canvas');
-    await canvas.waitFor({ timeout: 30000 });
+    await canvas.waitFor({ timeout: 60000 });
 
     // The diagram can still be re-rendering right after the previous node's
     // panel closes, so the add-button testids may not exist yet — poll for
@@ -680,8 +682,9 @@ export default function createTests() {
             await page.page.waitForTimeout(1000);
             await frame.getByText('Variables', { exact: true }).last().waitFor({ timeout: 10000 });
             await frame.getByText('Variables', { exact: true }).last().click({ force: true });
-            await page.page.waitForTimeout(1500);
-            await frame.getByText(greetingName, { exact: true }).last().click({ force: true });
+            const greetingOption = frame.getByText(greetingName, { exact: true }).last();
+            await greetingOption.waitFor({ state: 'visible', timeout: 15000 });
+            await greetingOption.click({ force: true });
             await page.page.waitForTimeout(1500);
 
             const varChip = queryEd.locator('span[contenteditable="false"]', { hasText: greetingName }).first();
