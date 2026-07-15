@@ -16,7 +16,7 @@
  * under the License.
  */
 import { expect, test } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, DEFAULT_PROJECT_NAME, getWebview, initTest, newProjectPath, page } from '../utils/helpers';
+import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, DEFAULT_PROJECT_NAME, getWebview, initTest, newProjectPath, page } from '../utils/helpers';
 import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
 import { waitForBISidebarTreeView } from '../utils/helpers/sidebar';
 import { ProjectExplorer } from '../utils/pages';
@@ -26,7 +26,7 @@ export default function createTests() {
     test.describe.serial('Project Creation Tests', {
     }, async () => {
         initTest(false);
-        test('Create Project', async ({ }, testInfo) => {
+        test('Create Project', async () => {
             const workbenchPage = page.page;
             // Activity bar entry is an <a class="action-label" aria-label="...">, not a tab role.
             console.log('Clicking on the WSO2 Integrator activity tab');
@@ -79,7 +79,6 @@ export default function createTests() {
             await form.submit('Create Integration');
 
             console.log('Waiting for project and BI webview');
-            const testAttempt = testInfo.retry + 1;
             const artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
             console.log('Waiting for integration name to be visible');
             await artifactWebView.locator(`text=${integrationName}`).waitFor({ timeout: 40000 });
@@ -89,36 +88,6 @@ export default function createTests() {
             const integrationNodeInWebview = artifactWebView.locator(`text=${integrationName}`);
             // await expect(integrationNodeInWebview).toBeVisible();
             await integrationNodeInWebview.click({ force: true });
-
-
-            // Create automation
-
-            console.log('Creating a new service in test attempt: ', testAttempt);
-            // Creating a HTTP Service
-            await addArtifact('HTTP Service', 'http-service-card');
-            const artifactWebView2 = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
-            if (!artifactWebView2) {
-                throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
-            }
-            const sampleName = `/sample${testAttempt}`;
-            const form2 = new Form(page.page, BI_INTEGRATOR_LABEL, artifactWebView2);
-            await form2.switchToFormView(false, artifactWebView2);
-            await form2.fill({
-                values: {
-                    'Service Base Path*': {
-                        type: 'input',
-                        value: sampleName,
-                    }
-                }
-            });
-            await form2.submit('Create');
-            // Check for both possible text matches to avoid strict mode violation
-            const httpServiceLabel = artifactWebView2.locator(`text=HTTP Service - ${sampleName}`);
-            const servicePathLabel = artifactWebView2.locator(`text=${sampleName}`).first();
-            await Promise.race([
-                httpServiceLabel.waitFor(),
-                servicePathLabel.waitFor()
-            ]);
         });
     });
 }

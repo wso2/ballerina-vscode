@@ -17,9 +17,9 @@
  */
 import { test } from '@playwright/test';
 import * as path from 'path';
-import { initTest, logStep, page, toggleNotifications } from '../utils/helpers';
-import { waitForBISidebarTreeView } from '../utils/helpers/sidebar';
-import { ProjectExplorer } from '../utils/pages';
+import { initTest, logStep, page, toggleNotifications } from '../../utils/helpers';
+import { waitForBISidebarTreeView } from '../../utils/helpers/sidebar';
+import { ProjectExplorer } from '../../utils/pages';
 
 const RUN_BUTTON_SELECTOR = 'ul.actions-container[role="toolbar"] li.action-item a[role="button"][aria-label="Run Integration"]';
 const RESTART_PROMPT_TEXT = 'This integration is already running';

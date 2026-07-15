@@ -41,10 +41,10 @@ async function withTimeout<T>(operation: Promise<T>, timeoutMs: number, timeoutM
 
 import automation from './automation/automation.spec';
 import automationFlowNodes from './automation/flow-nodes.spec';
-import automationRun from './automation-run/automation-run.spec';
-import runConflict from './run-conflict/run-conflict.spec';
-import runConcurrent from './run-concurrent/run-concurrent.spec';
-import automationDebug from './automation-debug/automation-debug.spec';
+import automationRun from './rundebug/run/automation-run.spec';
+import runConflict from './rundebug/run-conflict/run-conflict.spec';
+import runConcurrent from './rundebug/run-concurrent/run-concurrent.spec';
+import automationDebug from './rundebug/debug/automation-debug.spec';
 import expressionEditor from './expression-editor/expression-editor.spec';
 import expressionEditorAdvanced from './expression-editor/expression-editor-advanced.spec';
 
@@ -77,10 +77,10 @@ import serviceTest from './service-designer/service-class.spec';
 
 import importIntegration from './import-integration/import-integration.spec';
 
-import reusableDataMapper from './data-mapper/reusable-data-mapper.spec';
-import inlineDataMapper from './data-mapper/inline-data-mapper.spec';
+import reusableDataMapper from './datamapper/reusable-data-mapper.spec';
+import inlineDataMapper from './datamapper/inline-data-mapper.spec';
 
-import createProject from './project-creation/project-creation.spec';
+import createProject from './project-overview/project-creation.spec';
 
 import diagram from './diagram/diagram.spec';
 

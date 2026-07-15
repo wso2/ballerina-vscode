@@ -17,11 +17,11 @@
  */
 import { test } from '@playwright/test';
 import * as path from 'path';
-import { initTest, logStep, page, toggleNotifications } from '../utils/helpers';
-import { waitForBISidebarTreeView } from '../utils/helpers/sidebar';
-import { ProjectExplorer } from '../utils/pages';
-import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
-import { FileUtils } from '../utils/helpers/fileSystem';
+import { initTest, logStep, page, toggleNotifications } from '../../utils/helpers';
+import { waitForBISidebarTreeView } from '../../utils/helpers/sidebar';
+import { ProjectExplorer } from '../../utils/pages';
+import { DEFAULT_PROJECT_NAME } from '../../utils/helpers/constants';
+import { FileUtils } from '../../utils/helpers/fileSystem';
 
 const RUN_BUTTON_SELECTOR = 'ul.actions-container[role="toolbar"] li.action-item a[role="button"][aria-label="Run Integration"]';
 // Integrations run concurrently; only re-running the SAME integration prompts

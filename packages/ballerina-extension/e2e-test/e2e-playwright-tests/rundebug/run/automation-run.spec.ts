@@ -16,11 +16,11 @@
  * under the License.
  */
 import { test } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from '../utils/helpers';
+import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from '../../utils/helpers';
 import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
-import { ProjectExplorer, Diagram, SidePanel } from '../utils/pages';
-import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
-import { FileUtils } from '../utils/helpers/fileSystem';
+import { ProjectExplorer, Diagram, SidePanel } from '../../utils/pages';
+import { DEFAULT_PROJECT_NAME } from '../../utils/helpers/constants';
+import { FileUtils } from '../../utils/helpers/fileSystem';
 
 export default function createTests() {
     // Run Integration Tests
