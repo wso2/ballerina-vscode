@@ -50,6 +50,41 @@ interface BallerinaModule {
     isGenerated: boolean;
 }
 
+const REVIEW_BASELINE_SUFFIX = '-review-baseline';
+const REVIEW_BASELINE_IGNORED_DIRECTORIES = new Set([
+    '.git',
+    'node_modules',
+    'target',
+    'build',
+    'dist',
+]);
+
+export function getReviewBaselinePath(tempProjectPath: string): string {
+    return `${tempProjectPath}${REVIEW_BASELINE_SUFFIX}`;
+}
+
+async function copyReviewBaselineFiles(sourceRoot: string, baselineRoot: string, relativeDir = ''): Promise<void> {
+    const sourceDir = path.join(sourceRoot, relativeDir);
+    const entries = await fs.promises.readdir(sourceDir, { withFileTypes: true });
+
+    for (const entry of entries) {
+        if (entry.isDirectory()) {
+            if (!REVIEW_BASELINE_IGNORED_DIRECTORIES.has(entry.name)) {
+                await copyReviewBaselineFiles(sourceRoot, baselineRoot, path.join(relativeDir, entry.name));
+            }
+            continue;
+        }
+        if (!entry.isFile() || (!entry.name.endsWith('.bal') && entry.name !== 'Ballerina.toml')) {
+            continue;
+        }
+
+        const relativeFile = path.join(relativeDir, entry.name);
+        const baselineFile = path.join(baselineRoot, relativeFile);
+        await fs.promises.mkdir(path.dirname(baselineFile), { recursive: true });
+        await fs.promises.copyFile(path.join(sourceRoot, relativeFile), baselineFile);
+    }
+}
+
 /**
  * Recursively finds all .bal files in a directory
  * @param dir Directory to search
@@ -113,6 +148,7 @@ export async function getTempProject(ctx: ExecutionContext): Promise<TempProject
     const timestamp = Date.now();
     const randomSuffix = crypto.randomBytes(4).toString('hex');
     const tempDir = path.join(os.tmpdir(), `bal-proj-${projectHash}-${timestamp}-${randomSuffix}`);
+    const baselineDir = getReviewBaselinePath(tempDir);
 
     if (fs.existsSync(tempDir)) {
         const existingFiles = findAllBalFiles(tempDir);
@@ -125,11 +161,28 @@ export async function getTempProject(ctx: ExecutionContext): Promise<TempProject
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
 
-    // Create temp directory
-    fs.mkdirSync(tempDir, { recursive: true });
+    try {
+        // Create temp directory
+        fs.mkdirSync(tempDir, { recursive: true });
 
-    // Copy entire project to temp directory
-    await fs.promises.cp(projectRoot, tempDir, { recursive: true });
+        // Copy entire project to temp directory
+        await fs.promises.cp(projectRoot, tempDir, { recursive: true });
+
+        // Keep a compact, on-disk original for review restoration. Checkpoints are optional and
+        // size-limited, while this baseline only contains files used by semantic/diagram diffs.
+        await fs.promises.mkdir(baselineDir, { recursive: true });
+        await copyReviewBaselineFiles(tempDir, baselineDir);
+    } catch (error) {
+        // A partial project/baseline is never usable and must not outlive a failed setup.
+        for (const directory of [tempDir, baselineDir]) {
+            try {
+                fs.rmSync(directory, { recursive: true, force: true });
+            } catch (cleanupError) {
+                console.error(`Failed to remove partial temp project artifact at ${directory}:`, cleanupError);
+            }
+        }
+        throw error;
+    }
 
     return {
         path: tempDir
@@ -144,22 +197,29 @@ export async function getTempProject(ctx: ExecutionContext): Promise<TempProject
  * @param tempPath Path to the temporary project to delete
  */
 export async function cleanupTempProject(tempPath: string): Promise<void> {
-    if (!fs.existsSync(tempPath)) {
+    const baselinePath = getReviewBaselinePath(tempPath);
+    if (!fs.existsSync(tempPath) && !fs.existsSync(baselinePath)) {
         return;
     }
 
     try {
         // Find all .bal files and send didClose notifications
-        const balFiles = findAllBalFiles(tempPath);
+        const balFiles = fs.existsSync(tempPath) ? findAllBalFiles(tempPath) : [];
         if (balFiles.length > 0) {
             sendAgentDidCloseBatch(tempPath, balFiles); // Handles both file:// and ai:// schemas
             await new Promise(resolve => setTimeout(resolve, 300)); // Wait for LS to process
         }
-
-        // Delete temp directory
-        fs.rmSync(tempPath, { recursive: true, force: true });
     } catch (error) {
-        console.error(`Failed to cleanup temp project at ${tempPath}:`, error);
+        console.error(`Failed to notify the language server before cleaning up ${tempPath}:`, error);
+    } finally {
+        // Remove both directories even when an LS notification fails.
+        for (const directory of [tempPath, baselinePath]) {
+            try {
+                fs.rmSync(directory, { recursive: true, force: true });
+            } catch (error) {
+                console.error(`Failed to cleanup temp project artifact at ${directory}:`, error);
+            }
+        }
     }
 }
 

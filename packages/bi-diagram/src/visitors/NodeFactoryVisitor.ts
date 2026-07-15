@@ -55,8 +55,9 @@ export class NodeFactoryVisitor implements BaseVisitor {
     private hasSuggestedNode = false;
     private linkCounter = 0;
     private visibleBtnCounter = 0;
-    private pendingComment: FlowNode | undefined = undefined; // comment node awaiting attachment to next node
-    private nodeComments: Map<string, FlowNode> = new Map(); // maps node id -> preceding comment node
+    private pendingComments: FlowNode[] = []; // comment nodes awaiting attachment to the next node
+    private nodeComments: Map<string, FlowNode[]> = new Map(); // maps node id -> preceding/trailing comments
+    private lastCommentTargetId: string | undefined;
 
     constructor() {
         // console.log(">>> node factory visitor started");
@@ -71,10 +72,11 @@ export class NodeFactoryVisitor implements BaseVisitor {
     }
 
     private updateNodeLinks(node: FlowNode, nodeModel: NodeModel, options?: NodeLinkModelOptions): void {
-        // Associate any preceding comment node with this node
-        if (this.pendingComment) {
-            this.nodeComments.set(node.id, this.pendingComment);
-            this.pendingComment = undefined;
+        // Synthetic empty nodes have no widget. Keep comments pending until a real node,
+        // or attach them to the preceding real node when a branch/flow ends.
+        if (node.codedata.node !== "EMPTY") {
+            this.flushPendingComments(node.id);
+            this.lastCommentTargetId = node.id;
         }
         if (node.viewState?.startNodeId) {
             // new sub flow start
@@ -91,6 +93,15 @@ export class NodeFactoryVisitor implements BaseVisitor {
             }
         }
         this.lastNodeModel = nodeModel;
+    }
+
+    private flushPendingComments(targetId: string | undefined = this.lastCommentTargetId): void {
+        if (!targetId || this.pendingComments.length === 0) {
+            return;
+        }
+        const existing = this.nodeComments.get(targetId) ?? [];
+        this.nodeComments.set(targetId, [...existing, ...this.pendingComments]);
+        this.pendingComments = [];
     }
 
     private createBaseNode(node: FlowNode): NodeModel {
@@ -467,17 +478,20 @@ export class NodeFactoryVisitor implements BaseVisitor {
 
     endVisitConditional(node: Branch, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
+        this.flushPendingComments();
         this.lastNodeModel = undefined;
     }
 
     endVisitBody(node: Branch, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         // `Body` is inside `Foreach` node
+        this.flushPendingComments();
         this.lastNodeModel = undefined;
     }
 
     endVisitElse(node: Branch, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
+        this.flushPendingComments();
         this.lastNodeModel = undefined;
     }
 
@@ -731,6 +745,7 @@ export class NodeFactoryVisitor implements BaseVisitor {
 
     endVisitWorker(node: Branch, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
+        this.flushPendingComments();
         this.lastNodeModel = undefined;
     }
 
@@ -820,12 +835,15 @@ export class NodeFactoryVisitor implements BaseVisitor {
 
     beginVisitComment(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        // Store the comment as pending; it will be attached to the next non-comment node
-        // as a note chip rather than rendered as a standalone node in the diagram.
-        this.pendingComment = node;
+        // Keep every adjacent comment. A single pending slot made an inserted note overwrite
+        // the existing note before either could be rendered.
+        this.pendingComments.push(node);
     }
 
-    getNodeComments(): Map<string, FlowNode> {
+    getNodeComments(): Map<string, FlowNode[]> {
+        // A final comment has no following node; attach it to the preceding real node so it
+        // remains visible instead of being silently dropped.
+        this.flushPendingComments();
         return this.nodeComments;
     }
 

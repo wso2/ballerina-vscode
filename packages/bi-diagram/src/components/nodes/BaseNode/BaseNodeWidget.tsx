@@ -213,7 +213,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         nodeComments,
     } = useDiagramContext();
 
-    const noteComment = nodeComments?.get(model.node.id);
+    const noteComments = nodeComments?.get(model.node.id) ?? [];
 
     const isSelected = selectedNodeId === model.node.id;
 
@@ -488,7 +488,15 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                         <NodeStyles.Description>{nodeDescription as ReactNode}</NodeStyles.Description>
                     </NodeStyles.Header>
                     <NodeStyles.ActionButtonGroup>
-                        {noteComment && <NodeNoteChip commentNode={noteComment} engine={engine} onOpen={() => setIsNoteActive(true)} onClose={() => { setIsNoteActive(false); setIsHovered(false); }} />}
+                        {noteComments.map((noteComment) => (
+                            <NodeNoteChip
+                                key={noteComment.id}
+                                commentNode={noteComment}
+                                engine={engine}
+                                onOpen={() => setIsNoteActive(true)}
+                                onClose={() => { setIsNoteActive(false); setIsHovered(false); }}
+                            />
+                        ))}
                         {hasError && <DiagnosticsPopUp node={model.node} engine={engine} />}
                         {canViewFunction && (
                             <Tooltip content="View function flow">

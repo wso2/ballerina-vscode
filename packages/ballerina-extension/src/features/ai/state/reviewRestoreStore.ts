@@ -29,6 +29,8 @@ import { extension } from '../../../BalExtensionContext';
 export interface ReviewRestoreData {
     generationId: string;
     tempProjectPath: string;
+    /** Frozen pre-generation Ballerina sources. Optional for payloads written by older versions. */
+    baselineProjectPath?: string;
     modifiedFiles: string[];
     affectedPackagePaths: string[];
     semanticDiffs: object[];

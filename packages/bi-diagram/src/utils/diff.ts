@@ -25,6 +25,15 @@ export const DIFF_ADDED_BRANCH_LABEL = "Added";
 
 type NodeMatch = "exact" | "container" | "container-modified" | "modified" | null;
 
+interface DiffCounters {
+    hunk: number;
+    namespace: number;
+}
+
+// Each cell currently costs one NodeMatch entry and one numeric score entry. Keep the
+// quadratic path bounded so a generated function cannot exhaust or block the webview.
+const MAX_LCS_MATRIX_CELLS = 250_000;
+
 // Exact matches outrank header-equal containers, which outrank content edits, so an
 // unchanged sibling is always preferred as an alignment anchor over a modified pairing.
 function matchScore(match: NodeMatch): number {
@@ -48,12 +57,12 @@ function matchScore(match: NodeMatch): number {
  * `diffState` so widgets can render them accordingly.
  */
 export function mergeFlowModelsForDiff(oldFlow: Flow, newFlow: Flow): Flow {
-    const hunkCounter = { count: 0 };
+    const counters: DiffCounters = { hunk: 0, namespace: 0 };
     const oldNodes = cloneDeep(oldFlow.nodes ?? []);
     const newNodes = cloneDeep(newFlow.nodes ?? []);
     return {
         ...newFlow,
-        nodes: mergeNodeLists(oldNodes, newNodes, hunkCounter),
+        nodes: mergeNodeLists(oldNodes, newNodes, counters),
     };
 }
 
@@ -72,21 +81,72 @@ function stampNodeDeep(node: FlowNode, state: FlowNodeDiffState): void {
     node.branches?.forEach((branch) => branch.children?.forEach((child) => stampNodeDeep(child, state)));
 }
 
-// Whitespace is stripped entirely so formatter-only differences never register as changes.
+type StringDelimiter = '"' | "`";
+
+/**
+ * Removes formatter whitespace while preserving all text inside string and raw-template
+ * literals. A regular expression cannot make that distinction and would make `"a b"`
+ * compare equal to `"ab"`.
+ */
 function normalizeSource(text: string): string {
-    return text.replace(/\s+/g, "");
+    let result = "";
+    let delimiter: StringDelimiter | null = null;
+    let escaped = false;
+
+    for (const char of text) {
+        if (delimiter) {
+            result += char;
+            if (escaped) {
+                escaped = false;
+            } else if (char === "\\") {
+                escaped = true;
+            } else if (char === delimiter) {
+                delimiter = null;
+            }
+            continue;
+        }
+
+        if (char === '"' || char === "`") {
+            delimiter = char;
+            result += char;
+        } else if (!/\s/.test(char)) {
+            result += char;
+        }
+    }
+
+    return result;
 }
 
 // Full comment lines (`// ...` and doc `# ...`) are trivia: statement sourceCode from the LS
 // includes leading comments, so a note edit must not read as a change to the statement itself.
 function stripCommentLines(text: string): string {
-    return text
-        .split("\n")
-        .filter((line) => {
-            const trimmed = line.trim();
-            return !trimmed.startsWith("//") && !trimmed.startsWith("#");
-        })
-        .join("\n");
+    const keptLines: string[] = [];
+    let delimiter: StringDelimiter | null = null;
+    let escaped = false;
+
+    for (const line of text.split("\n")) {
+        const trimmed = line.trim();
+        if (!delimiter && (trimmed.startsWith("//") || trimmed.startsWith("#"))) {
+            continue;
+        }
+
+        keptLines.push(line);
+        for (const char of `${line}\n`) {
+            if (delimiter) {
+                if (escaped) {
+                    escaped = false;
+                } else if (char === "\\") {
+                    escaped = true;
+                } else if (char === delimiter) {
+                    delimiter = null;
+                }
+            } else if (char === '"' || char === "`") {
+                delimiter = char;
+            }
+        }
+    }
+
+    return keptLines.join("\n");
 }
 
 function isComment(node: FlowNode): boolean {
@@ -159,10 +219,29 @@ function nodeIdentityKey(node: FlowNode): string | null {
     return null;
 }
 
-// Text before the first block opening brace, e.g. `if count > 5`, `while true`.
+// Text before the first block opening brace outside a literal, e.g. `if count > 5`, `while true`.
 function headerBeforeBrace(text: string): string {
-    const braceIndex = text.indexOf("{");
-    return braceIndex >= 0 ? text.slice(0, braceIndex) : text;
+    let delimiter: StringDelimiter | null = null;
+    let escaped = false;
+
+    for (let index = 0; index < text.length; index++) {
+        const char = text[index];
+        if (delimiter) {
+            if (escaped) {
+                escaped = false;
+            } else if (char === "\\") {
+                escaped = true;
+            } else if (char === delimiter) {
+                delimiter = null;
+            }
+        } else if (char === '"' || char === "`") {
+            delimiter = char;
+        } else if (char === "{") {
+            return text.slice(0, index);
+        }
+    }
+
+    return text;
 }
 
 /**
@@ -194,9 +273,9 @@ function matchNodes(oldNode: FlowNode, newNode: FlowNode): NodeMatch {
     if (oldNode.codedata?.node !== newNode.codedata?.node) {
         return null;
     }
-    // The function start event is never part of the diff; always pair it.
+    // Keep the single start event aligned, but surface signature/resource-path edits.
     if (newNode.codedata?.node === "EVENT_START") {
-        return "exact";
+        return nodeKey(oldNode) === nodeKey(newNode) ? "exact" : "modified";
     }
     // Comments align by text: equal text is a stable anchor (exact); differing text is an
     // in-place note edit (modified). Handling them before nodeKey — which collapses every
@@ -220,7 +299,7 @@ function matchNodes(oldNode: FlowNode, newNode: FlowNode): NodeMatch {
     return null;
 }
 
-function mergeNodeLists(oldNodes: FlowNode[], newNodes: FlowNode[], hunkCounter: { count: number }): FlowNode[] {
+function mergeNodeLists(oldNodes: FlowNode[], newNodes: FlowNode[], counters: DiffCounters): FlowNode[] {
     const aligned = alignNodes(oldNodes, newNodes);
 
     const merged: FlowNode[] = [];
@@ -241,13 +320,14 @@ function mergeNodeLists(oldNodes: FlowNode[], newNodes: FlowNode[], hunkCounter:
         const addedCode = addedRun.filter((node) => !isComment(node));
         if (removedCode.length === 1 && addedCode.length === 1 && isContentEdit(removedCode[0], addedCode[0])) {
             const removedComments = removedRun.filter(isComment);
-            removedComments.forEach((node) => stampNodeDeep(node, "removed"));
+            stampAndNamespaceNodes(removedComments, "removed", counters);
             merged.push(...removedComments);
+            const addedComments = addedRun.filter(isComment);
+            stampAndNamespaceNodes(addedComments, "added", counters);
             for (const node of addedRun) {
                 if (node === addedCode[0]) {
                     merged.push(markModified(node, removedCode[0]));
                 } else {
-                    stampNodeDeep(node, "added");
                     merged.push(node);
                 }
             }
@@ -260,14 +340,14 @@ function mergeNodeLists(oldNodes: FlowNode[], newNodes: FlowNode[], hunkCounter:
         const removedLane = removedCode.length > 0 ? removedRun : [];
         const addedLane = addedCode.length > 0 ? addedRun : [];
         if (removedCode.length === 0) {
-            removedRun.forEach((node) => stampNodeDeep(node, "removed"));
+            stampAndNamespaceNodes(removedRun, "removed", counters);
             merged.push(...removedRun);
         }
         if (removedLane.length > 0 || addedLane.length > 0) {
-            merged.push(createDiffHunk(removedLane, addedLane, hunkCounter));
+            merged.push(createDiffHunk(removedLane, addedLane, counters));
         }
         if (addedCode.length === 0) {
-            addedRun.forEach((node) => stampNodeDeep(node, "added"));
+            stampAndNamespaceNodes(addedRun, "added", counters);
             merged.push(...addedRun);
         }
     };
@@ -279,7 +359,7 @@ function mergeNodeLists(oldNodes: FlowNode[], newNodes: FlowNode[], hunkCounter:
         if (pair.match === "container" || pair.match === "container-modified") {
             const mergedContainer: FlowNode = {
                 ...newNode,
-                branches: mergeBranches(oldNode.branches ?? [], newNode.branches ?? [], hunkCounter),
+                branches: mergeBranches(oldNode.branches ?? [], newNode.branches ?? [], counters),
             };
             if (pair.match === "container-modified") {
                 mergedContainer.diffState = "modified";
@@ -301,26 +381,26 @@ function mergeNodeLists(oldNodes: FlowNode[], newNodes: FlowNode[], hunkCounter:
     return merged;
 }
 
-function mergeBranches(oldBranches: Branch[], newBranches: Branch[], hunkCounter: { count: number }): Branch[] {
+function mergeBranches(oldBranches: Branch[], newBranches: Branch[], counters: DiffCounters): Branch[] {
     const unmatchedOld = [...oldBranches];
     const merged: Branch[] = newBranches.map((newBranch) => {
         const oldBranchIndex = unmatchedOld.findIndex(
             (oldBranch) => oldBranch.label === newBranch.label && oldBranch.codedata?.node === newBranch.codedata?.node
         );
         if (oldBranchIndex === -1) {
-            newBranch.children?.forEach((child) => stampNodeDeep(child, "added"));
+            stampAndNamespaceNodes(newBranch.children ?? [], "added", counters);
             return newBranch;
         }
         const oldBranch = unmatchedOld.splice(oldBranchIndex, 1)[0];
         return {
             ...newBranch,
-            children: mergeNodeLists(oldBranch.children ?? [], newBranch.children ?? [], hunkCounter),
+            children: mergeNodeLists(oldBranch.children ?? [], newBranch.children ?? [], counters),
         };
     });
 
     // Branches removed in the new version are kept (stamped removed) so the user sees them.
     unmatchedOld.forEach((oldBranch) => {
-        oldBranch.children?.forEach((child) => stampNodeDeep(child, "removed"));
+        stampAndNamespaceNodes(oldBranch.children ?? [], "removed", counters);
         merged.push(oldBranch);
     });
 
@@ -346,9 +426,39 @@ function markModified(newNode: FlowNode, oldNode: FlowNode): FlowNode {
     };
 }
 
-function createDiffHunk(removedRun: FlowNode[], addedRun: FlowNode[], hunkCounter: { count: number }): FlowNode {
-    removedRun.forEach((node) => stampNodeDeep(node, "removed"));
-    addedRun.forEach((node) => stampNodeDeep(node, "added"));
+function namespaceNodeIds(nodes: FlowNode[], prefix: string): void {
+    const ids = new Map<string, string>();
+    let nodeCount = 0;
+
+    const collect = (node: FlowNode) => {
+        ids.set(node.id, `${prefix}node${++nodeCount}`);
+        node.branches?.forEach((branch) => branch.children?.forEach(collect));
+    };
+    nodes.forEach(collect);
+
+    const apply = (node: FlowNode) => {
+        const originalId = node.id;
+        node.id = ids.get(originalId) ?? originalId;
+        if (node.viewState?.startNodeId && ids.has(node.viewState.startNodeId)) {
+            node.viewState.startNodeId = ids.get(node.viewState.startNodeId);
+        }
+        node.branches?.forEach((branch) => branch.children?.forEach(apply));
+    };
+    nodes.forEach(apply);
+}
+
+function stampAndNamespaceNodes(nodes: FlowNode[], state: "added" | "removed", counters: DiffCounters): void {
+    if (nodes.length === 0) {
+        return;
+    }
+    const prefix = `diffnamespace${++counters.namespace}${state}`;
+    namespaceNodeIds(nodes, prefix);
+    nodes.forEach((node) => stampNodeDeep(node, state));
+}
+
+function createDiffHunk(removedRun: FlowNode[], addedRun: FlowNode[], counters: DiffCounters): FlowNode {
+    stampAndNamespaceNodes(removedRun, "removed", counters);
+    stampAndNamespaceNodes(addedRun, "added", counters);
 
     const branches: Branch[] = [];
     if (removedRun.length > 0) {
@@ -358,11 +468,11 @@ function createDiffHunk(removedRun: FlowNode[], addedRun: FlowNode[], hunkCounte
         branches.push(createHunkBranch(DIFF_ADDED_BRANCH_LABEL, addedRun));
     }
 
-    hunkCounter.count += 1;
+    counters.hunk += 1;
     return {
         // No dashes: custom ids derived from this (e.g. `<id>-lastNode` for the end node)
         // are parsed by reverseCustomNodeId, which splits on "-".
-        id: `diffhunk${hunkCounter.count}`,
+        id: `diffhunk${counters.hunk}`,
         metadata: { label: "", description: "" },
         codedata: { node: DIFF_HUNK_NODE },
         branches,
@@ -393,6 +503,9 @@ interface AlignedPair {
 function alignNodes(oldNodes: FlowNode[], newNodes: FlowNode[]): AlignedPair[] {
     const n = oldNodes.length;
     const m = newNodes.length;
+    if (n * m > MAX_LCS_MATRIX_CELLS) {
+        return alignNodesBounded(oldNodes, newNodes);
+    }
     const matchTable: NodeMatch[][] = [];
     for (let i = 0; i < n; i++) {
         matchTable.push([]);
@@ -429,4 +542,37 @@ function alignNodes(oldNodes: FlowNode[], newNodes: FlowNode[]): AlignedPair[] {
         }
     }
     return aligned;
+}
+
+/**
+ * Low-memory fallback for unusually large lists. It preserves matching prefixes and
+ * suffixes and presents the remaining middle as one replacement hunk. The result is less
+ * granular than LCS, but never hides a change and uses constant auxiliary memory.
+ */
+function alignNodesBounded(oldNodes: FlowNode[], newNodes: FlowNode[]): AlignedPair[] {
+    const alignedPrefix: AlignedPair[] = [];
+    let prefix = 0;
+    while (prefix < oldNodes.length && prefix < newNodes.length) {
+        const match = matchNodes(oldNodes[prefix], newNodes[prefix]);
+        if (!match) {
+            break;
+        }
+        alignedPrefix.push({ oldIndex: prefix, newIndex: prefix, match });
+        prefix++;
+    }
+
+    const alignedSuffix: AlignedPair[] = [];
+    let oldIndex = oldNodes.length - 1;
+    let newIndex = newNodes.length - 1;
+    while (oldIndex >= prefix && newIndex >= prefix) {
+        const match = matchNodes(oldNodes[oldIndex], newNodes[newIndex]);
+        if (!match) {
+            break;
+        }
+        alignedSuffix.push({ oldIndex, newIndex, match });
+        oldIndex--;
+        newIndex--;
+    }
+
+    return [...alignedPrefix, ...alignedSuffix.reverse()];
 }

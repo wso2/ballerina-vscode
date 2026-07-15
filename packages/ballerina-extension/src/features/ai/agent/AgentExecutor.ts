@@ -30,7 +30,7 @@ import { createToolRegistry } from './tool-registry';
 import { loadSkillsContext } from './skills/context';
 
 import { refreshMcpClientManager } from './mcp';
-import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
+import { getProjectSource, cleanupTempProject, getReviewBaselinePath } from '../utils/project/temp-project';
 import { integrateCodeToWorkspace } from './utils';
 import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
@@ -956,6 +956,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             await savePendingReviewRestore({
                 generationId: context.messageId,
                 tempProjectPath: context.ctx.tempProjectPath!,
+                baselineProjectPath: getReviewBaselinePath(context.ctx.tempProjectPath!),
                 modifiedFiles: accumulatedModifiedFiles,
                 affectedPackagePaths: affectedPackages,
                 semanticDiffs,

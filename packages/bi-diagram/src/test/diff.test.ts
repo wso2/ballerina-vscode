@@ -143,6 +143,35 @@ describe("mergeFlowModelsForDiff", () => {
         expect(hunk.branches[1].children[0].diffState).toBe("added");
     });
 
+    it("re-keys old and new nodes that have the same LS line-range id", () => {
+        const oldCall = makeNode("IF", "if oldCondition {\n  nestedOld();\n}", [
+            makeBranch("Body", [makeNode("FUNCTION_CALL", "nestedOld();")]),
+        ]);
+        const newCall = makeNode("WHILE", "while newCondition {\n  nestedNew();\n}", [
+            makeBranch("Body", [makeNode("FUNCTION_CALL", "nestedNew();")]),
+        ]);
+        oldCall.id = "same-line-range-id";
+        newCall.id = "same-line-range-id";
+        oldCall.branches[0].children[0].id = "same-nested-id";
+        newCall.branches[0].children[0].id = "same-nested-id";
+        oldCall.branches[0].children[0].viewState = { startNodeId: "same-line-range-id" } as any;
+        newCall.branches[0].children[0].viewState = { startNodeId: "same-line-range-id" } as any;
+
+        const merged = mergeFlowModelsForDiff(
+            makeFlow([makeNode("EVENT_START", "start"), oldCall]),
+            makeFlow([makeNode("EVENT_START", "start"), newCall])
+        );
+
+        const hunk = merged.nodes[1];
+        const removed = hunk.branches[0].children[0];
+        const added = hunk.branches[1].children[0];
+        expect(removed.id).not.toBe(added.id);
+        expect(removed.branches[0].children[0].id).not.toBe(added.branches[0].children[0].id);
+        expect(removed.branches[0].children[0].viewState?.startNodeId).toBe(removed.id);
+        expect(added.branches[0].children[0].viewState?.startNodeId).toBe(added.id);
+        expect([removed.id, added.id]).not.toContain("same-line-range-id");
+    });
+
     it("marks a call to the same function with changed content as one modified node", () => {
         const oldFlow = makeFlow([
             makeNode("EVENT_START", "start"),
@@ -215,6 +244,44 @@ describe("mergeFlowModelsForDiff", () => {
         const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
 
         expect(kinds(merged.nodes)).toEqual(["EVENT_START", "RETURN"]);
+    });
+
+    it("preserves semantic whitespace inside string and template literals", () => {
+        const stringDiff = mergeFlowModelsForDiff(makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("RETURN", 'return "a b";'),
+        ]), makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("RETURN", 'return "ab";'),
+        ]));
+        const templateDiff = mergeFlowModelsForDiff(makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("EXPRESSION", "string value = string `line one\n// literal content`;"),
+        ]), makeFlow([
+            makeNode("EVENT_START", "start"),
+            makeNode("EXPRESSION", "string value = string `line one\n// changed literal content`;"),
+        ]));
+
+        expect(stringDiff.nodes[1].diffState).toBe("modified");
+        expect(stringDiff.nodes[1].diffPreviousText).toBe('return "a b";');
+        expect(templateDiff.nodes[1].diffState).toBe("modified");
+    });
+
+    it("finds a container body brace after braces inside literals", () => {
+        const oldIf = makeNode("IF", 'if value == "{" && enabled {\n  run();\n}', [
+            makeBranch("Then", [makeNode("FUNCTION_CALL", "run();", undefined, { symbol: "run" })]),
+        ]);
+        const newIf = makeNode("IF", 'if value == "{" && ready {\n  run();\n}', [
+            makeBranch("Then", [makeNode("FUNCTION_CALL", "run();", undefined, { symbol: "run" })]),
+        ]);
+
+        const merged = mergeFlowModelsForDiff(
+            makeFlow([makeNode("EVENT_START", "start"), oldIf]),
+            makeFlow([makeNode("EVENT_START", "start"), newIf])
+        );
+
+        expect(merged.nodes[1].diffState).toBe("modified");
+        expect(merged.nodes[1].diffPreviousText).toBe('if value == "{" && enabled');
     });
 
     it("recurses into a container whose header is unchanged", () => {
@@ -442,7 +509,7 @@ describe("mergeFlowModelsForDiff", () => {
         expect(hunk.branches[1].children.every((n) => n.diffState === "added")).toBe(true);
     });
 
-    it("always pairs EVENT_START even when its source changed", () => {
+    it("pairs EVENT_START and marks a changed function signature as modified", () => {
         const oldFlow = makeFlow([makeNode("EVENT_START", "get resource()"), makeNode("RETURN", "return x;")]);
         const newFlow = makeFlow([makeNode("EVENT_START", "get resource(int y)"), makeNode("RETURN", "return x;")]);
 
@@ -450,6 +517,33 @@ describe("mergeFlowModelsForDiff", () => {
 
         expect(kinds(merged.nodes)).toEqual(["EVENT_START", "RETURN"]);
         expect(merged.nodes[0].codedata.sourceCode).toBe("get resource(int y)");
+        expect(merged.nodes[0].diffState).toBe("modified");
+        expect(merged.nodes[0].diffPreviousText).toBe("get resource()");
+    });
+
+    it("uses a bounded coarse diff for very large node lists", () => {
+        const oldMiddle = Array.from({ length: 500 }, (_, index) =>
+            makeNode("FUNCTION_CALL", `old${index}();`, undefined, { symbol: `old${index}` })
+        );
+        const newMiddle = Array.from({ length: 500 }, (_, index) =>
+            makeNode("FUNCTION_CALL", `new${index}();`, undefined, { symbol: `new${index}` })
+        );
+        const oldFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            ...oldMiddle,
+            makeNode("RETURN", "return result;"),
+        ]);
+        const newFlow = makeFlow([
+            makeNode("EVENT_START", "start"),
+            ...newMiddle,
+            makeNode("RETURN", "return result;"),
+        ]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(kinds(merged.nodes)).toEqual(["EVENT_START", DIFF_HUNK_NODE, "RETURN"]);
+        expect(merged.nodes[1].branches[0].children).toHaveLength(500);
+        expect(merged.nodes[1].branches[1].children).toHaveLength(500);
     });
 
     it("does not mutate its inputs", () => {

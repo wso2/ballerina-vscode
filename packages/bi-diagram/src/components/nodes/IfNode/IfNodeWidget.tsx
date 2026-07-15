@@ -79,6 +79,8 @@ export namespace NodeStyles {
         position: absolute;
         top: -14px;
         right: -50px;
+        display: flex;
+        gap: 2px;
     `;
 
     export const ErrorIcon = styled.div`
@@ -158,7 +160,7 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
     const { onNodeSelect, goToSource, onDeleteNode, addBreakpoint, removeBreakpoint, readOnly, selectedNodeId, nodeComments } =
         useDiagramContext();
 
-    const noteComment = nodeComments?.get(model.node.id);
+    const noteComments = nodeComments?.get(model.node.id) ?? [];
 
     const isSelected = selectedNodeId === model.node.id;
 
@@ -353,9 +355,17 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                         <DiagnosticsPopUp node={model.node} engine={engine} />
                     </NodeStyles.ErrorIcon>
                 )}
-                {noteComment && (
+                {noteComments.length > 0 && (
                     <NodeStyles.NoteChipWrapper>
-                        <NodeNoteChip commentNode={noteComment} engine={engine} onOpen={() => setIsNoteActive(true)} onClose={() => { setIsNoteActive(false); setIsHovered(false); }} />
+                        {noteComments.map((noteComment) => (
+                            <NodeNoteChip
+                                key={noteComment.id}
+                                commentNode={noteComment}
+                                engine={engine}
+                                onOpen={() => setIsNoteActive(true)}
+                                onClose={() => { setIsNoteActive(false); setIsHovered(false); }}
+                            />
+                        ))}
                     </NodeStyles.NoteChipWrapper>
                 )}
                 <NodeStyles.StyledButton

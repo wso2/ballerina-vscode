@@ -134,6 +134,7 @@ import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExe
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
+import { clearPendingReviewRestore, getPendingReviewRestore } from '../../features/ai/state/reviewRestoreStore';
 import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
@@ -157,6 +158,37 @@ function validateMcpServerConfig(cfg: any): string | null {
         }
     }
     return null;
+}
+
+interface ReviewCleanupGeneration {
+    id: string;
+    reviewState: { tempProjectPath?: string };
+}
+
+async function cleanupReviewTempProjects(generations: ReviewCleanupGeneration[]): Promise<void> {
+    const generationIds = new Set(generations.map((generation) => generation.id));
+    const tempPaths = new Set(
+        generations
+            .map((generation) => generation.reviewState.tempProjectPath)
+            .filter((tempPath): tempPath is string => !!tempPath)
+    );
+    const restore = getPendingReviewRestore();
+    const restoreMatches = !!restore && generationIds.has(restore.generationId);
+    if (restoreMatches) {
+        tempPaths.add(restore.tempProjectPath);
+    }
+
+    try {
+        if (!process.env.AI_TEST_ENV) {
+            for (const tempPath of tempPaths) {
+                await cleanupTempProject(tempPath);
+            }
+        }
+    } finally {
+        if (restoreMatches) {
+            await clearPendingReviewRestore();
+        }
+    }
 }
 
 export class AiPanelRpcManager implements AIPanelAPI {
@@ -478,14 +510,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
             const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
             console.log(`[Review Actions] Accepting generation ${latestReview.id} with ${latestReview.reviewState.modifiedFiles.length} modified file(s)`);
 
-            // Cleanup ALL under_review temp projects (prevents memory leak)
-            if (!process.env.AI_TEST_ENV) {
-                for (const generation of underReviewGenerations) {
-                    if (generation.reviewState.tempProjectPath) {
-                        await cleanupTempProject(generation.reviewState.tempProjectPath);
-                    }
-                }
-            }
+            // Cleanup all runtime and restored temp projects before dropping review state.
+            await cleanupReviewTempProjects(underReviewGenerations);
 
             // Mark ALL under_review generations as accepted (also clears affectedPackagePaths)
             chatStateStorage.acceptAllReviews(projectRootPath, threadId);
@@ -532,14 +558,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 console.warn("[Review Actions] No checkpoint found for generation — workspace changes will not be reverted");
             }
 
-            // Cleanup ALL under_review temp projects (prevents memory leak)
-            if (!process.env.AI_TEST_ENV) {
-                for (const generation of underReviewGenerations) {
-                    if (generation.reviewState.tempProjectPath) {
-                        await cleanupTempProject(generation.reviewState.tempProjectPath);
-                    }
-                }
-            }
+            // Cleanup all runtime and restored temp projects before dropping review state.
+            await cleanupReviewTempProjects(underReviewGenerations);
 
             // Append revert notification to model messages so the LLM knows changes were reverted
             const existingMessages = latestReview.modelMessages || [];

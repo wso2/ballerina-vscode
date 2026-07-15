@@ -103,6 +103,7 @@ public class SemanticDiffComputer {
             String docName = entry.getKey();
             if (!modifiedDocumentMap.containsKey(docName)) {
                 // Document removed in modified project
+                entry.getValue().syntaxTree().rootNode().accept(originalNodeRefExtractor);
                 continue;
             }
             Document originalDoc = entry.getValue();
@@ -305,9 +306,59 @@ public class SemanticDiffComputer {
                                        FunctionDefinitionNode modifiedFunction,
                                        NodeKind kind, Map<String, String> metadata) {
 
+        if (!functionHeaderKey(originalFunction).equals(functionHeaderKey(modifiedFunction))) {
+            LineRange lineRange = modifiedFunction.lineRange();
+            SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
+                    resolveUri(lineRange.fileName()), lineRange, metadata);
+            this.semanticDiffs.add(diff);
+            return;
+        }
+
         FunctionBodyNode originalFunctionBody = originalFunction.functionBody();
         FunctionBodyNode modifiedFunctionBody = modifiedFunction.functionBody();
         compareFunctionBodies(modifiedFunction, originalFunctionBody, modifiedFunctionBody, kind, metadata);
+    }
+
+    /**
+     * Builds a trivia-insensitive key for the complete function header. Comparing only function
+     * bodies made parameter, return type, qualifier and resource-path changes disappear from the
+     * review entirely.
+     */
+    private String functionHeaderKey(FunctionDefinitionNode function) {
+        StringBuilder header = new StringBuilder();
+        function.qualifierList().forEach(node -> header.append(node.toSourceCode()));
+        header.append(function.functionKeyword().toSourceCode());
+        header.append(function.functionName().toSourceCode());
+        function.relativeResourcePath().forEach(node -> header.append(node.toSourceCode()));
+        header.append(function.functionSignature().toSourceCode());
+        return normalizeTriviaOutsideLiterals(header.toString());
+    }
+
+    private String normalizeTriviaOutsideLiterals(String source) {
+        StringBuilder normalized = new StringBuilder();
+        char delimiter = 0;
+        boolean escaped = false;
+        for (int i = 0; i < source.length(); i++) {
+            char current = source.charAt(i);
+            if (delimiter != 0) {
+                normalized.append(current);
+                if (escaped) {
+                    escaped = false;
+                } else if (current == '\\') {
+                    escaped = true;
+                } else if (current == delimiter) {
+                    delimiter = 0;
+                }
+                continue;
+            }
+            if (current == '"' || current == '`') {
+                delimiter = current;
+                normalized.append(current);
+            } else if (!Character.isWhitespace(current)) {
+                normalized.append(current);
+            }
+        }
+        return normalized.toString();
     }
 
     /**
