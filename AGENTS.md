@@ -144,7 +144,9 @@ Running that exact command locally is the closest reproduction.
 - **New test file** = WSO2 Apache-2.0 header, year **2026**. Copy from any existing test.
 - **Before pushing:** the affected package's `test` is green (or intentionally red with a documented comment + issue link). L3/L4 + perf need the distro.
 
-**Adding tests to a package with none** (3 lines): add the devDeps + `@wso2/test-config`, create `jest.config.js` = `{ ...require('@wso2/test-config/jest-preset'), rootDir: '.' }` (add `testEnvironment: 'node'` for host-side), `rush update`. Recipe: [`packages/test-config/README.md`](packages/test-config/README.md).
+**Adding tests to a package with none** (3 lines): add the devDeps + `@wso2/test-config`, create `jest.config.js` = `{ ...require('@wso2/test-config/jest-preset'), rootDir: '.' }` (add `testEnvironment: 'node'` for host-side), `rush update`. Recipe: [`packages/test-config/README.md`](packages/test-config/README.md). Also add a `tsconfig.spec.json` (copy a sibling's) + a `test:typecheck` script.
+
+**Type-check your test code.** Test files aren't type-checked by the build (excluded) or by babel/ts-jest at run time, so run `node scripts/typecheck-tests.js` before pushing — it `tsc --noEmit`s every package's `tsconfig.spec.json` and gates on test-file errors (a wrong prop, a removed export, a mis-shaped fixture). Don't silence a real error with `as any`; fix the type.
 
 **L2 — the one rule:** *render the component with the context it needs, feed it synthetic data for invariants/edge-cases or a captured fixture for fidelity/drift.*
 - Context = what the component reads: props → `render(<C {...data}/>)`; `useFormContext` → `renderWithForm` (`ballerina-side-panel/src/test/formHarness.tsx`); `useRpcContext` → `renderWithRpc` + a **fake rpc client** (`rpcHarness.tsx`; mock the `@wso2/ballerina-rpc-client` barrel to delegate to the harness so component + Provider share one context).

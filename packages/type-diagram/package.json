@@ -11,6 +11,7 @@
 		"watch": "tsc --watch",
 		"build": "tsc && pnpm run copy:assets",
 		"test": "jest --coverage",
+		"test:typecheck": "tsc --noEmit -p tsconfig.spec.json",
 		"test:watch": "jest --watch",
 		"test:updateSnapshots": "jest --updateSnapshot",
 		"copy:assets": "copyfiles -u 1 \"src/**/*.scss\" \"src/**/*.svg\"  \"src/**/*.css\" \"src/**/*.png\" \"src/**/*.txt\" \"src/**/*.json\" \"src/resources/assets/font/*.*\" lib/",

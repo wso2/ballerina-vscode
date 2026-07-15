@@ -36,14 +36,14 @@ const category = (title: string, items: any[]): any => ({ title, items });
 describe("GroupList", () => {
     it("renders the category title", () => {
         const { container } = render(
-            <GroupList category={category("Utilities", [node("a", "Alpha"), node("b", "Beta")])} onSelect={jest.fn()} onSearch={jest.fn()} />
+            <GroupList category={category("Utilities", [node("a", "Alpha"), node("b", "Beta")])} onSelect={jest.fn()} />
         );
         expect(container.textContent).toContain("Utilities");
     });
 
     it("renders a category with enabled nodes without throwing", () => {
         const { container } = render(
-            <GroupList category={category("Utilities", [node("a", "Alpha"), node("b", "Beta")])} onSelect={jest.fn()} onSearch={jest.fn()} />
+            <GroupList category={category("Utilities", [node("a", "Alpha"), node("b", "Beta")])} onSelect={jest.fn()} />
         );
         expect(container.textContent).toContain("Utilities");
     });
@@ -51,7 +51,7 @@ describe("GroupList", () => {
     it("renders an empty category (no nodes) without throwing", () => {
         // the empty branch renders a placeholder (no title); just assert it doesn't crash
         const { container } = render(
-            <GroupList category={category("Empty", [])} onSelect={jest.fn()} onSearch={jest.fn()} />
+            <GroupList category={category("Empty", [])} onSelect={jest.fn()} />
         );
         expect(container).toBeTruthy();
     });

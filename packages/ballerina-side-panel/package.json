@@ -14,7 +14,8 @@
         "storybook": "start-storybook -p 6006",
         "watch": "tsc --pretty --watch",
         "build-storybook": "build-storybook",
-        "copy:assets": "copyfiles -u 1 \"src/**/*.svg\"  \"src/**/*.css\" \"src/resources/assets/font/*.*\" lib/"
+        "copy:assets": "copyfiles -u 1 \"src/**/*.svg\"  \"src/**/*.css\" \"src/resources/assets/font/*.*\" lib/",
+        "test:typecheck": "tsc --noEmit -p tsconfig.spec.json"
     },
     "keywords": [],
     "author": "",

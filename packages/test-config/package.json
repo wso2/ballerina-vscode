@@ -14,12 +14,14 @@
         "fixtures.d.ts",
         "ls-harness.js",
         "ls-harness.d.ts",
+        "jest-matchers.d.ts",
         "README.md"
     ],
     "scripts": {
         "build": "echo \"@wso2/test-config: no build step\""
     },
     "dependencies": {
-        "@testing-library/jest-dom": "6.6.3"
+        "@testing-library/jest-dom": "6.6.3",
+        "@types/node": "22.15.21"
     }
 }

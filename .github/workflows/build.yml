@@ -223,6 +223,12 @@ jobs:
           done
           exit $failed
 
+      - name: Type-check test code
+        # Test files are excluded from the emitting build and babel/ts-jest don't type-check
+        # at run time, so this catches type errors in test code. Reports only test-file errors
+        # (pre-existing production / cross-package errors are tallied but don't gate).
+        run: node scripts/typecheck-tests.js
+
       - name: Upload coverage (per-package lcov)
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

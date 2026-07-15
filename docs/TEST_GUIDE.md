@@ -196,6 +196,8 @@ Not a level, but everything above depends on it:
 - **Fixture recorder** — [`fixtureRecorder.ts`](../packages/ballerina-extension/src/test-support/fixtureRecorder.ts): env-gated (`BAL_RECORD_FIXTURES`) taps on the LS client + webview RPC that dump `{method, request, response}`. Dormant otherwise (zero production impact).
 - **Capture script** — [`capture-fixtures.js`](../packages/ballerina-extension/scripts/capture-fixtures.js) (`pnpm run capture-fixtures`): runs the E2E with recording on and dedupes the dump into per-method fixtures.
 
+> **Review captured fixtures before committing.** Secret redaction is **key-name based** (`token`, `password`, `apiKey`, …) — a secret embedded inside a *value* under a non-matching key (e.g. a token in a URL query string) is **not** masked. The recorder is env-gated and fixtures are curated, so eyeball every new/updated `fixture.json` for leaked credentials or machine-specific data before it lands.
+
 ---
 
 ## Adding tests to a package that has none
@@ -214,7 +216,13 @@ Not a level, but everything above depends on it:
 const base = require('@wso2/test-config/jest-preset');
 module.exports = { ...base, rootDir: '.' };          // testEnvironment: 'node' for host-side
 ```
-Then `rush update` and `pnpm --filter <pkg> test`. The fast CI job auto-discovers the new `jest.config.js`.
+Add a `tsconfig.spec.json` (copy a sibling's) and a `"test:typecheck": "tsc --noEmit -p tsconfig.spec.json"` script so the test code is type-checked (see below). Then `rush update` and `pnpm --filter <pkg> test`. The fast CI job auto-discovers the new `jest.config.js`.
+
+---
+
+## Type-checking test code
+
+Test files are excluded from the emitting build (`tsconfig.json`) and babel/ts-jest don't type-check at run time — so a type error in a test (wrong prop, removed export, mis-shaped fixture) would otherwise ship silently. Each test package has a **`tsconfig.spec.json`** (`extends` its build tsconfig, `noEmit`, `include: src/**` for production context, shared `@wso2/test-config/jest-matchers.d.ts` ambient for jest-dom + Node globals). The CI step and [`scripts/typecheck-tests.js`](../scripts/typecheck-tests.js) run every package's `tsc --noEmit` and gate on **errors located in test files only** — pre-existing errors in production source (packages built via webpack never `tsc`) or in cross-package `src` imports are tallied but don't gate. Run locally: `node scripts/typecheck-tests.js` (all) or `pnpm --filter <pkg> test:typecheck` (one).
 
 ---
 
@@ -224,4 +232,4 @@ Then `rush update` and `pnpm --filter <pkg> test`. The fast CI job auto-discover
 - Keep the fast suite fast: anything needing Java/LS/VSCode uses a non-`jest.config.js` config name.
 - Extract, don't mock-the-world: a pure function trapped in a heavy module → move it to a narrow-import sibling + re-export.
 - WSO2 Apache-2.0 header on every test file.
-- Before pushing: the affected package's `test` is green (or intentionally-red with a documented `it`/comment + issue link).
+- Before pushing: the affected package's `test` is green (or intentionally-red with a documented `it`/comment + issue link), and `node scripts/typecheck-tests.js` passes.
