@@ -127,14 +127,9 @@ test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
     // <----Concurrent Run Test---->
     test.describe(runConcurrent);
 
-    // <----Expression Editor Test---->
-    test.describe(expressionEditor);
-    test.describe(expressionEditorAdvanced);
-
     // <----Integration as API Test---->
     test.describe(httpService);
     test.describe(httpUpload);
-    test.describe(httpTryItExisting);
 
     // <----Event Integration Test---->
     test.describe(kafkaIntegration);
@@ -167,6 +162,7 @@ test.describe('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
 test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
     // <----Integration as API Test---->
     test.describe(tcpService);
+    test.describe(httpTryItExisting);
 
     // <----Event Integration Test---->
     test.describe(mqttIntegration);
@@ -182,6 +178,10 @@ test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
 
     // <----Data Mapper Test---->
     test.describe(reusableDataMapper);
+
+    // <----Expression Editor Test---->
+    test.describe(expressionEditor);
+    test.describe(expressionEditorAdvanced);
 });
 
 test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
