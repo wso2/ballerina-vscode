@@ -299,6 +299,9 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 agentsMdLastReadHash: agentsMd.hashToPersist,
             });
 
+            // Ensure the pre-edit snapshot exists before any tool can run.
+            await chatStateStorage.waitForCheckpointCapture(this.config.generationId);
+
             // 4. Get chat history from storage (if enabled) — AFTER pre-turn compaction
             const chatHistory = this.getChatHistory();
             console.log(`[AgentExecutor] Using ${chatHistory.length} chat history messages`);
@@ -560,7 +563,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                                 {
                                     role: "user",
                                     content: `<abort_notification>
-Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
+Generation stopped by user. The last in-progress task was not saved. Any completed edits remain in the workspace and can be reverted if unwanted. Please redo the last task if needed.
 </abort_notification>`,
                                 },
                             ],
@@ -568,12 +571,24 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     }
                     // Emit save_chat so any pre-step-boundary streamed text is persisted into uiResponse.
                     updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
-                    // If this generation had already reached 'done' by the time the abort was
-                    // detected (the stream finished right as the user cancelled), revert it.
+                    // Leave any live edits in place — the user may want to continue from them.
+                    // Only an explicit revert (declineChanges) restores the checkpoint.
                     const abortedGeneration = chatStateStorage.getGeneration(projectRootPath, threadId, this.config.generationId);
-                    if (abortedGeneration?.reviewState.status === 'done') {
-                        console.log("[AgentExecutor] Reverting review state due to abort");
-                        chatStateStorage.revertLastGeneration(projectRootPath, threadId);
+                    if (abortedGeneration && !['accepted', 'reverted', 'error'].includes(abortedGeneration.reviewState.status)) {
+                        const generationModifiedFiles = Array.from(new Set([...allModifiedFiles, ...modifiedFiles]));
+                        if (generationModifiedFiles.length > 0) {
+                            console.log("[AgentExecutor] Generation stopped with partial edits — leaving them in place");
+                            chatStateStorage.updateReviewState(projectRootPath, threadId, this.config.generationId, {
+                                status: 'done',
+                                tempProjectPath,
+                                modifiedFiles: generationModifiedFiles,
+                            });
+                        } else {
+                            chatStateStorage.updateReviewState(projectRootPath, threadId, this.config.generationId, {
+                                status: 'error',
+                                errorMessage: 'Stopped by user before any changes were made',
+                            });
+                        }
                     }
 
                     // Send telemetry for generation abort
@@ -694,17 +709,27 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             await cleanupTempProject(tempProjectPath);
         }
 
-        // Clear review state for this generation
+        // Leave any live edits in place — the user may want to continue from them. Only an
+        // explicit revert (declineChanges) restores the checkpoint.
         const projectRootPath = context.ctx.workspacePath || context.ctx.projectPath || '';
         const threadId = this.config.chatStorage?.threadId ?? 'default';
         const erroredGeneration = chatStateStorage.getGeneration(projectRootPath, threadId, context.messageId);
 
-        if (erroredGeneration?.reviewState.status === 'done') {
-            console.log("[AgentExecutor] Clearing review state due to error");
-            chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
-                status: 'error',
-                errorMessage: getErrorMessage(error),
-            });
+        if (erroredGeneration && !['accepted', 'reverted', 'error'].includes(erroredGeneration.reviewState.status)) {
+            const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
+            if (generationModifiedFiles.length > 0) {
+                console.log("[AgentExecutor] Generation errored with partial edits — leaving them in place");
+                chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
+                    status: 'done',
+                    tempProjectPath,
+                    modifiedFiles: generationModifiedFiles,
+                });
+            } else {
+                chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
+                    status: 'error',
+                    errorMessage: getErrorMessage(error),
+                });
+            }
         }
 
         // Send telemetry for generation failed
@@ -899,9 +924,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             tempProjectPath
         );
 
-        // Update review state — modifiedFiles is per-generation only. 'done' means this
-        // generation is finished and its edits are live; it stays revertible until the user
-        // reverts it explicitly or the next generation starts (implicit accept).
+        // 'done' = finished and revertible until the user reverts or the next generation starts.
         chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
             status: 'done',
             tempProjectPath,

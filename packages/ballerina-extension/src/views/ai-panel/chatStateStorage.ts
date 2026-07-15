@@ -252,6 +252,9 @@ export class ChatStateStorage {
     // Track active executions per workspace/thread for abort functionality (runtime-only)
     private activeExecutions: Map<string, Map<string, ActiveExecution>> = new Map();
 
+    // In-flight checkpoint captures keyed by generation ID (runtime-only)
+    private pendingCheckpointCaptures: Map<string, Promise<void>> = new Map();
+
     // File-based persistence store
     private readonly persistenceStore: CopilotPersistenceStore;
 
@@ -659,13 +662,31 @@ export class ChatStateStorage {
         this.flushThread(projectRootPath, threadId);
         console.log(`[ChatStateStorage] Added generation: ${generation.id} to thread: ${threadId}`);
 
-        // Capture checkpoint for this generation asynchronously (skip for synthetic compacted generations)
+        // Capture checkpoint asynchronously (skip for synthetic compacted generations); track
+        // the promise so waitForCheckpointCapture() can await it before the first live edit.
         if (!skipCheckpoint) {
-            this.captureCheckpointForGeneration(projectRootPath, threadId, generation.id).catch(error => {
+            const capturePromise = this.captureCheckpointForGeneration(projectRootPath, threadId, generation.id).catch(error => {
                 console.error('[ChatStateStorage] Failed to capture checkpoint:', error);
+            });
+            this.pendingCheckpointCaptures.set(generation.id, capturePromise);
+            capturePromise.finally(() => {
+                if (this.pendingCheckpointCaptures.get(generation.id) === capturePromise) {
+                    this.pendingCheckpointCaptures.delete(generation.id);
+                }
             });
         }
         return generation;
+    }
+
+    /**
+     * Await the in-flight checkpoint capture for a generation, if any. No-op if none is pending.
+     * @param generationId Generation identifier
+     */
+    async waitForCheckpointCapture(generationId: string): Promise<void> {
+        const pending = this.pendingCheckpointCaptures.get(generationId);
+        if (pending) {
+            await pending;
+        }
     }
 
     /**

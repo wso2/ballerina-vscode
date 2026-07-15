@@ -64,11 +64,13 @@ export async function captureWorkspaceSnapshot(messageId: string): Promise<Check
                 totalSize += content.length;
 
                 if (totalSize > config.maxSnapshotSize) {
-                    console.warn(`[Checkpoint] Snapshot size exceeded max limit: ${totalSize} bytes`);
+                    // Fail closed rather than save a partial checkpoint that silently leaves
+                    // later-scanned files unrevertible on restore.
+                    console.warn(`[Checkpoint] Snapshot size exceeded max limit (${totalSize} bytes) — aborting capture, no partial checkpoint will be saved`);
                     vscode.window.showWarningMessage(
-                        `Checkpoint snapshot size (${Math.round(totalSize / 1024 / 1024)}MB) exceeds limit. Some files may not be included.`
+                        `Workspace is too large to checkpoint (exceeds ${Math.round(config.maxSnapshotSize / 1024 / 1024)}MB). This generation will not be revertible.`
                     );
-                    break;
+                    return null;
                 }
             } catch (error) {
                 console.error(`[Checkpoint] Failed to read file ${fileUri.fsPath}:`, error);
