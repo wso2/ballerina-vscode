@@ -48,7 +48,11 @@ export default function createTests() {
                 }
             });
             await form.submit('Create');
-            const context = artifactWebView.locator(`text=${functionName}`);
+            // Both the diagram node's title and the diagram's own title-bar
+            // breadcrumb render the function name, so a plain text= locator
+            // (substring match) resolves to 2 elements — .first() is enough
+            // since this just confirms the name rendered somewhere.
+            const context = artifactWebView.locator(`text=${functionName}`).first();
             await context.waitFor();
             const projectExplorer = new ProjectExplorer(page.page);
             await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `${functionName}`]);
@@ -81,7 +85,11 @@ export default function createTests() {
                 }
             });
             await form.submit('Save');
-            const context = artifactWebView.locator(`text=${functionName}`);
+            // Both the diagram node's title and the diagram's own title-bar
+            // breadcrumb render the function name, so a plain text= locator
+            // (substring match) resolves to 2 elements — .first() is enough
+            // since this just confirms the name rendered somewhere.
+            const context = artifactWebView.locator(`text=${functionName}`).first();
             await context.waitFor();
         });
 

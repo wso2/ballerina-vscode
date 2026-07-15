@@ -166,7 +166,12 @@ export default function createTests() {
             expect(running.body).toContain(GREETING_JSON);
 
             logStep('Execute the request cell and confirm the send succeeds');
-            await page.page.locator('.cell.code .monaco-editor').first().click({ force: true }).catch(() => {});
+            const requestCell = page.page.locator('.cell.code .monaco-editor').first();
+            // The notebook tab appearing (checked above) doesn't guarantee the cell's
+            // Monaco editor has mounted yet — clicking before it does is a silent
+            // no-op with force:true, leaving nothing focused for Control+Enter to run.
+            await requestCell.waitFor({ state: 'visible', timeout: 15000 });
+            await requestCell.click({ force: true });
             await page.page.waitForTimeout(500);
             await page.page.keyboard.press('Control+Enter');
             await expect(page.page.locator('.codicon-notebook-state-success').first())
