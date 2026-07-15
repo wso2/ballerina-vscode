@@ -496,19 +496,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
-    async getAffectedPackages(): Promise<string[]> {
-        const projectRootPath = resolveProjectRootPath();
-        const threadId = getActiveThreadId(projectRootPath);
-        const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
-        const underReviewGenerations = thread.generations.filter(
-            g => g.reviewState.status === 'under_review'
-        );
-        if (underReviewGenerations.length === 0) { return []; }
-        const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
-        return latestReview.reviewState.affectedPackagePaths || [];
-    }
-
-
     async isWorkspaceProject(): Promise<boolean> {
         const context = StateMachine.context();
         const isWorkspace = context.projectInfo?.projectKind === 'WORKSPACE_PROJECT';

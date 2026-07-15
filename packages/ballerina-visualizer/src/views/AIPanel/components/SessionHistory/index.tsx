@@ -269,6 +269,10 @@ export function SessionHistoryDropdown({
                                     <DeleteBtn
                                         className="delete-btn"
                                         onClick={e => handleDelete(e, thread.id)}
+                                        // Keep keyboard activation of delete from also bubbling to
+                                        // SessionItem's onKeyDown, which would switch threads. The native
+                                        // button still activates (delete) on Enter/Space itself.
+                                        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); } }}
                                         title="Delete session"
                                     >
                                         <Codicon name="trash" sx={{ fontSize: "12px" }} />

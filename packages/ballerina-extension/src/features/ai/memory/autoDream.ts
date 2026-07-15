@@ -134,6 +134,11 @@ export function initAutoDream(): void {
         void (async () => {
             try {
                 await runDream(ctx, lastScanAt, (t) => { lastScanAtByHash.set(hash, t); });
+            } catch (e) {
+                // Detached runner — swallow and log so a throw from any stage (dir setup,
+                // lock acquisition, activity scan, or the LLM call) cannot surface as an
+                // unhandled promise rejection.
+                console.error('[autoDream] consolidation run failed:', e instanceof Error ? e.message : String(e));
             } finally {
                 dreamsInProgress.delete(hash);
             }

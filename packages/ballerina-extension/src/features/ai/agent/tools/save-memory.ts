@@ -176,17 +176,33 @@ export function createSaveMemoryTool(projectRootPath: string, eventHandler: Copi
                 return fail(`Memory file "${input.filename}" already exists. Use overwrite: true to update it.`);
             }
 
+            // Track whether the file pre-existed so we can roll back a newly-created
+            // file if indexing fails — without deleting a file that predated this call.
+            const fileExistedBefore = fs.existsSync(filePath);
+
             try {
                 fs.writeFileSync(filePath, buildFileContent(input), 'utf-8');
-                upsertMemoryIndex(indexPath, input.filename, input.name, input.description);
-                invalidateMemoryPromptCache(hash);
-
-                const result = `Saved ${input.scope} memory "${input.filename}".`;
-                eventHandler({ type: 'tool_result', toolName: SAVE_MEMORY_TOOL_NAME, toolOutput: { action: 'saved', scope: input.scope, filename: input.filename, name: input.name } });
-                return result;
             } catch (e) {
                 return fail(`Failed to save memory: ${e instanceof Error ? e.message : String(e)}`);
             }
+
+            // Keep the file write and index update consistent: if indexing fails, the
+            // memory file would otherwise exist on disk without a MEMORY.md entry and
+            // never be loaded into the prompt. Roll back the just-created file so the
+            // two never diverge.
+            try {
+                upsertMemoryIndex(indexPath, input.filename, input.name, input.description);
+            } catch (e) {
+                if (!fileExistedBefore) {
+                    try { fs.unlinkSync(filePath); } catch { /* best-effort rollback */ }
+                }
+                return fail(`Failed to update memory index: ${e instanceof Error ? e.message : String(e)}`);
+            }
+
+            invalidateMemoryPromptCache(hash);
+            const result = `Saved ${input.scope} memory "${input.filename}".`;
+            eventHandler({ type: 'tool_result', toolName: SAVE_MEMORY_TOOL_NAME, toolOutput: { action: 'saved', scope: input.scope, filename: input.filename, name: input.name } });
+            return result;
         },
     });
 }
