@@ -30,7 +30,7 @@
       "object": "Client",
       "symbol": "query",
       "isNew": true,
-      "inferredReturnType": "stream<rowType, $CompilationError$?>"
+      "inferredReturnType": "stream<rowType, sql:Error?>"
     },
     "returning": false,
     "properties": {
@@ -59,12 +59,17 @@
         },
         "types": [
           {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": true
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "$CompilationError$",
+            "ballerinaType": "sql:ParameterizedQuery",
             "selected": false
           }
         ],
-        "placeholder": "",
+        "placeholder": "object {}",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -72,6 +77,9 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "sqlQuery"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
         }
       },
       "rowType": {
@@ -109,13 +117,16 @@
             "selected": true
           }
         ],
-        "value": "stream<rowType, $CompilationError$?>",
+        "value": "stream<rowType, sql:Error?>",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
         "hidden": false,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "sql": "ballerina/sql"
+        }
       },
       "variable": {
         "metadata": {
@@ -128,7 +139,7 @@
             "selected": true
           }
         ],
-        "value": "streamRowtypeCompilationerror",
+        "value": "streamRowtypeSqlError",
         "optional": false,
         "editable": true,
         "advanced": false,

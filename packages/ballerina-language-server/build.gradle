@@ -172,7 +172,7 @@ task resolveBallerinaDependencies {
                 workingDir targetDir
                 environment "BALLERINA_HOME_DIR", ballerinaTestHomeDir.absolutePath
 
-                def balBuildCommand = "bal build"
+                def balBuildCommand = "bal build --sticky"
                 if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
                     commandLine 'cmd', '/c', balBuildCommand
                 } else {

@@ -58,12 +58,17 @@
         },
         "types": [
           {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedCallQuery",
+            "selected": true
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "$CompilationError$",
+            "ballerinaType": "sql:ParameterizedCallQuery",
             "selected": false
           }
         ],
-        "placeholder": "",
+        "placeholder": "object {}",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -71,6 +76,9 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "sqlQuery"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
         }
       },
       "rowTypes": {
@@ -125,13 +133,16 @@
             "selected": true
           }
         ],
-        "value": "$CompilationError$",
+        "value": "sql:ProcedureCallResult",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
         "hidden": false,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "sql": "ballerina/sql"
+        }
       },
       "variable": {
         "metadata": {
@@ -144,7 +155,7 @@
             "selected": true
           }
         ],
-        "value": "compilationerror",
+        "value": "sqlProcedurecallresult",
         "optional": false,
         "editable": true,
         "advanced": false,
