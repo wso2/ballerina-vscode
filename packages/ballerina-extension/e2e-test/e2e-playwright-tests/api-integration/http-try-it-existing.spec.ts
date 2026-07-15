@@ -174,8 +174,13 @@ export default function createTests() {
             await requestCell.click({ force: true });
             await page.page.waitForTimeout(500);
             await page.page.keyboard.press('Control+Enter');
+            // This is the notebook's first-ever cell execution, which cold-starts
+            // the Hurl kernel — on a loaded CI runner that warm-up alone can outlast
+            // a 30s wait (confirmed via two CI runs timing out at exactly 30000ms
+            // despite passing locally every time). The later "Run All" test reuses
+            // an already-warm kernel, so its shorter wait is unaffected.
             await expect(page.page.locator('.codicon-notebook-state-success').first())
-                .toBeVisible({ timeout: 30000 });
+                .toBeVisible({ timeout: 60000 });
 
             logStep('Verify the response status, body and headers');
             const response = await fetchEndpoint(`${BASE_URL}/greeting`);
