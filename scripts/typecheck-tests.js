@@ -49,6 +49,7 @@ let ignored = 0;
 for (const pkg of packages) {
     const cwd = path.join(PKGS_DIR, pkg);
     let out = "";
+    let failure = null; // set when tsc exited non-zero (type errors OR a run failure)
     try {
         execFileSync("npx", ["tsc", "--noEmit", "-p", "tsconfig.spec.json"], {
             cwd,
@@ -57,6 +58,7 @@ for (const pkg of packages) {
         });
     } catch (e) {
         out = `${e.stdout || ""}${e.stderr || ""}`;
+        failure = e;
     }
 
     const inTest = [];
@@ -66,6 +68,15 @@ for (const pkg of packages) {
         if (!m) continue;
         if (TEST_PATH.test(m[1])) inTest.push(line.trim());
         else ignoredHere++;
+    }
+
+    // tsc exited non-zero but produced no file-scoped diagnostics → it couldn't actually run:
+    // a failed spawn (ENOENT: npx/tsc missing) or a global/config error (e.g. TS18003 "no
+    // inputs", cannot read tsconfig). Fail loudly instead of misreporting the package clean.
+    if (failure && inTest.length === 0 && ignoredHere === 0) {
+        console.error(`\n✗ ${pkg}: typecheck could not run (${failure.code || `exit ${failure.status}`}): ${(out || failure.message).trim().slice(0, 500)}`);
+        testErrors++;
+        continue;
     }
 
     if (inTest.length) {
