@@ -18,7 +18,7 @@
 import { expect, test } from '@playwright/test';
 import * as path from 'path';
 import fs from 'fs';
-import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, logStep, newProjectPath, page, toggleNotifications } from '../utils/helpers';
+import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, logStep, newProjectPath, page, resourcesFolder, toggleNotifications } from '../utils/helpers';
 import { switchToIFrame } from '@wso2/playwright-vscode-tester';
 
 type WebView = NonNullable<Awaited<ReturnType<typeof switchToIFrame>>>;
@@ -173,7 +173,34 @@ export default function createTests() {
             await requestCell.waitFor({ state: 'visible', timeout: 15000 });
             await requestCell.click({ force: true });
             await page.page.waitForTimeout(500);
+
+            // CI has twice timed out here at exactly the configured ceiling (30s,
+            // then 60s) with zero intermediate activity, which rules out "the
+            // kernel is just slow" — something about this click/keypress isn't
+            // landing. Diagnostics below run unconditionally (not just on
+            // failure) so the next CI run tells us what's actually on screen
+            // instead of us guessing at another timeout value.
+            const codeCellCount = await page.page.locator('.cell.code').count();
+            const markdownCellCount = await page.page.locator('.cell.markdown').count();
+            const focused = await page.page.evaluate(() => {
+                const el = document.activeElement;
+                return el ? `${el.tagName}.${Array.from(el.classList).join('.')}` : 'none';
+            }).catch((e) => `<error: ${(e as Error).message}>`);
+            const toastVisible = await page.page.locator('.notifications-toasts .notification-toast').first().isVisible().catch(() => false);
+            logStep(`Diagnostics before Control+Enter: codeCells=${codeCellCount} markdownCells=${markdownCellCount} focused=${focused} toastVisible=${toastVisible}`);
+            fs.mkdirSync(path.join(resourcesFolder, 'screenshots'), { recursive: true });
+            await page.page.screenshot({ path: path.join(resourcesFolder, 'screenshots', `pre-run-cell-${Date.now()}.png`) }).catch(() => { });
+
             await page.page.keyboard.press('Control+Enter');
+            await page.page.waitForTimeout(2000);
+            const afterFocused = await page.page.evaluate(() => {
+                const el = document.activeElement;
+                return el ? `${el.tagName}.${Array.from(el.classList).join('.')}` : 'none';
+            }).catch((e) => `<error: ${(e as Error).message}>`);
+            const runningIconVisible = await page.page.locator('.codicon-notebook-state-pending, .codicon-notebook-state-executing').first().isVisible().catch(() => false);
+            logStep(`Diagnostics 2s after Control+Enter: focused=${afterFocused} runningIconVisible=${runningIconVisible}`);
+            await page.page.screenshot({ path: path.join(resourcesFolder, 'screenshots', `post-run-cell-${Date.now()}.png`) }).catch(() => { });
+
             // This is the notebook's first-ever cell execution, which cold-starts
             // the Hurl kernel — on a loaded CI runner that warm-up alone can outlast
             // a 30s wait (confirmed via two CI runs timing out at exactly 30000ms
