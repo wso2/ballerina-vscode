@@ -39,7 +39,7 @@ import { FlowNode } from "../../../utils/types";
 import { useDiagramContext } from "../../DiagramContext";
 import { MoreVertIcon } from "../../../resources";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
-import { getDiffColors, getDiffTitleStyles, nodeHasError } from "../../../utils/node";
+import { getDiffColors, getDiffStrokeDasharray, getDiffTitleStyles, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import NodeIcon from "../../NodeIcon";
 import { NodeNoteChip } from "../../NodeNoteChip";
@@ -334,7 +334,7 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                                             : ThemeColors.OUTLINE_VARIANT
                             }
                             strokeWidth={NODE_BORDER_WIDTH}
-                            strokeDasharray={disabled ? "5 5" : "none"}
+                            strokeDasharray={disabled ? "5 5" : getDiffStrokeDasharray(model.node)}
                             opacity={disabled ? 0.7 : 1}
                             transform="rotate(45 28 28)"
                         />

@@ -250,7 +250,7 @@ function headerBeforeBrace(text: string): string {
  */
 export function getDiffDisplaySource(node: FlowNode): string {
     const source = node.codedata?.sourceCode ?? "";
-    const text = hasBranches(node) ? headerBeforeBrace(source) : source;
+    const text = hasBranches(node) || node.codedata?.node === "EVENT_START" ? headerBeforeBrace(source) : source;
     return text.trim();
 }
 
@@ -273,9 +273,11 @@ function matchNodes(oldNode: FlowNode, newNode: FlowNode): NodeMatch {
     if (oldNode.codedata?.node !== newNode.codedata?.node) {
         return null;
     }
-    // Keep the single start event aligned, but surface signature/resource-path edits.
+    // EVENT_START source can contain the complete function body. Compare only the
+    // declaration header so an edit inside the function does not mark Start modified.
+    // Signature and resource-path edits still surface on the Start node.
     if (newNode.codedata?.node === "EVENT_START") {
-        return nodeKey(oldNode) === nodeKey(newNode) ? "exact" : "modified";
+        return containerHeaderKey(oldNode) === containerHeaderKey(newNode) ? "exact" : "modified";
     }
     // Comments align by text: equal text is a stable anchor (exact); differing text is an
     // in-place note edit (modified). Handling them before nodeKey — which collapses every

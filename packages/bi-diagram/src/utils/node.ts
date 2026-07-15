@@ -26,9 +26,26 @@ import {
     DIFF_REMOVED_BG_COLOR,
     DIFF_REMOVED_COLOR,
 } from "../resources/constants";
-import { Branch, FlowNode } from "./types";
+import { Branch, FlowNode, FlowNodeDiffState } from "./types";
 
 const WORKFLOW_NODE_KINDS = new Set(["WORKFLOW_RUN", "ACTIVITY_CALL", "SEND_DATA", "WAIT_DATA"]);
+
+export interface DiffStatePresentation {
+    symbol: "+" | "−" | "~";
+    label: "Added" | "Removed" | "Modified";
+    borderStyle: "solid" | "dashed" | "dotted";
+    strokeDasharray?: string;
+}
+
+const DIFF_STATE_PRESENTATIONS: Record<FlowNodeDiffState, DiffStatePresentation> = {
+    added: { symbol: "+", label: "Added", borderStyle: "solid" },
+    removed: { symbol: "−", label: "Removed", borderStyle: "dashed", strokeDasharray: "6 4" },
+    modified: { symbol: "~", label: "Modified", borderStyle: "dotted", strokeDasharray: "2 2" },
+};
+
+export function getDiffStatePresentation(state?: FlowNodeDiffState): DiffStatePresentation | undefined {
+    return state ? DIFF_STATE_PRESENTATIONS[state] : undefined;
+}
 
 // Colors for a node in the unified review-diff diagram, keyed by its diff state.
 // Raw strings so both `style`-prop consumers and SVG fill/stroke attributes can use them.
@@ -49,10 +66,21 @@ export function getDiffColors(node: FlowNode): { background: string; border: str
 // Applied on top of the widget's styled-component so every node kind gets the same treatment.
 export function getDiffContainerStyles(node: FlowNode): CSSProperties | undefined {
     const colors = getDiffColors(node);
-    if (!colors) {
+    const presentation = getDiffStatePresentation(node?.diffState);
+    if (!colors || !presentation) {
         return undefined;
     }
-    return { backgroundColor: colors.background, borderColor: colors.border, borderStyle: "solid" };
+    return {
+        backgroundColor: colors.background,
+        borderColor: colors.border,
+        borderStyle: presentation.borderStyle,
+        outline: "1px solid var(--vscode-contrastBorder, transparent)",
+        outlineOffset: "2px",
+    };
+}
+
+export function getDiffStrokeDasharray(node: FlowNode): string | undefined {
+    return getDiffStatePresentation(node?.diffState)?.strokeDasharray;
 }
 
 export function getDiffTitleStyles(node: FlowNode): CSSProperties | undefined {

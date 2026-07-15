@@ -40,7 +40,7 @@
                     "startLine": { "line": 11, "offset": 8 },
                     "endLine": { "line": 11, "offset": 52 }
                 },
-                "sourceCode": "string orderStatus = orderValue.status;"
+                "sourceCode": "string orderStatus = orderValue.status.toUpperAscii();"
             },
             "properties": {
                 "variable": {
@@ -53,7 +53,7 @@
                 },
                 "expression": {
                     "metadata": { "label": "Expression", "description": "Expression of the variable" },
-                    "value": "orderValue.status",
+                    "value": "orderValue.status.toUpperAscii()",
                     "optional": false,
                     "editable": true,
                     "advanced": false,

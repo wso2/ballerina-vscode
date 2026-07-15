@@ -521,6 +521,22 @@ describe("mergeFlowModelsForDiff", () => {
         expect(merged.nodes[0].diffPreviousText).toBe("get resource()");
     });
 
+    it("does not mark EVENT_START modified when only its embedded function body changes", () => {
+        const oldFlow = makeFlow([
+            makeNode("EVENT_START", "function onError() {\n    log:printError(\"old\");\n}"),
+            makeNode("FUNCTION_CALL", "log:printError(\"old\");", undefined, { symbol: "printError", module: "log" }),
+        ]);
+        const newFlow = makeFlow([
+            makeNode("EVENT_START", "function onError() {\n    log:printError(\"new\");\n}"),
+            makeNode("FUNCTION_CALL", "log:printError(\"new\");", undefined, { symbol: "printError", module: "log" }),
+        ]);
+
+        const merged = mergeFlowModelsForDiff(oldFlow, newFlow);
+
+        expect(merged.nodes[0].diffState).toBeUndefined();
+        expect(merged.nodes[1].diffState).toBe("modified");
+    });
+
     it("uses a bounded coarse diff for very large node lists", () => {
         const oldMiddle = Array.from({ length: 500 }, (_, index) =>
             makeNode("FUNCTION_CALL", `old${index}();`, undefined, { symbol: `old${index}` })

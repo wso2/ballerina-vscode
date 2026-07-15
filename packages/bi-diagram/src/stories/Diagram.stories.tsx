@@ -20,8 +20,8 @@ Start.args = {
     model: model1,
 };
 
-// Unified review-diff diagram: old and new versions of the same function merged into one
-// flow, with removed nodes in a red lane and added nodes in a green lane.
+// Unified review-diff diagram with an edited variable and replaced function call,
+// covering modified, removed and added state presentations in one visual fixture.
 export const ReviewDiff = Template.bind({});
 ReviewDiff.args = {
     model: mergeFlowModelsForDiff(diffOldModel as unknown as Flow, diffNewModel as unknown as Flow),
