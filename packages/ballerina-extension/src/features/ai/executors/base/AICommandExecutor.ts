@@ -22,6 +22,7 @@ import { chatStateStorage, ChatStateStorage } from '../../../../views/ai-panel/c
 import { getTempProject, cleanupTempProject } from '../../utils/project/temp-project';
 import { buildChatError } from '../../utils/ai-utils';
 import { MigrationDebugLogger } from '../../migration/debug-logger';
+import { clearAiTouchedFiles } from '../../../../rpc-managers/diagram-validity';
 
 /**
  * Unified configuration for all AI command executors
@@ -157,6 +158,7 @@ export abstract class AICommandExecutor<TParams = any> {
             console.log(`[AICommandExecutor] Starting ${this.getCommandType()} execution: ${this.config.generationId}`);
 
             // Stage 1: Register active execution for abort support
+            clearAiTouchedFiles();
             chatStateStorage.setActiveExecution(projectRootPath, threadId, {
                 generationId: this.config.generationId,
                 abortController: this.config.abortController

@@ -416,17 +416,17 @@ export class ChatStateStorage {
 
     /**
      * Clear workspace state
-     * Cleans up any pending review temp projects before clearing.
+     * Cleans up any still-open ('done') generation's temp project before clearing.
      * @param projectRootPath Workspace identifier
      */
     async clearWorkspace(projectRootPath: string): Promise<void> {
-        // Cleanup pending review temp projects before clearing
+        // Cleanup any still-open generation's temp project before clearing
         const workspace = this.storage.get(projectRootPath);
         if (workspace) {
             for (const [threadId, thread] of workspace.threads) {
-                const pendingReview = this.getPendingReviewGeneration(projectRootPath, threadId);
+                const pendingReview = this.getDoneGeneration(projectRootPath, threadId);
                 if (pendingReview?.reviewState.tempProjectPath) {
-                    console.log(`[ChatStateStorage] Cleaning up pending review temp project: ${pendingReview.reviewState.tempProjectPath}`);
+                    console.log(`[ChatStateStorage] Cleaning up open generation's temp project: ${pendingReview.reviewState.tempProjectPath}`);
 
                     // Cleanup temp directory
                     if (!process.env.AI_TEST_ENV) {
@@ -579,10 +579,9 @@ export class ChatStateStorage {
         if (!workspace || !workspace.threads.has(threadId)) { return; }
 
         // Cleanup temp project if needed
-        const pendingReview = this.getPendingReviewGeneration(projectRootPath, threadId);
-        if (pendingReview?.reviewState.tempProjectPath && !process.env.AI_TEST_ENV) {
-            
-            try { await cleanupTempProject(pendingReview.reviewState.tempProjectPath); } catch { /* ignore */ }
+        const doneGeneration = this.getDoneGeneration(projectRootPath, threadId);
+        if (doneGeneration?.reviewState.tempProjectPath && !process.env.AI_TEST_ENV) {
+            try { await cleanupTempProject(doneGeneration.reviewState.tempProjectPath); } catch { /* ignore */ }
         }
 
         workspace.threads.delete(threadId);
@@ -634,7 +633,7 @@ export class ChatStateStorage {
             uiResponse: '',
             timestamp: Date.now(),
             reviewState: {
-                status: 'pending',
+                status: 'generating',
                 modifiedFiles: [],
             },
             currentTaskIndex: -1,
@@ -837,28 +836,29 @@ export class ChatStateStorage {
     // ============================================
 
     /**
-     * Get pending review generation (latest with 'under_review' status)
+     * Get the generation currently in the revertible 'done' window, if any.
+     * By construction there is at most one at a time: starting a new generation always
+     * finalizes ('accepted') whichever generation was previously 'done' first.
      * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @returns Generation or undefined
      */
-    getPendingReviewGeneration(
+    getDoneGeneration(
         projectRootPath: string,
         threadId: string
     ): Generation | undefined {
         const thread = this.getOrCreateThread(projectRootPath, threadId);
 
-        // Find the LATEST generation with 'under_review' status
-        // Iterate in reverse to get the most recent one
+        // Iterate in reverse defensively — the invariant guarantees at most one match.
         for (let i = thread.generations.length - 1; i >= 0; i--) {
             const generation = thread.generations[i];
-            if (generation.reviewState.status === 'under_review') {
-                console.log(`[ChatStateStorage] Found pending review generation: ${generation.id}`);
+            if (generation.reviewState.status === 'done') {
+                console.log(`[ChatStateStorage] Found done generation: ${generation.id}`);
                 return generation;
             }
         }
 
-        console.log(`[ChatStateStorage] No pending review generation in thread: ${threadId}`);
+        console.log(`[ChatStateStorage] No done generation in thread: ${threadId}`);
         return undefined;
     }
 
@@ -892,56 +892,51 @@ export class ChatStateStorage {
     }
 
     /**
-     * Accept all reviews in a thread
-     * Marks ALL 'under_review' generations as 'accepted' and clears runtime-only
-     * review fields (affectedPackagePaths) in a single operation.
+     * Internal: finalize whichever generation is 'done' into 'accepted', with no workspace
+     * change. Called automatically when the user moves on to a new generation without
+     * explicitly reverting — never invoked directly by a user action.
      * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
+     * @returns The finalized generation, or undefined if none was 'done'
      */
-    acceptAllReviews(projectRootPath: string, threadId: string): void {
+    finalizeLastGenerationIfDone(projectRootPath: string, threadId: string): Generation | undefined {
+        const generation = this.getDoneGeneration(projectRootPath, threadId);
+        if (!generation) {
+            return undefined;
+        }
+
+        generation.reviewState.status = 'accepted';
+        generation.reviewState.affectedPackagePaths = [];
+
         const thread = this.getOrCreateThread(projectRootPath, threadId);
-        let count = 0;
-
-        for (const generation of thread.generations) {
-            if (generation.reviewState.status === 'under_review') {
-                generation.reviewState.status = 'accepted';
-                generation.reviewState.affectedPackagePaths = [];
-                count++;
-            }
-        }
-
-        if (count > 0) {
-            thread.updatedAt = Date.now();
-            this.flushThread(projectRootPath, threadId);
-        }
-        console.log(`[ChatStateStorage] Accepted ${count} review(s) in thread: ${threadId}`);
+        thread.updatedAt = Date.now();
+        this.flushThread(projectRootPath, threadId);
+        console.log(`[ChatStateStorage] Implicitly accepted generation: ${generation.id}`);
+        return generation;
     }
 
     /**
-     * Decline all reviews in a thread
-     * Marks ALL 'under_review' generations as 'error' and clears runtime-only
-     * review fields (affectedPackagePaths) in a single operation.
+     * The sole explicit user action on a generation's review state: revert whichever
+     * generation is 'done'. The caller is responsible for restoring the workspace from
+     * its checkpoint — this only updates status/bookkeeping.
      * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
+     * @returns The reverted generation, or undefined if none was 'done'
      */
-    declineAllReviews(projectRootPath: string, threadId: string): void {
+    revertLastGeneration(projectRootPath: string, threadId: string): Generation | undefined {
+        const generation = this.getDoneGeneration(projectRootPath, threadId);
+        if (!generation) {
+            return undefined;
+        }
+
+        generation.reviewState.status = 'reverted';
+        generation.reviewState.affectedPackagePaths = [];
+
         const thread = this.getOrCreateThread(projectRootPath, threadId);
-        let count = 0;
-
-        for (const generation of thread.generations) {
-            if (generation.reviewState.status === 'under_review') {
-                generation.reviewState.status = 'error';
-                generation.reviewState.errorMessage = 'Declined by user';
-                generation.reviewState.affectedPackagePaths = [];
-                count++;
-            }
-        }
-
-        if (count > 0) {
-            thread.updatedAt = Date.now();
-            this.flushThread(projectRootPath, threadId);
-        }
-        console.log(`[ChatStateStorage] Declined ${count} review(s) in thread: ${threadId}`);
+        thread.updatedAt = Date.now();
+        this.flushThread(projectRootPath, threadId);
+        console.log(`[ChatStateStorage] Reverted generation: ${generation.id}`);
+        return generation;
     }
 
     // ============================================

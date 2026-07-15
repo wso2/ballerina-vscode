@@ -523,7 +523,7 @@ export class ApprovalViewManager {
     private async rebuildReviewDataFromStorage(): Promise<ReviewModeData | null> {
         const ctx = StateMachine.context();
         const projectRootPath = ctx.workspacePath || ctx.projectPath || '';
-        const generation = chatStateStorage.getPendingReviewGeneration(projectRootPath, 'default');
+        const generation = chatStateStorage.getDoneGeneration(projectRootPath, 'default');
         if (!generation) {
             return null;
         }

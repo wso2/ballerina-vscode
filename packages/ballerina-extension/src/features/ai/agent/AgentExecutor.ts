@@ -568,11 +568,12 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     }
                     // Emit save_chat so any pre-step-boundary streamed text is persisted into uiResponse.
                     updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
-                    // Clear review state
-                    const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
-                    if (pendingReview && pendingReview.id === this.config.generationId) {
-                        console.log("[AgentExecutor] Clearing review state due to abort");
-                        chatStateStorage.declineAllReviews(projectRootPath, threadId);
+                    // If this generation had already reached 'done' by the time the abort was
+                    // detected (the stream finished right as the user cancelled), revert it.
+                    const abortedGeneration = chatStateStorage.getGeneration(projectRootPath, threadId, this.config.generationId);
+                    if (abortedGeneration?.reviewState.status === 'done') {
+                        console.log("[AgentExecutor] Reverting review state due to abort");
+                        chatStateStorage.revertLastGeneration(projectRootPath, threadId);
                     }
 
                     // Send telemetry for generation abort
@@ -696,9 +697,9 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         // Clear review state for this generation
         const projectRootPath = context.ctx.workspacePath || context.ctx.projectPath || '';
         const threadId = this.config.chatStorage?.threadId ?? 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
+        const erroredGeneration = chatStateStorage.getGeneration(projectRootPath, threadId, context.messageId);
 
-        if (pendingReview && pendingReview.id === context.messageId) {
+        if (erroredGeneration?.reviewState.status === 'done') {
             console.log("[AgentExecutor] Clearing review state due to error");
             chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
                 status: 'error',
@@ -824,8 +825,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
         // Integrate generated code into workspace immediately so user sees changes during review.
         // Skip only when the temp path IS the real workspace directory (migration wizard in-place
-        // editing). A review-continuation run also sets existingTempPath but to a temp dir, so we
-        // compare resolved paths rather than just checking existingTempPath presence.
+        // editing, which sets existingTempPath to a real project path rather than a temp dir).
         const workspaceRoot = context.ctx.workspacePath || context.ctx.projectPath;
         const isInPlaceEditing =
             !!workspaceRoot &&
@@ -899,9 +899,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             tempProjectPath
         );
 
-        // Update review state — modifiedFiles is per-generation only
+        // Update review state — modifiedFiles is per-generation only. 'done' means this
+        // generation is finished and its edits are live; it stays revertible until the user
+        // reverts it explicitly or the next generation starts (implicit accept).
         chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
-            status: 'under_review',
+            status: 'done',
             tempProjectPath,
             modifiedFiles: generationModifiedFiles,
             affectedPackagePaths: affectedPackagePaths,
@@ -917,8 +919,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
         const threadId = this.config.chatStorage?.threadId ?? 'default';
 
-        // Show review for the current generation only; older under-review ones are treated as accepted.
-        // TODO: refactor generation review state so older generations are explicitly marked accepted.
         const currentGeneration = chatStateStorage.getGeneration(workspaceId, threadId, context.messageId);
         const accumulatedModifiedFiles = currentGeneration?.reviewState.modifiedFiles ?? [];
         const cachedAffectedPackages = currentGeneration?.reviewState.affectedPackagePaths ?? [];
