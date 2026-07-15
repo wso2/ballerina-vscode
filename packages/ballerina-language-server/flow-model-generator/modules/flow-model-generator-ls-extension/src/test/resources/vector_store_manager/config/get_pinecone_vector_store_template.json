@@ -127,12 +127,30 @@
           },
           "types": [
             {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                {
+                  "label": "HYBRID",
+                  "value": "\"HYBRID\""
+                },
+                {
+                  "label": "SPARSE",
+                  "value": "\"SPARSE\""
+                },
+                {
+                  "label": "DENSE",
+                  "value": "\"DENSE\""
+                }
+              ],
+              "selected": false
+            },
+            {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "$CompilationError$",
+              "ballerinaType": "ai:VectorStoreQueryMode",
               "selected": false
             }
           ],
-          "placeholder": "",
+          "placeholder": "\"HYBRID\"",
           "optional": true,
           "editable": true,
           "advanced": true,
