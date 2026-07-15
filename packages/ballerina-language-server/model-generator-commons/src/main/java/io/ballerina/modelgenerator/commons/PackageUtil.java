@@ -89,16 +89,20 @@ public class PackageUtil {
     }
 
     /**
-     * Build options for loading a resolved bala. In offline (test) mode, SOFT locking lets a bala's baked transitive
-     * versions re-resolve to the locked/available versions in the cache instead of demanding the exact baked version
-     * (which is often not provisioned). Production keeps the default locking mode, so its behaviour is unchanged.
+     * Build options for loading a resolved bala, branched by mode:
+     * <ul>
+     *   <li><b>Tests</b> ({@code FORCE_OFFLINE}): resolve offline with SOFT locking, so a bala's baked transitive
+     *       versions re-resolve to the locked/available versions in the cache instead of demanding the exact baked
+     *       version (which is often not provisioned).</li>
+     *   <li><b>Production</b>: replicate the original two-argument {@code BalaProject.loadProject} behaviour
+     *       ({@code sticky = true}), so production is unchanged.</li>
+     * </ul>
      */
     private static BuildOptions balaBuildOptions() {
-        BuildOptions.BuildOptionsBuilder builder = BuildOptions.builder().setOffline(FORCE_OFFLINE);
         if (FORCE_OFFLINE) {
-            builder.setLockingMode(PackageLockingMode.SOFT);
+            return BuildOptions.builder().setOffline(true).setLockingMode(PackageLockingMode.SOFT).build();
         }
-        return builder.build();
+        return BuildOptions.builder().setSticky(true).build();
     }
 
     private static final BuildProject SAMPLE_PROJECT = getSampleProject();
