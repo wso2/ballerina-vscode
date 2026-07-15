@@ -73,6 +73,10 @@ class LsHarness {
             env: process.env,
         });
         this.proc.stdout.on("data", (d) => this.onData(d));
+        // Drain stderr. It's piped so it can be inspected on failure, but if nothing reads
+        // it a chatty LS can fill the ~64KB OS pipe buffer, block on write, and hang the
+        // test until timeout (an intermittent CI hang rather than a clear failure).
+        this.proc.stderr.on("data", () => {});
         // Surface a failed spawn (bad path, perms) as a normal rejection instead of an
         // unhandled 'error' event that would crash the Jest worker.
         this.proc.on("error", (err) => {

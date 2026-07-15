@@ -33,6 +33,9 @@ type Kind = "ls" | "rpc";
 
 const SECRET_KEY_RE = /token|secret|password|passwd|api[_-]?key|apikey|authorization|credential/i;
 
+// Live read of the env flag. Callers on a hot path should cache this once at module load
+// (see extended-language-client.ts / RPCLayer.ts) rather than call it per request —
+// recording is enabled for the whole process before launch, so it never changes at runtime.
 export function isRecording(): boolean {
     const v = process.env.BAL_RECORD_FIXTURES;
     return v === "1" || v === "true";
