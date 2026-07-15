@@ -286,7 +286,8 @@ export function Diagram(props: DiagramProps) {
             diagramEngine.getModel().removeLayer(overlayLayer);
         }
 
-        if (nodes.length < 3 || !hasDiagramZoomAndPosition(model.fileName)) {
+        // Fit only on first render per file; preserve zoom/pan on later updates.
+        if (!hasDiagramZoomAndPosition(model.fileName)) {
             resetDiagramZoomAndPosition(model.fileName);
         }
         loadDiagramZoomAndPosition(diagramEngine);

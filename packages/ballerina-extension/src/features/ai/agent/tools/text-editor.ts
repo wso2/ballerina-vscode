@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { SourceFile } from "@wso2/ballerina-core";
+import { SourceFile, ExecutionContext } from "@wso2/ballerina-core";
 import { tool } from 'ai';
 import { z } from 'zod';
 import * as fs from 'fs';
@@ -25,6 +25,28 @@ import { sendAISchemaDidChange, sendAiSchemaDidOpen } from "../../utils/project/
 import { CopilotEventHandler } from "../../utils/events";
 import { normalizeInvisibleChars } from "../../utils/string-utils";
 import { normalizeToLf, readAndNormalize, restoreEol } from "../../utils/eol-utils";
+import { integrateAndClearModifiedFiles } from "../utils";
+import { recordAiTouchedFile } from "../../../../rpc-managers/diagram-validity";
+
+// Push accumulated edits into the real workspace mid-turn so the diagram updates live.
+async function integrateLiveEdit(
+  tempProjectPath: string,
+  modifiedFiles?: string[],
+  allModifiedFiles?: Set<string>,
+  ctx?: ExecutionContext
+): Promise<void> {
+  if (!ctx || !modifiedFiles || !allModifiedFiles || modifiedFiles.length === 0) {
+    return;
+  }
+  try {
+    const workspaceRoot = ctx.workspacePath || ctx.projectPath;
+    const relativePaths = [...modifiedFiles];
+    await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
+    relativePaths.forEach(relPath => recordAiTouchedFile(path.join(workspaceRoot, relPath)));
+  } catch (error) {
+    console.error("[TextEditorTool] Live integration failed:", error);
+  }
+}
 
 // ============================================================================
 // Display Helper Functions
@@ -264,7 +286,9 @@ function truncateLongLines(content: string, maxLength: number = MAX_LINE_LENGTH)
 export function createWriteExecute(
   eventHandler: CopilotEventHandler,
   tempProjectPath: string,
-  modifiedFiles?: string[]
+  modifiedFiles?: string[],
+  allModifiedFiles?: Set<string>,
+  ctx?: ExecutionContext
 ) {
   return async (args: {
     file_path: string;
@@ -345,6 +369,8 @@ export function createWriteExecute(
       sendAISchemaDidChange(tempProjectPath, file_path);
     }
 
+    await integrateLiveEdit(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
+
     console.log(`[FileWriteTool] Successfully ${action} file: ${file_path} with ${lineCount} lines to temp project.`);
     const result = {
       success: true,
@@ -366,7 +392,9 @@ export function createWriteExecute(
 export function createEditExecute(
   eventHandler: CopilotEventHandler,
   tempProjectPath: string,
-  modifiedFiles?: string[]
+  modifiedFiles?: string[],
+  allModifiedFiles?: Set<string>,
+  ctx?: ExecutionContext
 ) {
   return async (args: {
     file_path: string;
@@ -496,6 +524,8 @@ export function createEditExecute(
     // Notify Language Server of the change
     sendAISchemaDidChange(tempProjectPath, file_path);
 
+    await integrateLiveEdit(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
+
     const replacedCount = replace_all ? occurrenceCount : 1;
     console.log(`[FileEditTool] Successfully replaced ${replacedCount} occurrence(s) in file: ${file_path}`);
     const result = {
@@ -517,7 +547,9 @@ export function createEditExecute(
 export function createMultiEditExecute(
   eventHandler: CopilotEventHandler,
   tempProjectPath: string,
-  modifiedFiles?: string[]
+  modifiedFiles?: string[],
+  allModifiedFiles?: Set<string>,
+  ctx?: ExecutionContext
 ) {
   return async (args: {
     file_path: string;
@@ -666,6 +698,8 @@ export function createMultiEditExecute(
 
     // Notify Language Server of the change
     sendAISchemaDidChange(tempProjectPath, file_path);
+
+    await integrateLiveEdit(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
 
     console.log(`[FileMultiEditTool] Successfully applied ${edits.length} edits to file: ${file_path}`);
     const result = {

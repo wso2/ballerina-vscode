@@ -1260,6 +1260,15 @@ export class ChatStateStorage {
     getActiveExecution(projectRootPath: string, threadId: string): ActiveExecution | undefined {
         return this.activeExecutions.get(projectRootPath)?.get(threadId);
     }
+
+    hasAnyActiveExecution(): boolean {
+        for (const threadMap of this.activeExecutions.values()) {
+            if (threadMap.size > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 // Singleton export

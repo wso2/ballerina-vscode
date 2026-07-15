@@ -218,7 +218,7 @@ import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
 import { readOrWriteReadmeContent } from "./utils";
 import { registerFormOpen, registerFormClose, setFormDirtyState } from "./form-state";
-import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
+import { isAiSourceParseable } from "../diagram-validity";
 import { getRepoRoot } from "../platform-ext/platform-utils";
 import { WI_EXTENSION_ID } from "../../utils";
 import { notifyOnIdentifierUpdated } from "../../RPCLayer";
@@ -331,8 +331,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
             StateMachine.langClient()
                 .getFlowModel(request)
-                .then((model) => {
+                .then(async (model) => {
                     console.log(">>> bi flow model received from ls");
+                    if (model?.flowModel && !(await isAiSourceParseable([request.filePath]))) {
+                        resolve(undefined);
+                        return;
+                    }
                     resolve(model);
                 })
                 .catch((error) => {
@@ -1851,8 +1855,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
             StateMachine.langClient()
                 .getDesignModel({ projectPath })
-                .then((model) => {
+                .then(async (model) => {
                     console.log(">>> design model from ls", model);
+                    if (model?.designModel && !(await isAiSourceParseable([]))) {
+                        resolve(undefined);
+                        return;
+                    }
                     resolve(model);
                 })
                 .catch((error) => {
@@ -1889,7 +1897,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise((resolve, reject) => {
             StateMachine.langClient()
                 .getTypes({ filePath })
-                .then((types) => {
+                .then(async (types) => {
+                    if (types?.types && !(await isAiSourceParseable([filePath]))) {
+                        resolve(undefined);
+                        return;
+                    }
                     resolve(types);
                 }).catch((error) => {
                     console.log(">>> error fetching types from ls", error);

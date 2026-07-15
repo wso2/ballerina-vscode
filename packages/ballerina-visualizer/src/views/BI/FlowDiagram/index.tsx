@@ -21,6 +21,7 @@ import { TraceAnimationEvent } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
 import { removeMcpServerFromAgentNode, findAgentNodeFromAgentCallNode, findFlowNode, removeAgentNode, confirmAgentCallDeletion } from "../AIChatAgent/utils";
+import { DIAGRAM_REFRESH_DEBOUNCE_MS } from "../diagramRefreshDebounce";
 import { MemoizedDiagram, setTraceAnimationActive, setTraceAnimationInactive } from "@wso2/bi-diagram";
 import {
     BIAvailableNodesRequest,
@@ -334,7 +335,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const debouncedGetFlowModel = useCallback(
         debounce(() => {
             getFlowModel();
-        }, 1000),
+        }, DIAGRAM_REFRESH_DEBOUNCE_MS),
         [hasDraft]
     );
 

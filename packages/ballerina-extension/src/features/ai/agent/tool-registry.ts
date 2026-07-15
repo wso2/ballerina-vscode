@@ -122,13 +122,13 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
             modifiedFiles
         ),
         [FILE_WRITE_TOOL_NAME]: createWriteTool(
-            createWriteExecute(eventHandler, tempProjectPath, modifiedFiles)
+            createWriteExecute(eventHandler, tempProjectPath, modifiedFiles, allModifiedFiles, ctx)
         ),
         [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(
-            createEditExecute(eventHandler, tempProjectPath, modifiedFiles)
+            createEditExecute(eventHandler, tempProjectPath, modifiedFiles, allModifiedFiles, ctx)
         ),
         [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(
-            createMultiEditExecute(eventHandler, tempProjectPath, modifiedFiles)
+            createMultiEditExecute(eventHandler, tempProjectPath, modifiedFiles, allModifiedFiles, ctx)
         ),
         [FILE_READ_TOOL_NAME]: createReadTool(
             createReadExecute(eventHandler, tempProjectPath)
