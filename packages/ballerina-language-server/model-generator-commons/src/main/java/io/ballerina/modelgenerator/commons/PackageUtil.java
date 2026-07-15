@@ -35,6 +35,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.bala.BalaProject;
 import io.ballerina.projects.directory.BuildProject;
+import io.ballerina.projects.environment.PackageLockingMode;
 import io.ballerina.projects.environment.PackageMetadataResponse;
 import io.ballerina.projects.environment.PackageResolver;
 import io.ballerina.projects.environment.ResolutionOptions;
@@ -85,6 +86,19 @@ public class PackageUtil {
      */
     public static boolean isOffline() {
         return FORCE_OFFLINE;
+    }
+
+    /**
+     * Build options for loading a resolved bala. In offline (test) mode, SOFT locking lets a bala's baked transitive
+     * versions re-resolve to the locked/available versions in the cache instead of demanding the exact baked version
+     * (which is often not provisioned). Production keeps the default locking mode, so its behaviour is unchanged.
+     */
+    private static BuildOptions balaBuildOptions() {
+        BuildOptions.BuildOptionsBuilder builder = BuildOptions.builder().setOffline(FORCE_OFFLINE);
+        if (FORCE_OFFLINE) {
+            builder.setLockingMode(PackageLockingMode.SOFT);
+        }
+        return builder.build();
     }
 
     private static final BuildProject SAMPLE_PROJECT = getSampleProject();
@@ -204,8 +218,7 @@ public class PackageUtil {
         Path balaPath = resolutionResponse.get().resolvedPackage().project().sourceRoot();
         ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
         defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
-        BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath,
-                BuildOptions.builder().setOffline(FORCE_OFFLINE).build());
+        BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath, balaBuildOptions());
         return Optional.ofNullable(balaProject.currentPackage());
     }
 
@@ -245,8 +258,7 @@ public class PackageUtil {
         Path balaPath = resolutionResponse.get().resolvedPackage().project().sourceRoot();
         ProjectEnvironmentBuilder defaultBuilder = ProjectEnvironmentBuilder.getDefaultBuilder();
         defaultBuilder.addCompilationCacheFactory(TempDirCompilationCache::from);
-        BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath,
-                BuildOptions.builder().setOffline(FORCE_OFFLINE).build());
+        BalaProject balaProject = BalaProject.loadProject(defaultBuilder, balaPath, balaBuildOptions());
         return Optional.ofNullable(balaProject.currentPackage());
     }
 
