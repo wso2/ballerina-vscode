@@ -411,6 +411,7 @@ export interface SemanticDiff {
     nodeKind: number;   // API returns numeric value
     uri: string;
     lineRange: LineRange;
+    previousLineRange?: LineRange;
     metadata?: ResourceMetadata | IdentifierMetadata;
 }
 

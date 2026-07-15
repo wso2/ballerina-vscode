@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { SemanticDiffResponse, SemanticDiff, ChangeTypeEnum } from "@wso2/ballerina-core";
+import { SemanticDiffResponse, SemanticDiff, ChangeTypeEnum, NodePosition } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ReadonlyComponentDiagram } from "./ReadonlyComponentDiagram";
@@ -125,12 +125,8 @@ enum DiagramType {
 interface ReviewView {
     type: DiagramType;
     filePath: string;
-    position: {
-        startLine: number;
-        endLine: number;
-        startColumn: number;
-        endColumn: number;
-    };
+    position: NodePosition;
+    oldPosition?: NodePosition;
     projectPath: string;
     label?: string;
     changeType: number;
@@ -198,6 +194,14 @@ function convertToReviewView(diff: SemanticDiff, projectPath: string, packageNam
             startColumn: diff.lineRange.startLine.offset,
             endColumn: diff.lineRange.endLine.offset,
         },
+        oldPosition: diff.previousLineRange
+            ? {
+                  startLine: diff.previousLineRange.startLine.line,
+                  endLine: diff.previousLineRange.endLine.line,
+                  startColumn: diff.previousLineRange.startLine.offset,
+                  endColumn: diff.previousLineRange.endLine.offset,
+              }
+            : undefined,
         projectPath,
         label: changeLabel,
         changeType: diff.changeType,
@@ -475,6 +479,7 @@ export function ReviewMode(): JSX.Element {
                         projectPath={currentView.projectPath || projectPath}
                         filePath={currentView.filePath}
                         position={currentView.position}
+                        oldPosition={currentView.oldPosition}
                         onModelLoaded={handleModelLoaded}
                         viewMode={effectiveViewMode}
                         changeType={currentView.changeType}

@@ -22,6 +22,7 @@ import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import { Diagram, mergeFlowModelsForDiff, stampDiffState } from "@wso2/bi-diagram";
+import { getFlowLookupPosition } from "./position-utils";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -75,6 +76,7 @@ interface ReadonlyFlowDiagramProps {
     projectPath: string;
     filePath: string;
     position: NodePosition;
+    oldPosition?: NodePosition;
     onModelLoaded?: (metadata: ItemMetadata) => void;
     viewMode: ReviewViewMode;
     changeType: number;
@@ -140,7 +142,16 @@ function isSameExpectedFunction(oldFlow: Flow, newFlow: Flow, expected?: Expecte
 }
 
 export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Element {
-    const { filePath, position, onModelLoaded, viewMode, changeType, expectedMetadata, onDiffUnavailable } = props;
+    const {
+        filePath,
+        position,
+        oldPosition,
+        onModelLoaded,
+        viewMode,
+        changeType,
+        expectedMetadata,
+        onDiffUnavailable,
+    } = props;
     const { rpcClient } = useRpcContext();
     const [flowModel, setFlowModel] = useState<Flow | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -196,12 +207,15 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
         return () => {
             cancelled = true;
         };
-    }, [filePath, position, viewMode, expectedMetadata, changeType, rpcClient]);
+    }, [filePath, position, oldPosition, viewMode, expectedMetadata, changeType, rpcClient]);
 
     // Fetch one version of the enclosing function's flow model.
     // useFileSchema=true reads the frozen original (file://); false reads the modified temp content (ai://).
     const fetchFlowModelVersion = async (useFileSchema: boolean): Promise<Flow | null> => {
-        const cacheKey = `${filePath}:${position.startLine}:${position.startColumn}:${position.endLine}:${position.endColumn}`;
+        const lookupPosition = getFlowLookupPosition(position, oldPosition, useFileSchema);
+        const cacheKey = `${filePath}:${position.startLine}:${position.startColumn}:${position.endLine}:` +
+            `${position.endColumn}:${oldPosition?.startLine ?? ""}:${oldPosition?.startColumn ?? ""}:` +
+            `${oldPosition?.endLine ?? ""}:${oldPosition?.endColumn ?? ""}`;
         if (flowCache.current.key !== cacheKey) {
             flowCache.current = { key: cacheKey, versions: new Map() };
         }
@@ -215,11 +229,17 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
         // since the position from semantic diff may only cover the changed statement
         const enclosedFn = await rpcClient.getBIDiagramRpcClient().getEnclosedFunction({
             filePath: filePath,
-            position: { line: position.startLine, offset: position.startColumn },
+            position: { line: lookupPosition.startLine, offset: lookupPosition.startColumn },
             useFileSchema,
         });
-        const startLine = enclosedFn?.startLine ?? { line: position.startLine, offset: position.startColumn };
-        const endLine = enclosedFn?.endLine ?? { line: position.endLine, offset: position.endColumn };
+        const startLine = enclosedFn?.startLine ?? {
+            line: lookupPosition.startLine,
+            offset: lookupPosition.startColumn,
+        };
+        const endLine = enclosedFn?.endLine ?? {
+            line: lookupPosition.endLine,
+            offset: lookupPosition.endColumn,
+        };
 
         const response = await rpcClient.getBIDiagramRpcClient().getFlowModel({
             filePath: filePath,

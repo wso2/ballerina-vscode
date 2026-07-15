@@ -240,10 +240,8 @@ public class SemanticDiffComputer {
             }
 
             // TODO: Need to use the semantic types and compare the types
-            LineRange lineRange = modifiedTypeDef.lineRange();
-            SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, NodeKind.TYPE_DEFINITION,
-                    resolveUri(lineRange.fileName()), lineRange, buildTypeMetadata(typeDefName));
-            this.semanticDiffs.add(diff);
+            addModificationDiff(NodeKind.TYPE_DEFINITION, modifiedTypeDef.lineRange(),
+                    originalTypeDef.lineRange(), buildTypeMetadata(typeDefName));
         }
 
         // Handle newly added type definitions in modified project
@@ -307,16 +305,14 @@ public class SemanticDiffComputer {
                                        NodeKind kind, Map<String, String> metadata) {
 
         if (!functionHeaderKey(originalFunction).equals(functionHeaderKey(modifiedFunction))) {
-            LineRange lineRange = modifiedFunction.lineRange();
-            SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                    resolveUri(lineRange.fileName()), lineRange, metadata);
-            this.semanticDiffs.add(diff);
+            addModificationDiff(kind, modifiedFunction.lineRange(), originalFunction.lineRange(), metadata);
             return;
         }
 
         FunctionBodyNode originalFunctionBody = originalFunction.functionBody();
         FunctionBodyNode modifiedFunctionBody = modifiedFunction.functionBody();
-        compareFunctionBodies(modifiedFunction, originalFunctionBody, modifiedFunctionBody, kind, metadata);
+        compareFunctionBodies(originalFunction, modifiedFunction, originalFunctionBody, modifiedFunctionBody,
+                kind, metadata);
     }
 
     /**
@@ -365,13 +361,15 @@ public class SemanticDiffComputer {
      * Compares the bodies of two functions to identify modifications and update
      * semantic diffs accordingly.
      *
+     * @param originalFunction     original function node
      * @param modifiedFunction     modified function node
      * @param originalFunctionBody original function body node
      * @param modifiedFunctionBody modified function body node
      * @param kind                 the kind of node being compared
      * @param metadata             metadata about the function being compared
      */
-    private void compareFunctionBodies(NonTerminalNode modifiedFunction,
+    private void compareFunctionBodies(NonTerminalNode originalFunction,
+                                       NonTerminalNode modifiedFunction,
                                        FunctionBodyNode originalFunctionBody,
                                        FunctionBodyNode modifiedFunctionBody,
                                        NodeKind kind, Map<String, String> metadata) {
@@ -382,28 +380,20 @@ public class SemanticDiffComputer {
 
         if (originalFunctionBody instanceof ExpressionFunctionBodyNode &&
                 modifiedFunctionBody instanceof ExpressionFunctionBodyNode) {
-            LineRange lineRange = modifiedFunction.lineRange();
-            SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, NodeKind.DATA_MAPPING_FUNCTION,
-                    resolveUri(lineRange.fileName()), lineRange, metadata);
-            this.semanticDiffs.add(diff);
+            addModificationDiff(NodeKind.DATA_MAPPING_FUNCTION, modifiedFunction.lineRange(),
+                    originalFunction.lineRange(), metadata);
             return;
         }
 
         if (!originalFunctionBody.getClass().equals(modifiedFunctionBody.getClass())) {
-            LineRange lineRange = modifiedFunction.lineRange();
-            SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                    resolveUri(lineRange.fileName()), lineRange, metadata);
-            this.semanticDiffs.add(diff);
+            addModificationDiff(kind, modifiedFunction.lineRange(), originalFunction.lineRange(), metadata);
             return;
         }
 
         if (originalFunctionBody instanceof FunctionBodyBlockNode originalBodyNode
                 && modifiedFunctionBody instanceof FunctionBodyBlockNode modifiedBodyNode) {
             if (originalBodyNode.statements().size() != modifiedBodyNode.statements().size()) {
-                LineRange lineRange = modifiedFunction.lineRange();
-                SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                        resolveUri(lineRange.fileName()), lineRange, metadata);
-                this.semanticDiffs.add(diff);
+                addModificationDiff(kind, modifiedFunction.lineRange(), originalFunction.lineRange(), metadata);
                 return;
             }
 
@@ -421,10 +411,7 @@ public class SemanticDiffComputer {
                 extractStatementNodes(modifiedStmtNode, allModifiedStmtNodes);
 
                 if (allOriginalStmtNodes.size() != allModifiedStmtNodes.size()) {
-                    LineRange lineRange = modifiedFunction.lineRange();
-                    SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                            resolveUri(lineRange.fileName()), lineRange, metadata);
-                    this.semanticDiffs.add(diff);
+                    addModificationDiff(kind, modifiedFunction.lineRange(), originalFunction.lineRange(), metadata);
                     return;
                 }
 
@@ -433,22 +420,28 @@ public class SemanticDiffComputer {
                     Node modifiedNode = allModifiedStmtNodes.get(j);
                     // need to change whether both nodes have the same type
                     if (!originalNode.getClass().equals(modifiedNode.getClass())) {
-                        LineRange lineRange = modifiedNode.lineRange();
-                        SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                                resolveUri(lineRange.fileName()), lineRange, metadata);
-                        this.semanticDiffs.add(diff);
+                        addModificationDiff(kind, modifiedNode.lineRange(), originalNode.lineRange(), metadata);
                         return;
                     }
                     if (!originalNode.toSourceCode().trim().equals(modifiedNode.toSourceCode().trim())) {
-                        LineRange lineRange = modifiedNode.lineRange();
-                        SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                                resolveUri(lineRange.fileName()), lineRange, metadata);
-                        this.semanticDiffs.add(diff);
+                        addModificationDiff(kind, modifiedNode.lineRange(), originalNode.lineRange(), metadata);
                         return;
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Adds a modification while retaining its original location.
+     * The review UI needs both locations because file:// resolves the original tree while ai:// resolves
+     * the modified tree.
+     */
+    private void addModificationDiff(NodeKind kind, LineRange modifiedLineRange, LineRange originalLineRange,
+                                     Map<String, String> metadata) {
+        SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
+                resolveUri(modifiedLineRange.fileName()), modifiedLineRange, originalLineRange, metadata);
+        this.semanticDiffs.add(diff);
     }
 
     private void extractStatementNodes(Node statementNode, List<Node> nodes) {
