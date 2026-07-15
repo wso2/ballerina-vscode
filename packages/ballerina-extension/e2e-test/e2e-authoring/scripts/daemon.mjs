@@ -152,7 +152,8 @@ process.env.TEST_RESOURCES = launchStorageRoot;
 
 async function launchIDE() {
   resetAuthoringDataFolder();
-  const profileName = `bi-authoring-${sessionName}-${process.pid}`;
+  // MacOS rejects socket paths over 104 bytes with EINVAL.
+  const profileName = `bi-a-${sessionName}-${process.pid}`;
   const launchExtensionsFolder = await prepareExtensionsForLaunch(profileName);
   log(`starting VS Code profile=${profileName} workspace=${requestedWorkspace}`);
   const vscode = await startVSCode(
@@ -243,18 +244,17 @@ http.createServer((req, res) => {
     };
     const next = tail.then(run);
     tail = next.then(() => {}, () => {});
+    const logPrefix = () => (logs.length ? logs.join('\n') + '\n' : '');
     next.then(
       (result) => {
         log(`ok: ${preview}`);
         const out = typeof result === 'string' ? result : JSON.stringify(result) ?? '';
-        const prefix = logs.length ? logs.join('\n') + '\n' : '';
-        res.end(prefix + (out || (result === undefined ? 'ok' : String(result))));
+        res.end(logPrefix() + (out || (result === undefined ? 'ok' : String(result))));
       },
       (error) => {
         log(`err: ${error.message}`);
-        const prefix = logs.length ? logs.join('\n') + '\n' : '';
         res.writeHead(500);
-        res.end(prefix + (error.stack ?? error.message) + '\n');
+        res.end(logPrefix() + (error.stack ?? error.message) + '\n');
       }
     );
   });

@@ -41,21 +41,26 @@ globalThis.createProjectAndIntegration = async (baseName = 'Authoring') => {
 
   await frame.getByRole('button', { name: 'Create Integration' }).click({ force: true });
   frame = await waitForGuest(BI_INTEGRATOR_LABEL, 120000);
-  // Depending on the build, creation lands either directly on the integration
-  // overview (Add Artifact visible) or on a project view listing integrations.
+  // Two landing flows exist: older builds land on the project overview (click
+  // the integration name to open it), newer builds land directly on the
+  // integration overview ('Add Artifact' already visible). Poll for either.
   const deadline = Date.now() + 120000;
   let landed = false;
   while (Date.now() < deadline) {
-    const snap = await snapshot().catch(() => '');
-    if (snap.includes('Add Artifact')) { landed = true; break; }
-    if (snap.includes(projectName)) {
-      await frame.getByText(integrationName, { exact: true }).click({ force: true }).catch(() => {});
+    const current = await snapshot().catch(() => '');
+    if (current.includes('Add Artifact')) { landed = true; break; }
+    if (current.includes(integrationName)) {
+      await frame.getByText(integrationName, { exact: true }).first().click({ force: true }).catch(() => {});
+      await waitForText('Add Artifact', 60000);
+      landed = true;
+      break;
     }
-    await window.waitForTimeout(1000);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  if (!landed) throw new Error('integration overview (Add Artifact) not reached after Create Integration');
+  if (!landed) throw new Error(`Integration overview did not load after Create Integration (${integrationName})`);
   // Resolve the created integration directory: newer builds create
   // data/<integration> directly; older ones data/<project>/<integration>.
+  // Poll briefly since the directory can lag behind the UI landing.
   const candidates = [
     path.join(dataFolder, projectName.toLowerCase(), integrationName.toLowerCase()),
     path.join(dataFolder, integrationName.toLowerCase()),
@@ -63,13 +68,11 @@ globalThis.createProjectAndIntegration = async (baseName = 'Authoring') => {
   const dirDeadline = Date.now() + 30000;
   let integrationDir;
   while (Date.now() < dirDeadline) {
-    integrationDir = candidates.find((p) => fs.existsSync(p));
+    integrationDir = candidates.find((dir) => fs.existsSync(dir));
     if (integrationDir) break;
     await window.waitForTimeout(500);
   }
-  if (!integrationDir) {
-    throw new Error(`Integration directory not found. Checked: ${candidates.join(', ')}`);
-  }
+  if (!integrationDir) throw new Error(`integration directory not found, tried: ${candidates.join(', ')}`);
   const projectDir = path.dirname(integrationDir);
   globalThis.newProjectPath = integrationDir;
   return { projectName, integrationName, projectDir, integrationDir };
