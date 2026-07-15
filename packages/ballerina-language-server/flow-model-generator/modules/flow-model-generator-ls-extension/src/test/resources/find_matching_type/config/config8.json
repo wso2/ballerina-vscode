@@ -517,7 +517,7 @@
                                   "name": "TrustStore",
                                   "orgName": "ballerina",
                                   "moduleName": "crypto",
-                                  "version": "2.9.3"
+                                  "version": "2.11.0"
                                 },
                                 "defaultable": false,
                                 "isRestType": false,
@@ -890,7 +890,7 @@
                                               "name": "TrustStore",
                                               "orgName": "ballerina",
                                               "moduleName": "crypto",
-                                              "version": "2.9.3"
+                                              "version": "2.11.0"
                                             },
                                             "defaultable": false,
                                             "isRestType": false,
@@ -943,7 +943,7 @@
                                               "name": "KeyStore",
                                               "orgName": "ballerina",
                                               "moduleName": "crypto",
-                                              "version": "2.9.3"
+                                              "version": "2.11.0"
                                             },
                                             "defaultable": false,
                                             "isRestType": false,
@@ -1086,7 +1086,7 @@
                                       "name": "KeyAlgorithm",
                                       "orgName": "ballerina",
                                       "moduleName": "crypto",
-                                      "version": "2.9.3"
+                                      "version": "2.11.0"
                                     },
                                     "defaultable": false,
                                     "documentation": "",
@@ -1227,7 +1227,7 @@
                                       "name": "Certificate",
                                       "orgName": "ballerina",
                                       "moduleName": "crypto",
-                                      "version": "2.9.3"
+                                      "version": "2.11.0"
                                     },
                                     "defaultable": false,
                                     "documentation": "",
@@ -1243,7 +1243,7 @@
                                   "name": "PublicKey",
                                   "orgName": "ballerina",
                                   "moduleName": "crypto",
-                                  "version": "2.9.3"
+                                  "version": "2.11.0"
                                 },
                                 "defaultable": false,
                                 "isRestType": false,
@@ -1289,7 +1289,7 @@
                                   "name": "TrustStore",
                                   "orgName": "ballerina",
                                   "moduleName": "crypto",
-                                  "version": "2.9.3"
+                                  "version": "2.11.0"
                                 },
                                 "defaultable": false,
                                 "documentation": "",
@@ -2368,7 +2368,7 @@
                                       "name": "TrustStore",
                                       "orgName": "ballerina",
                                       "moduleName": "crypto",
-                                      "version": "2.9.3"
+                                      "version": "2.11.0"
                                     },
                                     "defaultable": false,
                                     "isRestType": false,
@@ -2421,7 +2421,7 @@
                                       "name": "KeyStore",
                                       "orgName": "ballerina",
                                       "moduleName": "crypto",
-                                      "version": "2.9.3"
+                                      "version": "2.11.0"
                                     },
                                     "defaultable": false,
                                     "isRestType": false,
