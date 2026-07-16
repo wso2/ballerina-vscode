@@ -36,7 +36,7 @@ const resolveFilePath = async (rpcClient: BallerinaRpcClient, fileName: string):
     }
 };
 
-const getFunctionParametersList = (params: Parameter[], model: FunctionModel | null) => {
+export const getFunctionParametersList = (params: Parameter[], model: FunctionModel | null) => {
     const paramList: ParameterModel[] = [];
     if (!model) {
         return paramList;
