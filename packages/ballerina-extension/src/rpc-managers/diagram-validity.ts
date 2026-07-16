@@ -32,6 +32,11 @@ export function clearAiTouchedFiles(): void {
     aiTouchedFiles.clear();
 }
 
+/** Whether the given absolute path was touched by the current Copilot generation. */
+export function isAiTouchedFile(absPath: string): boolean {
+    return aiTouchedFiles.has(absPath);
+}
+
 function toUri(pathOrUri: string): string {
     return /^[a-z][a-z0-9+.-]*:\/\//i.test(pathOrUri) ? pathOrUri : Uri.file(pathOrUri).toString();
 }

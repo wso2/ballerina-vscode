@@ -33,7 +33,6 @@ import { loadSkillsContext } from './skills/context';
 
 import { refreshMcpClientManager } from './mcp';
 import { getProjectSource, cleanupTempProject, getReviewBaselinePath } from '../utils/project/temp-project';
-import { integrateCodeToWorkspace } from './utils';
 import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
@@ -848,29 +847,17 @@ Generation stopped by user. The last in-progress task was not saved. Any complet
         // Update chat state storage
         await this.updateChatState(context, assistantMessages, tempProjectPath);
 
-        // Integrate generated code into workspace immediately so user sees changes during review.
-        // Skip only when the temp path IS the real workspace directory (migration wizard in-place
-        // editing, which sets existingTempPath to a real project path rather than a temp dir).
-        const workspaceRoot = context.ctx.workspacePath || context.ctx.projectPath;
-        const isInPlaceEditing =
-            !!workspaceRoot &&
-            path.resolve(tempProjectPath) === path.resolve(workspaceRoot);
-        if (!isInPlaceEditing) {
+        // Workspace integration already happened live, per edit, via integrateLiveEdit (see
+        // text-editor.ts) — no re-integration needed here. In workspace mode, still resolve the
+        // active project path from the generation's modified files if it wasn't already known.
+        if (!context.ctx.projectPath && context.ctx.workspacePath) {
             const generationFiles = new Set([...context.allModifiedFiles, ...context.modifiedFiles]);
-            if (generationFiles.size > 0) {
-                const integrationCtx = { ...context.ctx };
-                // In workspace mode, resolve project path from modified files if not set
-                if (!integrationCtx.projectPath && integrationCtx.workspacePath) {
-                    const firstBalFile = Array.from(generationFiles).find(f => f.endsWith('.bal'));
-                    if (firstBalFile) {
-                        const packageName = firstBalFile.split('/')[0];
-                        if (packageName) {
-                            integrationCtx.projectPath = path.join(integrationCtx.workspacePath, packageName);
-                            StateMachine.context().projectPath = integrationCtx.projectPath;
-                        }
-                    }
+            const firstBalFile = Array.from(generationFiles).find(f => f.endsWith('.bal'));
+            if (firstBalFile) {
+                const packageName = firstBalFile.split('/')[0];
+                if (packageName) {
+                    StateMachine.context().projectPath = path.join(context.ctx.workspacePath, packageName);
                 }
-                await integrateCodeToWorkspace(tempProjectPath, generationFiles, integrationCtx);
             }
         }
 
