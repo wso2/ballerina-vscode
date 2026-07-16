@@ -17,7 +17,7 @@
  */
 
 import { expect, test } from '@playwright/test';
-import { BI_INTEGRATOR_LABEL, DEFAULT_PROJECT_NAME, getWebview, initTest, logStep, page, verifyGeneratedSource, vscode } from '../utils/helpers';
+import { BI_INTEGRATOR_LABEL, DEFAULT_PROJECT_NAME, getWebview, initTest, logStep, page, verifyGeneratedSource } from '../utils/helpers';
 import { ProjectExplorer } from '../utils/pages';
 import { TypeEditorUtils } from './TypeEditorUtils';
 import path from 'path';
@@ -293,16 +293,40 @@ export default function createTests() {
             // Monaco renders selected ranges as .selected-text overlay divs
             await page.page.locator('.monaco-editor .selected-text').first().waitFor({ state: 'attached', timeout: 15000 });
 
-            logStep('Verifying the selected code belongs to the type (via clipboard)');
-            // Focusing the editor through its tab does not alter the selection;
-            // copying it lets us read the exact selected text
-            await vscode.evaluate(({ clipboard }: any) => clipboard.writeText('SENTINEL'));
-            await tab.click();
-            await page.page.waitForTimeout(500);
-            await page.page.keyboard.press(process.platform === 'darwin' ? 'Meta+C' : 'Control+C');
-            await page.page.waitForTimeout(500);
-            const clip = await vscode.evaluate(({ clipboard }: any) => clipboard.readText());
-            expect(clip).toContain(customerName);
+            logStep('Verifying the selected code belongs to the type');
+            // The OS clipboard round-trip (writeText/Control+C/readText) this used
+            // to rely on reads back empty on CI's headless Linux runner — Electron's
+            // clipboard isn't reliably backed there without a running clipboard
+            // manager, independent of whether the copy itself fired. Read the
+            // selected line's rendered text directly from the DOM instead: Monaco
+            // draws each selected line as a `.selected-text` overlay positioned via
+            // an inline `top` matching the corresponding `.view-line`'s `top`, so
+            // match on that to get the real text without touching the clipboard.
+            // .selected-text overlays and .view-line text sit in separate Monaco
+            // layers with independent scroll transforms, so raw style.top values
+            // between them aren't comparable — use final rendered screen position
+            // (getBoundingClientRect, transforms already applied) and match the
+            // view-line whose vertical center is closest to the overlay's.
+            const selectedText = await page.page.evaluate(() => {
+                const overlay = document.querySelector('.monaco-editor .selected-text') as HTMLElement | null;
+                const editorRoot = overlay?.closest('.monaco-editor');
+                if (!overlay || !editorRoot) {
+                    return '';
+                }
+                const overlayMid = overlay.getBoundingClientRect().top + overlay.getBoundingClientRect().height / 2;
+                let closestLine: HTMLElement | null = null;
+                let closestDistance = Infinity;
+                for (const line of Array.from(editorRoot.querySelectorAll<HTMLElement>('.view-line'))) {
+                    const rect = line.getBoundingClientRect();
+                    const distance = Math.abs((rect.top + rect.height / 2) - overlayMid);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestLine = line;
+                    }
+                }
+                return closestLine?.textContent ?? '';
+            });
+            expect(selectedText).toContain(customerName);
         });
 
     });
