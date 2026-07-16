@@ -47,6 +47,7 @@ export const getFunctionParametersList = (params: Parameter[], model: FunctionMo
         const typeField = paramFields.find(field => getPrimaryInputType(field.types)?.fieldType === 'TYPE');
         const nameField = paramFields.find(field => field.key === 'variable');
         const defaultField = paramFields.find(field => field.key === 'defaultable');
+        const docField = paramFields.find(field => field.key === 'documentation');
 
         paramList.push({
             kind: 'REQUIRED',
@@ -84,6 +85,16 @@ export const getFunctionParametersList = (params: Parameter[], model: FunctionMo
                 addNewButton: false,
                 enabled: defaultField?.enabled,
                 editable: defaultField?.editable
+            },
+            documentation: {
+                value: (param.formValues['documentation'] as string) || '',
+                types: docField?.types,
+                isType: false,
+                optional: true,
+                advanced: false,
+                addNewButton: false,
+                enabled: docField?.enabled ?? true,
+                editable: docField?.editable ?? true
             }
         });
     });
@@ -91,16 +102,20 @@ export const getFunctionParametersList = (params: Parameter[], model: FunctionMo
 };
 
 function convertParameterToFormField(key: string, param: ParameterModel): FormField {
+    const resolvedKey = key === "defaultValue" ? "defaultable" : key === "name" ? "variable" : key;
+    // Render the parameter description as a plain doc field; the LS models it as `TEXT`, which the
+    // form would otherwise treat as an expression and wrap the value in quotes.
+    const isDocumentation = resolvedKey === "documentation";
     return {
-        key: key === "defaultValue" ? "defaultable" : key === "name" ? "variable" : key,
+        key: resolvedKey,
         label: param.metadata?.label,
-        type: getPrimaryInputType(param.types)?.fieldType || 'string',
+        type: isDocumentation ? "DOC_TEXT" : (getPrimaryInputType(param.types)?.fieldType || 'string'),
         optional: param.optional || false,
         editable: param.editable || false,
         advanced: key === "defaultValue" ? true : param.advanced,
         documentation: param.metadata?.description || '',
         value: param.value || '',
-        types: param?.types || [],
+        types: isDocumentation ? [{ fieldType: "DOC_TEXT", selected: true }] : (param?.types || []),
         enabled: param.enabled ?? true,
         lineRange: param?.codedata?.lineRange
     };
@@ -215,7 +230,8 @@ export function convertParameterToParamValue(param: ParameterModel, index: numbe
         formValues: {
             variable: param.name.value,
             type: param.type.value,
-            defaultable: paramDefaultValue || ''
+            defaultable: paramDefaultValue || '',
+            documentation: param.documentation?.value || ''
         },
         icon: 'symbol-variable',
         identifierEditable: param.name?.editable,

@@ -713,9 +713,12 @@ export function AgentDefinitionDesigner(props: AgentDefinitionDesignerProps) {
     const classNameRef = useRef<string>();
     const refreshVersionRef = useRef(0);
     const refreshRef = useRef<(posOverride?: NodePosition) => Promise<void>>();
+    const requestRefreshRef = useRef<(() => void)>();
     // Suppresses content-update refreshes during a multi-edit op (e.g. tool delete), so the UI never
-    // renders the transient invalid source between the edits. A single refresh runs once the op finishes.
+    // renders the transient invalid source between the edits. Preserve, rather than drop, the update signal so a
+    // refresh still runs once the operation completes.
     const suppressRefreshRef = useRef(false);
+    const refreshPendingRef = useRef(false);
 
     useEffect(() => {
         classPositionRef.current = position;
@@ -727,13 +730,21 @@ export function AgentDefinitionDesigner(props: AgentDefinitionDesignerProps) {
         // A single source update may emit several notifications while the language server rebuilds
         // its models. Coalesce them and use refs so this callback never refreshes a stale position.
         const debouncedRefresh = debounce(() => {
-            if (suppressRefreshRef.current) return;
+            if (suppressRefreshRef.current) {
+                refreshPendingRef.current = true;
+                return;
+            }
+            refreshPendingRef.current = false;
             void refreshRef.current?.();
         }, 300);
+        requestRefreshRef.current = debouncedRefresh;
         const unsubscribe = rpcClient.onProjectContentUpdated(debouncedRefresh);
         return () => {
             unsubscribe?.();
             debouncedRefresh.cancel();
+            if (requestRefreshRef.current === debouncedRefresh) {
+                requestRefreshRef.current = undefined;
+            }
         };
     }, [rpcClient]);
 
@@ -1091,7 +1102,15 @@ export function AgentDefinitionDesigner(props: AgentDefinitionDesignerProps) {
     const handleToolSaved = () => {
         handleCloseToolPanel();
         setAgentToolPopupOpen(false);
-        void refresh();
+        requestRefreshRef.current?.();
+    };
+
+    const finishMultiEditRefresh = () => {
+        suppressRefreshRef.current = false;
+        if (refreshPendingRef.current) {
+            refreshPendingRef.current = false;
+            requestRefreshRef.current?.();
+        }
     };
 
     const openAgentToolPopup = () => {
@@ -1153,8 +1172,7 @@ export function AgentDefinitionDesigner(props: AgentDefinitionDesignerProps) {
         } finally {
             setIsSaving(false);
             handleCloseToolPanel();
-            suppressRefreshRef.current = false;
-            void refresh();
+            finishMultiEditRefresh();
         }
     };
 
@@ -1203,8 +1221,7 @@ export function AgentDefinitionDesigner(props: AgentDefinitionDesignerProps) {
             setAgentTools(previousTools);
         } finally {
             setIsSaving(false);
-            suppressRefreshRef.current = false;
-            void refresh();
+            finishMultiEditRefresh();
         }
     };
 

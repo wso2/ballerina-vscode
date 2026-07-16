@@ -82,6 +82,9 @@ interface AgentToolFormProps {
     hostClass?: AgentToolHostClass;
     targetLineRange?: LineRange;
     editContext?: AgentToolEditContext;
+    // When rendered as a full page (not a side panel), let the page own the scroll so the form
+    // doesn't add a second scrollbar of its own.
+    nestedForm?: boolean;
     onSave: (toolName: string) => void | Promise<void>;
     onBack?: () => void;
 }
@@ -194,8 +197,20 @@ function toAuthSource(key: string, value: unknown, isExpression: boolean): strin
     return JSON.stringify(text);
 }
 
+// Locates the @ai:AgentTool annotation property on a class-method's FunctionModel (keyed off codedata,
+// not the property name), returning its key and current annotation-body value (e.g. "{ auth: {...} }").
+function findAgentToolAnnotation(model: FunctionModel): { key: string; value: string } | undefined {
+    const props = (model?.properties ?? {}) as Record<string, any>;
+    for (const [key, prop] of Object.entries(props)) {
+        if (prop?.codedata?.type === "ANNOTATION_ATTACHMENT" && prop?.codedata?.originalName === "AgentTool") {
+            return { key, value: typeof prop.value === "string" ? prop.value : "" };
+        }
+    }
+    return undefined;
+}
+
 export function AgentToolForm(props: AgentToolFormProps): JSX.Element {
-    const { filePath, projectPath, hostClass, targetLineRange, editContext, onSave, onBack } = props;
+    const { filePath, projectPath, hostClass, targetLineRange, editContext, nestedForm, onSave, onBack } = props;
     const { rpcClient } = useRpcContext();
     const [toolNode, setToolNode] = useState<FlowNode>();
     const [functionModel, setFunctionModel] = useState<FunctionModel>();
@@ -285,7 +300,7 @@ export function AgentToolForm(props: AgentToolFormProps): JSX.Element {
             enabled: true,
             documentation: "Describe when and how an AI agent should use this tool.",
             value: model.documentation?.value || "",
-            types: model.documentation?.types || [{ fieldType: "TEXT", selected: true }],
+            types: [{ fieldType: "DOC_TEXT", selected: true }],
         });
         list.push({
             key: "parameters",
@@ -325,7 +340,7 @@ export function AgentToolForm(props: AgentToolFormProps): JSX.Element {
             enabled: true,
             documentation: "Describe the value this tool returns.",
             value: returnDoc?.value || "",
-            types: returnDoc?.types || [{ fieldType: "TEXT", selected: true }],
+            types: [{ fieldType: "DOC_TEXT", selected: true }],
         });
         return list.filter((field) => field.enabled !== false);
     };
@@ -379,15 +394,24 @@ export function AgentToolForm(props: AgentToolFormProps): JSX.Element {
 
                 // ---- In-class edit: load via the class-aware service model (preserves @ai:AgentTool) ----
                 if (editContext && editContext.inClass && editContext.lineRange) {
-                    const modelResp = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
-                        filePath,
-                        codedata: { lineRange: editContext.lineRange as any },
-                    });
+                    const [modelResp, oauthProperties] = await Promise.all([
+                        rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
+                            filePath,
+                            codedata: { lineRange: editContext.lineRange as any },
+                        }),
+                        fetchOAuthConfigProperties(rpcClient, filePath, oauthStartLine),
+                    ]);
                     if (cancelled) return;
                     const model = modelResp.function;
+
+                    oauthPropertiesRef.current = oauthProperties;
+                    const annotationValue = findAgentToolAnnotation(model)?.value ?? "";
+                    const existingConfig = parseAuth(annotationValue, oauthProperties.map(({ key }) => key));
+                    const { oauthFields, oauthRecordFields } = buildOAuthFields(oauthProperties, existingConfig);
+
                     setFunctionModel(model);
-                    setFields(buildClassToolFields(model));
-                    setRecordTypeFields([]);
+                    setFields([...buildClassToolFields(model), ...oauthFields]);
+                    setRecordTypeFields(oauthRecordFields);
                     setFormRange(editContext.lineRange);
                     return;
                 }
@@ -472,6 +496,25 @@ export function AgentToolForm(props: AgentToolFormProps): JSX.Element {
                     value: String(data.returnDescription),
                 };
             }
+
+            // Rewrite the @ai:AgentTool annotation body from the OAuth fields (empty → bodyless annotation).
+            const annotation = findAgentToolAnnotation(updatedModel);
+            if (annotation) {
+                const rawAuth: Record<string, string> = {};
+                const expressionKeys = new Set<string>();
+                for (const { key } of oauthPropertiesRef.current) {
+                    const value = data[key];
+                    if (value === undefined || value === "") continue;
+                    rawAuth[key] = String(value);
+                    const field = fields.find((candidate) => candidate.key === key);
+                    if (field?.types?.some((type) => type.selected && type.fieldType === "EXPRESSION")) {
+                        expressionKeys.add(key);
+                    }
+                }
+                const authFragment = buildAuthAnnotation(rawAuth, expressionKeys);
+                (updatedModel.properties as any)[annotation.key].value = authFragment ? `{\n    ${authFragment}\n}` : "";
+            }
+
             const lineRange = functionModel.codedata?.lineRange ?? editContext?.lineRange;
             if (!lineRange) {
                 throw new Error("Missing line range for in-class agent tool update");
@@ -627,6 +670,7 @@ export function AgentToolForm(props: AgentToolFormProps): JSX.Element {
             onCancel={onBack}
             submitText={submitText}
             selectedNode={toolNode?.codedata?.node}
+            nestedForm={nestedForm}
             preserveFieldOrder
             injectedComponents={oauthFieldCount > 0 ? [{
                 component: (

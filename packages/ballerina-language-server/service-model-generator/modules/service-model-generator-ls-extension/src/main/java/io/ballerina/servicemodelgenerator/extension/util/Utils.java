@@ -706,6 +706,12 @@ public final class Utils {
             return;
         }
         function.getDocumentation().setValue(getFunctionDesc(functionDef));
+        function.getParameters().forEach(parameter -> {
+            if (!parameter.getName().getValue().equals(GRAPHQL_CONTEXT)
+                    && !parameter.getName().getValue().equals(GRAPHQL_FIELD)) {
+                parameter.getDocumentation().setValue(getParamDesc(functionDef, parameter.getName().getValue()));
+            }
+        });
         if (Objects.nonNull(function.getReturnType())) {
             function.getReturnType().getDocumentation().setValue(getReturnDesc(functionDef));
         }

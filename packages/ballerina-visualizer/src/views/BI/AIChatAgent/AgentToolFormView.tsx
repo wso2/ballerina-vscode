@@ -67,6 +67,7 @@ export function AgentToolFormView(props: AgentToolFormViewProps) {
                         filePath={documentUri}
                         projectPath={projectPath}
                         editContext={{ functionName, inClass, lineRange: lineRange as any }}
+                        nestedForm
                         onSave={goBack}
                         onBack={goBack}
                     />
