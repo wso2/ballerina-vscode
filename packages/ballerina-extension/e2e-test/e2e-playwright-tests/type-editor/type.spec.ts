@@ -181,6 +181,13 @@ export default function createTests() {
             const artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
             const typeUtils = new TypeEditorUtils(page.page, artifactWebView);
 
+            // XML import names the type from the root element, so the name isn't
+            // known upfront — snapshot existing nodes now and diff afterwards.
+            // A bare `.first()` on `[data-testid^="type-node-"]` can otherwise
+            // match a node left over from an earlier test in this serial block
+            // instead of the one this import creates.
+            const existingTypeNodeIds = await typeUtils.snapshotTypeNodeIds();
+
             logStep('Opening Add Type panel');
             await typeUtils.clickAddType();
 
@@ -197,13 +204,9 @@ export default function createTests() {
             await typeUtils.clickImportButton();
 
             logStep('Verifying type node appears (name derived from XML root element)');
-            // XML import names the type from the root element; match any type-node-* that appears
-            const typeNode = artifactWebView.locator('[data-testid^="type-node-"]').first();
-            await typeNode.waitFor({ timeout: 30000 });
-            const testId = await typeNode.getAttribute('data-testid');
-            logStep(`Type node visible: ${testId}`);
+            const generatedTypeName = await typeUtils.waitForNewTypeNode(existingTypeNodeIds);
+            logStep(`Type node visible: type-node-${generatedTypeName}`);
 
-            const generatedTypeName = testId!.replace('type-node-', '');
             logStep('Verifying generated record fields in types.bal');
             await verifyRecordFields('types.bal', generatedTypeName, ['name', 'age']);
         });
