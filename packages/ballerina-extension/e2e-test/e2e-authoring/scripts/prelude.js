@@ -4,7 +4,19 @@ globalThis.guestFrame = null;
 
 globalThis.ensureWorkbench = async () => {
   if (!window || window.isClosed?.()) {
-    window = await vscode.firstWindow({ timeout: 60000 });
+    // Opening the newly created project reloads the VS Code window. Playwright's
+    // firstWindow() does NOT re-fire for a reload (only for a brand-new window),
+    // so it would hang until timeout. Prefer an already-open window from the
+    // app's window list, falling back to firstWindow only if none is open yet.
+    const deadline = Date.now() + 60000;
+    let picked = null;
+    while (Date.now() < deadline) {
+      const open = (vscode.windows?.() || []).filter((w) => !w.isClosed?.());
+      if (open.length) { picked = open[open.length - 1]; break; }
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    window = picked || (await vscode.firstWindow({ timeout: 60000 }));
+    await window.waitForLoadState('domcontentloaded').catch(() => {});
     extendedPage = new ExtendedPage(window);
   }
   return window;
