@@ -40,7 +40,6 @@ async function withTimeout<T>(operation: Promise<T>, timeoutMs: number, timeoutM
 }
 
 import automation from './automation/automation.spec';
-import automationFlowNodes from './automation/flow-nodes.spec';
 import automationRun from './rundebug/run/automation-run.spec';
 import runConflict from './rundebug/run-conflict/run-conflict.spec';
 import runConcurrent from './rundebug/run-concurrent/run-concurrent.spec';
@@ -50,7 +49,6 @@ import expressionEditorAdvanced from './expression-editor/expression-editor-adva
 
 import httpService from './api-integration/http-service.spec';
 import httpUpload from './api-integration/http-upload.spec';
-import httpTryItExisting from './api-integration/http-try-it-existing.spec';
 import aiChatService from './api-integration/ai-chat-service.spec';
 import graphqlService from './api-integration/graphql-service.spec';
 import tcpService from './api-integration/tcp-service.spec';
@@ -83,8 +81,11 @@ import inlineDataMapper from './datamapper/inline-data-mapper.spec';
 import createProject from './project-overview/project-creation.spec';
 
 import diagram from './diagram/diagram.spec';
+import automationFlowNodes from './diagram/flow-nodes.spec';
 
-import testFunction from './test-function/test-function.spec';
+import httpTryItExisting from './tryit/http-try-it-existing.spec';
+
+import testExplorer from './test-explorer/test-explorer.spec';
 
 test.describe.configure({ mode: 'default' });
 
@@ -200,8 +201,8 @@ test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
     // <----Diagram Test---->
     test.describe(diagram);
 
-    // <----Test Function Test---->
-    test.describe(testFunction);
+    // <----Test Explorer Test---->
+    test.describe(testExplorer);
 });
 
 test.afterAll(async () => {
