@@ -23,6 +23,7 @@ import org.ballerinalang.langserver.LSContextOperation;
 import org.ballerinalang.langserver.codeaction.providers.imports.PullModuleCodeAction;
 import org.ballerinalang.langserver.command.CommandUtil;
 import org.ballerinalang.langserver.common.constants.CommandConstants;
+import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.common.utils.PathUtil;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.ExecuteCommandContext;
@@ -143,7 +144,9 @@ public class PullModuleExecutor implements LSCommandExecutor {
                 })
                 .thenRunAsync(() -> {
                     CompilationOptions.CompilationOptionsBuilder optionsBuilder = CompilationOptions.builder();
-                    optionsBuilder.setOffline(false).setSticky(sticky);
+                    // Production resolves online so missing modules are pulled from Central; tests
+                    // (ls.test.offline) resolve only from the build-provisioned Ballerina home.
+                    optionsBuilder.setOffline(CommonUtil.TEST_OFFLINE).setSticky(sticky);
                     project.currentPackage().getResolution(optionsBuilder.build());
                     // BIR issues are not captured during resolution, causing the pull module executor to incorrectly
                     // report that modules were pulled successfully. To remedy this, we now include the compilation
