@@ -69,7 +69,7 @@ const getNodeDescription = (model: EntryNodeModel) => {
         return "Automation";
     }
     if (model.type === "workflow") {
-        return "Workflow";
+        return "Durable Workflow";
     }
     // Service
     if ((model.node as CDService).type) {

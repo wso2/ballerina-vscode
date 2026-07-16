@@ -20,7 +20,6 @@ export enum NodeTypes {
     LISTENER_NODE = "listener-node",
     ENTRY_NODE = "entry-node",
     CONNECTION_NODE = "connection-node",
-    ACTIVITY_NODE = "activity-node",
 }
 
 export const NODE_LINK = "node-link";
@@ -38,8 +37,6 @@ export const CON_NODE_WIDTH = ENTRY_NODE_WIDTH - 40;
 export const CON_NODE_HEIGHT = ENTRY_NODE_HEIGHT;
 export const LISTENER_NODE_WIDTH = CON_NODE_WIDTH;
 export const LISTENER_NODE_HEIGHT = CON_NODE_HEIGHT;
-export const ACTIVITY_NODE_WIDTH = CON_NODE_WIDTH;
-export const ACTIVITY_NODE_HEIGHT = CON_NODE_HEIGHT;
 
 export const NODE_BORDER_WIDTH = 1.5;
 export const NODE_PADDING = 8;

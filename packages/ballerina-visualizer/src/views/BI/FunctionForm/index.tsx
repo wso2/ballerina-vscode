@@ -802,7 +802,7 @@ export function FunctionForm(props: FunctionFormProps) {
         } else if (isNpFunction) {
             return "Natural Function";
         } else if (isWorkflow) {
-            return "Workflow";
+            return "Durable Workflow";
         } else if (isActivity) {
             return "Workflow Activity";
         } else if (isAutomation || functionName === "main") {

@@ -49,8 +49,6 @@ import {
 import { EntryNodeModel } from "./nodes/EntryNode";
 import { ListenerNodeModel } from "./nodes/ListenerNode";
 import { ConnectionNodeModel } from "./nodes/ConnectionNode";
-import { ActivityNodeModel } from "./nodes/ActivityNode";
-import { ACTIVITY_NODE_HEIGHT } from "../resources/constants";
 
 export type GroupKey = "Query" | "Subscription" | "Mutation";
 export const PREVIEW_COUNT = 2;
@@ -391,32 +389,24 @@ export function Diagram(props: DiagramProps) {
                 });
             });
 
-            // create the activities called by this workflow and link them to their connections
+            // link this workflow to the connections used by its activities. Activities are not
+            // rendered on the overview — only the derived workflow → connection edges are drawn.
+            const linkedConnections = new Set<string>();
             workflow.activities?.forEach((activityUuid) => {
                 const activity = project.activities?.find((item) => item.uuid === activityUuid);
-                if (!activity) {
-                    return;
-                }
-                let activityNode = nodes.find((node) => node.getID() === activityUuid) as ActivityNodeModel;
-                if (!activityNode) {
-                    activityNode = new ActivityNodeModel(activity);
-                    activityNode.height = ACTIVITY_NODE_HEIGHT;
-                    activityNode.setPosition(0, startY);
-                    nodes.push(activityNode);
-                    activity.connections?.forEach((connectionUuid) => {
-                        const connectionNode = nodes.find((node) => node.getID() === connectionUuid);
-                        if (connectionNode) {
-                            const link = createNodesLink(activityNode, connectionNode);
-                            if (link) {
-                                links.push(link);
-                            }
+                activity?.connections?.forEach((connectionUuid) => {
+                    if (linkedConnections.has(connectionUuid)) {
+                        return;
+                    }
+                    linkedConnections.add(connectionUuid);
+                    const connectionNode = nodes.find((node) => node.getID() === connectionUuid);
+                    if (connectionNode) {
+                        const link = createNodesLink(workflowNode, connectionNode);
+                        if (link) {
+                            links.push(link);
                         }
-                    });
-                }
-                const link = createNodesLink(workflowNode, activityNode);
-                if (link) {
-                    links.push(link);
-                }
+                    }
+                });
             });
         });
 

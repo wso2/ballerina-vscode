@@ -414,8 +414,8 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) => onSearchWorkflow?.(searchText, FUNCTION_TYPE.REGULAR)}
                         onAddFunction={onAddWorkflow}
                         onClose={onClose}
-                        title={"Workflows"}
-                        searchPlaceholder={"Search workflows"}
+                        title={"Durable Workflows"}
+                        searchPlaceholder={"Search durable workflows"}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );

@@ -38,14 +38,23 @@ export function WorkflowPanel() {
     return (
         <PanelViewMore>
             <TitleWrapper>
-                <Title variant="h2">Workflow</Title>
-                <BodyText>Create a workflow integration.</BodyText>
+                <Title variant="h2">Durable Workflow</Title>
+                <BodyText>
+                    Design static workflow logic that can be interrupted by events, use timer-based
+                    activities, involve human tasks, and run for long periods with crash recovery enabled.
+                </BodyText>
             </TitleWrapper>
             <CardGrid>
                 <ButtonCard
                     id="workflow"
                     icon={<Icon name="bi-flowchart" />}
-                    title="Workflow"
+                    title="Durable Workflow"
+                    description="Long-running workflow logic with events, timers, human tasks, and crash recovery."
+                    tooltip={
+                        "Called a durable workflow because its execution state is persisted at every step: " +
+                        "the workflow can wait on events, timers, and human tasks for any length of time and " +
+                        "resume exactly where it left off — even after a crash or restart."
+                    }
                     onClick={handleClick}
                 />
             </CardGrid>

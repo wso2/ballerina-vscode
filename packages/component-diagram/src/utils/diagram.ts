@@ -24,7 +24,6 @@ import { NodeModel } from "./types";
 import { EntryNodeFactory, EntryNodeModel } from "../components/nodes/EntryNode";
 import { ConnectionNodeFactory } from "../components/nodes/ConnectionNode/ConnectionNodeFactory";
 import { ListenerNodeFactory } from "../components/nodes/ListenerNode/ListenerNodeFactory";
-import { ActivityNodeFactory, ActivityNodeModel } from "../components/nodes/ActivityNode";
 import {
     LISTENER_NODE_WIDTH,
     NodeTypes,
@@ -33,8 +32,6 @@ import {
     ENTRY_NODE_HEIGHT,
     NODE_GAP_Y,
     LISTENER_NODE_HEIGHT,
-    ACTIVITY_NODE_WIDTH,
-    ACTIVITY_NODE_HEIGHT,
 } from "../resources/constants";
 import { ListenerNodeModel } from "../components/nodes/ListenerNode";
 import { ConnectionNodeModel } from "../components/nodes/ConnectionNode";
@@ -62,7 +59,6 @@ export function generateEngine(): DiagramEngine {
     engine.getNodeFactories().registerFactory(new ListenerNodeFactory());
     engine.getNodeFactories().registerFactory(new EntryNodeFactory());
     engine.getNodeFactories().registerFactory(new ConnectionNodeFactory());
-    engine.getNodeFactories().registerFactory(new ActivityNodeFactory());
 
     engine.getLayerFactories().registerFactory(new OverlayLayerFactory());
 
@@ -80,20 +76,15 @@ export function autoDistribute(engine: DiagramEngine) {
     const entryNodes = allEntryNodes.filter((node) => (node as EntryNodeModel).type !== "workflow");
     const workflowNodes = allEntryNodes.filter((node) => (node as EntryNodeModel).type === "workflow");
     const connectionNodes = model.getNodes().filter((node) => node.getType() === NodeTypes.CONNECTION_NODE);
-    const activityNodes = model.getNodes().filter((node) => node.getType() === NodeTypes.ACTIVITY_NODE);
 
-    // Set X positions for each column: listeners | entry points | workflows | activities | connections.
-    // The workflow and activity columns collapse when empty.
+    // Set X positions for each column: listeners | entry points | workflows | connections.
+    // The workflow column collapses when empty.
     const listenerX = 250;
     const entryX = listenerX + LISTENER_NODE_WIDTH + NODE_GAP_X;
     let nextX = entryX + ENTRY_NODE_WIDTH + NODE_GAP_X;
     const workflowX = nextX;
     if (workflowNodes.length > 0) {
         nextX += ENTRY_NODE_WIDTH + NODE_GAP_X;
-    }
-    const activityX = nextX;
-    if (activityNodes.length > 0) {
-        nextX += ACTIVITY_NODE_WIDTH + NODE_GAP_X;
     }
     const connectionX = nextX;
 
@@ -156,27 +147,10 @@ export function autoDistribute(engine: DiagramEngine) {
         connectionNode.setPosition(connectionX, node.getY());
     });
 
-    // Position activity nodes next to the workflows that call them
-    const activityStackIndex = new Map<string, number>();
-    activityNodes.forEach((node) => {
-        const activityNode = node as ActivityNodeModel;
-        const attachedWorkflows = activityNode.node.attachedWorkflows ?? [];
-        const callerNodes = workflowNodes.filter((n) => attachedWorkflows.includes(n.getID()));
-        if (callerNodes.length === 0) {
-            activityNode.setPosition(activityX, node.getY());
-            return;
-        }
-        const baseY = Math.min(...callerNodes.map((n) => n.getY()));
-        const stackKey = callerNodes[0].getID();
-        const stackIndex = activityStackIndex.get(stackKey) ?? 0;
-        activityStackIndex.set(stackKey, stackIndex + 1);
-        activityNode.setPosition(activityX, baseY + stackIndex * (ACTIVITY_NODE_HEIGHT + NODE_GAP_Y / 2));
-    });
-
     // Position unconnected listeners below all other nodes
     if (unconnectedListeners.length > 0) {
         // Find the maximum Y position among all nodes
-        const allNodes = [...connectedListeners, ...entryNodes, ...workflowNodes, ...activityNodes, ...connectionNodes];
+        const allNodes = [...connectedListeners, ...entryNodes, ...workflowNodes, ...connectionNodes];
         let maxY = 100; // Default starting position if no other nodes
 
         if (allNodes.length > 0) {
