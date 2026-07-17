@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { addArtifact, BI_INTEGRATOR_LABEL, getWebview, initTest, page } from '../utils/helpers';
 import { TypeEditorUtils } from './TypeEditorUtils';
 
@@ -51,6 +51,17 @@ export default function createTests() {
 
             await typeUtils.editMethod('name', 'fullName');
             await typeUtils.deleteVariable('id');
+
+            // Verify the edits actually persisted in the editor (these testids
+            // are the same scheme editMethod/deleteVariable target, so a silent
+            // persistence failure fails here instead of passing unnoticed):
+            //   - method renamed:  fullName present, old 'name' gone
+            //   - variable kept:   firstName present
+            //   - variable deleted: id gone
+            await expect(artifactWebView.getByTestId('edit-method-button-fullName')).toBeVisible({ timeout: 15000 });
+            await expect(artifactWebView.getByTestId('edit-method-button-name')).toHaveCount(0);
+            await expect(artifactWebView.getByTestId('delete-variable-button-firstName')).toBeVisible();
+            await expect(artifactWebView.getByTestId('delete-variable-button-id')).toHaveCount(0);
         });
     });
 }

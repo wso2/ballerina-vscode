@@ -41,10 +41,6 @@ export default function createTests() {
             // project.
             await waitForBISidebarTreeView(page, 60000);
 
-            const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
-            if (!artifactWebView) {
-                throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
-            }
             await FileUtils.openProjectFileInEditor('main.bal');
 
             // Refresh the project explorer
@@ -59,6 +55,14 @@ export default function createTests() {
             // 1. Navigate to the main entry point
             const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
             await mainEntryPoint.click();
+
+            // Acquire the webview AFTER opening the entry point — that click
+            // navigates to the diagram and can replace the BI frame, so a frame
+            // captured earlier would go stale (matches the diagram suites).
+            const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
+            if (!artifactWebView) {
+                throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
+            }
 
             // 2. Navigate to the diagram view
             const diagramCanvas = artifactWebView.locator('#bi-diagram-canvas');
