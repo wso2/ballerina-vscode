@@ -22,7 +22,14 @@ import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest,
 import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
 import { Diagram, SidePanel } from '../utils/pages';
 
-let personTypeName = 'Person';
+// Fixture with the `Person` record type already created (per the e2e-writer
+// rule that scenarios must not re-create through the UI what another spec
+// already owns — type creation is covered by type-editor/type.spec.ts). The
+// Record Config Editor test below declares a variable of this type.
+const EXPRESSION_EDITOR_PROJECT_TEMPLATE = path.join(__dirname, '..', 'data', 'expression_editor_project');
+
+// Fixed name baked into the fixture's types.bal (see expression_editor_project).
+const personTypeName = 'Person';
 let greetingName = 'greeting';
 let recordVarName = 'p';
 let configName = 'personName';
@@ -222,86 +229,10 @@ async function openNodePalette(frame: Frame): Promise<SidePanel> {
 export default function createTests() {
     test.describe.serial('Expression Editor Advanced Tests', {
     }, async () => {
-        initTest();
-
-        test('Create Person Type via Type Diagram', async ({ }, testInfo) => {
-            const testAttempt = testInfo.retry + 1;
-            personTypeName = `Person${testAttempt}`;
-            logStep(`Creating record type ${personTypeName} (attempt ${testAttempt})`);
-
-            // The "Types" tree row has no click command — use its hover action
-            // to reveal the "View Type Diagram" inline action, then click it.
-            const typesItem = page.page.locator(
-                'div[role="treeitem"][aria-label="Types"], div[role="treeitem"][aria-label^="Types, "]'
-            ).first();
-            await typesItem.waitFor({ state: 'visible', timeout: 30000 });
-            await typesItem.hover({ timeout: 15000 });
-            const viewDiagram = typesItem.locator('a.action-label[aria-label*="View Type Diagram"]').first();
-            await viewDiagram.waitFor({ state: 'visible', timeout: 15000 });
-            await viewDiagram.click({ timeout: 15000 });
-
-            // Fetch the webview frame fresh — the type diagram is a distinct
-            // view from the integration overview and can replace the webview
-            // iframe, so a frame captured before navigation can go stale.
-            const frame = await getWebviewFrame();
-            const addTypeBtn = frame.getByRole('button', { name: 'Add Type' });
-            // First type-diagram load is slow while the language server warms up
-            await addTypeBtn.waitFor({ state: 'visible', timeout: 120000 });
-            logStep('Opened type diagram via project explorer');
-            await addTypeBtn.click({ force: true });
-            await page.page.waitForTimeout(2000);
-
-            const nameInput = frame.getByRole('textbox', { name: 'Name' }).first();
-            await nameInput.waitFor({ state: 'visible', timeout: 15000 });
-            await nameInput.fill(personTypeName);
-
-            const addFieldBtn = frame.getByTestId('add-field-button');
-            await addFieldBtn.waitFor({ state: 'visible', timeout: 15000 });
-            await addFieldBtn.click();
-            let idField = frame.getByTestId('identifier-field').last();
-            await idField.dblclick();
-            await idField.type('name');
-
-            await addFieldBtn.click();
-            idField = frame.getByTestId('identifier-field').last();
-            await idField.dblclick();
-            await idField.type('age');
-            const typeCell = frame.getByTestId('type-field').last();
-            const intOption = frame.locator('.unq-modal-overlay').getByText('int', { exact: true }).last();
-            const typePopupDeadline = Date.now() + 30000;
-            while (Date.now() < typePopupDeadline) {
-                await typeCell.dblclick({ timeout: 5000 }).catch(() => { });
-                if (await intOption.isVisible({ timeout: 5000 }).catch(() => false)) { break; }
-            }
-            await intOption.waitFor({ state: 'visible', timeout: 5000 });
-            await intOption.click({ force: true });
-            logStep('Filled type fields: name (string), age (int)');
-
-            // Mark age optional via the "?" icon button next to the field row;
-            // its icon fill flips to button-background when active.
-            const optionalBtn = frame.locator('vscode-button[title="Set as an Optional Field"]').last();
-            await optionalBtn.waitFor({ state: 'visible', timeout: 10000 });
-            await optionalBtn.click({ force: true });
-            await page.page.waitForTimeout(500);
-            expect(await optionalBtn.locator('g[fill="var(--vscode-button-background)"]').count()).toBeGreaterThan(0);
-            logStep('Marked age as optional');
-
-            await frame.getByRole('button', { name: 'Save' }).first().click({ force: true });
-            await frame.getByTestId(`type-node-${personTypeName}`).waitFor({ timeout: 30000 });
-            logStep('Type node visible in diagram');
-
-            const typesSource = await pollGenerated('types.bal', `type ${personTypeName} record {|`);
-            expect(typesSource).toContain('string name;');
-            expect(typesSource).toContain('int age?;');
-            logStep('types.bal verified (age is optional)');
-
-            // Back to the overview for the next test
-            const home = frame.getByTestId('home-button').first();
-            await home.waitFor({ state: 'visible', timeout: 15000 });
-            await home.click({ force: true });
-            await frame.getByText('Add Artifact').first().waitFor({ timeout: 60000 });
-            logStep('Returned to integration overview');
-        });
+        // Loads a fixture that already contains the `Person` record type
+        // (name: string, age: int optional) — the starting step is a
+        // pre-created type rather than building it through the type diagram.
+        initTest(true, true, undefined, undefined, EXPRESSION_EDITOR_PROJECT_TEMPLATE);
 
         test('Expand Editor and Completion Driven Function Call', async ({ }, testInfo) => {
             const testAttempt = testInfo.retry + 1;
