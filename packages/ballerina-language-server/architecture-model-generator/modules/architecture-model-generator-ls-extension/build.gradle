@@ -135,6 +135,8 @@ test {
         copyStdlibs
     }
     systemProperty "ballerina.home", balDistribution
+    // Allocate a larger heap for the test JVM as the suite compiles full Ballerina projects.
+    maxHeapSize = "2g"
 
     useTestNG() {
         suites "src/test/resources/testng.xml"
