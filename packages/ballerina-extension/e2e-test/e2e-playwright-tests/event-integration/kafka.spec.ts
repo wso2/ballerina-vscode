@@ -24,7 +24,6 @@ import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 export default function createTests() {
     test.describe.serial('Kafka Integration Tests', {
     }, async () => {
-        let listenerName: string;
         initTest();
 
         test('Create Kafka Integration', async ({ }, testInfo) => {
@@ -39,7 +38,6 @@ export default function createTests() {
             }
 
             // Step 6-11: Fill form
-            listenerName = `kafkaListener`;
             const bootstrapServers = `localhost:9092`;
             const topic = `test-topic`;
 

@@ -25,7 +25,6 @@ import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 export default function createTests() {
     test.describe.serial('Azure Integration Tests', {
     }, async () => {
-        let listenerName: string;
         initTest();
         test('Create Azure Integration', async ({ }, testInfo) => {
             const testAttempt = testInfo.retry + 1;
@@ -36,8 +35,6 @@ export default function createTests() {
             if (!artifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
-            // Create a new listener
-            listenerName = `listenerAzure${testAttempt}`;
             const form = new Form(page.page, BI_INTEGRATOR_LABEL, artifactWebView);
             await form.switchToFormView(false, artifactWebView);
             await form.fill({

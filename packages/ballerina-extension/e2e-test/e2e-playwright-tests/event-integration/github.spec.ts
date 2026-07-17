@@ -25,7 +25,6 @@ import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 export default function createTests() {
     test.describe.serial('Github Integration Tests', {
     }, async () => {
-        let listenerName: string;
         initTest();
         test('Create Github Integration', async ({ }, testInfo) => {
             const testAttempt = testInfo.retry + 1;
@@ -36,8 +35,6 @@ export default function createTests() {
             if (!artifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
-            // Create a new listener
-            listenerName = `listenerGithub${testAttempt}`;
             const form = new Form(page.page, BI_INTEGRATOR_LABEL, artifactWebView);
             await form.switchToFormView(false, artifactWebView);
             await form.fill({
@@ -57,8 +54,8 @@ export default function createTests() {
             const projectExplorer = new ProjectExplorer(page.page);
             await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `github:IssuesService`]);
 
-            listenerName = `githubListener`;
-            const context = artifactWebView.locator(`text=${listenerName}`);
+            const githubListener = `githubListener`;
+            const context = artifactWebView.locator(`text=${githubListener}`);
             await context.waitFor();
         });
 

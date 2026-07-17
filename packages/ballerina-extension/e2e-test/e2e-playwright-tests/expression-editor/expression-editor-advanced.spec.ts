@@ -563,7 +563,7 @@ export default function createTests() {
             const frame = await getWebviewFrame();
             const panel = frame.getByTestId('side-panel');
 
-            const sidePanel = await openNodePalette(frame);
+            await openNodePalette(frame);
             await panel.getByText('Add Connection', { exact: false }).first().click({ force: true });
             await page.page.waitForTimeout(3000);
             const search = panel.locator('input[placeholder*="Search"], input[type="text"]').first();
