@@ -46,7 +46,7 @@
                 "name": "KeyStore",
                 "orgName": "ballerina",
                 "moduleName": "crypto",
-                "version": "2.12.1"
+                "version": "2.11.0"
               },
               "defaultable": false,
               "isRestType": false,
@@ -172,7 +172,7 @@
                     "name": "TrustStore",
                     "orgName": "ballerina",
                     "moduleName": "crypto",
-                    "version": "2.12.1"
+                    "version": "2.11.0"
                   },
                   "defaultable": false,
                   "isRestType": false,
