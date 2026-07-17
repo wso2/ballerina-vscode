@@ -19,6 +19,8 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { Button } from "@wso2/ui-toolkit";
+import { DIFF_ADDED_COLOR, DIFF_MODIFIED_COLOR, DIFF_REMOVED_COLOR } from "@wso2/bi-diagram";
+import { ReviewViewMode } from "./ReadonlyFlowDiagram";
 
 const NavigationContainer = styled.div`
     position: fixed;
@@ -116,6 +118,29 @@ const ActionButtons = styled.div`
     min-width: 158px;
 `;
 
+const Legend = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 12px;
+`;
+
+const LegendItem = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+`;
+
+const LegendSwatch = styled.span<{ color: string }>`
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: ${(props: { color: string }) => props.color};
+`;
+
+
 interface ReviewNavigationProps {
     currentIndex: number;
     totalViews: number;
@@ -126,9 +151,9 @@ interface ReviewNavigationProps {
     onReject: () => void;
     canGoPrevious: boolean;
     canGoNext: boolean;
-    showOldVersion: boolean;
-    onToggleVersion: () => void;
-    canToggleVersion: boolean;
+    viewMode: ReviewViewMode;
+    onViewModeChange: (mode: ReviewViewMode) => void;
+    availableModes: Record<ReviewViewMode, boolean>;
 }
 
 export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
@@ -142,9 +167,9 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
         onReject,
         canGoPrevious,
         canGoNext,
-        showOldVersion,
-        onToggleVersion,
-        canToggleVersion
+        viewMode,
+        onViewModeChange,
+        availableModes,
     } = props;
 
     const handlePreviousClick = () => {
@@ -199,22 +224,47 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
 
             <VersionToggle>
                 <ToggleSegment
-                    active={!showOldVersion}
-                    disabled={!canToggleVersion}
-                    onClick={() => { if (canToggleVersion && showOldVersion) { onToggleVersion(); } }}
+                    active={viewMode === "diff"}
+                    disabled={!availableModes.diff}
+                    onClick={() => { if (availableModes.diff && viewMode !== "diff") { onViewModeChange("diff"); } }}
+                    title="Show old and new versions in one diagram"
+                >
+                    Diff
+                </ToggleSegment>
+                <ToggleSegment
+                    active={viewMode === "new"}
+                    disabled={!availableModes.new}
+                    onClick={() => { if (availableModes.new && viewMode !== "new") { onViewModeChange("new"); } }}
                     title="Show new version"
                 >
                     New
                 </ToggleSegment>
                 <ToggleSegment
-                    active={showOldVersion}
-                    disabled={!canToggleVersion}
-                    onClick={() => { if (canToggleVersion && !showOldVersion) { onToggleVersion(); } }}
+                    active={viewMode === "old"}
+                    disabled={!availableModes.old}
+                    onClick={() => { if (availableModes.old && viewMode !== "old") { onViewModeChange("old"); } }}
                     title="Show old version"
                 >
                     Old
                 </ToggleSegment>
             </VersionToggle>
+
+            {viewMode === "diff" && (
+                <Legend>
+                    <LegendItem>
+                        <LegendSwatch color={DIFF_REMOVED_COLOR} />
+                        Removed
+                    </LegendItem>
+                    <LegendItem>
+                        <LegendSwatch color={DIFF_ADDED_COLOR} />
+                        Added
+                    </LegendItem>
+                    <LegendItem>
+                        <LegendSwatch color={DIFF_MODIFIED_COLOR} />
+                        Modified
+                    </LegendItem>
+                </Legend>
+            )}
 
         </NavigationContainer>
     );

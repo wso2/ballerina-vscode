@@ -26,7 +26,7 @@ import { MoreVertIcon } from "../../../resources";
 import { useDiagramContext } from "../../DiagramContext";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
-import { nodeHasError } from "../../../utils/node";
+import { getDiffContainerStyles, getDiffTitleStyles, nodeHasError } from "../../../utils/node";
 import { WaitDataNodeModel } from "./WaitDataNodeModel";
 import {
     HIGHLIGHT_NODE_BORDER_COLOR,
@@ -403,6 +403,7 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
                         readOnly={readOnly}
                         isSelected={isSelected}
                         isActiveBreakpoint={isActiveBreakpoint}
+                        style={getDiffContainerStyles(model.node)}
                         onClick={handleOnClick}
                     >
                         <Icon name="bi-wait" sx={{ fontSize: 32, width: 32, height: 32, color: NODE_TEXT_COLOR }} />
@@ -414,7 +415,7 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
             {/* Right: Title, subtitle, and action buttons */}
             <NodeStyles.Details onClick={handleOnClick}>
                 <NodeStyles.TextGroup>
-                    <NodeStyles.Title>{nodeTitle}</NodeStyles.Title>
+                    <NodeStyles.Title style={getDiffTitleStyles(model.node)}>{nodeTitle}</NodeStyles.Title>
                     <NodeStyles.Subtitle>{nodeSubtitle}</NodeStyles.Subtitle>
                 </NodeStyles.TextGroup>
                 <NodeStyles.ActionButtonGroup>

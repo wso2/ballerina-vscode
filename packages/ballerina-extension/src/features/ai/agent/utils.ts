@@ -93,7 +93,12 @@ export async function integrateCodeToWorkspace(
                 });
                 console.log(`[Agent Integration] Prepared modified file: ${relativePath}`);
             } else {
-                console.warn(`[Agent Integration] Modified file not found: ${relativePath}`);
+                fileChanges.push({
+                    filePath: relativePath,
+                    content: "",
+                    deleted: true,
+                });
+                console.log(`[Agent Integration] Prepared deleted file: ${relativePath}`);
             }
         }
     } else {

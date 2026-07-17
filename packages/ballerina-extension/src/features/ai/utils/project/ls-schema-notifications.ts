@@ -143,12 +143,11 @@ export function sendAISchemaDidChange(tempProjectPath: string, filePath: string)
 
   try {
     const tempFileFullPath = path.join(tempProjectPath, filePath);
-    if (!fs.existsSync(tempFileFullPath)) {
-      console.warn(`[AgentNotification] File does not exist, skipping didChange: ${tempFileFullPath}`);
-      return;
-    }
-
-    const fileContent = fs.readFileSync(tempFileFullPath, 'utf-8');
+    // Empty content represents a deletion while the frozen file:// document retains the
+    // original. Skipping the notification made whole-file deletions invisible to semantic diff.
+    const fileContent = fs.existsSync(tempFileFullPath)
+      ? fs.readFileSync(tempFileFullPath, 'utf-8')
+      : '';
 
     // Send didChange to 'ai' schema only (file schema stays frozen at initial state)
     // Both schemas point to temp project path for semantic diff comparison
@@ -323,4 +322,81 @@ export function sendAgentDidCloseForProjects(tempProjectPath: string, projects: 
   
   console.log(`[AgentNotification] Sending didClose for ${allFiles.length} files across ${projects.length} project(s)`);
   sendAgentDidCloseBatch(tempProjectPath, allFiles);
+}
+
+/**
+ * Re-opens a pending review's modified files in the Language Server after it has
+ * restarted (e.g. a VS Code window reload): the in-memory file:// (original
+ * baseline) and ai:// (modified) documents are gone, while the temp project on
+ * disk holds the modified content and its review baseline holds the originals.
+ * Older payloads can fall back to a generation checkpoint. Restores both schemas
+ * so semantic diff and flow-model lookups work.
+ * @param tempProjectPath The root path of the temporary project
+ * @param modifiedFiles Relative paths of the generation's modified files
+ * @param baselineProjectPath Frozen pre-generation Ballerina sources. Its presence explicitly
+ * distinguishes added files (modified only), deleted files (baseline only), and modifications.
+ * @param fallbackOriginalContents Checkpoint snapshot for payloads written before baselines existed
+ */
+export function sendReviewRestoreDidOpenBatch(
+  tempProjectPath: string,
+  modifiedFiles: string[],
+  baselineProjectPath: string | undefined,
+  fallbackOriginalContents?: Record<string, string>
+): void {
+  const normalizedTempRoot = path.resolve(tempProjectPath);
+  const baselineAvailable = !!baselineProjectPath && fs.existsSync(baselineProjectPath);
+
+  for (const filePath of modifiedFiles) {
+    if (!filePath.endsWith('.bal') && !filePath.endsWith('Ballerina.toml')) {
+      continue;
+    }
+
+    try {
+      const tempFileFullPath = path.resolve(tempProjectPath, filePath);
+      if (tempFileFullPath !== normalizedTempRoot && !tempFileFullPath.startsWith(normalizedTempRoot + path.sep)) {
+        console.warn(`[AgentNotification] Review restore path escapes temp project, skipping: ${filePath}`);
+        continue;
+      }
+
+      const snapshotKey = filePath.split(path.sep).join('/');
+      const tempFileExists = fs.existsSync(tempFileFullPath);
+      const baselineFileFullPath = baselineProjectPath ? path.resolve(baselineProjectPath, filePath) : undefined;
+      const baselineFileExists = !!baselineFileFullPath && baselineAvailable && fs.existsSync(baselineFileFullPath);
+      const hasFallbackOriginal = Object.prototype.hasOwnProperty.call(fallbackOriginalContents ?? {}, snapshotKey);
+
+      let originalContent: string;
+      if (baselineFileExists) {
+        originalContent = fs.readFileSync(baselineFileFullPath!, 'utf-8');
+      } else if (hasFallbackOriginal) {
+        originalContent = fallbackOriginalContents![snapshotKey];
+      } else if (baselineAvailable) {
+        // The baseline is authoritative: absence means the generation created this file.
+        originalContent = '';
+      } else {
+        console.warn(`[AgentNotification] Original content unavailable, skipping review restore: ${filePath}`);
+        continue;
+      }
+
+      if (!tempFileExists && !baselineFileExists && !hasFallbackOriginal) {
+        console.warn(`[AgentNotification] File is absent from both review versions, skipping: ${filePath}`);
+        continue;
+      }
+
+      // Empty modified content explicitly represents a whole-file deletion.
+      const modifiedContent = tempFileExists ? fs.readFileSync(tempFileFullPath, 'utf-8') : '';
+      const languageId = filePath.endsWith('.bal') ? 'ballerina' : 'toml';
+      const tempFileUri = Uri.file(tempFileFullPath).toString();
+      const aiUri = 'ai' + tempFileUri.substring(4); // Replace 'file' prefix with 'ai'
+
+      StateMachine.langClient().didOpen({
+        textDocument: { uri: tempFileUri, languageId, version: 1, text: originalContent }
+      });
+      StateMachine.langClient().didOpen({
+        textDocument: { uri: aiUri, languageId, version: 1, text: modifiedContent }
+      });
+      console.log(`[AgentNotification] Restored review schemas for: ${filePath}`);
+    } catch (error) {
+      console.error(`[AgentNotification] Failed to restore review schemas for ${filePath}:`, error);
+    }
+  }
 }

@@ -43,7 +43,7 @@ import { useDiagramContext } from "../../DiagramContext";
 import { CallActivityNodeModel } from "./CallActivityNodeModel";
 import { ELineRange, FlowNode } from "@wso2/ballerina-core";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
-import { getNodeTitle, nodeHasError } from "../../../utils/node";
+import { getDiffContainerStyles, getDiffTitleStyles, getNodeTitle, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 
 const SIDE_FILL_WIDTH = 2;
@@ -377,6 +377,7 @@ export function CallActivityNodeWidget(props: CallActivityNodeWidgetProps) {
                 readOnly={readOnly}
                 isActiveBreakpoint={isActiveBreakpoint}
                 isSelected={isSelected}
+                style={getDiffContainerStyles(model.node)}
                 onContextMenu={!readOnly ? handleOnContextMenu : undefined}
             >
                 {hasBreakpoint && (
@@ -398,7 +399,7 @@ export function CallActivityNodeWidget(props: CallActivityNodeWidgetProps) {
                     </S.NodeIcon>
                     <S.Row style={{ flex: 1, minWidth: 0, width: "auto" }}>
                         <S.Header onClick={handleOnClick}>
-                            <S.Title>{nodeTitle}</S.Title>
+                            <S.Title style={getDiffTitleStyles(model.node)}>{nodeTitle}</S.Title>
                             <S.Description>{nodeDescription as ReactNode}</S.Description>
                         </S.Header>
                         <S.ActionButtonGroup>

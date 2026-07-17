@@ -81,6 +81,7 @@ export interface AddFilesToProjectRequest {
 export interface FileChanges {
     filePath: string;
     content: string;
+    deleted?: boolean;
 }
 
 export interface ProjectImports {
@@ -411,6 +412,7 @@ export interface SemanticDiff {
     nodeKind: number;   // API returns numeric value
     uri: string;
     lineRange: LineRange;
+    previousLineRange?: LineRange;
     metadata?: ResourceMetadata | IdentifierMetadata;
 }
 
@@ -758,4 +760,3 @@ export interface AgentsMdFileInfoDTO {
     isEmpty?: boolean;
     hasWorkspace: boolean;
 }
-

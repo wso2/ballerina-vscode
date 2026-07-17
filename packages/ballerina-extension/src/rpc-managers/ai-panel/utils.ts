@@ -52,6 +52,11 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
         }
         isBalFileAdded = true;
 
+        if (fileChange.deleted) {
+            formattedWorkspaceEdit.deleteFile(fileUri, { ignoreIfNotExists: true });
+            continue;
+        }
+
         formattedWorkspaceEdit.createFile(fileUri, { ignoreIfExists: true });
 
         formattedWorkspaceEdit.replace(
@@ -71,6 +76,10 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
     // Write non ballerina files separately as ls doesn't need to be notified of those changes
     for (const fileChange of nonBalFiles) {
         let absoluteFilePath = path.join(workspaceFolderPath, fileChange.filePath);
+        if (fileChange.deleted) {
+            fs.rmSync(absoluteFilePath, { force: true });
+            continue;
+        }
         const directory = path.dirname(absoluteFilePath);
         if (!fs.existsSync(directory)) {
             fs.mkdirSync(directory, { recursive: true });

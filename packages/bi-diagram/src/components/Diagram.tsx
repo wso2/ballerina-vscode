@@ -132,7 +132,7 @@ export function Diagram(props: DiagramProps) {
     } = props;
 
     const [showErrorFlow, setShowErrorFlow] = useState(false);
-    const [nodeComments, setNodeComments] = useState<Map<string, FlowNode>>(new Map());
+    const [nodeComments, setNodeComments] = useState<Map<string, FlowNode[]>>(new Map());
     const [diagramEngine] = useState<DiagramEngine>(generateEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel | null>(null);
     const [showComponentPanel, setShowComponentPanel] = useState(false);
