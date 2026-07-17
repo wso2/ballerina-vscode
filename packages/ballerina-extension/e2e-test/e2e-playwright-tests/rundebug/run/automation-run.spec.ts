@@ -16,81 +16,22 @@
  * under the License.
  */
 import { test } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from '../../utils/helpers';
-import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
-import { ProjectExplorer, Diagram, SidePanel } from '../../utils/pages';
+import * as path from 'path';
+import { initTest, page } from '../../utils/helpers';
+import { ProjectExplorer } from '../../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../../utils/helpers/constants';
 import { FileUtils } from '../../utils/helpers/fileSystem';
+
+// Fixture with an Automation already created (per the e2e-writer rule that
+// scenarios must not re-create through the UI what another spec already
+// covers as its own scenario — automation.spec.ts owns "Create Automation").
+const AUTOMATION_PROJECT_TEMPLATE = path.join(__dirname, '..', '..', 'data', 'automation_project');
 
 export default function createTests() {
     // Run Integration Tests
     test.describe.serial('Run Integration Tests', {
     }, async () => {
-        initTest();
-        test('Create automation to run', async () => {
-            // 1. Click on the "Add Artifact" button
-            // 2. Verify the Artifacts menu is displayed
-            // 3. Under "Automation" section, click on "Automation" option
-            await addArtifact('Automation', 'automation');
-
-            const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
-            if (!artifactWebView) {
-                throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
-            }
-
-            // 4. Verify the "Create New Automation" form is displayed
-            const createForm = artifactWebView.getByRole('heading', { name: /Create New Automation/i });
-            await createForm.waitFor({ timeout: 10000 });
-
-            // 6. (Optional) Click on "Advanced Configurations" to expand the section
-            const advancedConfigExpand = artifactWebView.getByText('Expand').first();
-            if (await advancedConfigExpand.isVisible({ timeout: 2000 }).catch(() => false)) {
-                await advancedConfigExpand.click();
-                await page.page.waitForTimeout(500);
-            }
-
-            // 7. (Optional) Verify "Return Error" checkbox is checked by default
-            const returnErrorCheckbox = artifactWebView.getByRole('checkbox', { name: /Return Error/i }).first();
-            if (await returnErrorCheckbox.isVisible()) {
-                const isChecked = await returnErrorCheckbox.isChecked();
-                if (!isChecked) {
-                    throw new Error('Return Error checkbox should be checked by default');
-                }
-            }
-
-            // 8. Click on the "Create" button
-            await artifactWebView.getByRole('button', { name: 'Create' }).click();
-
-            // 9. Verify the Automation is created and the automation designer view is displayed
-            const diagramCanvas = artifactWebView.locator('#bi-diagram-canvas');
-            await diagramCanvas.waitFor({ state: 'visible', timeout: 30000 });
-
-            // 10. Verify the automation name is displayed (default: "main")
-            const diagramTitle = artifactWebView.locator('h2', { hasText: 'Automation' });
-            await diagramTitle.waitFor();
-
-            // 11. Verify the "Flow" and "Sequence" tabs are available
-            // Wait for the diagram to fully load before checking for tabs
-            await page.page.waitForTimeout(1000);
-            // The tabs are clickable generic elements, not role="tab"
-            const flowTab = artifactWebView.getByText('Flow').first();
-            await flowTab.waitFor({ timeout: 10000, state: 'visible' });
-            const sequenceTab = artifactWebView.getByText('Sequence').first();
-            await sequenceTab.waitFor({ timeout: 10000, state: 'visible' });
-
-            // 12. Verify the flow diagram shows a "Start" node
-            // Check if "Start" node is present using data-testid
-            const startNode = artifactWebView.locator('[data-testid="start-node"]');
-            await startNode.waitFor({ timeout: 10000, state: 'visible' });
-
-            // 13. Verify the flow diagram shows an "Error Handler" node
-            // Check if "Error Handler" node is present without using CSS class selectors
-            await artifactWebView.getByText(/^Error Handler$/, { exact: true }).first();
-
-            // 14. Verify the tree view shows the automation name under "Entry Points" section
-            const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
-        });
+        initTest(true, true, undefined, undefined, AUTOMATION_PROJECT_TEMPLATE);
 
         test('Click Run button from toolbar', async () => {
             // 1. Navigate to the BI integration view

@@ -16,10 +16,17 @@
  * under the License.
  */
 import { expect, test, Frame } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, logStep, page } from '../utils/helpers';
+import * as path from 'path';
+import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, logStep, page } from '../utils/helpers';
 import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
-import { Diagram, SidePanel } from '../utils/pages';
+import { ProjectExplorer, Diagram, SidePanel } from '../utils/pages';
+import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 import { FileUtils } from '../utils/helpers/fileSystem';
+
+// Fixture with an Automation already created (per the e2e-writer rule that
+// scenarios must not re-create through the UI what another spec already
+// covers as its own scenario — automation.spec.ts owns "Create Automation").
+const AUTOMATION_PROJECT_TEMPLATE = path.join(__dirname, '..', 'data', 'automation_project');
 
 const EXPECTED_SOURCE = [
     'int count = 1',
@@ -197,19 +204,19 @@ async function clickNextDiagramPlus(webview: Frame) {
 
 export default function createTests() {
     test.describe.serial('Automation Flow Nodes Tests', {}, async () => {
-        initTest();
+        initTest(true, true, undefined, undefined, AUTOMATION_PROJECT_TEMPLATE);
 
         test('Flow Nodes builds Statement and Control nodes from diagram', async () => {
-            logStep('Create Automation artifact');
-            await addArtifact('Automation', 'automation');
+            logStep('Open the pre-baked Automation via the Entry Points tree item');
+            const projectExplorer = new ProjectExplorer(page.page);
+            const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
+            await mainEntryPoint.click();
 
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
             if (!artifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
 
-            await artifactWebView.getByRole('heading', { name: /Create New Automation/i }).waitFor({ timeout: 10000 });
-            await artifactWebView.getByRole('button', { name: 'Create' }).click();
             await artifactWebView.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 30000 });
 
             const diagram = new Diagram(page.page);
