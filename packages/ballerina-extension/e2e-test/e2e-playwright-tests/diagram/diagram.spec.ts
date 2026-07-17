@@ -21,6 +21,7 @@ import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from 
 import { switchToIFrame, Form } from '@wso2/playwright-vscode-tester';
 import { ProjectExplorer, Diagram, SidePanel } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
+import { waitForBISidebarTreeView } from '../utils/helpers/sidebar';
 
 // Fixture with an Automation already created (per the e2e-writer rule that
 // scenarios must not re-create through the UI what another spec already
@@ -33,8 +34,16 @@ export default function createTests() {
         initTest(true, true, undefined, undefined, AUTOMATION_PROJECT_TEMPLATE);
         test('Add variables and if-else logic to diagram', async () => {
             // Open the pre-baked automation via the Entry Points tree item
-            // instead of creating one through the UI.
+            // instead of creating one through the UI. Cold start on a fresh
+            // fixture: the sidebar tree isn't guaranteed to be the active
+            // viewlet yet and the LS needs time to index the project.
+            await waitForBISidebarTreeView(page, 60000);
             const projectExplorer = new ProjectExplorer(page.page);
+            await projectExplorer.init().catch(() => undefined);
+            await page.page
+                .locator(ProjectExplorer.treeItemSelector(DEFAULT_PROJECT_NAME))
+                .first()
+                .waitFor({ timeout: 90000 });
             const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
             await mainEntryPoint.click();
 

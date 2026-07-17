@@ -16,41 +16,44 @@
  * under the License.
  */
 import { test } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from '../../utils/helpers';
-import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
-import { ProjectExplorer, Diagram, SidePanel } from '../../utils/pages';
+import * as path from 'path';
+import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from '../../utils/helpers';
+import { switchToIFrame } from '@wso2/playwright-vscode-tester';
+import { ProjectExplorer } from '../../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../../utils/helpers/constants';
 import { FileUtils } from '../../utils/helpers/fileSystem';
+import { waitForBISidebarTreeView } from '../../utils/helpers/sidebar';
+
+// Fixture with a breakpointable automation already baked into main.bal (per
+// the e2e-writer rule that scenarios must not modify Ballerina sources at
+// runtime). Unlike automation_project, this one needs a body with real
+// statements to set a breakpoint on, not just the empty default template.
+const AUTOMATION_DEBUG_PROJECT_TEMPLATE = path.join(__dirname, '..', '..', 'data', 'automation_debug_project');
 
 export default function createTests() {
     // Debug Integration Tests
     test.describe.serial('Debug Integration Tests', {
     }, async () => {
-        initTest();
+        initTest(true, true, undefined, undefined, AUTOMATION_DEBUG_PROJECT_TEMPLATE);
         test('Add breakpoint from diagram', async () => {
+            // Cold start on a fresh fixture: the sidebar tree isn't guaranteed
+            // to be the active viewlet yet and the LS needs time to index the
+            // project.
+            await waitForBISidebarTreeView(page, 60000);
+
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
             if (!artifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
-            const sampleData = [
-                'import ballerina/log;',
-                '',
-                'public function main() returns error? {',
-                '    do {',
-                '        string var1 = "bar";',
-                '        string var2 = "foo";',
-                '        log:printInfo("Hello World");',
-                '    } on fail error e {',
-                '        log:printError("Error occurred", \'error = e);',
-                '        return e;',
-                '    }',
-                '}',
-            ].join('\n');
-            FileUtils.updateProjectFile('main.bal', sampleData);
             await FileUtils.openProjectFileInEditor('main.bal');
 
             // Refresh the project explorer
             const projectExplorer = new ProjectExplorer(page.page);
+            await projectExplorer.init().catch(() => undefined);
+            await page.page
+                .locator(ProjectExplorer.treeItemSelector(DEFAULT_PROJECT_NAME))
+                .first()
+                .waitFor({ timeout: 90000 });
             await projectExplorer.refresh(DEFAULT_PROJECT_NAME);
 
             // 1. Navigate to the main entry point
