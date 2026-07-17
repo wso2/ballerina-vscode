@@ -46,9 +46,11 @@ import runConflict from './run-conflict/run-conflict.spec';
 import runConcurrent from './run-concurrent/run-concurrent.spec';
 import automationDebug from './automation-debug/automation-debug.spec';
 import expressionEditor from './expression-editor/expression-editor.spec';
+import expressionEditorAdvanced from './expression-editor/expression-editor-advanced.spec';
 
 import httpService from './api-integration/http-service.spec';
 import httpUpload from './api-integration/http-upload.spec';
+import httpTryItExisting from './api-integration/http-try-it-existing.spec';
 import aiChatService from './api-integration/ai-chat-service.spec';
 import graphqlService from './api-integration/graphql-service.spec';
 import tcpService from './api-integration/tcp-service.spec';
@@ -70,6 +72,7 @@ import connectionArtifact from './other-artifacts/connection.spec';
 
 import configuration from './configuration/configuration.spec';
 import typeTest from './type-editor/type.spec';
+import typeExplorerNavigationTest from './type-editor/type-explorer-navigation.spec';
 import serviceTest from './service-designer/service-class.spec';
 
 import importIntegration from './import-integration/import-integration.spec';
@@ -124,9 +127,6 @@ test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
     // <----Concurrent Run Test---->
     test.describe(runConcurrent);
 
-    // <----Expression Editor Test---->
-    test.describe(expressionEditor);
-
     // <----Integration as API Test---->
     test.describe(httpService);
     test.describe(httpUpload);
@@ -162,6 +162,7 @@ test.describe('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
 test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
     // <----Integration as API Test---->
     test.describe(tcpService);
+    test.describe(httpTryItExisting);
 
     // <----Event Integration Test---->
     test.describe(mqttIntegration);
@@ -177,6 +178,10 @@ test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
 
     // <----Data Mapper Test---->
     test.describe(reusableDataMapper);
+
+    // <----Expression Editor Test---->
+    test.describe(expressionEditor);
+    test.describe(expressionEditorAdvanced);
 });
 
 test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
@@ -186,6 +191,7 @@ test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
 
     // <----Other Artifacts Test---->
     test.describe(typeTest);
+    test.describe(typeExplorerNavigationTest);
     test.describe(serviceTest);
 
     // <----Data Mapper Test---->

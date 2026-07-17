@@ -51,6 +51,7 @@ import { ArtifactsUpdated, ArtifactNotificationHandler } from './utils/project-a
 import { registerMigrateIntegrationRpcHandlers } from './rpc-managers/migrate-integration/rpc-handler';
 import { registerPlatformExtRpcHandlers } from './rpc-managers/platform-ext/rpc-handler';
 import { MigrationPanelWebview } from './views/migration-panel/webview';
+import { isRecording, recordRpc } from './test-support/fixtureRecorder';
 
 export class RPCLayer {
     static _messenger: Messenger = new Messenger({ ignoreHiddenViews: false });
@@ -84,6 +85,28 @@ export class RPCLayer {
     }
 
     static init() {
+        // Records webview RPC traffic to fixtures when BAL_RECORD_FIXTURES is set.
+        // Wraps onRequest before any handler is registered so all handlers are covered.
+        if (isRecording()) {
+            const messenger = RPCLayer._messenger as any;
+            if (!messenger.__fixtureRecorderInstalled) {
+                messenger.__fixtureRecorderInstalled = true;
+                const originalOnRequest = messenger.onRequest.bind(messenger);
+                messenger.onRequest = (type: any, handler: any, ...rest: any[]) =>
+                    originalOnRequest(
+                        type,
+                        async (params: any, sender: any) => {
+                            const response = await handler(params, sender);
+                            try {
+                                recordRpc(type && type.method ? type.method : String(type), params, response);
+                            } catch { /* recording must never break handling */ }
+                            return response;
+                        },
+                        ...rest
+                    );
+            }
+        }
+
         // ----- Main Webview RPC Methods
         RPCLayer._messenger.onRequest(getVisualizerLocation, () => getContext());
         registerVisualizerRpcHandlers(RPCLayer._messenger);

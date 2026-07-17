@@ -173,11 +173,39 @@ export class TypeEditorUtils {
     }
 
     /**
+     * Wait until the diagram has returned to its base state (Add Type button
+     * back in the toolbar). A prior action (e.g. an import completing) can
+     * render the new type node before the toolbar chrome remounts — waiting
+     * only for the node leaks that gap into whichever test runs next, where
+     * it shows up as an unexplained clickAddType() timeout instead of at the
+     * point it actually happens.
+     */
+    async waitForDiagramReady(timeout: number = 120000): Promise<void> {
+        await this.waitForElement(this.webView.getByRole('button', { name: 'Add Type' }), timeout);
+    }
+
+    /**
      * Click Add Type button
      */
     async clickAddType(): Promise<void> {
         const addTypeButton = this.webView.getByRole('button', { name: 'Add Type' });
-        await this.waitForElement(addTypeButton);
+        try {
+            // The type diagram's first load is slow while the language server warms up
+            await this.waitForElement(addTypeButton, 120000);
+        } catch (error) {
+            // This has timed out intermittently on CI with zero other activity in
+            // the trace — capture what's actually blocking it (a lingering modal,
+            // a stuck import panel, etc.) instead of failing with just a bare
+            // "element not found", so the next occurrence is diagnosable.
+            const overlayVisible = await this.webView.locator('[data-testid="side-panel"], .unq-modal-overlay')
+                .first().isVisible().catch(() => false);
+            const visibleButtons = await this.webView.getByRole('button').allTextContents().catch(() => []);
+            throw new Error(
+                `clickAddType(): "Add Type" button never appeared. ` +
+                `overlayVisible=${overlayVisible} visibleButtons=${JSON.stringify(visibleButtons)} ` +
+                `original error: ${(error as Error).message}`
+            );
+        }
         await addTypeButton.click();
     }
 
@@ -187,6 +215,39 @@ export class TypeEditorUtils {
     async verifyTypeNodeExists(typeName: string): Promise<void> {
         const typeElement = this.webView.locator(`[data-testid="type-node-${typeName}"]`);
         await this.waitForElement(typeElement);
+    }
+
+    /**
+     * Snapshot the set of type node ids currently in the diagram. Use before an
+     * action whose resulting node name isn't known upfront (e.g. import, where
+     * the name is derived from the imported content), then diff against
+     * waitForNewTypeNode() afterwards — a bare `.first()` on
+     * `[data-testid^="type-node-"]` can match a pre-existing node left over
+     * from an earlier test instead of the one the action just created,
+     * especially under diagram virtualization.
+     */
+    async snapshotTypeNodeIds(): Promise<Set<string>> {
+        const ids = await this.webView.locator('[data-testid^="type-node-"]').evaluateAll(
+            (elements) => elements.map((element) => element.getAttribute('data-testid'))
+        );
+        return new Set(ids.filter((id): id is string => !!id));
+    }
+
+    /**
+     * Wait for a type node not present in existingIds to appear, and return its
+     * name (the node's data-testid with the "type-node-" prefix stripped).
+     */
+    async waitForNewTypeNode(existingIds: Set<string>, timeout: number = 30000): Promise<string> {
+        const deadline = Date.now() + timeout;
+        while (Date.now() < deadline) {
+            const currentIds = await this.snapshotTypeNodeIds();
+            const newId = [...currentIds].find((id) => !existingIds.has(id));
+            if (newId) {
+                return newId.replace('type-node-', '');
+            }
+            await this.page.waitForTimeout(500);
+        }
+        throw new Error('New type node did not appear on the diagram within the timeout');
     }
 
     /**
@@ -341,5 +402,62 @@ export class TypeEditorUtils {
         if (isCurrentlyChecked !== checked) {
             await checkbox.click();
         }
+    }
+
+    /**
+     * Set the Format dropdown on the Import tab (JSON or XML)
+     */
+    async setImportFormat(format: 'JSON' | 'XML'): Promise<void> {
+        const dropdown = this.webView.locator('vscode-dropdown#format-selector');
+        await this.waitForElement(dropdown);
+        await dropdown.click();
+        const option = this.webView.locator(`vscode-option[value="${format}"]`);
+        await option.waitFor();
+        await option.click();
+        await this.page.waitForTimeout(500);
+    }
+
+    /**
+     * Fill the Name field on the Import tab (JSON format only)
+     */
+    async setImportTypeName(name: string): Promise<void> {
+        // vscode-text-field with label="Name" renders an accessible textbox
+        const input = this.webView.getByRole('textbox', { name: 'Name' });
+        await input.waitFor({ timeout: 10000 });
+        await input.fill(name);
+    }
+
+    /**
+     * Paste content into the Import textarea (JSON or XML)
+     */
+    async fillImportTextArea(content: string): Promise<void> {
+        const textarea = this.webView.locator('vscode-text-area textarea').first();
+        await this.waitForElement(textarea);
+        await textarea.click();
+        await textarea.fill(content);
+    }
+
+    async switchToImportTab(): Promise<void> {
+        const importBtn = this.webView.getByRole('button', { name: 'Import' });
+        await this.waitForElement(importBtn);
+        await importBtn.click();
+        await this.page.waitForTimeout(2000);
+        await this.page.waitForLoadState('domcontentloaded');
+    }
+
+    /**
+     * Click the Import button and wait for the diagram to reload
+     */
+    async clickImportButton(): Promise<void> {
+        const importBtn = this.webView.getByTestId('import-tab').getByRole('button', { name: 'Import' });
+        await this.waitForElement(importBtn);
+        await importBtn.click();
+        await this.page.waitForTimeout(2000);
+        await this.page.waitForLoadState('domcontentloaded');
+        // Confirm the diagram's toolbar chrome is back before this test ends —
+        // otherwise a slow remount here surfaces as a bare clickAddType()
+        // timeout in whichever test runs next, far from where the delay
+        // actually occurred.
+        await this.waitForDiagramReady();
     }
 }
