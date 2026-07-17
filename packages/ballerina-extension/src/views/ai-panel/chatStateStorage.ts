@@ -419,31 +419,9 @@ export class ChatStateStorage {
 
     /**
      * Clear workspace state
-     * Cleans up any still-open ('done') generation's temp project before clearing.
      * @param projectRootPath Workspace identifier
      */
     async clearWorkspace(projectRootPath: string): Promise<void> {
-        // Cleanup any still-open generation's temp project before clearing
-        const workspace = this.storage.get(projectRootPath);
-        if (workspace) {
-            for (const [threadId, thread] of workspace.threads) {
-                const pendingReview = this.getDoneGeneration(projectRootPath, threadId);
-                if (pendingReview?.reviewState.tempProjectPath) {
-                    console.log(`[ChatStateStorage] Cleaning up open generation's temp project: ${pendingReview.reviewState.tempProjectPath}`);
-
-                    // Cleanup temp directory
-                    if (!process.env.AI_TEST_ENV) {
-                        
-                        try {
-                            await cleanupTempProject(pendingReview.reviewState.tempProjectPath);
-                        } catch (error) {
-                            console.error(`[ChatStateStorage] Error cleaning up temp project:`, error);
-                        }
-                    }
-                }
-            }
-        }
-
         this.storage.delete(projectRootPath);
         // Also remove persisted data
         this.persistenceStore.deleteWorkspace(projectRootPath);

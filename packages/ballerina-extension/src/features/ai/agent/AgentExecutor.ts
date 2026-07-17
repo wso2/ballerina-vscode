@@ -32,7 +32,7 @@ import { createToolRegistry } from './tool-registry';
 import { loadSkillsContext } from './skills/context';
 
 import { refreshMcpClientManager } from './mcp';
-import { getProjectSource, cleanupTempProject, getReviewBaselinePath } from '../utils/project/temp-project';
+import { getProjectSource, getReviewBaselinePath } from '../utils/project/temp-project';
 import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
@@ -452,7 +452,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 modifiedFiles,
                 allModifiedFiles,
                 projects,
-                shouldCleanup: false, // Review mode - don't cleanup immediately
                 messageId: this.config.generationId,
                 userMessageContent,
                 response,
@@ -703,10 +702,6 @@ Generation stopped by user. The last in-progress task was not saved. Any complet
         console.error("[Agent] Stream error:", error);
 
         const tempProjectPath = context.ctx.tempProjectPath!;
-        if (context.shouldCleanup) {
-            // Note: cleanupTempProject now handles sendAgentDidClose internally
-            await cleanupTempProject(tempProjectPath);
-        }
 
         // Leave any live edits in place — the user may want to continue from them. Only an
         // explicit revert (declineChanges) restores the checkpoint.

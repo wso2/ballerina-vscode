@@ -32,7 +32,6 @@ export interface StreamContext {
 
     // Configuration (immutable during stream)
     projects: ProjectSource[];
-    shouldCleanup: boolean;
     messageId: string;
     userMessageContent: any;
 

@@ -144,7 +144,6 @@ import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExe
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
-import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
@@ -485,12 +484,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
             console.log(`[Review Actions] Accepting generation ${doneGeneration.id} with ${doneGeneration.reviewState.modifiedFiles.length} modified file(s)`);
 
-            // Its edits are already live in the workspace — accept only finalizes status and
-            // frees its now-unneeded temp project.
-            if (doneGeneration.reviewState.tempProjectPath && !process.env.AI_TEST_ENV) {
-                await cleanupTempProject(doneGeneration.reviewState.tempProjectPath);
-            }
-
+            // Its edits are already live in the workspace — accept just finalizes status.
             chatStateStorage.finalizeLastGenerationIfDone(projectRootPath, threadId);
             console.log(`[Review Actions] Accepted generation: ${doneGeneration.id}`);
 
@@ -524,10 +518,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 await restoreWorkspaceSnapshot(checkpoint, true);
             } else {
                 console.warn("[Review Actions] No checkpoint found for generation — workspace changes will not be reverted");
-            }
-
-            if (doneGeneration.reviewState.tempProjectPath && !process.env.AI_TEST_ENV) {
-                await cleanupTempProject(doneGeneration.reviewState.tempProjectPath);
             }
 
             // Append revert notification to model messages so the LLM knows changes were reverted
