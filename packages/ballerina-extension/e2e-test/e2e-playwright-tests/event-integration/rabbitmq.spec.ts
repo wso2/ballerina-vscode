@@ -25,7 +25,12 @@ import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 export default function createTests() {
     test.describe.serial('RabbitMQ Integration Tests', {
     }, async () => {
-        let listenerName: string;
+        // Always the same literal (never varies by test/attempt), so it's a true
+        // constant rather than state one test hands to the next — keeping it a
+        // module-level const means a test re-run in isolation (e.g. CI re-running
+        // only a previously-failed test, skipping this file's earlier tests)
+        // still sees the right value instead of `undefined`.
+        const listenerName = `rabbitmqListener`;
         let queueName: string;
         initTest();
         test('Create RabbitMQ Integration', async ({ }, testInfo) => {
@@ -37,8 +42,6 @@ export default function createTests() {
             if (!artifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
-            // Create a new listener
-            listenerName = `rabbitmqListener`;
             const form = new Form(page.page, BI_INTEGRATOR_LABEL, artifactWebView);
             await form.switchToFormView(false, artifactWebView);
 

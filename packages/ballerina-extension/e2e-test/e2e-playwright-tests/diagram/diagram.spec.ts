@@ -156,6 +156,16 @@ export default function createTests() {
             await sidePanel.clickNode('Log Info');
 
             await form.switchToFormView(false, artifactWebView);
+            // Confirmed locally (not just on CI): Form.fill()'s cmEditor handling
+            // silently no-ops if the field's `div[data-testid="ex-editor-msg"]`
+            // container isn't mounted yet when it runs — no error, no retry, the
+            // field is just left empty, which is why Save then stays disabled
+            // forever (there's nothing that will ever change it). This form sits
+            // inside an if/else branch, one level deeper than the flat
+            // declare-variable steps above (whose identical fill+Save has never
+            // flaked here), so it can render slightly later. Wait for the real
+            // container Form.fill() itself looks for before calling it.
+            await artifactWebView.locator('div[data-testid="ex-editor-msg"]').waitFor({ state: 'visible', timeout: 15000 });
             await form.fill({
                 values: {
                     'msg': {
@@ -165,7 +175,15 @@ export default function createTests() {
                     }
                 }
             });
-            await artifactWebView.getByRole('button', { name: 'Save' }).click();
+            // Belt-and-braces: if the field still ended up empty for some other
+            // reason, fail with that fact up front instead of a bare "Save never
+            // enabled" timeout.
+            const msgFieldContent = await artifactWebView.locator('div[data-testid="ex-editor-msg"] .cm-content')
+                .first().textContent().catch(() => null);
+            if (!msgFieldContent) {
+                throw new Error(`msg field is empty after form.fill() — got "${msgFieldContent}"`);
+            }
+            await artifactWebView.getByRole('button', { name: 'Save' }).click({ timeout: 30000 });
             await page.page.waitForTimeout(1000);
 
             // 19. Add log statement in the else block (false case - Not Equal)
