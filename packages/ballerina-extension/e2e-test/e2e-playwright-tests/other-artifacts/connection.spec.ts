@@ -18,8 +18,8 @@
  * under the License.
  */
 import { test } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from '../utils/helpers';
-import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
+import { createArtifactAndGetWebview, BI_INTEGRATOR_LABEL, initTest, page } from '../utils/helpers';
+import { Form } from '@wso2/playwright-vscode-tester';
 import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
@@ -30,12 +30,8 @@ export default function createTests() {
         test('Create Connection Artifact', async ({ }, testInfo) => {
             const testAttempt = testInfo.retry + 1;
             console.log('Creating a new connection in test attempt: ', testAttempt);
-            // Creating a HTTP Connection
-            await addArtifact('HTTP Connection', 'connection');
-            const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
-            if (!artifactWebView) {
-                throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
-            }
+
+            const artifactWebView = await createArtifactAndGetWebview('HTTP Connection', 'connection');
 
             const cardHttp = artifactWebView.locator('#connector-http');
             await cardHttp.waitFor();
@@ -72,5 +68,4 @@ export default function createTests() {
 
     });
 }
-
 

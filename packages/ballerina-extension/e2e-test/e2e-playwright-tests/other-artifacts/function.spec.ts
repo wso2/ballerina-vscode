@@ -16,9 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { expect, test } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from '../utils/helpers';
-import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
+import { test } from '@playwright/test';
+import { createArtifactAndGetWebview, deleteArtifactFromTree, getWebview, BI_INTEGRATOR_LABEL, initTest, page } from '../utils/helpers';
+import { Form } from '@wso2/playwright-vscode-tester';
 import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
@@ -30,12 +30,8 @@ export default function createTests() {
         test('Create Function Artifact', async ({ }, testInfo) => {
             const testAttempt = testInfo.retry + 1;
             console.log('Creating a new function in test attempt: ', testAttempt);
-            // Creating a HTTP Service
-            await addArtifact('Function Artifact', 'bi-function');
-            const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
-            if (!artifactWebView) {
-                throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
-            }
+
+            const artifactWebView = await createArtifactAndGetWebview('Function Artifact', 'bi-function');
             functionName = `sample${testAttempt}`;
             const form = new Form(page.page, BI_INTEGRATOR_LABEL, artifactWebView);
             await form.switchToFormView(false, artifactWebView);
@@ -52,8 +48,7 @@ export default function createTests() {
             // breadcrumb render the function name, so a plain text= locator
             // (substring match) resolves to 2 elements — .first() is enough
             // since this just confirms the name rendered somewhere.
-            const context = artifactWebView.locator(`text=${functionName}`).first();
-            await context.waitFor();
+            await artifactWebView.locator(`text=${functionName}`).first().waitFor();
             const projectExplorer = new ProjectExplorer(page.page);
             await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `${functionName}`]);
         });
@@ -61,10 +56,8 @@ export default function createTests() {
         test('Editing Function Artifact', async ({ }, testInfo) => {
             const testAttempt = testInfo.retry + 1;
             console.log('Editing a function in test attempt: ', testAttempt);
-            const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
-            if (!artifactWebView) {
-                throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
-            }
+            const artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
+
             const editBtn = artifactWebView.locator('#bi-edit');
             await editBtn.waitFor();
             await editBtn.click({ force: true });
@@ -85,26 +78,15 @@ export default function createTests() {
             // breadcrumb render the function name, so a plain text= locator
             // (substring match) resolves to 2 elements — .first() is enough
             // since this just confirms the name rendered somewhere.
-            const context = artifactWebView.locator(`text=${functionName}`).first();
-            await context.waitFor();
+            await artifactWebView.locator(`text=${functionName}`).first().waitFor();
         });
 
         test('Delete Function Artifact', async ({ }, testInfo) => {
             const testAttempt = testInfo.retry + 1;
             console.log('Deleting a function in test attempt: ', testAttempt);
-            const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
-            if (!artifactWebView) {
-                throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
-            }
 
-            const projectExplorer = new ProjectExplorer(page.page);
-            const functionTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Functions`, `${functionName}`]);
-            await functionTreeItem.click({ button: 'right' });
-            const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
-            await deleteButton.waitFor({ timeout: 5000 });
-            await deleteButton.click();
-            await page.page.waitForTimeout(500);
-            await expect(functionTreeItem).not.toBeVisible({ timeout: 10000 });
+            await getWebview(BI_INTEGRATOR_LABEL, page);
+            await deleteArtifactFromTree([DEFAULT_PROJECT_NAME, `Functions`, `${functionName}`]);
         });
     });
 }
