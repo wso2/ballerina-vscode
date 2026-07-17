@@ -33,7 +33,7 @@ const CONFLICT_PROMPT_TEXT = 'This integration is already running';
 // (~5 min sleep) so the first run stays alive while conflicts are triggered.
 // Pre-baked per the e2e-writer rule: scenarios must not modify Ballerina
 // sources at runtime.
-const PROJECT_TEMPLATE = path.join(__dirname, '..', 'data', 'run_conflict_project');
+const PROJECT_TEMPLATE = path.join(__dirname, '..', '..', 'data', 'run_conflict_project');
 const RUN_MARKER = 'run-conflict automation started';
 
 async function clickRunButton() {

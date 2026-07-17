@@ -26,7 +26,7 @@ const RESTART_PROMPT_TEXT = 'This integration is already running';
 
 // Two-package Ballerina workspace; each package is a long-running automation
 // printing a unique marker ("<name> started") and sleeping ~5 min.
-const WORKSPACE_TEMPLATE = path.join(__dirname, '..', 'data', 'concurrent_run_workspace');
+const WORKSPACE_TEMPLATE = path.join(__dirname, '..', '..', 'data', 'concurrent_run_workspace');
 const ALPHA = 'alpha_runner';
 const BETA = 'beta_runner';
 
