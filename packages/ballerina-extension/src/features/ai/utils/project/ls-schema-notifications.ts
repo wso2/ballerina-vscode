@@ -21,12 +21,15 @@ import { StateMachine } from "../../../../stateMachine";
 import { ProjectSource, PROJECT_KIND } from "@wso2/ballerina-core";
 
 /**
- * Sends didOpen notifications for a file to both file:// and ai:// schemas
- * Used for initial temp project files and newly created files during agent operations
+ * Sends didOpen notifications for a pristine (pre-edit) file to both file:// and ai:// schemas
+ * with identical content. Called once per package at generation start (via each package's
+ * Ballerina.toml), before any edits — this is what seeds both schemes' workspace-manager
+ * caches with the same pristine snapshot, which is what makes the ai:// schema a valid
+ * frozen baseline once file:// starts diverging from live edits.
  * @param tempProjectPath The root path of the temporary project
  * @param filePath The relative file path
  */
-export function sendBothSchemaDidOpen(tempProjectPath: string, filePath: string): void {
+function sendBothSchemaDidOpen(tempProjectPath: string, filePath: string): void {
   try {
     const tempFileFullPath = path.join(tempProjectPath, filePath);
     if (!fs.existsSync(tempFileFullPath)) {
@@ -35,6 +38,7 @@ export function sendBothSchemaDidOpen(tempProjectPath: string, filePath: string)
     }
 
     const fileContent = fs.readFileSync(tempFileFullPath, 'utf-8');
+    const languageId = filePath.endsWith('.bal') ? 'ballerina' : 'toml';
 
     // 1. Send didOpen with 'file' schema (temp project path)
     const tempFileUri = Uri.file(tempFileFullPath).toString();
@@ -42,7 +46,7 @@ export function sendBothSchemaDidOpen(tempProjectPath: string, filePath: string)
       StateMachine.langClient().didOpen({
         textDocument: {
           uri: tempFileUri,
-          languageId: 'ballerina',
+          languageId,
           version: 1,
           text: fileContent
         }
@@ -58,7 +62,7 @@ export function sendBothSchemaDidOpen(tempProjectPath: string, filePath: string)
       StateMachine.langClient().didOpen({
         textDocument: {
           uri: aiUri,
-          languageId: 'ballerina',
+          languageId,
           version: 1,
           text: fileContent
         }
@@ -235,7 +239,7 @@ export function sendAgentDidOpenForFreshProjects(tempProjectPath: string, projec
  * @param tempProjectPath The root path of the temporary project
  * @param filePath The relative file path
  */
-export function sendBothSchemaDidClose(tempProjectPath: string, filePath: string): void {
+function sendBothSchemaDidClose(tempProjectPath: string, filePath: string): void {
   try {
     const fullPath = path.join(tempProjectPath, filePath);
 
@@ -273,56 +277,6 @@ export function sendBothSchemaDidClose(tempProjectPath: string, filePath: string
  */
 export function sendAgentDidCloseBatch(tempProjectPath: string, files: string[]): void {
   files.forEach(file => sendBothSchemaDidClose(tempProjectPath, file));
-}
-
-/**
- * Sends didClose notifications for all project files from project sources
- * Includes source files, module files, and test files
- * For workspace projects, prepends the package path to each file path
- * @param tempProjectPath The root path of the temporary project
- * @param projects Array of project sources containing source files, modules, and tests
- */
-export function sendAgentDidCloseForProjects(tempProjectPath: string, projects: ProjectSource[]): void {
-  const allFiles: string[] = [];
-
-  // Close workspace root Ballerina.toml if it was opened
-  const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
-  if (isWorkspace) {
-    allFiles.push('Ballerina.toml');
-  }
-
-  projects.forEach(project => {
-    const pkgPath = project.packagePath || ""; // Empty for single package, relative path for workspace
-    
-    // Add root-level source files
-    project.sourceFiles.forEach(f => {
-      const relativePath = pkgPath ? path.join(pkgPath, f.filePath) : f.filePath;
-      allFiles.push(relativePath);
-    });
-    
-    // Add module files
-    project.projectModules?.forEach(module => {
-      module.sourceFiles.forEach(f => {
-        const relativePath = pkgPath 
-          ? path.join(pkgPath, 'modules', module.moduleName, f.filePath)
-          : path.join('modules', module.moduleName, f.filePath);
-        allFiles.push(relativePath);
-      });
-    });
-    
-    // Add test files
-    if (project.projectTests) {
-      project.projectTests.forEach(f => {
-        const relativePath = pkgPath 
-          ? path.join(pkgPath, 'tests', f.filePath)
-          : path.join('tests', f.filePath);
-        allFiles.push(relativePath);
-      });
-    }
-  });
-  
-  console.log(`[AgentNotification] Sending didClose for ${allFiles.length} files across ${projects.length} project(s)`);
-  sendAgentDidCloseBatch(tempProjectPath, allFiles);
 }
 
 /**
