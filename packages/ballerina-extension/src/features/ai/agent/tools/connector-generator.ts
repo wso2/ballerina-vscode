@@ -34,7 +34,7 @@ import { langClient } from "../../activator";
 import { applyTextEdits } from "../utils";
 import { LIBRARY_GET_TOOL } from "./library-get";
 import { approvalManager } from '../../state/ApprovalManager';
-import { sendAiSchemaDidOpen } from "../../utils/project/ls-schema-notifications";
+import { sendNewFileDidOpen } from "../../utils/project/ls-schema-notifications";
 import { LIBRARY_SEARCH_TOOL } from "./library-search";
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
@@ -281,8 +281,8 @@ async function generateConnector(
 
         const relativePath = path.relative(tempProjectPath, filePath);
 
-        // Send didOpen notification to Language Server for ai schema
-        sendAiSchemaDidOpen(tempProjectPath, relativePath);
+        // Send didOpen notification to Language Server (new file: frozen ai:// baseline, live file://)
+        sendNewFileDidOpen(tempProjectPath, relativePath);
 
         // Add .bal files to generatedFiles for agent visibility
         if (filePath.endsWith(".bal") && edits.length > 0) {

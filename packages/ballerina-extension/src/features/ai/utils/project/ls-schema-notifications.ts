@@ -73,12 +73,14 @@ export function sendBothSchemaDidOpen(tempProjectPath: string, filePath: string)
 }
 
 /**
- * Sends didOpen notifications for a file to both ai:// schemas
- * Used for initial temp project files and newly created files during agent operations
+ * Sends didOpen notifications for a newly created file to both schemas: ai:// (the frozen
+ * baseline — opened empty, since the file didn't exist before this generation) and file://
+ * (the live copy — opened with the actual new content). Both URIs point at the temp project
+ * path; getSemanticDiff compares ai:// (original) against file:// (modified).
  * @param tempProjectPath The root path of the temporary project
  * @param filePath The relative file path
  */
-export function sendAiSchemaDidOpen(tempProjectPath: string, filePath: string): void {
+export function sendNewFileDidOpen(tempProjectPath: string, filePath: string): void {
   if (!filePath.endsWith('.bal') && !filePath.endsWith('Ballerina.toml')) {
     return;
   }
@@ -94,22 +96,7 @@ export function sendAiSchemaDidOpen(tempProjectPath: string, filePath: string): 
     const tempFileUri = Uri.file(tempFileFullPath).toString();
     const languageId = filePath.endsWith('.bal') ? 'ballerina' : 'toml';
 
-    // 1. Send didOpen with 'file' schema with empty content (baseline for semantic diff)
-    try {
-      StateMachine.langClient().didOpen({
-        textDocument: {
-          uri: tempFileUri,
-          languageId,
-          version: 1,
-          text: ''
-        }
-      });
-      console.log(`[AgentNotification] Sent didOpen (file schema, empty baseline) for: ${filePath}`);
-    } catch (error) {
-      console.error(`[AgentNotification] Failed didOpen (file schema) for ${filePath}:`, error);
-    }
-
-    // 2. Send didOpen with 'ai' schema (temp project path)
+    // 1. Send didOpen with 'ai' schema with empty content (frozen baseline — file is new)
     const aiUri = 'ai' + tempFileUri.substring(4); // Replace 'file' prefix with 'ai'
     try {
       StateMachine.langClient().didOpen({
@@ -117,12 +104,27 @@ export function sendAiSchemaDidOpen(tempProjectPath: string, filePath: string): 
           uri: aiUri,
           languageId,
           version: 1,
+          text: ''
+        }
+      });
+      console.log(`[AgentNotification] Sent didOpen (ai schema, empty baseline) for: ${filePath}`);
+    } catch (error) {
+      console.error(`[AgentNotification] Failed didOpen (ai schema) for ${filePath}:`, error);
+    }
+
+    // 2. Send didOpen with 'file' schema (temp project path, live content)
+    try {
+      StateMachine.langClient().didOpen({
+        textDocument: {
+          uri: tempFileUri,
+          languageId,
+          version: 1,
           text: fileContent
         }
       });
-      console.log(`[AgentNotification] Sent didOpen (ai schema) for: ${filePath}`);
+      console.log(`[AgentNotification] Sent didOpen (file schema) for: ${filePath}`);
     } catch (error) {
-      console.error(`[AgentNotification] Failed didOpen (ai schema) for ${filePath}:`, error);
+      console.error(`[AgentNotification] Failed didOpen (file schema) for ${filePath}:`, error);
     }
   } catch (error) {
     console.error(`[AgentNotification] Failed to send didOpen for ${filePath}:`, error);
@@ -130,13 +132,13 @@ export function sendAiSchemaDidOpen(tempProjectPath: string, filePath: string): 
 }
 
 /**
- * Sends didChange notification for a modified file to ai:// schema only.
- * The file:// schema remains frozen at initial state (from didOpen).
- * This enables semantic diff between ai: (current) and file: (initial).
+ * Sends didChange notification for a live-edited file to file:// schema only.
+ * The ai:// schema remains frozen at its initial state (from didOpen at generation start).
+ * This enables semantic diff between ai: (original) and file: (live/modified).
  * @param tempProjectPath The root path of the temporary project
  * @param filePath The relative file path that was modified
  */
-export function sendAISchemaDidChange(tempProjectPath: string, filePath: string): void {
+export function sendLiveEditDidChange(tempProjectPath: string, filePath: string): void {
   if (!filePath.endsWith('.bal') && !filePath.endsWith('Ballerina.toml')) {
     return;
   }
@@ -149,23 +151,22 @@ export function sendAISchemaDidChange(tempProjectPath: string, filePath: string)
       ? fs.readFileSync(tempFileFullPath, 'utf-8')
       : '';
 
-    // Send didChange to 'ai' schema only (file schema stays frozen at initial state)
+    // Send didChange to 'file' schema only (ai schema stays frozen at initial state)
     // Both schemas point to temp project path for semantic diff comparison
     const tempFileUri = Uri.file(tempFileFullPath).toString();
-    const aiUri = 'ai' + tempFileUri.substring(4); // Replace 'file' prefix with 'ai'
     try {
       StateMachine.langClient().didChange({
         textDocument: {
-          uri: aiUri,
+          uri: tempFileUri,
           version: 1
         },
         contentChanges: [{
           text: fileContent
         }]
       });
-      console.log(`[AgentNotification] Sent didChange (ai schema) for: ${filePath}`);
+      console.log(`[AgentNotification] Sent didChange (file schema) for: ${filePath}`);
     } catch (error) {
-      console.error(`[AgentNotification] Failed didChange (ai schema) for ${filePath}:`, error);
+      console.error(`[AgentNotification] Failed didChange (file schema) for ${filePath}:`, error);
     }
 
   } catch (error) {

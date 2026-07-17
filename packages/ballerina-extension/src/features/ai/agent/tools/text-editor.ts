@@ -21,7 +21,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Uri } from 'vscode';
 import { StateMachine } from "../../../../stateMachine";
-import { sendAISchemaDidChange, sendAiSchemaDidOpen } from "../../utils/project/ls-schema-notifications";
+import { sendLiveEditDidChange, sendNewFileDidOpen } from "../../utils/project/ls-schema-notifications";
 import { CopilotEventHandler } from "../../utils/events";
 import { normalizeInvisibleChars } from "../../utils/string-utils";
 import { normalizeToLf, readAndNormalize, restoreEol } from "../../utils/eol-utils";
@@ -364,9 +364,9 @@ export function createWriteExecute(
 
     // Notify Language Server
     if (action === 'created') {
-      sendAiSchemaDidOpen(tempProjectPath, file_path);
+      sendNewFileDidOpen(tempProjectPath, file_path);
     } else {
-      sendAISchemaDidChange(tempProjectPath, file_path);
+      sendLiveEditDidChange(tempProjectPath, file_path);
     }
 
     await integrateLiveEdit(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
@@ -522,7 +522,7 @@ export function createEditExecute(
     }
 
     // Notify Language Server of the change
-    sendAISchemaDidChange(tempProjectPath, file_path);
+    sendLiveEditDidChange(tempProjectPath, file_path);
 
     await integrateLiveEdit(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
 
@@ -697,7 +697,7 @@ export function createMultiEditExecute(
     }
 
     // Notify Language Server of the change
-    sendAISchemaDidChange(tempProjectPath, file_path);
+    sendLiveEditDidChange(tempProjectPath, file_path);
 
     await integrateLiveEdit(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
 
