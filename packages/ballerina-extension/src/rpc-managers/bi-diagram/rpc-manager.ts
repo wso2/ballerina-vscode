@@ -291,8 +291,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             if (params?.filePath && params?.startLine && params?.endLine) {
                 console.log(">>> using params to create request");
                 let filePath = params.filePath;
-                // When useFileSchema is set, use file:// scheme to show original content
-                if (params.useFileSchema) {
+                // filePath defaults to ai:// (the frozen baseline, used for "old"); convert
+                // to file:// (live) unless the caller explicitly wants the old view.
+                if (!params.useFileSchema) {
                     filePath = this.convertAiToFileScheme(filePath);
                 }
                 request = {
@@ -1754,9 +1755,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async getEnclosedFunction(params: BIGetEnclosedFunctionRequest): Promise<BIGetEnclosedFunctionResponse> {
         console.log(">>> requesting parent functin definition", params);
-        // When useFileSchema is set, use file:// scheme to show original content
         let filePath = params.filePath;
-        if (params.useFileSchema) {
+        if (!params.useFileSchema) {
             filePath = this.convertAiToFileScheme(filePath);
         }
         const request = { filePath, position: params.position, findClass: params.findClass };
@@ -1843,11 +1843,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             let projectPath: string;
             if (params?.projectPath) {
                 if (params.useFileSchema) {
-                    // Use file:// scheme to show original content
-                    projectPath = Uri.file(params.projectPath).toString();
+                    // ai:// is the frozen baseline — the "old" view
+                    projectPath = Uri.file(params.projectPath).with({ scheme: 'ai' }).toString();
                 } else {
-                    const uri = Uri.file(params.projectPath);
-                    projectPath = uri.with({ scheme: 'ai' }).toString();
+                    projectPath = Uri.file(params.projectPath).toString();
                 }
             } else {
                 projectPath = StateMachine.context().projectPath;
@@ -1889,8 +1888,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             });
         }
 
-        // When useFileSchema is set, use file:// scheme to show original content
-        if (params.useFileSchema) {
+        if (!params.useFileSchema) {
             filePath = this.convertAiToFileScheme(filePath);
         }
 
