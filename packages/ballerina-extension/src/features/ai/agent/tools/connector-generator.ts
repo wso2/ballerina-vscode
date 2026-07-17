@@ -36,6 +36,7 @@ import { LIBRARY_GET_TOOL } from "./library-get";
 import { approvalManager } from '../../state/ApprovalManager';
 import { sendNewFileDidOpen } from "../../utils/project/ls-schema-notifications";
 import { LIBRARY_SEARCH_TOOL } from "./library-search";
+import { recordAiTouchedFile } from "../../../../rpc-managers/diagram-validity";
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 
@@ -278,6 +279,7 @@ async function generateConnector(
 
     for (const [filePath, edits] of textEditsMap.entries()) {
         await applyTextEdits(filePath, edits);
+        recordAiTouchedFile(filePath);
 
         const relativePath = path.relative(tempProjectPath, filePath);
 
