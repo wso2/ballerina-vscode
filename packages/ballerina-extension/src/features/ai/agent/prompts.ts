@@ -292,21 +292,38 @@ export function getUserPrompt(
     // Add file attachments if available
     if (params.fileAttachmentContents && params.fileAttachmentContents.length > 0) {
         for (const attachment of params.fileAttachmentContents) {
-            if (attachment.mimeType?.startsWith('image/')) {
-                // Add image attachment
+            const mimeType = attachment.mimeType ?? '';
+            const fileName = attachment.fileName?.toLowerCase() ?? '';
+            // Prefer the (already resolved) mime type; fall back to the filename
+            // extension only when no mime type is present, so a definitive type
+            // is never overridden by the file name.
+            const isImage = mimeType.startsWith('image/')
+                || (!mimeType && /\.(png|jpe?g|gif|webp)$/.test(fileName));
+            const isPdf = mimeType === 'application/pdf'
+                || (!mimeType && fileName.endsWith('.pdf'));
+            if (isImage) {
+                // Add image attachment (content is a self-describing base64 data URL)
                 content.push({
                     type: 'image' as const,
                     image: attachment.content,
                 });
+            } else if (isPdf) {
+                // Add PDF as a native file block so the model reads it directly
+                content.push({
+                    type: 'file' as const,
+                    data: attachment.content,
+                    mediaType: 'application/pdf',
+                });
             } else {
                 // Add text file attachment
-                const attachmentsText = params.fileAttachmentContents.map((attachment) =>
-                    `## File: ${attachment.fileName}\n\`\`\`\n${attachment.content}\n\`\`\``).join('\n\n');
                 content.push({
                     type: 'text' as const,
                     text: `<User Attachments>
-                            ${attachmentsText}
-                        </User Attachments>`
+## File: ${attachment.fileName}
+\`\`\`
+${attachment.content}
+\`\`\`
+</User Attachments>`
                 });
             }
         }
