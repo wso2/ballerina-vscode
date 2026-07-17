@@ -666,7 +666,7 @@ async function runStagesForPackage(opts: StageRunnerOpts): Promise<void> {
                 ? { projectRootPath: projectRoot, threadId: "default", enabled: true }
                 : undefined,
             lifecycle: useExistingTempPath
-                ? { existingTempPath: packagePath, cleanupStrategy: "review" as const }
+                ? { existingTempPath: packagePath, skipFreshProjectSetup: true, cleanupStrategy: "review" as const }
                 : { cleanupStrategy: "immediate" as const },
             toolOptions: {
                 migrationSourcePath: sourcePath,

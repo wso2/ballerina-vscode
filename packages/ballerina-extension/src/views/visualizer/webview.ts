@@ -73,7 +73,7 @@ export class VisualizerWebview {
         }, 500);
 
         vscode.workspace.onDidChangeTextDocument(async (document) => {
-            // A Copilot generation's own live edits already save themselves (integrateLiveEdit ->
+            // A Copilot generation's own live edits already save themselves (persistLiveEdit ->
             // addToIntegration does workspace.applyEdit + saveAll) and shouldn't reset the
             // diagram's undo/redo history on every edit — only genuine, concurrent user edits
             // to other files should. Files the current generation hasn't touched are unaffected.

@@ -250,12 +250,12 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 this.config.executionContext
             );
 
-            // 2. Send didOpen only if creating NEW temp (not reusing for review continuation)
-            if (!this.config.lifecycle?.existingTempPath) {
-                // Fresh project - Both schemas - correct
+            // 2. Seed the ai:// baseline, unless the caller explicitly asked to skip it
+            // (migration reusing the same directory across sequential stages).
+            if (!this.config.lifecycle?.skipFreshProjectSetup) {
                 sendAgentDidOpenForFreshProjects(tempProjectPath, projects);
             } else {
-                console.log(`[AgentExecutor] Skipping didOpen (reusing temp for review continuation)`);
+                console.log(`[AgentExecutor] Skipping ai:// baseline seed (skipFreshProjectSetup)`);
             }
 
             const workspaceId = this.config.executionContext.workspacePath || this.config.executionContext.projectPath;
@@ -847,7 +847,7 @@ Generation stopped by user. The last in-progress task was not saved. Any complet
         // Update chat state storage
         await this.updateChatState(context, assistantMessages, tempProjectPath);
 
-        // Workspace integration already happened live, per edit, via integrateLiveEdit (see
+        // Every edit already landed live in the real workspace via persistLiveEdit (see
         // text-editor.ts) — no re-integration needed here. In workspace mode, still resolve the
         // active project path from the generation's modified files if it wasn't already known.
         if (!context.ctx.projectPath && context.ctx.workspacePath) {

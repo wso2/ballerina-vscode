@@ -57,8 +57,23 @@ export interface AICommandConfig<TParams = any> {
 
     /** Optional lifecycle configuration */
     lifecycle?: {
-        /** Existing temp path to reuse (for review continuation) */
+        /**
+         * Path to operate on directly instead of having AICommandExecutor create a temp
+         * copy. Two distinct callers rely on this: the normal agent flow (agent/index.ts)
+         * sets it to the real project/workspace root, since edits already land live there
+         * (no copy needed); the migration wizard sets it to a real package path for
+         * in-place editing across multiple sequential stages/executions.
+         */
         existingTempPath?: string;
+        /**
+         * Skip sendAgentDidOpenForFreshProjects (the ai:// baseline seed). Set by callers
+         * that reuse the same existingTempPath across multiple executions of the same
+         * directory (migration's per-stage runs), where the LS already has it open from
+         * an earlier execution and re-seeding would overwrite the baseline with
+         * already-edited content. The normal agent flow leaves this unset — each chat
+         * generation is independent and always needs a fresh baseline.
+         */
+        skipFreshProjectSetup?: boolean;
         /** Cleanup strategy: 'immediate' (DataMapper) or 'review' (Agent) */
         cleanupStrategy: 'immediate' | 'review';
     };

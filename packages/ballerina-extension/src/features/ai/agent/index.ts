@@ -20,7 +20,6 @@ import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createWebviewEventHandler } from "../utils/events";
 import { AgentExecutor } from './AgentExecutor';
-import { cleanupTempProject } from "../utils/project/temp-project";
 import { getMigrationSourcePathForProject } from "../migration/orchestrator";
 import {
     sendTelemetryEvent,
@@ -99,20 +98,19 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
         }
 
         // Moving on to a new generation implicitly accepts a still-open previous one.
-        const previousDone = chatStateStorage.finalizeLastGenerationIfDone(projectRootPath, threadId);
-        if (previousDone?.reviewState.tempProjectPath && !process.env.AI_TEST_ENV) {
-            try {
-                await cleanupTempProject(previousDone.reviewState.tempProjectPath);
-            } catch (error) {
-                console.error('[Agent] Failed to clean up previous generation temp project:', error);
-            }
-        }
+        // Nothing to clean up: edits already land directly in the real workspace, and there's
+        // no separate temp copy anymore (see existingTempPath below).
+        chatStateStorage.finalizeLastGenerationIfDone(projectRootPath, threadId);
 
-        // Create config using factory function
+        // Create config using factory function. existingTempPath makes the agent operate
+        // directly on the real project root instead of AICommandExecutor creating a
+        // throwaway temp copy — file edits land live in the real workspace (M1+), so there's
+        // nothing left for a temp copy to buy us.
         const config = createExecutorConfig(params, {
             command: Command.Agent,
             chatStorageEnabled: true,  // Agent uses chat storage for multi-turn conversations
-            cleanupStrategy: 'review', // Review mode - temp persists until user reverts
+            cleanupStrategy: 'review', // Review mode - revert available until the user moves on
+            existingTempPath: projectRootPath,
             projectRootPath,
             threadId,
         });

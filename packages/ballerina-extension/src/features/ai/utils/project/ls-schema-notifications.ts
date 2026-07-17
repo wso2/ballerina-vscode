@@ -21,43 +21,27 @@ import { StateMachine } from "../../../../stateMachine";
 import { ProjectSource, PROJECT_KIND } from "@wso2/ballerina-core";
 
 /**
- * Sends didOpen notifications for a pristine (pre-edit) file to both file:// and ai:// schemas
- * with identical content. Called once per package at generation start (via each package's
- * Ballerina.toml), before any edits — this is what seeds both schemes' workspace-manager
- * caches with the same pristine snapshot, which is what makes the ai:// schema a valid
- * frozen baseline once file:// starts diverging from live edits.
- * @param tempProjectPath The root path of the temporary project
+ * Seeds the ai:// frozen-baseline scheme with a pristine (pre-edit) file's current content.
+ * Called once per package at generation start (via each package's Ballerina.toml), before
+ * any edits. file:// needs no equivalent call: tempProjectPath is now the real workspace
+ * path, and file:// is the extension's own always-live LS scheme for it — already loaded
+ * from normal extension operation (diagrams etc.), and kept in sync automatically by VS
+ * Code's language client for any real workspace.applyEdit going forward.
+ * @param tempProjectPath The root path of the project (the real workspace/project root)
  * @param filePath The relative file path
  */
-function sendBothSchemaDidOpen(tempProjectPath: string, filePath: string): void {
+function seedAiBaseline(tempProjectPath: string, filePath: string): void {
   try {
-    const tempFileFullPath = path.join(tempProjectPath, filePath);
-    if (!fs.existsSync(tempFileFullPath)) {
-      console.warn(`[AgentNotification] File does not exist, skipping didOpen: ${tempFileFullPath}`);
+    const fileFullPath = path.join(tempProjectPath, filePath);
+    if (!fs.existsSync(fileFullPath)) {
+      console.warn(`[AgentNotification] File does not exist, skipping ai:// seed: ${fileFullPath}`);
       return;
     }
 
-    const fileContent = fs.readFileSync(tempFileFullPath, 'utf-8');
+    const fileContent = fs.readFileSync(fileFullPath, 'utf-8');
     const languageId = filePath.endsWith('.bal') ? 'ballerina' : 'toml';
+    const aiUri = 'ai' + Uri.file(fileFullPath).toString().substring(4); // Replace 'file' prefix with 'ai'
 
-    // 1. Send didOpen with 'file' schema (temp project path)
-    const tempFileUri = Uri.file(tempFileFullPath).toString();
-    try {
-      StateMachine.langClient().didOpen({
-        textDocument: {
-          uri: tempFileUri,
-          languageId,
-          version: 1,
-          text: fileContent
-        }
-      });
-      console.log(`[AgentNotification] Sent didOpen (file schema) for: ${filePath}`);
-    } catch (error) {
-      console.error(`[AgentNotification] Failed didOpen (file schema) for ${filePath}:`, error);
-    }
-
-    // 2. Send didOpen with 'ai' schema (temp project path)
-    const aiUri = 'ai' + tempFileUri.substring(4); // Replace 'file' prefix with 'ai'
     try {
       StateMachine.langClient().didOpen({
         textDocument: {
@@ -67,21 +51,21 @@ function sendBothSchemaDidOpen(tempProjectPath: string, filePath: string): void 
           text: fileContent
         }
       });
-      console.log(`[AgentNotification] Sent didOpen (ai schema) for: ${filePath}`);
+      console.log(`[AgentNotification] Seeded ai:// baseline for: ${filePath}`);
     } catch (error) {
-      console.error(`[AgentNotification] Failed didOpen (ai schema) for ${filePath}:`, error);
+      console.error(`[AgentNotification] Failed to seed ai:// baseline for ${filePath}:`, error);
     }
   } catch (error) {
-    console.error(`[AgentNotification] Failed to send didOpen for ${filePath}:`, error);
+    console.error(`[AgentNotification] Failed to seed ai:// baseline for ${filePath}:`, error);
   }
 }
 
 /**
- * Sends didOpen notifications for a newly created file to both schemas: ai:// (the frozen
- * baseline — opened empty, since the file didn't exist before this generation) and file://
- * (the live copy — opened with the actual new content). Both URIs point at the temp project
- * path; getSemanticDiff compares ai:// (original) against file:// (modified).
- * @param tempProjectPath The root path of the temporary project
+ * Seeds the ai:// frozen baseline for a newly created file with empty content, since the
+ * file didn't exist before this generation — getSemanticDiff then reports it as added.
+ * No file:// call needed: workspace.applyEdit's createFile() triggers VS Code's own didOpen
+ * for the real file automatically.
+ * @param tempProjectPath The root path of the project (the real workspace/project root)
  * @param filePath The relative file path
  */
 export function sendNewFileDidOpen(tempProjectPath: string, filePath: string): void {
@@ -90,99 +74,29 @@ export function sendNewFileDidOpen(tempProjectPath: string, filePath: string): v
   }
 
   try {
-    const tempFileFullPath = path.join(tempProjectPath, filePath);
-    if (!fs.existsSync(tempFileFullPath)) {
-      console.warn(`[AgentNotification] File does not exist, skipping didOpen: ${tempFileFullPath}`);
-      return;
-    }
-
-    const fileContent = fs.readFileSync(tempFileFullPath, 'utf-8');
-    const tempFileUri = Uri.file(tempFileFullPath).toString();
+    const fileFullPath = path.join(tempProjectPath, filePath);
     const languageId = filePath.endsWith('.bal') ? 'ballerina' : 'toml';
+    const aiUri = 'ai' + Uri.file(fileFullPath).toString().substring(4); // Replace 'file' prefix with 'ai'
 
-    // 1. Send didOpen with 'ai' schema with empty content (frozen baseline — file is new)
-    const aiUri = 'ai' + tempFileUri.substring(4); // Replace 'file' prefix with 'ai'
-    try {
-      StateMachine.langClient().didOpen({
-        textDocument: {
-          uri: aiUri,
-          languageId,
-          version: 1,
-          text: ''
-        }
-      });
-      console.log(`[AgentNotification] Sent didOpen (ai schema, empty baseline) for: ${filePath}`);
-    } catch (error) {
-      console.error(`[AgentNotification] Failed didOpen (ai schema) for ${filePath}:`, error);
-    }
-
-    // 2. Send didOpen with 'file' schema (temp project path, live content)
-    try {
-      StateMachine.langClient().didOpen({
-        textDocument: {
-          uri: tempFileUri,
-          languageId,
-          version: 1,
-          text: fileContent
-        }
-      });
-      console.log(`[AgentNotification] Sent didOpen (file schema) for: ${filePath}`);
-    } catch (error) {
-      console.error(`[AgentNotification] Failed didOpen (file schema) for ${filePath}:`, error);
-    }
+    StateMachine.langClient().didOpen({
+      textDocument: {
+        uri: aiUri,
+        languageId,
+        version: 1,
+        text: ''
+      }
+    });
+    console.log(`[AgentNotification] Seeded ai:// baseline (empty — new file) for: ${filePath}`);
   } catch (error) {
-    console.error(`[AgentNotification] Failed to send didOpen for ${filePath}:`, error);
+    console.error(`[AgentNotification] Failed to seed ai:// baseline for ${filePath}:`, error);
   }
 }
 
 /**
- * Sends didChange notification for a live-edited file to file:// schema only.
- * The ai:// schema remains frozen at its initial state (from didOpen at generation start).
- * This enables semantic diff between ai: (original) and file: (live/modified).
- * @param tempProjectPath The root path of the temporary project
- * @param filePath The relative file path that was modified
- */
-export function sendLiveEditDidChange(tempProjectPath: string, filePath: string): void {
-  if (!filePath.endsWith('.bal') && !filePath.endsWith('Ballerina.toml')) {
-    return;
-  }
-
-  try {
-    const tempFileFullPath = path.join(tempProjectPath, filePath);
-    // Empty content represents a deletion while the frozen file:// document retains the
-    // original. Skipping the notification made whole-file deletions invisible to semantic diff.
-    const fileContent = fs.existsSync(tempFileFullPath)
-      ? fs.readFileSync(tempFileFullPath, 'utf-8')
-      : '';
-
-    // Send didChange to 'file' schema only (ai schema stays frozen at initial state)
-    // Both schemas point to temp project path for semantic diff comparison
-    const tempFileUri = Uri.file(tempFileFullPath).toString();
-    try {
-      StateMachine.langClient().didChange({
-        textDocument: {
-          uri: tempFileUri,
-          version: 1
-        },
-        contentChanges: [{
-          text: fileContent
-        }]
-      });
-      console.log(`[AgentNotification] Sent didChange (file schema) for: ${filePath}`);
-    } catch (error) {
-      console.error(`[AgentNotification] Failed didChange (file schema) for ${filePath}:`, error);
-    }
-
-  } catch (error) {
-    console.error(`[AgentNotification] Failed to send didChange for ${filePath}:`, error);
-  }
-}
-
-/**
- * Sends didOpen notifications for all initial project files from project sources
- * Includes source files, module files, and test files
- * For workspace projects, prepends the package path to each file path
- * @param tempProjectPath The root path of the temporary project
+ * Seeds the ai:// baseline for every package in the project at generation start, via each
+ * package's Ballerina.toml (one seedAiBaseline call per package is enough to trigger a full
+ * pristine-package scan cached under ai://).
+ * @param tempProjectPath The root path of the project (the real workspace/project root)
  * @param projects Array of project sources containing source files, modules, and tests
  */
 export function sendAgentDidOpenForFreshProjects(tempProjectPath: string, projects: ProjectSource[]): void {
@@ -230,7 +144,7 @@ export function sendAgentDidOpenForFreshProjects(tempProjectPath: string, projec
 
   const tomlFiles = allFiles.filter(f => f.endsWith('Ballerina.toml'));
   console.log(`[AgentNotification] Sending didOpen for ${tomlFiles.length} Ballerina.toml(s) across ${projects.length} project(s)`);
-  tomlFiles.forEach(file => sendBothSchemaDidOpen(tempProjectPath, file));
+  tomlFiles.forEach(file => seedAiBaseline(tempProjectPath, file));
 }
 
 /**
