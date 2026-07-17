@@ -255,8 +255,8 @@ export function FunctionForm(props: FunctionFormProps) {
             setFormSubtitle('Define the inputs and outputs the agent will use to call this tool');
         } else if (isWorkflow) {
             nodeKind = 'WORKFLOW';
-            formType.current = 'Workflow';
-            setTitleSubtitle('Build reusable workflow processes');
+            formType.current = 'Durable Workflow';
+            setTitleSubtitle('Build durable, long-running workflow processes');
             setFormSubtitle('Define a workflow process with a strongly typed input payload');
         } else if (isActivity) {
             nodeKind = 'ACTIVITY';
