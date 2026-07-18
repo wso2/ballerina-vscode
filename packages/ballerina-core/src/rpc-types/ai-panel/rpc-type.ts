@@ -81,6 +81,8 @@ import {
     // TODO(auto-memory): temporarily disabled for this release.
     // ClearMemoryRequest,
     // OpenMemoryRequest,
+    GetRunStatusRequest,
+    GetRunStatusResponse,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -129,6 +131,7 @@ export const clearChat: RequestType<void, void> = { method: `${_preFix}/clearCha
 export const updateChatMessage: RequestType<UpdateChatMessageRequest, void> = { method: `${_preFix}/updateChatMessage` };
 export const getActiveTempDir: RequestType<void, string> = { method: `${_preFix}/getActiveTempDir` };
 export const hasPendingReview: RequestType<void, boolean> = { method: `${_preFix}/hasPendingReview` };
+export const getRunStatus: RequestType<GetRunStatusRequest, GetRunStatusResponse> = { method: `${_preFix}/getRunStatus` };
 export const getUsage: RequestType<void, UsageResponse | undefined> = { method: `${_preFix}/getUsage` };
 export const openFileDiff: NotificationType<OpenFileDiffRequest> = { method: `${_preFix}/openFileDiff` };
 export const approveWebTool: RequestType<WebToolApprovalRequest, void> = { method: `${_preFix}/approveWebTool` };

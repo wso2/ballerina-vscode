@@ -18,7 +18,7 @@
  */
 
 import { FunctionDefinition } from "@wso2/syntax-tree";
-import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
+import { AIMachineContext, AIMachineStateValue, ChatNotify } from "../../state-machine-types";
 import { Command, SkillCommand, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
 import { ComponentInfo, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, OperationType } from "../..";
@@ -546,6 +546,29 @@ export interface AbortAIGenerationRequest {
     projectRootPath?: string;
     /** Thread identifier (defaults to 'default') */
     threadId?: string;
+}
+
+/**
+ * Request for the current run status of a thread (panel reconnection).
+ * Optional params default to current workspace and 'default' thread.
+ */
+export interface GetRunStatusRequest {
+    /** Project root path (defaults to current workspace/project root) */
+    projectRootPath?: string;
+    /** Thread identifier (defaults to 'default') */
+    threadId?: string;
+    /** When set, only return buffered events with `seq > sinceSeq` (polling dedup) */
+    sinceSeq?: number;
+}
+
+/**
+ * Response describing whether a run is in flight and the buffered events a
+ * reconnecting panel should replay.
+ */
+export interface GetRunStatusResponse {
+    isRunning: boolean;
+    events: ChatNotify[];
+    isPlanMode?: boolean;
 }
 
 export interface UsageResponse {

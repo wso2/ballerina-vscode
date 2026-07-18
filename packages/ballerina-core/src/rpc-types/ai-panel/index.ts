@@ -80,6 +80,8 @@ import {
     // TODO(auto-memory): temporarily disabled for this release.
     // ClearMemoryRequest,
     // OpenMemoryRequest,
+    GetRunStatusRequest,
+    GetRunStatusResponse,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -141,6 +143,7 @@ export interface AIPanelAPI {
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
     getActiveTempDir: () => Promise<string>;
     hasPendingReview: () => Promise<boolean>;
+    getRunStatus: (params: GetRunStatusRequest) => Promise<GetRunStatusResponse>;
     getUsage: () => Promise<UsageResponse | undefined>;
     openFileDiff: (params: OpenFileDiffRequest) => void;
     approveWebTool: (params: WebToolApprovalRequest) => Promise<void>;

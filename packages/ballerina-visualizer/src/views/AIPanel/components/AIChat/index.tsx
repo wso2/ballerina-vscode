@@ -319,6 +319,22 @@ const AIChat: React.FC = () => {
     const isErrorChunkReceivedRef = useRef(false);
     const activeScaffoldKeyRef = useRef<string | null>(null);
 
+    // --- Panel reconnection safeguards ---
+    // The agent run survives the panel closing; these let a reopened panel
+    // re-attach to an in-flight run, replay missed events, and poll for events
+    // that were dropped while no panel was listening.
+    const ENABLE_STREAM_SAFEGUARDS = true;
+    const ENABLE_STREAM_POLLING_FALLBACK = ENABLE_STREAM_SAFEGUARDS;
+    const POLL_STALE_THRESHOLD_MS = 5_000;
+    const POLL_INTERVAL_MS = 3_000;
+    const lastReceivedSeqRef = useRef<number>(0);          // highest seq seen (push or replay)
+    const lastEventTimeRef = useRef<number>(0);            // timestamp of last event (staleness)
+    const terminalEventReceivedRef = useRef<boolean>(false); // stop/abort/error seen
+    const pollInFlightRef = useRef<boolean>(false);        // prevents overlapping polls
+    const activeRunGenerationIdRef = useRef<string | undefined>(undefined); // drop stale-run events
+    const handleChatNotifyRef = useRef<(response: ChatNotify) => void>(() => {});
+    const [backendRequestTriggered, setBackendRequestTriggered] = useState(false);
+
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
     /* REFACTORED CODE START [2] */
@@ -591,6 +607,52 @@ const AIChat: React.FC = () => {
     };
 
     /**
+     * Re-attach to an agent run after the panel was closed and reopened: fetch
+     * the buffered events, adopt the run, and replay what the closed panel
+     * missed. Covers both a run that is still executing (live re-attach) and a
+     * run that finished while the panel was closed — the backend serves the
+     * latter's buffer exactly once, and replaying its save_chat also persists
+     * the final transcript the closed panel never round-tripped. No-op when
+     * there is nothing to replay.
+     */
+    const reconnectToActiveRun = async () => {
+        try {
+            const runStatus = await rpcClient.getAiPanelRpcClient().getRunStatus({});
+            if (runStatus.events.length === 0) {
+                return;
+            }
+            // Adopt this run so any stray events from a prior run are dropped.
+            activeRunGenerationIdRef.current = runStatus.events.find(e => !!e.generationId)?.generationId;
+            if (ENABLE_STREAM_SAFEGUARDS) {
+                lastReceivedSeqRef.current = 0;
+                lastEventTimeRef.current = Date.now();
+                terminalEventReceivedRef.current = false;
+            }
+            if (runStatus.isPlanMode !== undefined) {
+                setAgentMode(runStatus.isPlanMode ? AgentMode.Plan : AgentMode.Edit);
+            }
+            // Rebuild the turn cleanly onto a fresh assistant message: drop any
+            // partial assistant message persisted mid-run (stale uiResponse), then
+            // append an empty one so the replay never lands on a previous turn's
+            // assistant message (ensureAssistantMessage targets the latest one).
+            setMessages(prev => {
+                const idx = getLatestAssistantMessageIndex(prev);
+                const base = idx >= 0 && idx === prev.length - 1 ? prev.slice(0, -1) : prev;
+                return [...base, { role: "Copilot", content: "", type: "assistant_message" }];
+            });
+            if (runStatus.isRunning) {
+                setIsLoading(true);
+                setBackendRequestTriggered(true);
+            }
+            for (const ev of runStatus.events) {
+                handleChatNotifyRef.current(ev);
+            }
+        } catch (error) {
+            console.error('[AIChat] Failed to restore in-flight run status:', error);
+        }
+    };
+
+    /**
      * Effect: Load initial chat history from aiChatMachine context
      */
     useEffect(function loadInitialChatHistory() {
@@ -616,10 +678,59 @@ const AIChat: React.FC = () => {
             } catch (error) {
                 console.error('[AIChat] Failed to check pending review state:', error);
             }
+
+            // Reconnect to an in-flight run: the run keeps executing on the
+            // extension host while the panel is closed, buffering the events we
+            // missed. Replay them so the reopened panel shows live progress.
+            await reconnectToActiveRun();
         };
 
         loadHistory();
     }, [rpcClient]);
+
+    /**
+     * Effect: Polling fallback for panel reconnection. When a run is active but
+     * live push events go stale (e.g. the panel was briefly closed, or a burst
+     * was dropped), poll `getRunStatus` for events since the last seen `seq` and
+     * replay them. Stops once a terminal event is seen or the run ends.
+     */
+    useEffect(() => {
+        if (!ENABLE_STREAM_POLLING_FALLBACK || !backendRequestTriggered || !rpcClient) {
+            return;
+        }
+        const intervalId = setInterval(async () => {
+            if (terminalEventReceivedRef.current || pollInFlightRef.current) {
+                return;
+            }
+            if (Date.now() - lastEventTimeRef.current < POLL_STALE_THRESHOLD_MS) {
+                return;
+            }
+            try {
+                pollInFlightRef.current = true;
+                const runStatus = await rpcClient.getAiPanelRpcClient().getRunStatus({
+                    sinceSeq: lastReceivedSeqRef.current,
+                });
+                for (const ev of runStatus.events) {
+                    // Race guard against a push arriving concurrently with the poll.
+                    if (typeof ev.seq === "number" && ev.seq <= lastReceivedSeqRef.current) {
+                        continue;
+                    }
+                    handleChatNotifyRef.current(ev);
+                }
+                if (!runStatus.isRunning && runStatus.events.length === 0 && !terminalEventReceivedRef.current) {
+                    setBackendRequestTriggered(false);
+                }
+            } catch {
+                // best-effort; try again next tick
+            } finally {
+                pollInFlightRef.current = false;
+            }
+        }, POLL_INTERVAL_MS);
+        return () => {
+            clearInterval(intervalId);
+            pollInFlightRef.current = false;
+        };
+    }, [backendRequestTriggered, rpcClient]);
 
     /**
      * Effect: Check for an active migration session that needs AI enhancement.
@@ -668,7 +779,28 @@ const AIChat: React.FC = () => {
         }
     });
 
-    rpcClient?.onChatNotify(async (response: ChatNotify) => {
+    const handleChatNotify = async (response: ChatNotify) => {
+        // Reconnection bookkeeping (runs even for events that get dropped below):
+        // track the seq high-water mark, staleness timestamp, and terminal state.
+        if (ENABLE_STREAM_SAFEGUARDS) {
+            if (typeof response.seq === "number" && response.seq > lastReceivedSeqRef.current) {
+                lastReceivedSeqRef.current = response.seq;
+            }
+            lastEventTimeRef.current = Date.now();
+            if (response.type === "stop" || response.type === "abort" || response.type === "error") {
+                terminalEventReceivedRef.current = true;
+            }
+        }
+        // Drop events belonging to a different (previously-interrupted) run once
+        // we have adopted a specific run on reconnect.
+        if (
+            response.generationId &&
+            activeRunGenerationIdRef.current &&
+            response.generationId !== activeRunGenerationIdRef.current
+        ) {
+            return;
+        }
+
         const type = response.type;
 
         if (type === "content_block") {
@@ -1005,6 +1137,7 @@ const AIChat: React.FC = () => {
             setIsCodeLoading(false);
             setIsLoading(false);
             setIsMigrationEnhancementRunning(false);
+            setBackendRequestTriggered(false);
             fetchUsage();
             setAgentMode(AgentMode.Edit);
             if (activeScaffoldKeyRef.current && !isErrorChunkReceivedRef.current) {
@@ -1030,6 +1163,7 @@ const AIChat: React.FC = () => {
             setIsCompacting(false);
             setIsCodeLoading(false);
             setIsLoading(false);
+            setBackendRequestTriggered(false);
             if (isMigrationEnhancementRunning) {
                 setIsMigrationEnhancementRunning(false);
                 // Re-fetch session so the Resume card appears
@@ -1043,11 +1177,18 @@ const AIChat: React.FC = () => {
 
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
-            const assistantIndex = getLatestAssistantMessageIndex(messages);
-            const contentToSave = assistantIndex >= 0 ? messages[assistantIndex]?.content : messages[messages.length - 1]?.content;
-            await rpcClient.getAiPanelRpcClient().updateChatMessage({
-                messageId: response.messageId,
-                content: contentToSave || "",
+            // Read the freshest committed messages via the functional updater so
+            // this works during a synchronous reconnect replay too (where the
+            // closed-over `messages` would otherwise be stale).
+            const messageId = response.messageId;
+            setMessages((prev) => {
+                const assistantIndex = getLatestAssistantMessageIndex(prev);
+                const contentToSave = assistantIndex >= 0 ? prev[assistantIndex]?.content : prev[prev.length - 1]?.content;
+                void rpcClient.getAiPanelRpcClient().updateChatMessage({
+                    messageId,
+                    content: contentToSave || "",
+                });
+                return prev;
             });
 
         } else if (type === "error") {
@@ -1099,9 +1240,16 @@ const AIChat: React.FC = () => {
             setIsCompacting(false);
             setIsCodeLoading(false);
             setIsLoading(false);
+            setBackendRequestTriggered(false);
             isErrorChunkReceivedRef.current = true;
         }
-    });
+    };
+
+    // Keep the subscription behaviour identical to before (fresh closure per
+    // render so `messages`-reading branches stay current), and expose the
+    // latest handler via a ref for the reconnect/poll replay paths.
+    handleChatNotifyRef.current = handleChatNotify;
+    rpcClient?.onChatNotify(handleChatNotify);
 
     function generateNaturalProgrammingTemplate(isReqFileExists: boolean) {
         if (isReqFileExists) {
@@ -1271,6 +1419,16 @@ const AIChat: React.FC = () => {
         setMessages((prevMessages) => prevMessages.filter((message) => message.type !== "question"));
         setIsLoading(true);
         isErrorChunkReceivedRef.current = false;
+        // Reset reconnection safeguards for the new run and arm the polling
+        // fallback. The generationId is server-assigned, so we clear the adopted
+        // run id (accept all events) until a reconnect adopts a specific run.
+        if (ENABLE_STREAM_SAFEGUARDS) {
+            lastReceivedSeqRef.current = 0;
+            lastEventTimeRef.current = Date.now();
+            terminalEventReceivedRef.current = false;
+            activeRunGenerationIdRef.current = undefined;
+        }
+        setBackendRequestTriggered(true);
         setMessages((prevMessages) =>
             prevMessages.filter((message, index) => index <= lastQuestionIndex || message.type !== "question")
         );

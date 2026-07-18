@@ -21,6 +21,7 @@ import { CopilotEventHandler } from '../../utils/events';
 import { chatStateStorage, ChatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
 import { getTempProject, cleanupTempProject } from '../../utils/project/temp-project';
 import { buildChatError } from '../../utils/ai-utils';
+import { runEventStore } from '../../utils/run-event-store';
 import { MigrationDebugLogger } from '../../migration/debug-logger';
 
 /**
@@ -53,6 +54,14 @@ export interface AICommandConfig<TParams = any> {
         threadId: string;
         enabled: boolean;
     };
+
+    /**
+     * Whether this run's events target the AI chat panel and should be buffered
+     * for panel reconnection (`getRunStatus` replay). Set only for the agent
+     * chat path; other executors (migration panel, data mapper) leave it unset
+     * so they don't register themselves as the buffered "current run".
+     */
+    trackForReconnection?: boolean;
 
     /** Optional lifecycle configuration */
     lifecycle?: {
@@ -162,6 +171,12 @@ export abstract class AICommandExecutor<TParams = any> {
                 abortController: this.config.abortController
             });
 
+            // Start buffering emitted events so a panel that closes/reopens
+            // mid-run can reconnect and replay what it missed (agent chat only).
+            if (this.config.trackForReconnection) {
+                runEventStore.beginRun(projectRootPath, threadId, this.config.generationId);
+            }
+
             // Stage 2: Initialize workspace/thread in chat storage
             await this.initializeWorkspaceThread();
 
@@ -182,7 +197,12 @@ export abstract class AICommandExecutor<TParams = any> {
             throw error;
         } finally {
             // Stage 6: Always clear active execution on completion (success or error)
-        chatStateStorage.clearActiveExecution(projectRootPath, threadId);
+            chatStateStorage.clearActiveExecution(projectRootPath, threadId);
+            // Mark the run ended (buffer kept so an in-flight poll can still pick
+            // up a terminal event).
+            if (this.config.trackForReconnection) {
+                runEventStore.endRun(projectRootPath, threadId);
+            }
         }
     }
 

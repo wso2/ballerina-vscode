@@ -26,6 +26,8 @@ import {
     AddFilesToProjectRequest,
     CheckpointInfo,
     Command,
+    GetRunStatusRequest,
+    GetRunStatusResponse,
     DocGenerationRequest,
     GenerateAgentCodeRequest,
     GenerateOpenAPIRequest,
@@ -147,6 +149,7 @@ import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { clearPendingReviewRestore, getPendingReviewRestore } from '../../features/ai/state/reviewRestoreStore';
 import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
+import { runEventStore } from '../../features/ai/utils/run-event-store';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
 import { executeRun } from "../../features/ai/agent/tools/ballerina-run";
@@ -842,6 +845,22 @@ User reverted the last made changes. The files have been restored to the state b
     async hasPendingReview(): Promise<boolean> {
         const projectRootPath = resolveProjectRootPath();
         return !!chatStateStorage.getPendingReviewGeneration(projectRootPath, 'default');
+    }
+
+    async getRunStatus(params: GetRunStatusRequest): Promise<GetRunStatusResponse> {
+        const projectRootPath = params?.projectRootPath || resolveProjectRootPath();
+        const threadId = params?.threadId || 'default';
+        const status = runEventStore.getRunStatus(projectRootPath, threadId, params?.sinceSeq);
+        // Resolve plan mode from the active generation's persisted metadata (the
+        // single source of truth) rather than duplicating it into the buffer.
+        let isPlanMode: boolean | undefined;
+        if (status.isRunning) {
+            const generationId = chatStateStorage.getActiveExecution(projectRootPath, threadId)?.generationId;
+            if (generationId) {
+                isPlanMode = chatStateStorage.getGeneration(projectRootPath, threadId, generationId)?.metadata?.isPlanMode;
+            }
+        }
+        return { ...status, isPlanMode };
     }
 
     async compactConversation(_params: CompactConversationRequest): Promise<CompactConversationResponse> {

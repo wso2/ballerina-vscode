@@ -45,6 +45,7 @@ import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import { MigrationPanelWebview } from "../../../views/migration-panel/webview";
 import { VisualizerWebview } from "../../../views/visualizer/webview";
 import { GenerationType } from "./libs/libraries";
+import { runEventStore } from "./run-event-store";
 // import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
 
 export function populateHistory(chatHistory: ChatEntry[]): ModelMessage[] {
@@ -326,7 +327,12 @@ export function sendWebToolToggleNotification(active: boolean): void {
 }
 
 export function sendAIPanelNotification(msg: ChatNotify): void {
-    RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
+    // Stamp seq/generationId and buffer under the active run (for panel reconnection)
+    // before forwarding. No-op when no run is active. The panel-open hint lets the
+    // store mark runs whose terminal event fired while the panel was closed, so the
+    // next reconnect replays the finished turn.
+    const stamped = runEventStore.stampCurrent(msg, AiPanelWebview.currentPanel !== undefined);
+    RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, stamped);
 }
 
 /**
