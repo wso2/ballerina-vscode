@@ -52,7 +52,8 @@ import { StreamEntry, StreamItem } from "../AgentStreamView/types";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
 import CheckpointSeparator from "../CheckpointSeparator";
-import { Attachment, AttachmentStatus, SkillEntry, TaskApprovalRequest } from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, SkillEnableStage, SkillEntry, TaskApprovalRequest } from "@wso2/ballerina-core";
+import type { ClarifyEvent, ConfigurationCollectionEvent, ConnectorGenerationNotification } from "@wso2/ballerina-core";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, AuthProviderChip, UsageBadge, ApprovalOverlay, OverlayMessage, OverlayCloseButton } from "../../styles";
 import { SessionHistoryDropdown } from "../SessionHistory";
@@ -193,16 +194,20 @@ function appendToLastEntry(entries: StreamEntry[], item: StreamItem): StreamEntr
     return [...entries.slice(0, -1), { ...last, items: [...last.items, item] }];
 }
 
-// Interactive-prompt event types skipped while replaying buffered events on reopen (their live
-// interaction is already resolved/cancelled; only the passive transcript should be rebuilt).
-// A prompt whose requestId is still pending in the backend IS re-surfaced so it can be answered.
-const REPLAY_SKIP_EVENT_TYPES = new Set<string>([
-    "task_approval_request",
-    "web_tool_approval_request",
-    "configuration_collection_event",
-    "clarify_event",
-    "skill_enable_event",
-]);
+// Interactive-prompt events need care while replaying buffered events on reopen: their
+// transcript cards must be rebuilt (they are part of the turn), but a "waiting for user"
+// state may only be re-surfaced when the backend still has the request pending (in-chat
+// prompts survive panel close and stay answerable). For card-driven prompts — whose waiting
+// UI derives from the card's `stage` — the pending-stage event of an already-resolved
+// request is dropped; its resolution event later in the buffer rebuilds the card in its
+// final state. Banner-driven prompts (task/web-tool approval) are handled inside their
+// branches instead: transcript items are always rebuilt, only the banner is suppressed.
+const REPLAY_PENDING_STAGES: Record<string, string> = {
+    clarify_event: "asking" satisfies ClarifyEvent["stage"],
+    skill_enable_event: SkillEnableStage.PROMPTING,
+    configuration_collection_event: "collecting" satisfies ConfigurationCollectionEvent["stage"],
+    connector_generation_notification: "requesting_input" satisfies ConnectorGenerationNotification["stage"],
+};
 
 const SCAFFOLD_DONE_PREFIX = "ballerina.scaffold.done:";
 
@@ -670,40 +675,64 @@ const AIChat: React.FC = () => {
 
             const generationId = runStatus.generationId
                 ?? runStatus.events.find(e => !!e.generationId)?.generationId;
-            // The persisted transcript already covers a finished turn once its
-            // uiResponse is saved (belt-and-braces on top of the backend clearing
-            // the buffer at that point). Only replay when a run is genuinely live,
-            // or when the last turn's transcript is missing (finished while closed).
+            // A buffer only exists while the turn's FINAL transcript is not yet persisted
+            // (per-step save_chat writes partial uiResponses mid-run, so a history bubble
+            // for this generation does NOT imply completeness) — whenever one exists,
+            // rebuild the turn from it; the persist that follows clears it, so this
+            // converges. Exception: a truncated (overflowed) buffer can't rebuild the
+            // whole turn, so prefer a persisted partial when one exists. A live run always
+            // proceeds, even with an empty buffer, to arm the spinner and polling fallback.
             const assistantAlreadyLoaded = !!generationId &&
                 historyMessages.some((m) => m.role === "Copilot" && m.messageId === generationId);
-            if (runStatus.events.length === 0 || (!runStatus.isRunning && assistantAlreadyLoaded)) {
+            if (!runStatus.isRunning &&
+                (runStatus.events.length === 0 || (runStatus.truncated && assistantAlreadyLoaded))) {
                 return;
             }
+            // Truncated buffer on a LIVE run with a persisted partial: the partial covers
+            // the turn's beginning, which the buffer has already evicted — keep it, skip
+            // the replay, and fast-forward the seq watermark past the buffered events so
+            // only newer live/polled events append after it.
+            const keepPartialSkipReplay = runStatus.isRunning && runStatus.truncated && assistantAlreadyLoaded;
 
             // Adopt this run so any stray events from a prior run are dropped.
             activeRunGenerationIdRef.current = generationId;
             if (ENABLE_STREAM_SAFEGUARDS) {
-                lastReceivedSeqRef.current = 0;
+                lastReceivedSeqRef.current = keepPartialSkipReplay
+                    ? (runStatus.events[runStatus.events.length - 1]?.seq ?? 0)
+                    : 0;
                 lastEventTimeRef.current = Date.now();
                 terminalEventReceivedRef.current = false;
             }
             if (runStatus.isPlanMode !== undefined) {
                 setAgentMode(runStatus.isPlanMode ? AgentMode.Plan : AgentMode.Edit);
             }
-            // Drop any assistant bubble already loaded for this generation (stale
-            // partial uiResponse) — the replay rebuilds the full turn from scratch,
-            // and turn-aware ensureAssistantMessage starts a fresh bubble for it.
-            setMessages(prev => prev.filter(
-                (m) => !(m.type === "assistant_message" && m.messageId === generationId)
-            ));
+            if (!keepPartialSkipReplay) {
+                // Drop any assistant bubble already loaded for this generation (stale
+                // partial uiResponse) — the replay rebuilds the full turn from scratch,
+                // and turn-aware ensureAssistantMessage starts a fresh bubble for it.
+                setMessages(prev => prev.filter(
+                    (m) => !(m.type === "assistant_message" && m.messageId === generationId)
+                ));
+            }
             if (runStatus.isRunning) {
                 setIsLoading(true);
                 setBackendRequestTriggered(true);
             }
             replayingRef.current = true;
             try {
-                for (const ev of runStatus.events) {
-                    await handleChatNotifyRef.current(ev);
+                if (!keepPartialSkipReplay) {
+                    for (const ev of runStatus.events) {
+                        await handleChatNotifyRef.current(ev);
+                    }
+                } else {
+                    // The run may be blocked on a prompt whose event is in the skipped
+                    // buffer — re-surface still-pending prompts so it stays answerable.
+                    for (const ev of runStatus.events) {
+                        const reqId = (ev as any).requestId;
+                        if (reqId && pendingRequestIdsRef.current.has(reqId)) {
+                            await handleChatNotifyRef.current(ev);
+                        }
+                    }
                 }
             } finally {
                 replayingRef.current = false;
@@ -923,18 +952,21 @@ const AIChat: React.FC = () => {
 
         const type = response.type;
 
-        // When replaying buffered events on reopen, an interactive prompt is only re-shown
-        // if it's still awaiting a response (its requestId is pending in the backend).
-        // Prompts resolved earlier in the run are skipped so their banner doesn't reappear —
-        // the transcript around them is still rebuilt from their tool_call/tool_result/text
-        // events. A pending prompt is re-surfaced so the user can answer it (the backend
-        // keeps it alive across panel close).
-        if (replayingRef.current && REPLAY_SKIP_EVENT_TYPES.has(type)) {
-            const reqId = (response as any).requestId;
-            if (!reqId || !pendingRequestIdsRef.current.has(reqId)) {
-                return;
-            }
-            // still pending → fall through and render the live prompt
+        // True only while replaying a buffered event whose request the backend no longer has
+        // pending — its live interaction was already resolved and must not be re-surfaced.
+        // A still-pending prompt falls through and renders live (answerable after reopen).
+        const isResolvedReplayedPrompt = (reqId?: string) =>
+            replayingRef.current && (!reqId || !pendingRequestIdsRef.current.has(reqId));
+
+        // Card-driven prompts: drop the pending-stage event of an already-resolved request;
+        // its resolution event later in the buffer rebuilds the card in its final state.
+        const pendingStage = REPLAY_PENDING_STAGES[type];
+        if (
+            pendingStage &&
+            (response as any).stage === pendingStage &&
+            isResolvedReplayedPrompt((response as any).requestId)
+        ) {
+            return;
         }
 
         if (type === "content_block") {
@@ -1049,6 +1081,12 @@ const AIChat: React.FC = () => {
                 });
             }
 
+            // Replayed, already-resolved approval: the plan transcript item above is still
+            // rebuilt; only the interactive banner / auto-approve side effects are skipped.
+            if (isResolvedReplayedPrompt(response.requestId)) {
+                return;
+            }
+
             // Skip approval UI when auto-approved from backend (scaffold mode)
             if (response.autoApproved) {
                 return;
@@ -1069,6 +1107,10 @@ const AIChat: React.FC = () => {
             });
 
         } else if (type === "web_tool_approval_request") {
+            // Banner-only event (no transcript item) — nothing to rebuild for a resolved one.
+            if (isResolvedReplayedPrompt(response.requestId)) {
+                return;
+            }
             setWebToolApprovalRequest({
                 requestId: response.requestId,
                 toolName: response.toolName,

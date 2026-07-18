@@ -572,6 +572,11 @@ export interface GetRunStatusResponse {
     /** Id of the buffered (active or finished-but-unrecorded) generation, if any. */
     generationId?: string;
     /**
+     * True when the buffer overflowed and its earliest events were evicted, so a
+     * replay cannot rebuild the turn from the beginning.
+     */
+    truncated?: boolean;
+    /**
      * Request ids of interactive prompts (clarify/approval/etc.) still awaiting a user
      * response. On reopen the panel re-surfaces the buffered prompt for these (so the
      * question can be answered) and skips prompts already resolved earlier in the run.

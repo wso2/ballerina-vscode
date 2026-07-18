@@ -37,6 +37,8 @@ export interface RunStatus {
     events: ChatNotify[];
     /** Id of the buffered generation, if any. */
     generationId?: string;
+    /** True when the buffer overflowed and its earliest events were evicted (replay can't rebuild the full turn). */
+    truncated: boolean;
 }
 
 interface RunState {
@@ -51,6 +53,8 @@ interface RunState {
      */
     runBuffer: ChatNotify[];
     generationId?: string;
+    /** Set when the buffer cap evicted this run's earliest events. */
+    truncated: boolean;
 }
 
 /** Per-run buffer cap: beyond this, the oldest events are evicted (bounds memory on very long runs). */
@@ -70,7 +74,7 @@ class RunEventStore {
     private getOrCreate(key: string): RunState {
         let state = this.runs.get(key);
         if (!state) {
-            state = { isRunning: false, seqCounter: 0, runBuffer: [] };
+            state = { isRunning: false, seqCounter: 0, runBuffer: [], truncated: false };
             this.runs.set(key, state);
         }
         return state;
@@ -96,6 +100,7 @@ class RunEventStore {
         state.isRunning = true;
         state.seqCounter = 0;
         state.runBuffer = [];
+        state.truncated = false;
         state.generationId = generationId;
         this.currentKey = key;
         this.evictStaleRuns();
@@ -138,6 +143,7 @@ class RunEventStore {
         // only an initial reconnect to such a run loses its earliest transcript.
         if (state.runBuffer.length > MAX_BUFFERED_EVENTS) {
             state.runBuffer.shift();
+            state.truncated = true;
         }
         return event;
     }
@@ -156,12 +162,12 @@ class RunEventStore {
     getRunStatus(projectRootPath: string, threadId: string, sinceSeq?: number): RunStatus {
         const state = this.runs.get(this.key(projectRootPath, threadId));
         if (!state) {
-            return { isRunning: false, events: [] };
+            return { isRunning: false, events: [], truncated: false };
         }
         const events = sinceSeq !== undefined && sinceSeq >= 0
             ? state.runBuffer.filter(e => (e.seq ?? 0) > sinceSeq)
             : [...state.runBuffer];
-        return { isRunning: state.isRunning, events, generationId: state.generationId };
+        return { isRunning: state.isRunning, events, generationId: state.generationId, truncated: state.truncated };
     }
 
     /**
@@ -176,6 +182,7 @@ class RunEventStore {
             return;
         }
         state.runBuffer = [];
+        state.truncated = false;
         state.generationId = undefined;
     }
 }
