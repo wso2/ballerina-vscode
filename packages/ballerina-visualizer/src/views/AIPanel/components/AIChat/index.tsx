@@ -897,8 +897,20 @@ const AIChat: React.FC = () => {
     });
 
     const handleChatNotify = async (response: ChatNotify) => {
-        // Reconnection bookkeeping (runs even for events that get dropped below):
-        // track the seq high-water mark, staleness timestamp, and terminal state.
+        // Drop events belonging to a different (previously-interrupted) run once we
+        // have adopted a specific run on reconnect — BEFORE any bookkeeping. seq is
+        // per-run, so a stale run's event must not advance the adopted run's seq
+        // high-water mark (it would poison sinceSeq polling) or set the terminal
+        // flag (it would stop polling for the still-live adopted run).
+        if (
+            response.generationId &&
+            activeRunGenerationIdRef.current &&
+            response.generationId !== activeRunGenerationIdRef.current
+        ) {
+            return;
+        }
+        // Reconnection bookkeeping: track the seq high-water mark, staleness
+        // timestamp, and terminal state for the accepted event.
         if (ENABLE_STREAM_SAFEGUARDS) {
             if (typeof response.seq === "number" && response.seq > lastReceivedSeqRef.current) {
                 lastReceivedSeqRef.current = response.seq;
@@ -907,15 +919,6 @@ const AIChat: React.FC = () => {
             if (response.type === "stop" || response.type === "abort" || response.type === "error") {
                 terminalEventReceivedRef.current = true;
             }
-        }
-        // Drop events belonging to a different (previously-interrupted) run once
-        // we have adopted a specific run on reconnect.
-        if (
-            response.generationId &&
-            activeRunGenerationIdRef.current &&
-            response.generationId !== activeRunGenerationIdRef.current
-        ) {
-            return;
         }
 
         const type = response.type;
@@ -1315,10 +1318,10 @@ const AIChat: React.FC = () => {
             setMessages((prev) => {
                 const assistantIndex = getLatestAssistantMessageIndex(prev);
                 const contentToSave = assistantIndex >= 0 ? prev[assistantIndex]?.content : prev[prev.length - 1]?.content;
-                void rpcClient.getAiPanelRpcClient().updateChatMessage({
+                rpcClient.getAiPanelRpcClient().updateChatMessage({
                     messageId,
                     content: contentToSave || "",
-                });
+                }).catch((e: unknown) => console.error('[AIChat] Failed to persist chat message:', e));
                 return prev;
             });
 
