@@ -718,6 +718,58 @@ export class ApprovalManager {
     }
 
     /**
+     * Cancel only the interactive requests that cannot be recovered after the AI panel is closed
+     * and reopened, and tear down transient UI. Called when the panel is *disposed* (not aborted).
+     *
+     * Popup-based requests (the configuration collector, whose popup view is torn down here) are
+     * resolved as skipped because they cannot be replayed into the reopened chat — leaving them
+     * pending would strand the run. In-chat prompts (plan/task/connector/web-tool/clarify/skill)
+     * are intentionally LEFT PENDING: the agent run survives the panel in the extension host, and
+     * these prompts are re-surfaced from the event buffer on reopen so the user can still answer
+     * them. (Full cancellation still happens on explicit abort via cancelAllPending.)
+     */
+    cancelOnPanelClose(reason: string): void {
+        console.log(`[ApprovalManager] Panel closed — preserving in-chat prompts, cancelling popup-based ones: ${reason}`);
+
+        // Close popup approval views (currently only the configuration collector).
+        approvalViewManager.cleanupAllViews();
+
+        // Resolve configuration requests as skipped — popup-based, not replayable into the chat.
+        for (const [, resolver] of this.configurationRequests.entries()) {
+            if (resolver.timeoutId) {
+                clearTimeout(resolver.timeoutId);
+            }
+            resolver.resolve({ provided: false, comment: reason });
+        }
+        this.configurationRequests.clear();
+
+        // Reset notification counters and fire handlers (e.g. turn off the web-search globe).
+        for (const [type, count] of this.notificationCounters.entries()) {
+            if (count > 0) {
+                this.notificationCounters.set(type, 0);
+                this.notificationHandlers.get(type)?.(false);
+            }
+        }
+    }
+
+    /**
+     * All request ids that are currently awaiting a user response, across every interactive type.
+     * Used on reopen to decide which buffered prompt to re-surface (still pending) vs. skip
+     * (already resolved earlier in the run).
+     */
+    getPendingRequestIds(): string[] {
+        return [
+            ...this.planApprovals.keys(),
+            ...this.taskApprovals.keys(),
+            ...this.connectorSpecs.keys(),
+            ...this.configurationRequests.keys(),
+            ...this.webToolApprovals.keys(),
+            ...this.clarifyRequests.keys(),
+            ...this.skillEnableRequests.keys(),
+        ];
+    }
+
+    /**
      * Get count of pending approvals (useful for debugging)
      */
     getPendingCount(): { plans: number; tasks: number; connectorSpecs: number; configurations: number; webTools: number; clarify: number } {

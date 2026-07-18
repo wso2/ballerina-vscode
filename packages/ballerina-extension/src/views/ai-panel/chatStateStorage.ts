@@ -1260,20 +1260,6 @@ export class ChatStateStorage {
     getActiveExecution(projectRootPath: string, threadId: string): ActiveExecution | undefined {
         return this.activeExecutions.get(projectRootPath)?.get(threadId);
     }
-
-    /**
-     * Whether any run is currently in flight across all projects/threads.
-     * Used to decide whether closing the AI panel should cancel pending
-     * approvals (it should not, so a reconnecting panel can resume the run).
-     */
-    hasAnyActiveExecution(): boolean {
-        for (const threads of this.activeExecutions.values()) {
-            if (threads.size > 0) {
-                return true;
-            }
-        }
-        return false;
-    }
 }
 
 // Singleton export

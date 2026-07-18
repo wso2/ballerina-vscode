@@ -25,7 +25,6 @@ import { extension } from '../../BalExtensionContext';
 import { AIStateMachine } from './aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
-import { chatStateStorage } from './chatStateStorage';
 
 export class AiPanelWebview {
     public static currentPanel: AiPanelWebview | undefined;
@@ -129,13 +128,12 @@ export class AiPanelWebview {
 
     public dispose() {
 
-        // Keep pending approvals alive if a run is still in flight, so a
-        // reconnecting panel can re-render the approval and let the user
-        // respond (the run keeps executing on the extension host). Only cancel
-        // when nothing is running.
-        if (!chatStateStorage.hasAnyActiveExecution()) {
-            approvalManager.cancelAllPending("AI Panel closed");
-        }
+        // Closing the panel must not discard an in-progress run's pending question. The agent keeps
+        // running in the extension host, so leave in-chat prompts (clarify/approval/etc.) pending —
+        // they are re-surfaced from the event buffer on reopen and remain answerable. Only popup-based
+        // prompts that can't be replayed (configuration) are cancelled here. Explicit abort still
+        // cancels everything via chatStateStorage.abortActiveExecution → cancelAllPending.
+        approvalManager.cancelOnPanelClose("AI Panel closed");
 
         AiPanelWebview.currentPanel = undefined;
         AIStateMachine.sendEvent(AIMachineEventType.DISPOSE);

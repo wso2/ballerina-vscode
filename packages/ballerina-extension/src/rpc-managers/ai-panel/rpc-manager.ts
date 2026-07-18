@@ -771,6 +771,14 @@ User reverted the last made changes. The files have been restored to the state b
             return;
         }
 
+        // Once the transcript is durably saved as uiResponse and the run is no longer
+        // active, the reconnection event buffer is redundant — drop it so a future
+        // reopen serves the turn from persisted history instead of replaying it.
+        const active = chatStateStorage.getActiveExecution(projectRootPath, threadId);
+        if (active?.generationId !== params.messageId) {
+            runEventStore.clearBuffer(projectRootPath, threadId, params.messageId);
+        }
+
         // Update the UI response with the final formatted content
         chatStateStorage.updateGeneration(projectRootPath, threadId, params.messageId, {
             uiResponse: params.content
@@ -860,7 +868,13 @@ User reverted the last made changes. The files have been restored to the state b
                 isPlanMode = chatStateStorage.getGeneration(projectRootPath, threadId, generationId)?.metadata?.isPlanMode;
             }
         }
-        return { ...status, isPlanMode };
+        return {
+            ...status,
+            isPlanMode,
+            // Interactive prompts still awaiting an answer — lets the reopened panel
+            // re-surface only still-pending prompts during replay and skip resolved ones.
+            pendingRequestIds: approvalManager.getPendingRequestIds(),
+        };
     }
 
     async compactConversation(_params: CompactConversationRequest): Promise<CompactConversationResponse> {

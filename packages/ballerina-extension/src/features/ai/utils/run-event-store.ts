@@ -35,25 +35,22 @@ import { ChatNotify } from "@wso2/ballerina-core";
 export interface RunStatus {
     isRunning: boolean;
     events: ChatNotify[];
+    /** Id of the buffered generation, if any. */
+    generationId?: string;
 }
 
 interface RunState {
     isRunning: boolean;
     /** Monotonic within the current run (reset on `beginRun`); stable under buffer eviction. */
     seqCounter: number;
-    /** Events of the current run. Reset on `beginRun`, kept after `endRun`. */
+    /**
+     * Events of the current run. Reset on `beginRun`. Kept after `endRun` until the
+     * turn's transcript is durably persisted as `uiResponse` (`clearBuffer`, driven by
+     * `updateChatMessage`) — so a run that finished while the panel was closed stays
+     * replayable across reopens until the replay's own `save_chat` round-trip lands.
+     */
     runBuffer: ChatNotify[];
     generationId?: string;
-    /**
-     * True when the run's terminal event (stop/abort/error) was emitted while no
-     * panel existed to receive it. The next initial `getRunStatus` (no `sinceSeq`)
-     * serves the full buffer once so the reopened panel can rebuild the finished
-     * turn — replaying `save_chat` also persists the final `uiResponse` that the
-     * closed panel never round-tripped. Cleared after being served (or on the
-     * next `beginRun`) so later reopens fall back to persisted history without
-     * duplication.
-     */
-    finishedUnseen: boolean;
 }
 
 /** Per-run buffer cap: beyond this, the oldest events are evicted (bounds memory on very long runs). */
@@ -73,7 +70,7 @@ class RunEventStore {
     private getOrCreate(key: string): RunState {
         let state = this.runs.get(key);
         if (!state) {
-            state = { isRunning: false, seqCounter: 0, runBuffer: [], finishedUnseen: false };
+            state = { isRunning: false, seqCounter: 0, runBuffer: [] };
             this.runs.set(key, state);
         }
         return state;
@@ -100,7 +97,6 @@ class RunEventStore {
         state.seqCounter = 0;
         state.runBuffer = [];
         state.generationId = generationId;
-        state.finishedUnseen = false;
         this.currentKey = key;
         this.evictStaleRuns();
     }
@@ -123,12 +119,8 @@ class RunEventStore {
      * ai-panel send chokepoint (`sendAIPanelNotification`). Returns the same
      * (mutated) event so the caller can forward it. No-op (returns event
      * unchanged) when no run is active — e.g. notifications sent outside a run.
-     *
-     * @param panelOpen whether an AI panel currently exists to receive the event.
-     *   When a terminal event is emitted with no panel open, the run is marked
-     *   `finishedUnseen` so the next reconnect replays the whole turn.
      */
-    stampCurrent(event: ChatNotify, panelOpen: boolean): ChatNotify {
+    stampCurrent(event: ChatNotify): ChatNotify {
         if (!this.currentKey) {
             return event;
         }
@@ -141,9 +133,6 @@ class RunEventStore {
             event.generationId = state.generationId;
         }
         state.runBuffer.push(event);
-        if (!panelOpen && (event.type === "stop" || event.type === "abort" || event.type === "error")) {
-            state.finishedUnseen = true;
-        }
         // Bound memory on pathologically long runs by dropping the oldest events.
         // `seq` stays monotonic (independent of array index), so polling still works;
         // only an initial reconnect to such a run loses its earliest transcript.
@@ -158,30 +147,36 @@ class RunEventStore {
      * - `sinceSeq` provided → polling mode: only events with `seq > sinceSeq`.
      *   Returned whether or not the run is still active, so a poll can pick up a
      *   terminal event that was dropped.
-     * - `sinceSeq` omitted → initial reconnect: the full current-run buffer while
-     *   the run is active, or — served exactly once — for a run that finished
-     *   while no panel was open (`finishedUnseen`), so the reopened panel can
-     *   rebuild the turn it never saw. Otherwise empty: a completed-and-seen
-     *   turn is already in the persisted chat history, and returning the buffer
-     *   again would duplicate it.
+     * - `sinceSeq` omitted → initial reconnect: the full buffer. A buffer only
+     *   exists while its turn's transcript is not yet durably persisted
+     *   (`clearBuffer` drops it once `uiResponse` is saved), so returning it is
+     *   never a duplicate of chat history — it is either a live run or a
+     *   finished-while-closed turn awaiting recovery.
      */
     getRunStatus(projectRootPath: string, threadId: string, sinceSeq?: number): RunStatus {
         const state = this.runs.get(this.key(projectRootPath, threadId));
         if (!state) {
             return { isRunning: false, events: [] };
         }
-        let events: ChatNotify[];
-        if (sinceSeq !== undefined && sinceSeq >= 0) {
-            events = state.runBuffer.filter(e => (e.seq ?? 0) > sinceSeq);
-        } else if (state.isRunning || state.finishedUnseen) {
-            events = [...state.runBuffer];
-            // Serve the finished-unseen buffer only once — after this replay the
-            // frontend re-fires save_chat, persisting the turn into chat history.
-            state.finishedUnseen = false;
-        } else {
-            events = [];
+        const events = sinceSeq !== undefined && sinceSeq >= 0
+            ? state.runBuffer.filter(e => (e.seq ?? 0) > sinceSeq)
+            : [...state.runBuffer];
+        return { isRunning: state.isRunning, events, generationId: state.generationId };
+    }
+
+    /**
+     * Drops the buffered events for a generation once its transcript has been
+     * durably persisted as `uiResponse` (replay is no longer needed). No-op if
+     * the buffer belongs to a different generation.
+     */
+    clearBuffer(projectRootPath: string, threadId: string, generationId: string): void {
+        const key = this.key(projectRootPath, threadId);
+        const state = this.runs.get(key);
+        if (!state || state.generationId !== generationId) {
+            return;
         }
-        return { isRunning: state.isRunning, events };
+        state.runBuffer = [];
+        state.generationId = undefined;
     }
 }
 

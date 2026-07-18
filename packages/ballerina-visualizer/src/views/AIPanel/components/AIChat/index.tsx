@@ -193,6 +193,17 @@ function appendToLastEntry(entries: StreamEntry[], item: StreamItem): StreamEntr
     return [...entries.slice(0, -1), { ...last, items: [...last.items, item] }];
 }
 
+// Interactive-prompt event types skipped while replaying buffered events on reopen (their live
+// interaction is already resolved/cancelled; only the passive transcript should be rebuilt).
+// A prompt whose requestId is still pending in the backend IS re-surfaced so it can be answered.
+const REPLAY_SKIP_EVENT_TYPES = new Set<string>([
+    "task_approval_request",
+    "web_tool_approval_request",
+    "configuration_collection_event",
+    "clarify_event",
+    "skill_enable_event",
+]);
+
 const SCAFFOLD_DONE_PREFIX = "ballerina.scaffold.done:";
 
 // Stable, non-crypto hash for keying scaffold runs by (prompt + steps).
@@ -219,15 +230,30 @@ const AIChat: React.FC = () => {
         return -1;
     };
 
+    const getLatestUserMessageIndex = (chatMessages: Array<{ role: string }>): number => {
+        for (let i = chatMessages.length - 1; i >= 0; i--) {
+            const role = chatMessages[i]?.role;
+            if (role === "User" || role === "user") {
+                return i;
+            }
+        }
+        return -1;
+    };
+
     const ensureAssistantMessage = (
         chatMessages: Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>
     ): number => {
-        let targetIndex = getLatestAssistantMessageIndex(chatMessages);
-        if (targetIndex === -1) {
-            chatMessages.push({ role: "Copilot", content: "", type: "assistant_message" });
-            targetIndex = chatMessages.length - 1;
+        const targetIndex = getLatestAssistantMessageIndex(chatMessages);
+        // Reuse the trailing assistant bubble only if it belongs to the CURRENT turn — i.e. it
+        // comes after the most recent user message. Otherwise (a newer user prompt exists, or there
+        // is no assistant yet) start a fresh bubble so streamed content lands under the right turn.
+        // Without this, replaying a follow-up turn's events on reopen merges them into the previous
+        // turn's bubble and the follow-up prompt is pushed below its own response.
+        if (targetIndex !== -1 && targetIndex > getLatestUserMessageIndex(chatMessages)) {
+            return targetIndex;
         }
-        return targetIndex;
+        chatMessages.push({ role: "Copilot", content: "", type: "assistant_message" });
+        return chatMessages.length - 1;
     };
 
     const updateLastMessage = (updater: (content: string) => string) => {
@@ -332,8 +358,28 @@ const AIChat: React.FC = () => {
     const terminalEventReceivedRef = useRef<boolean>(false); // stop/abort/error seen
     const pollInFlightRef = useRef<boolean>(false);        // prevents overlapping polls
     const activeRunGenerationIdRef = useRef<string | undefined>(undefined); // drop stale-run events
-    const handleChatNotifyRef = useRef<(response: ChatNotify) => void>(() => {});
+    const handleChatNotifyRef = useRef<(response: ChatNotify) => void | Promise<void>>(() => {});
     const [backendRequestTriggered, setBackendRequestTriggered] = useState(false);
+    // True while replaying buffered events on reopen — lets the notify handler skip
+    // interactive prompts that were already resolved earlier in the run.
+    const replayingRef = useRef(false);
+    // Always-fresh mirror of `messages`, used to read the rebuilt transcript after a replay
+    // (the notify handler's own closure would be stale inside an async replay loop).
+    const latestMessagesRef = useRef<typeof messages>([]);
+    useEffect(() => { latestMessagesRef.current = messages; }, [messages]);
+    // Ensures the reconnect/replay runs at most once for this panel mount
+    // (guards StrictMode double-effects and rpcClient identity churn).
+    const didReconnectRef = useRef(false);
+    // Request ids of interactive prompts still awaiting a response, captured at reconnect.
+    // During replay, a buffered prompt is re-shown only if its id is in here (still pending).
+    const pendingRequestIdsRef = useRef<Set<string>>(new Set());
+    // Live-event gate. The onChatNotify subscription is active from the first render, but
+    // reconnect (history load + buffer replay) happens later and asynchronously. While the gate
+    // is CLOSED, incoming live events are queued instead of processed, so they can't interleave
+    // with the replay. The reconnect effect drains the queue in order (seq-deduped against the
+    // replay's high-water mark) and opens the gate once replay is done.
+    const liveGateClosedRef = useRef(true);
+    const liveQueueRef = useRef<ChatNotify[]>([]);
 
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
@@ -615,14 +661,27 @@ const AIChat: React.FC = () => {
      * the final transcript the closed panel never round-tripped. No-op when
      * there is nothing to replay.
      */
-    const reconnectToActiveRun = async () => {
+    const reconnectToActiveRun = async (historyMessages: ReturnType<typeof convertToUIMessages>) => {
         try {
             const runStatus = await rpcClient.getAiPanelRpcClient().getRunStatus({});
-            if (runStatus.events.length === 0) {
+            // Prompts still awaiting an answer — used by the replay skip guard to
+            // re-show only still-pending interactive prompts.
+            pendingRequestIdsRef.current = new Set(runStatus.pendingRequestIds ?? []);
+
+            const generationId = runStatus.generationId
+                ?? runStatus.events.find(e => !!e.generationId)?.generationId;
+            // The persisted transcript already covers a finished turn once its
+            // uiResponse is saved (belt-and-braces on top of the backend clearing
+            // the buffer at that point). Only replay when a run is genuinely live,
+            // or when the last turn's transcript is missing (finished while closed).
+            const assistantAlreadyLoaded = !!generationId &&
+                historyMessages.some((m) => m.role === "Copilot" && m.messageId === generationId);
+            if (runStatus.events.length === 0 || (!runStatus.isRunning && assistantAlreadyLoaded)) {
                 return;
             }
+
             // Adopt this run so any stray events from a prior run are dropped.
-            activeRunGenerationIdRef.current = runStatus.events.find(e => !!e.generationId)?.generationId;
+            activeRunGenerationIdRef.current = generationId;
             if (ENABLE_STREAM_SAFEGUARDS) {
                 lastReceivedSeqRef.current = 0;
                 lastEventTimeRef.current = Date.now();
@@ -631,21 +690,40 @@ const AIChat: React.FC = () => {
             if (runStatus.isPlanMode !== undefined) {
                 setAgentMode(runStatus.isPlanMode ? AgentMode.Plan : AgentMode.Edit);
             }
-            // Rebuild the turn cleanly onto a fresh assistant message: drop any
-            // partial assistant message persisted mid-run (stale uiResponse), then
-            // append an empty one so the replay never lands on a previous turn's
-            // assistant message (ensureAssistantMessage targets the latest one).
-            setMessages(prev => {
-                const idx = getLatestAssistantMessageIndex(prev);
-                const base = idx >= 0 && idx === prev.length - 1 ? prev.slice(0, -1) : prev;
-                return [...base, { role: "Copilot", content: "", type: "assistant_message" }];
-            });
+            // Drop any assistant bubble already loaded for this generation (stale
+            // partial uiResponse) — the replay rebuilds the full turn from scratch,
+            // and turn-aware ensureAssistantMessage starts a fresh bubble for it.
+            setMessages(prev => prev.filter(
+                (m) => !(m.type === "assistant_message" && m.messageId === generationId)
+            ));
             if (runStatus.isRunning) {
                 setIsLoading(true);
                 setBackendRequestTriggered(true);
             }
-            for (const ev of runStatus.events) {
-                handleChatNotifyRef.current(ev);
+            replayingRef.current = true;
+            try {
+                for (const ev of runStatus.events) {
+                    await handleChatNotifyRef.current(ev);
+                }
+            } finally {
+                replayingRef.current = false;
+            }
+            if (!runStatus.isRunning && generationId) {
+                // Finished while the panel was closed. Persist the rebuilt transcript
+                // once (after React commits the replayed messages) so it's durable,
+                // the backend drops the buffer, and later reopens serve from history.
+                // (The replayed save_chat usually does this already; this covers
+                // buffers whose run ended without one, e.g. an error turn.)
+                setTimeout(() => {
+                    const msgs = latestMessagesRef.current;
+                    const idx = getLatestAssistantMessageIndex(msgs);
+                    const content = idx >= 0 ? msgs[idx]?.content : "";
+                    if (content) {
+                        rpcClient.getAiPanelRpcClient()
+                            .updateChatMessage({ messageId: generationId, content })
+                            .catch((e) => console.error('[AIChat] Failed to persist recovered transcript:', e));
+                    }
+                }, 0);
             }
         } catch (error) {
             console.error('[AIChat] Failed to restore in-flight run status:', error);
@@ -657,32 +735,63 @@ const AIChat: React.FC = () => {
      */
     useEffect(function loadInitialChatHistory() {
         const loadHistory = async () => {
-            try {
-                const historyMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
-                if (historyMessages && historyMessages.length > 0) {
-                    const uiMessages = convertToUIMessages(historyMessages);
-                    setMessages((prevMessages) => (prevMessages.length > 0 ? prevMessages : uiMessages));
-                }
-            } catch (error) {
-                console.error('[AIChat] Failed to load initial chat history:', error);
-                // Continue with empty messages - don't block the UI
+            // Duplicate/concurrent mount (React StrictMode, or an rpcClient identity
+            // change): the primary run owns history load, gate and replay. Bail so we
+            // never replay twice or double-open the gate.
+            if (didReconnectRef.current) {
+                return;
             }
-            // Re-derive the review flag: it is otherwise only set by the live stream
-            // event, so a webview reload would leave a pending review inactive
-            // (ReviewBar unclickable, auto-accept-on-send skipped).
-            try {
-                const pending = await rpcClient.getAiPanelRpcClient().hasPendingReview();
-                if (pending) {
-                    setHasActiveReview(true);
-                }
-            } catch (error) {
-                console.error('[AIChat] Failed to check pending review state:', error);
-            }
+            didReconnectRef.current = true;
 
-            // Reconnect to an in-flight run: the run keeps executing on the
-            // extension host while the panel is closed, buffering the events we
-            // missed. Replay them so the reopened panel shows live progress.
-            await reconnectToActiveRun();
+            try {
+                let uiMessages: ReturnType<typeof convertToUIMessages> = [];
+                try {
+                    const historyMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
+                    if (historyMessages && historyMessages.length > 0) {
+                        uiMessages = convertToUIMessages(historyMessages);
+                        setMessages((prevMessages) => (prevMessages.length > 0 ? prevMessages : uiMessages));
+                    }
+                } catch (error) {
+                    console.error('[AIChat] Failed to load initial chat history:', error);
+                    // Continue with empty messages - don't block the UI
+                }
+                // Re-derive the review flag: it is otherwise only set by the live stream
+                // event, so a webview reload would leave a pending review inactive
+                // (ReviewBar unclickable, auto-accept-on-send skipped).
+                try {
+                    const pending = await rpcClient.getAiPanelRpcClient().hasPendingReview();
+                    if (pending) {
+                        setHasActiveReview(true);
+                    }
+                } catch (error) {
+                    console.error('[AIChat] Failed to check pending review state:', error);
+                }
+
+                // Reconnect to an in-flight run: the run keeps executing on the
+                // extension host while the panel is closed, buffering the events we
+                // missed. Replay them so the reopened panel shows live progress.
+                await reconnectToActiveRun(uiMessages);
+            } finally {
+                // Open the gate: replay is done (or was skipped). Drain live events
+                // that arrived meanwhile, in order, deduped against the replay's seq
+                // high-water mark; then resume direct dispatch. Events arriving during
+                // the drain re-queue and are picked up by the loop, so opening the
+                // gate right after the loop (synchronously) can't drop anything.
+                const q = liveQueueRef.current;
+                while (q.length > 0) {
+                    const ev = q.shift();
+                    if (!ev) { continue; }
+                    if (typeof ev.seq === "number" && ev.seq <= lastReceivedSeqRef.current) {
+                        continue; // already applied by the replay
+                    }
+                    try {
+                        await handleChatNotifyRef.current(ev);
+                    } catch (e) {
+                        console.error('[AIChat] live drain failed:', e);
+                    }
+                }
+                liveGateClosedRef.current = false;
+            }
         };
 
         loadHistory();
@@ -718,6 +827,14 @@ const AIChat: React.FC = () => {
                     handleChatNotifyRef.current(ev);
                 }
                 if (!runStatus.isRunning && runStatus.events.length === 0 && !terminalEventReceivedRef.current) {
+                    // Watchdog: the run is genuinely gone but its terminal event never
+                    // reached us (and there's nothing left to replay) — release the
+                    // spinner instead of stranding it. The transcript on screen is
+                    // whatever streamed/replayed; only the loading state is stuck.
+                    console.warn('[AIChat] Polling watchdog clearing a stuck spinner (missed terminal signal).');
+                    setIsLoading(false);
+                    setIsCodeLoading(false);
+                    setIsCompacting(false);
                     setBackendRequestTriggered(false);
                 }
             } catch {
@@ -802,6 +919,20 @@ const AIChat: React.FC = () => {
         }
 
         const type = response.type;
+
+        // When replaying buffered events on reopen, an interactive prompt is only re-shown
+        // if it's still awaiting a response (its requestId is pending in the backend).
+        // Prompts resolved earlier in the run are skipped so their banner doesn't reappear —
+        // the transcript around them is still rebuilt from their tool_call/tool_result/text
+        // events. A pending prompt is re-surfaced so the user can answer it (the backend
+        // keeps it alive across panel close).
+        if (replayingRef.current && REPLAY_SKIP_EVENT_TYPES.has(type)) {
+            const reqId = (response as any).requestId;
+            if (!reqId || !pendingRequestIdsRef.current.has(reqId)) {
+                return;
+            }
+            // still pending → fall through and render the live prompt
+        }
 
         if (type === "content_block") {
             const content = response.content;
@@ -1249,7 +1380,17 @@ const AIChat: React.FC = () => {
     // render so `messages`-reading branches stay current), and expose the
     // latest handler via a ref for the reconnect/poll replay paths.
     handleChatNotifyRef.current = handleChatNotify;
-    rpcClient?.onChatNotify(handleChatNotify);
+    // Live subscription. While the reconnect gate is closed (mount → replay done),
+    // queue events so they can't interleave with the async replay; the reconnect
+    // effect drains them in order (seq-deduped) and opens the gate.
+    const onLiveChatNotify = (response: ChatNotify) => {
+        if (liveGateClosedRef.current) {
+            liveQueueRef.current.push(response);
+            return;
+        }
+        return handleChatNotify(response);
+    };
+    rpcClient?.onChatNotify(onLiveChatNotify);
 
     function generateNaturalProgrammingTemplate(isReqFileExists: boolean) {
         if (isReqFileExists) {

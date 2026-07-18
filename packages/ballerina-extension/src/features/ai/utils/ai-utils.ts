@@ -328,11 +328,19 @@ export function sendWebToolToggleNotification(active: boolean): void {
 
 export function sendAIPanelNotification(msg: ChatNotify): void {
     // Stamp seq/generationId and buffer under the active run (for panel reconnection)
-    // before forwarding. No-op when no run is active. The panel-open hint lets the
-    // store mark runs whose terminal event fired while the panel was closed, so the
-    // next reconnect replays the finished turn.
-    const stamped = runEventStore.stampCurrent(msg, AiPanelWebview.currentPanel !== undefined);
-    RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, stamped);
+    // before forwarding. No-op when no run is active.
+    const stamped = runEventStore.stampCurrent(msg);
+    // The agent keeps running after the panel is closed (by design). The event is
+    // already buffered above, so skipping the post loses nothing — reconnect replays
+    // it on reopen. Guard on the live panel and swallow any late-dispose race.
+    if (!AiPanelWebview.currentPanel) {
+        return;
+    }
+    try {
+        RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, stamped);
+    } catch (e) {
+        // Panel was disposed between the guard and the send — safe to ignore (buffer has the event).
+    }
 }
 
 /**

@@ -569,6 +569,14 @@ export interface GetRunStatusResponse {
     isRunning: boolean;
     events: ChatNotify[];
     isPlanMode?: boolean;
+    /** Id of the buffered (active or finished-but-unrecorded) generation, if any. */
+    generationId?: string;
+    /**
+     * Request ids of interactive prompts (clarify/approval/etc.) still awaiting a user
+     * response. On reopen the panel re-surfaces the buffered prompt for these (so the
+     * question can be answered) and skips prompts already resolved earlier in the run.
+     */
+    pendingRequestIds?: string[];
 }
 
 export interface UsageResponse {
