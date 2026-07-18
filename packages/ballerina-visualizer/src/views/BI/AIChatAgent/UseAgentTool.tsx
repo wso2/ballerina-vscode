@@ -46,7 +46,6 @@ interface UseAgentToolProps {
     onClose?: () => void;
 }
 
-// Flatten the nested "Agent" group → agent variable names (each carried as a Category metadata.label).
 function extractAgentVarNames(categories: DiagramCategory[]): string[] {
     const names: string[] = [];
     for (const category of categories ?? []) {
@@ -74,7 +73,6 @@ export function UseAgentTool(props: UseAgentToolProps): JSX.Element {
     const [projectPath, setProjectPath] = useState<string>("");
     const [showAddAgentPopup, setShowAddAgentPopup] = useState<boolean>(false);
 
-    // Exclude the host agent so it can't be a tool of itself.
     const hostAgentVar = String(agentNode?.properties?.variable?.value ?? "");
 
     useEffect(() => {
@@ -104,7 +102,6 @@ export function UseAgentTool(props: UseAgentToolProps): JSX.Element {
         }
     };
 
-    // Single-child subcategory per agent → single-column, click-to-select (no run/trace expansion).
     const categories: PanelCategory[] = [
         {
             title: "Agent",
@@ -149,7 +146,6 @@ export function UseAgentTool(props: UseAgentToolProps): JSX.Element {
                         onAgentCreated={(agentVarName?: string) => {
                             setShowAddAgentPopup(false);
                             onAgentCreated?.();
-                            // A freshly created agent can be used immediately; otherwise refresh the list.
                             if (agentVarName && agentVarName !== hostAgentVar) {
                                 onSelectAgent(agentVarName);
                             } else {

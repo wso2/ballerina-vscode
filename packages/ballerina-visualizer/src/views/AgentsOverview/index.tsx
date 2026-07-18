@@ -77,7 +77,6 @@ export function AgentsOverview(props: AgentsOverviewProps) {
         fetchAgents();
     }, [projectPath]);
 
-    // Refresh when an agent is added / deleted elsewhere.
     useEffect(() => {
         if (!rpcClient) return;
         const unsubscribe = rpcClient.onProjectContentUpdated((state: boolean) => {
@@ -99,9 +98,6 @@ export function AgentsOverview(props: AgentsOverviewProps) {
     };
 
     const handleOpenAgent = (agent: ProjectStructureArtifactResponse) => {
-        // Pass only documentUri + position and let the extension's getView classify the
-        // artifact (ai:Agent -> focus diagram). Setting `view` explicitly drops the focus
-        // view on the post-open VIEW_UPDATE recompute.
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
