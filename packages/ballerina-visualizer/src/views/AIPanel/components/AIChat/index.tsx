@@ -368,10 +368,6 @@ const AIChat: React.FC = () => {
     // True while replaying buffered events on reopen — lets the notify handler skip
     // interactive prompts that were already resolved earlier in the run.
     const replayingRef = useRef(false);
-    // Always-fresh mirror of `messages`, used to read the rebuilt transcript after a replay
-    // (the notify handler's own closure would be stale inside an async replay loop).
-    const latestMessagesRef = useRef<typeof messages>([]);
-    useEffect(() => { latestMessagesRef.current = messages; }, [messages]);
     // Ensures the reconnect/replay runs at most once for this panel mount
     // (guards StrictMode double-effects and rpcClient identity churn).
     const didReconnectRef = useRef(false);
@@ -738,21 +734,25 @@ const AIChat: React.FC = () => {
                 replayingRef.current = false;
             }
             if (!runStatus.isRunning && generationId) {
-                // Finished while the panel was closed. Persist the rebuilt transcript
-                // once (after React commits the replayed messages) so it's durable,
-                // the backend drops the buffer, and later reopens serve from history.
-                // (The replayed save_chat usually does this already; this covers
-                // buffers whose run ended without one, e.g. an error turn.)
-                setTimeout(() => {
-                    const msgs = latestMessagesRef.current;
-                    const idx = getLatestAssistantMessageIndex(msgs);
-                    const content = idx >= 0 ? msgs[idx]?.content : "";
+                // Finished while the panel was closed. Persist the rebuilt transcript so
+                // it's durable, the backend drops the buffer, and later reopens serve from
+                // history. (The replayed save_chat usually does this already; this covers
+                // buffers whose run ended without one, e.g. an error turn.) Read the
+                // transcript via a functional updater: it is queued AFTER every replay
+                // update, so `prev` is the fully rebuilt state and the RPC is ordered
+                // after the replayed save_chat writes. A detached read (ref/timeout)
+                // would race React's commit and could persist a stale pre-replay
+                // snapshot as the LAST write, clobbering the correct transcript.
+                setMessages((prev) => {
+                    const idx = getLatestAssistantMessageIndex(prev);
+                    const content = idx >= 0 ? prev[idx]?.content : "";
                     if (content) {
                         rpcClient.getAiPanelRpcClient()
                             .updateChatMessage({ messageId: generationId, content })
                             .catch((e) => console.error('[AIChat] Failed to persist recovered transcript:', e));
                     }
-                }, 0);
+                    return prev;
+                });
             }
         } catch (error) {
             console.error('[AIChat] Failed to restore in-flight run status:', error);
