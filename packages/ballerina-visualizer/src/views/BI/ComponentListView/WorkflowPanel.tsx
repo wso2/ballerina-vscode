@@ -49,12 +49,7 @@ export function WorkflowPanel() {
                     id="workflow"
                     icon={<Icon name="bi-flowchart" />}
                     title="Durable Workflow"
-                    description="Long-running workflow logic with events, timers, human tasks, and crash recovery."
-                    tooltip={
-                        "Called a durable workflow because its execution state is persisted at every step: " +
-                        "the workflow can wait on events, timers, and human tasks for any length of time and " +
-                        "resume exactly where it left off — even after a crash or restart."
-                    }
+                    tooltip="Long-running workflow logic with events, timers, human tasks, and crash recovery."
                     onClick={handleClick}
                 />
             </CardGrid>
