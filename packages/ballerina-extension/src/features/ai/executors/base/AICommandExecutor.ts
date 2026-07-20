@@ -286,6 +286,12 @@ export abstract class AICommandExecutor<TParams = any> {
             return;
         }
 
+        // A caller-supplied existingTempPath (direct-edit mode) is never a temp copy —
+        // there's nothing to clean up, and cleanupTempProject must never be pointed at it.
+        if (this.config.lifecycle?.existingTempPath === tempProjectPath) {
+            return;
+        }
+
         // Skip in test environment
         if (process.env.AI_TEST_ENV) {
             console.log(`[AICommandExecutor] Skipping cleanup (test mode): ${tempProjectPath}`);

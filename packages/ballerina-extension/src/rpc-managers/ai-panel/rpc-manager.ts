@@ -404,11 +404,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<void> {
         try {
-            // Create config using factory function
+            // existingTempPath: operate on the real workspace directly, no temp copy.
             const config = createExecutorConfig(params, {
                 command: Command.TypeCreator,
                 chatStorageEnabled: true,  // Enable chat storage for checkpoint support
-                cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
+                cleanupStrategy: 'immediate',
+                existingTempPath: resolveProjectRootPath(),
             });
 
             await new ContextTypesExecutor(config).run();
