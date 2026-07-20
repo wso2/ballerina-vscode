@@ -53,11 +53,17 @@ export function createExecutorConfig<TParams>(
     params: TParams,
     options: {
         command: Command;
-        chatStorageEnabled?: boolean; // Always have?
+        chatStorageEnabled?: boolean;
         cleanupStrategy: 'immediate' | 'review';
-        existingTempPath?: string;  //TODO: Maybe lazyily get this? not sure if needed here.
+        existingTempPath?: string;
+        projectRootPath?: string;
+        threadId?: string;
     }
 ): AICommandConfig<TParams> {
+    const projectRootPath = options.projectRootPath ?? resolveProjectRootPath();
+    // Always use the active thread so new generations go to the correct thread
+    // after the user has switched sessions via the history dropdown.
+    const threadId = options.threadId ?? chatStateStorage.getActiveThread(projectRootPath)?.id ?? 'default';
     return {
         executionContext: createExecutionContextFromStateMachine(),
         eventHandler: createWebviewEventHandler(options.command),
@@ -65,8 +71,8 @@ export function createExecutorConfig<TParams>(
         abortController: new AbortController(),
         params,
         chatStorage: options.chatStorageEnabled ? {
-            projectRootPath: resolveProjectRootPath(),
-            threadId: 'default',
+            projectRootPath,
+            threadId,
             enabled: true,
         } : undefined,
         lifecycle: {
@@ -82,9 +88,9 @@ export function createExecutorConfig<TParams>(
  */
 export async function generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
     try {
-        // Check for pending review to reuse temp project path
+        // Always use the active thread — params.threadId is legacy/unused
         const projectRootPath = resolveProjectRootPath();
-        const threadId = params.threadId || 'default';
+        const threadId = chatStateStorage.getActiveThread(projectRootPath)?.id ?? 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
 
         // Create config using factory function
@@ -92,7 +98,9 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
             command: Command.Agent,
             chatStorageEnabled: true,  // Agent uses chat storage for multi-turn conversations
             cleanupStrategy: 'review', // Review mode - temp persists until user accepts/declines
-            existingTempPath: pendingReview?.reviewState.tempProjectPath
+            existingTempPath: pendingReview?.reviewState.tempProjectPath,
+            projectRootPath,
+            threadId,
         });
 
         // Inject migration source tools for projects that have been AI-enhanced

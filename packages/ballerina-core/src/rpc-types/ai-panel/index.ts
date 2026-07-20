@@ -60,7 +60,6 @@ import {
     DeleteSkillRequest,
     SkillEnableRequest,
     SkillEnableCancelRequest,
-    SetSkillsEnabledRequest,
     ParseSkillFileRequest,
     ParseSkillFileResponse,
     SkillTier,
@@ -75,6 +74,12 @@ import {
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
     AgentsMdFileInfoDTO,
+    ThreadSummary,
+    SwitchThreadRequest,
+    DeleteThreadRequest,
+    // TODO(auto-memory): temporarily disabled for this release.
+    // ClearMemoryRequest,
+    // OpenMemoryRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -142,6 +147,13 @@ export interface AIPanelAPI {
     declineWebTool: (params: WebToolApprovalRequest) => Promise<void>;
     compactConversation: (params: CompactConversationRequest) => Promise<CompactConversationResponse>;
     getShowContextUsage: () => Promise<boolean>;
+    // Thread / session management
+    listThreads: () => Promise<ThreadSummary[]>;
+    switchThread: (params: SwitchThreadRequest) => Promise<void>;
+    deleteThread: (params: DeleteThreadRequest) => Promise<void>;
+    // TODO(auto-memory): memory management temporarily disabled for this release.
+    // clearMemory: (params: ClearMemoryRequest) => Promise<void>;
+    // openMemoryFiles: (params: OpenMemoryRequest) => void;
     // ==================================
     // Prompt Enhancement
     // ==================================
@@ -169,8 +181,6 @@ export interface AIPanelAPI {
     enableSkillFromChat: (params: SkillEnableRequest) => Promise<boolean>;
     cancelSkillEnable: (params: SkillEnableCancelRequest) => Promise<void>;
     parseSkillFile: (params: ParseSkillFileRequest) => Promise<ParseSkillFileResponse>;
-    getSkillsEnabled: () => Promise<boolean>;
-    setSkillsEnabled: (params: SetSkillsEnabledRequest) => Promise<void>;
     // ==================================
     // MCP tool support
     // ==================================

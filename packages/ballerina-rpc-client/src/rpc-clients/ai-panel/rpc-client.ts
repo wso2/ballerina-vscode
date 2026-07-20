@@ -122,8 +122,6 @@ import {
     enableSkillFromChat,
     cancelSkillEnable,
     parseSkillFile,
-    getSkillsEnabled,
-    setSkillsEnabled,
     GetSkillsResponse,
     AddSkillRequest,
     ToggleSkillRequest,
@@ -132,7 +130,6 @@ import {
     SkillEnableCancelRequest,
     ParseSkillFileRequest,
     ParseSkillFileResponse,
-    SetSkillsEnabledRequest,
     listMcpServers,
     setMcpServerEnabled,
     openMcpConfig,
@@ -156,6 +153,17 @@ import {
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
     AgentsMdFileInfoDTO,
+    listThreads,
+    switchThread,
+    SwitchThreadRequest,
+    deleteThread,
+    DeleteThreadRequest,
+    ThreadSummary,
+    // TODO(auto-memory): temporarily disabled for this release.
+    // clearMemory,
+    // ClearMemoryRequest,
+    // openMemoryFiles,
+    // OpenMemoryRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -429,14 +437,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(parseSkillFile, HOST_EXTENSION, params);
     }
 
-    getSkillsEnabled(): Promise<boolean> {
-        return this._messenger.sendRequest(getSkillsEnabled, HOST_EXTENSION);
-    }
-
-    setSkillsEnabled(params: SetSkillsEnabledRequest): Promise<void> {
-        return this._messenger.sendRequest(setSkillsEnabled, HOST_EXTENSION, params);
-    }
-
     listMcpServers(): Promise<McpServerStatusDTO[]> {
         return this._messenger.sendRequest(listMcpServers, HOST_EXTENSION);
     }
@@ -484,4 +484,25 @@ export class AiPanelRpcClient implements AIPanelAPI {
     openOrCreateAgentsMd(): Promise<void> {
         return this._messenger.sendRequest(openOrCreateAgentsMd, HOST_EXTENSION);
     }
+
+    listThreads(): Promise<ThreadSummary[]> {
+        return this._messenger.sendRequest(listThreads, HOST_EXTENSION);
+    }
+
+    switchThread(params: SwitchThreadRequest): Promise<void> {
+        return this._messenger.sendRequest(switchThread, HOST_EXTENSION, params);
+    }
+
+    deleteThread(params: DeleteThreadRequest): Promise<void> {
+        return this._messenger.sendRequest(deleteThread, HOST_EXTENSION, params);
+    }
+
+    // TODO(auto-memory): temporarily disabled for this release.
+    // clearMemory(params: ClearMemoryRequest): Promise<void> {
+    //     return this._messenger.sendRequest(clearMemory, HOST_EXTENSION, params);
+    // }
+    //
+    // openMemoryFiles(params: OpenMemoryRequest): void {
+    //     this._messenger.sendNotification(openMemoryFiles, HOST_EXTENSION, params);
+    // }
 }

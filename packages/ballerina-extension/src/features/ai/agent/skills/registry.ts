@@ -14,32 +14,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import skillMd from './SKILL.md';
-import { getDataMappingSkillContent } from '../../../data-mapper/prompts/mapping-prompt';
-import { DIAGNOSTICS_TOOL_NAME } from '../../tools/diagnostics';
-import { SkillCommand } from '@wso2/ballerina-core';
-import { Skill } from '../types';
+import { keywords, SkillCommand } from '@wso2/ballerina-core';
+import { Skill } from './types';
+import { parseSkillMd } from './utils';
+import dataMapMd from './data-map/SKILL.md';
+import skillCreatorMd from './skill-creator/SKILL.md';
 
-function parseSkillMd(content: string): { name: string; description: string } {
-    const start = content.indexOf('---');
-    const end = content.indexOf('---', start + 3);
-    const frontmatter = start !== -1 && end !== -1 ? content.slice(start + 3, end) : content;
-    return {
-        name: /^name:\s*(.+)$/m.exec(frontmatter)?.[1]?.trim() ?? '',
-        description: /^description:\s*(.+)$/m.exec(frontmatter)?.[1]?.trim() ?? '',
-    };
+// data-map skill
+const dataMap = parseSkillMd(dataMapMd);
+if (!dataMap.name || !dataMap.description) {
+    throw new Error(`[data-map] SKILL.md is missing required frontmatter fields (name="${dataMap.name}", description="${dataMap.description}")`);
 }
-
-const { name, description } = parseSkillMd(skillMd);
-
-if (!name || !description) {
-    throw new Error(`[data-map] SKILL.md is missing required frontmatter fields (name="${name}", description="${description}")`);
-}
+const keywordList = keywords.map((k: string) => `\`${k}\``).join(', ');
 
 export const dataMapSkill: Skill = {
-    name,
-    trigger: description,
-    content: getDataMappingSkillContent(DIAGNOSTICS_TOOL_NAME),
+    name: dataMap.name,
+    trigger: dataMap.description,
+    content: dataMap.body.replace('{{KEYWORDS}}', keywordList),
     optional: false,
     default: true,
     skillCommand: SkillCommand.DataMap,
@@ -68,3 +59,19 @@ export const dataMapSkill: Skill = {
         },
     ],
 };
+
+// skill-creator skill
+const skillCreator = parseSkillMd(skillCreatorMd);
+
+export const skillCreatorSkill: Skill = {
+    name: skillCreator.name,
+    trigger: skillCreator.description,
+    content: skillCreator.body,
+    optional: true,
+    default: false,
+};
+
+export const REGISTERED_SKILLS: Skill[] = [
+    dataMapSkill,
+    skillCreatorSkill,
+];

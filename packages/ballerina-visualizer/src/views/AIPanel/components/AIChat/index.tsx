@@ -36,6 +36,7 @@ import {
     WebToolToggle,
     LoginMethod,
     RunningServiceInfo,
+    ThreadSummary,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -54,6 +55,7 @@ import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, SkillEntry, TaskApprovalRequest } from "@wso2/ballerina-core";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, AuthProviderChip, UsageBadge, ApprovalOverlay, OverlayMessage, OverlayCloseButton } from "../../styles";
+import { SessionHistoryDropdown } from "../SessionHistory";
 import ReferenceDropdown from "../ReferenceDropdown";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
@@ -92,11 +94,14 @@ import { MigrationContextCard } from "../MigrationContextCard";
 import { ActiveMigrationSession } from "@wso2/ballerina-rpc-client";
 import { ReviewBar } from "../ReviewBar";
 import SkillsManager from "../SkillsManager";
+import { MAX_CONTEXT_WINDOW } from "./compaction/ContextUsageWidget";
 
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
 
 const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
+const QUOTA_CONTACT_EMAIL = "support@wso2.com";
+const QUOTA_PORTAL_BASE_URL = "https://subscriptions.wso2.com/cloud/devant/subscriptions";
 
 //TODO: Add better error handling from backend. stream error type and non 200 status codes
 
@@ -268,6 +273,9 @@ const AIChat: React.FC = () => {
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
     const [restoringCheckpointId, setRestoringCheckpointId] = useState<string | null>(null);
     const [hasActiveReview, setHasActiveReview] = useState(false);
+    const [historyOpen, setHistoryOpen] = useState(false);
+    const [threads, setThreads] = useState<ThreadSummary[]>([]);
+    const newChatAnchorRef = useRef<HTMLDivElement>(null);
 
     const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
     const [approvalOverlay, setApprovalOverlay] = useState<ApprovalOverlayState>({ show: false });
@@ -284,7 +292,7 @@ const AIChat: React.FC = () => {
 
     const [migrationSession, setMigrationSession] = useState<ActiveMigrationSession | null>(null);
     const [isMigrationEnhancementRunning, setIsMigrationEnhancementRunning] = useState(false);
-    const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number } | null>(null);
+    const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number; orgId?: string } | null>(null);
     const [isUsageExceeded, setIsUsageExceeded] = useState(false);
     const [loginMethod, setLoginMethod] = useState<LoginMethod | null>(null);
 
@@ -454,7 +462,7 @@ const AIChat: React.FC = () => {
         }
     };
 
-    useEffect(() => { fetchUsage(); fetchLoginMethod(); }, []);
+    useEffect(() => { fetchUsage(); fetchLoginMethod(); loadThreads(); }, []);
 
     const refreshSkills = useCallback(() => {
         rpcClient.getAiPanelRpcClient().getSkills().then(res => setSkills(res.skills));
@@ -978,7 +986,6 @@ const AIChat: React.FC = () => {
 
         } else if (type === "usage_metrics") {
             const inputTokens = (response as any).usage?.inputTokens ?? 0;
-            const MAX_CONTEXT_WINDOW = 200_000;
             const percentage = Math.min(100, Math.round((inputTokens / MAX_CONTEXT_WINDOW) * 100));
             const breakdown = (response as any).breakdown;
             setContextUsage({ inputTokens, percentage, breakdown });
@@ -1581,6 +1588,57 @@ const AIChat: React.FC = () => {
         setApprovalRequest(null);
         setContextUsage(null);
         await rpcClient.getAiPanelRpcClient().clearChat();
+        loadThreads();
+    }
+
+    async function loadThreads(): Promise<void> {
+        try {
+            const list = await rpcClient.getAiPanelRpcClient().listThreads();
+            setThreads(list);
+        } catch {
+            // Non-critical — session history unavailable
+        }
+    }
+
+    async function handleSwitchThread(threadId: string): Promise<void> {
+        await rpcClient.getAiPanelRpcClient().switchThread({ threadId });
+
+        // Reload messages and checkpoints for the newly active thread in parallel
+        const [msgs, checkpoints] = await Promise.all([
+            rpcClient.getAiPanelRpcClient().getChatMessages(),
+            rpcClient.getAiPanelRpcClient().getCheckpoints(),
+        ]);
+
+        setMessages(msgs.map(m => ({ role: m.role === "user" ? "User" : "Copilot", content: m.content, type: "text", checkpointId: m.checkpointId, messageId: m.messageId })));
+
+        // Rebuild the checkpoint availability set for the switched-to thread.
+        // Without this, every checkpointId from the old thread would be absent from the set
+        // and all restore buttons would appear disabled.
+        setAvailableCheckpointIds(new Set(checkpoints.map(cp => cp.id)));
+
+        // Clear review and restore state that belongs to the previous thread
+        setHasActiveReview(false);
+        setRestoringCheckpointId(null);
+        setApprovalRequest(null);
+        setContextUsage(null);
+        loadThreads();
+    }
+
+    async function handleDeleteThread(threadId: string): Promise<void> {
+        await rpcClient.getAiPanelRpcClient().deleteThread({ threadId });
+
+        // Reload messages and checkpoints for the (possibly new) active thread in parallel
+        const [msgs, checkpoints] = await Promise.all([
+            rpcClient.getAiPanelRpcClient().getChatMessages(),
+            rpcClient.getAiPanelRpcClient().getCheckpoints(),
+        ]);
+        setMessages(msgs.map(m => ({ role: m.role === "user" ? "User" : "Copilot", content: m.content, type: "text", checkpointId: m.checkpointId, messageId: m.messageId })));
+        setAvailableCheckpointIds(new Set(checkpoints.map(cp => cp.id)));
+        setHasActiveReview(false);
+        setRestoringCheckpointId(null);
+        setApprovalRequest(null);
+        setContextUsage(null);
+        loadThreads();
     }
 
     const handleToggleAutoApprove = () => {
@@ -1835,12 +1893,13 @@ const AIChat: React.FC = () => {
                         </ApprovalOverlay>
                     )}
                     <Header>
-                        {loginMethod === LoginMethod.ANTHROPIC_KEY || loginMethod === LoginMethod.AWS_BEDROCK || loginMethod === LoginMethod.VERTEX_AI ? (
+                        {loginMethod === LoginMethod.ANTHROPIC_KEY || loginMethod === LoginMethod.AWS_BEDROCK || loginMethod === LoginMethod.VERTEX_AI || loginMethod === LoginMethod.ANTHROPIC_AWS ? (
                             <AuthProviderChip>
                                 <UsageBadge>
                                     <span className="codicon codicon-key" style={{ fontSize: 11 }} />
                                     {loginMethod === LoginMethod.ANTHROPIC_KEY ? "Anthropic (own key)"
                                         : loginMethod === LoginMethod.AWS_BEDROCK ? "AWS Bedrock (own key)"
+                                        : loginMethod === LoginMethod.ANTHROPIC_AWS ? "Anthropic AWS (own key)"
                                         : "Vertex AI (own key)"}
                                 </UsageBadge>
                             </AuthProviderChip>
@@ -1861,17 +1920,31 @@ const AIChat: React.FC = () => {
                             </AuthProviderChip>
                         )}
                         <HeaderButtons>
-                            {otherMessages.length > 0 && (
+                            {/* Single button — click opens session history dropdown. New chat is created from within the dropdown. */}
+                            <div ref={newChatAnchorRef} style={{ position: "relative" }}>
                                 <Button
                                     appearance="icon"
-                                    onClick={() => handleClearChat()}
-                                    tooltip="New Chat"
+                                    onClick={() => { loadThreads(); setHistoryOpen(v => !v); }}
+                                    tooltip="Chat sessions"
                                     disabled={isLoading}
                                 >
                                     <Icon name="NewChat" sx={{ fontSize: "16px", marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} />
                                     New Chat
+                                    <Codicon
+                                        name={historyOpen ? "chevron-up" : "chevron-down"}
+                                        sx={{ fontSize: "10px", marginLeft: 4, position: "relative", top: "1px" }}
+                                    />
                                 </Button>
-                            )}
+                                {historyOpen && (
+                                    <SessionHistoryDropdown
+                                        threads={threads}
+                                        onNewChat={handleClearChat}
+                                        onSwitch={handleSwitchThread}
+                                        onDelete={handleDeleteThread}
+                                        onClose={() => setHistoryOpen(false)}
+                                    />
+                                )}
+                            </div>
                             <Button appearance="icon" onClick={() => handleSettings()} tooltip="Settings">
                                 <Icon name="SettingsRounded" sx={{ fontSize: "18px", marginRight: 6 }} iconSx={{ position: "relative" }} />
                                 Settings
@@ -2225,7 +2298,10 @@ const AIChat: React.FC = () => {
                             <span>
                                 You've reached your Integrator Copilot usage limit
                                 {usage && usage.resetsIn !== -1 ? `, which resets in ${formatResetsIn(usage.resetsIn)}` : ""}.
-                                {/* TODO: add a quota request portal link here once available. */}
+                                {usage?.orgId
+                                    ? <>{" "}<a href={`${QUOTA_PORTAL_BASE_URL}?orgId=${usage.orgId}`}>Request additional quota</a>.</>
+                                    : <>{" "}Email <a href={`mailto:${QUOTA_CONTACT_EMAIL}`}>{QUOTA_CONTACT_EMAIL}</a> to request additional quota.</>
+                                }
                             </span>
                         </UsageLimitNoticeContainer>
                     )}

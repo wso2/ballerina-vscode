@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import * as vscode from 'vscode';
 import { commands, window, workspace as vscodeWorkspace } from 'vscode';
 import { BallerinaExtension, ExtendedLangClient } from '../../core';
 import { activateCopilotLoginCommand, resetBIAuth } from './completions';
@@ -242,7 +243,6 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
     });
 }
 
-const MCP_ENABLED_OVERRIDE_KEY = 'ballerina.copilot.mcp.enabledOverrides';
 const MCP_ENABLE_SETTING = 'copilot.enableMcpTools';
 
 let mcpWatchDisposer: (() => void) | null = null;
@@ -259,26 +259,59 @@ function setupMcp(): void {
         return;
     }
     // Override store keys are `${scope}:${name}` (e.g. `workspace:foo`).
+    function readMcpOverrideMap(): Record<string, boolean> {
+        const mcp = vscodeWorkspace.getConfiguration('ballerina.copilot').get<any>('mcp', {});
+        const map: Record<string, boolean> = {};
+        for (const k of mcp.disabledServers ?? []) { map[k] = false; }
+        for (const k of mcp.enabledServers  ?? []) { map[k] = true;  }
+        return map;
+    }
+
+    function mcpConfigTarget(): vscode.ConfigurationTarget {
+        return vscodeWorkspace.workspaceFolders?.length
+            ? vscode.ConfigurationTarget.Workspace
+            : vscode.ConfigurationTarget.Global;
+    }
+
     const overrides: EnabledOverrideStore = {
         get(scopedKey) {
-            const map = extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {};
+            const map = readMcpOverrideMap();
             return Object.prototype.hasOwnProperty.call(map, scopedKey) ? map[scopedKey] : undefined;
         },
         async set(scopedKey, enabled) {
-            const map = { ...(extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {}) };
-            map[scopedKey] = enabled;
-            await extension.context?.globalState.update(MCP_ENABLED_OVERRIDE_KEY, map);
+            const cfg = vscodeWorkspace.getConfiguration('ballerina.copilot');
+            const target = mcpConfigTarget();
+            const di = cfg.inspect<any>('mcp');
+            const mcp = { ...(target === vscode.ConfigurationTarget.Workspace
+                ? (di?.workspaceValue ?? {}) : (di?.globalValue ?? {})) };
+            mcp.disabledServers = (mcp.disabledServers ?? []).filter((k: string) => k !== scopedKey);
+            mcp.enabledServers  = (mcp.enabledServers  ?? []).filter((k: string) => k !== scopedKey);
+            if (enabled) { mcp.enabledServers.push(scopedKey); } else { mcp.disabledServers.push(scopedKey); }
+            await cfg.update('mcp', mcp, target);
+            if (target === vscode.ConfigurationTarget.Workspace) {
+                const gv = { ...(di?.globalValue ?? {}) };
+                gv.disabledServers = (gv.disabledServers ?? []).filter((k: string) => k !== scopedKey);
+                gv.enabledServers  = (gv.enabledServers  ?? []).filter((k: string) => k !== scopedKey);
+                await cfg.update('mcp', gv, vscode.ConfigurationTarget.Global);
+            }
         },
         async delete(scopedKey) {
-            const current = extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {};
-            if (!Object.prototype.hasOwnProperty.call(current, scopedKey)) { return; }
-            const map = { ...current };
-            delete map[scopedKey];
-            await extension.context?.globalState.update(MCP_ENABLED_OVERRIDE_KEY, map);
+            const cfg = vscodeWorkspace.getConfiguration('ballerina.copilot');
+            const target = mcpConfigTarget();
+            const di = cfg.inspect<any>('mcp');
+            const mcp = { ...(target === vscode.ConfigurationTarget.Workspace
+                ? (di?.workspaceValue ?? {}) : (di?.globalValue ?? {})) };
+            mcp.disabledServers = (mcp.disabledServers ?? []).filter((k: string) => k !== scopedKey);
+            mcp.enabledServers  = (mcp.enabledServers  ?? []).filter((k: string) => k !== scopedKey);
+            await cfg.update('mcp', mcp, target);
+            if (target === vscode.ConfigurationTarget.Workspace) {
+                const gv = { ...(di?.globalValue ?? {}) };
+                gv.disabledServers = (gv.disabledServers ?? []).filter((k: string) => k !== scopedKey);
+                gv.enabledServers  = (gv.enabledServers  ?? []).filter((k: string) => k !== scopedKey);
+                await cfg.update('mcp', gv, vscode.ConfigurationTarget.Global);
+            }
         },
-        keys() {
-            return Object.keys(extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {});
-        },
+        keys() { return Object.keys(readMcpOverrideMap()); },
     };
     const workspacePath = resolveProjectRootPath() || undefined;
     const workspaceTrusted = vscodeWorkspace.isTrusted;

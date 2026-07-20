@@ -25,13 +25,9 @@ import {
   ModuleSummary,
   PackageSummary,
   ProjectComponentsResponse,
-  SyntaxTree,
 } from "@wso2/ballerina-core";
 import path from "path";
-import { Uri } from "vscode";
 import { writeBallerinaFileDidOpen } from "../../../../utils/modification";
-import { ExtendedLangClient } from "../../../../core";
-import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { extractRecordTypeDefinitionsFromFile } from "../../../../rpc-managers/ai-panel/utils";
 import { TypesGenerationResult } from "../types";
 import { existsSync, readFileSync } from "fs";
@@ -39,42 +35,6 @@ import { existsSync, readFileSync } from "fs";
 /**
  * Type extraction and generation from context
  */
-
-// Extract record and enum types from syntax tree
-export async function extractRecordTypesFromSyntaxTree(
-  langClient: ExtendedLangClient,
-  filePath: string
-): Promise<{ records: string[]; enums: string[] }> {
-  const st = (await langClient.getSyntaxTree({
-    documentIdentifier: {
-      uri: Uri.file(filePath).toString(),
-    },
-  })) as SyntaxTree;
-
-  if (!st.syntaxTree) {
-    throw new Error("Failed to retrieve syntax tree for file: " + filePath);
-  }
-
-  const modulePart = st.syntaxTree as ModulePart;
-  const records: string[] = [];
-  const enums: string[] = [];
-
-  for (const member of modulePart.members) {
-    if (STKindChecker.isTypeDefinition(member)) {
-      const typeName = member.typeName?.value;
-      if (typeName) {
-        records.push(typeName);
-      }
-    } else if (STKindChecker.isEnumDeclaration(member)) {
-      const enumName = member.identifier?.value;
-      if (enumName) {
-        enums.push(enumName);
-      }
-    }
-  }
-
-  return { records, enums };
-}
 
 // Generate Ballerina record types from context attachments and validate against existing records
 // TODO: Refactor this. We need to generate types, get diagnostics, and validate in a better way.

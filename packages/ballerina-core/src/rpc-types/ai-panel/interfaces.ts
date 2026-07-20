@@ -30,7 +30,7 @@ import { DataMapperMetadata } from "../../interfaces/shared-types";
 export type AIPanelPrompt =
     | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any>; hiddenContext?: string }
     | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean; hiddenContext?: string; suggestedCommandTemplates?: AIPanelPrompt[];    inputPlaceholder?:string; }
-    | { type: 'skill'; skillId: string; skillName: string; args?: string; autoSubmit?: boolean; hiddenContext?: string }
+    | { type: 'skill'; skillId: string; skillName: string; args?: string; tagParams?: Record<string, string>; autoSubmit?: boolean; hiddenContext?: string }
     | undefined;
 
 export interface AIMachineSnapshot {
@@ -508,6 +508,36 @@ export interface CheckpointInfo {
 }
 
 /**
+ * Summary of a chat thread for session history display
+ */
+export interface ThreadSummary {
+    id: string;
+    /** Display name — auto-set from first user message */
+    name: string;
+    isActive: boolean;
+    createdAt: number;
+    updatedAt: number;
+    messageCount: number;
+}
+
+export interface SwitchThreadRequest {
+    threadId: string;
+}
+
+export interface DeleteThreadRequest {
+    threadId: string;
+}
+
+// TODO(auto-memory): temporarily disabled for this release — restore once the memory feature is refined.
+// export interface ClearMemoryRequest {
+//     scope: 'workspace' | 'all';
+// }
+//
+// export interface OpenMemoryRequest {
+//     scope: 'global' | 'workspace';
+// }
+
+/**
  * Request to abort AI generation
  * Optional params default to current workspace and 'default' thread
  */
@@ -521,6 +551,7 @@ export interface AbortAIGenerationRequest {
 export interface UsageResponse {
     remainingUsagePercentage: number;
     resetsIn: number; // in seconds
+    orgId?: string;  // org UUID for the quota request portal link
 }
 
 export interface OpenFileDiffRequest {
@@ -740,9 +771,6 @@ export interface DeleteMcpServerRequest {
     scope: McpMutableScope;
 }
 export interface SetMcpToolsEnabledRequest {
-    enabled: boolean;
-}
-export interface SetSkillsEnabledRequest {
     enabled: boolean;
 }
 /** Per-scope parse / read errors for `mcp.json` files. Both fields are optional — missing means OK. */

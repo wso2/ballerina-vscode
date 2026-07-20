@@ -111,15 +111,12 @@ import {
     enableSkillFromChat,
     cancelSkillEnable,
     parseSkillFile,
-    getSkillsEnabled,
-    setSkillsEnabled,
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
     SkillEnableRequest,
     SkillEnableCancelRequest,
     ParseSkillFileRequest,
-    SetSkillsEnabledRequest,
     listMcpServers,
     setMcpServerEnabled,
     SetMcpServerEnabledRequest,
@@ -138,6 +135,16 @@ import {
     OpenMcpConfigRequest,
     getAgentsMdFileInfo,
     openOrCreateAgentsMd,
+    listThreads,
+    switchThread,
+    SwitchThreadRequest,
+    deleteThread,
+    DeleteThreadRequest,
+    // TODO(auto-memory): temporarily disabled for this release.
+    // clearMemory,
+    // ClearMemoryRequest,
+    // openMemoryFiles,
+    // OpenMemoryRequest,
 } from "@wso2/ballerina-core";
 import { workspace } from 'vscode';
 import { Messenger } from "vscode-messenger";
@@ -201,8 +208,8 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
 
     // Notify webview immediately when the showContextUsage setting is toggled
     workspace.onDidChangeConfiguration((e) => {
-        if (e.affectsConfiguration('ballerina.ai.showContextUsage')) {
-            const value = workspace.getConfiguration('ballerina').get<boolean>('ai.showContextUsage', false);
+        if (e.affectsConfiguration('ballerina.copilot.showContextUsage')) {
+            const value = workspace.getConfiguration('ballerina.copilot').get<boolean>('showContextUsage', false);
             sendConfigChangeNotification('showContextUsage', value);
         }
     });
@@ -221,8 +228,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(enableSkillFromChat, (args: SkillEnableRequest) => rpcManger.enableSkillFromChat(args));
     messenger.onRequest(cancelSkillEnable, (args: SkillEnableCancelRequest) => rpcManger.cancelSkillEnable(args));
     messenger.onRequest(parseSkillFile, (args: ParseSkillFileRequest) => rpcManger.parseSkillFile(args));
-    messenger.onRequest(getSkillsEnabled, () => rpcManger.getSkillsEnabled());
-    messenger.onRequest(setSkillsEnabled, (args: SetSkillsEnabledRequest) => rpcManger.setSkillsEnabled(args));
     messenger.onRequest(listMcpServers, () => rpcManger.listMcpServers());
     messenger.onRequest(setMcpServerEnabled, (args: SetMcpServerEnabledRequest) => rpcManger.setMcpServerEnabled(args));
     messenger.onRequest(openMcpConfig, (args: OpenMcpConfigRequest) => rpcManger.openMcpConfig(args));
@@ -235,6 +240,12 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getMcpLoadErrors, () => rpcManger.getMcpLoadErrors());
     messenger.onRequest(getAgentsMdFileInfo, () => rpcManger.getAgentsMdFileInfo());
     messenger.onRequest(openOrCreateAgentsMd, () => rpcManger.openOrCreateAgentsMd());
+    messenger.onRequest(listThreads, () => rpcManger.listThreads());
+    messenger.onRequest(switchThread, (args: SwitchThreadRequest) => rpcManger.switchThread(args));
+    messenger.onRequest(deleteThread, (args: DeleteThreadRequest) => rpcManger.deleteThread(args));
+    // TODO(auto-memory): temporarily disabled for this release.
+    // messenger.onRequest(clearMemory, (args: ClearMemoryRequest) => rpcManger.clearMemory(args));
+    // messenger.onNotification(openMemoryFiles, (args: OpenMemoryRequest) => rpcManger.openMemoryFiles(args));
 
     // Push updates to the webview whenever the set of running services changes.
     runningServicesManager.onChange = (services) => {

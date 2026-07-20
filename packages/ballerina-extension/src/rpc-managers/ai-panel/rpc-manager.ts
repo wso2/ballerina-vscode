@@ -60,7 +60,6 @@ import {
     SkillEnableRequest,
     SkillEnableCancelRequest,
     SkillEnableStage,
-    SetSkillsEnabledRequest,
     SkillEntry,
     SkillTier,
     ParseSkillFileRequest,
@@ -76,6 +75,12 @@ import {
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
     AgentsMdFileInfoDTO,
+    ThreadSummary,
+    SwitchThreadRequest,
+    DeleteThreadRequest,
+    // TODO(auto-memory): temporarily disabled for this release.
+    // ClearMemoryRequest,
+    // OpenMemoryRequest,
 } from "@wso2/ballerina-core";
 import {
     getAgentsMdFileInfo as getAgentsMdFileInfoImpl,
@@ -90,6 +95,13 @@ import path from "path";
 import * as vscode from 'vscode';
 import { window, workspace } from 'vscode';
 import { LOGIN_REQUIRED_WARNING, SIGN_IN_BI_COPILOT } from '../../features/ai/constants';
+// TODO(auto-memory): temporarily disabled for this release.
+// import {
+//     getGlobalMemoryDir,
+//     getMemoryDir,
+//     invalidateMemoryPromptCache,
+// } from '@wso2/copilot-utilities/auto-memory';
+// import { computeWorkspaceHash } from '@wso2/copilot-utilities/chat-persistence';
 
 import { isNumber } from "lodash";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
@@ -118,7 +130,6 @@ import { addToIntegration, searchDocumentation } from "./utils";
 
 import { createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
 import { REGISTERED_SKILLS } from '../../features/ai/agent/skills/index';
-import { buildProjectSkillsConfigPath } from '../../features/ai/agent/skills/context';
 import { scanProjectSkills, scanUserSkills, readUserSkillContent, readProjectSkillContent, parseSkillMd } from '../../features/ai/agent/tools/skill-tool/skill-reader';
 import * as unzipper from 'unzipper';
 import {
@@ -128,7 +139,6 @@ import {
     writeProjectSkill,
     deleteUserSkill,
     deleteProjectSkill,
-    GLOBAL_SKILLS_CONFIG_PATH,
 } from '../../features/ai/agent/tools/skill-tool/skill-writer';
 import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExecutor';
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
@@ -140,6 +150,7 @@ import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
 import { executeRun } from "../../features/ai/agent/tools/ballerina-run";
+import { platformExtStore } from "../platform-ext/platform-store";
 
 /** Validate an MCP server config DTO. Returns an error message or null on success. */
 function validateMcpServerConfig(cfg: any): string | null {
@@ -189,6 +200,10 @@ async function cleanupReviewTempProjects(generations: ReviewCleanupGeneration[])
             await clearPendingReviewRestore();
         }
     }
+}
+
+function getActiveThreadId(projectRootPath?: string): string {
+    return chatStateStorage.getActiveThread(projectRootPath ?? resolveProjectRootPath())?.id ?? 'default';
 }
 
 export class AiPanelRpcManager implements AIPanelAPI {
@@ -493,7 +508,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         try {
             // Get project root path and thread ID
             const projectRootPath = resolveProjectRootPath();
-            const threadId = 'default';
+            const threadId = getActiveThreadId();
 
             // Get ALL under_review generations
             const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
@@ -534,7 +549,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         try {
             // Get project root path and thread ID
             const projectRootPath = resolveProjectRootPath();
-            const threadId = 'default';
+            const threadId = getActiveThreadId();
 
             // Get ALL under_review generations
             const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
@@ -643,7 +658,7 @@ User reverted the last made changes. The files have been restored to the state b
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
         // Get project root path and thread identifiers
         const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
 
         // Find the checkpoint
         const found = chatStateStorage.findCheckpoint(projectRootPath, threadId, params.checkpointId);
@@ -676,19 +691,73 @@ User reverted the last made changes. The files have been restored to the state b
     }
 
     async clearChat(): Promise<void> {
-        // Get project root path
         const projectRootPath = resolveProjectRootPath();
-
-        // Clear the workspace (all threads)
-        await chatStateStorage.clearWorkspace(projectRootPath);
-        clearCompactionDisabledWarning(projectRootPath, 'default');
-
-        console.log(`[RPC] Cleared chat for projectRootPath: ${projectRootPath}`);
+        // Create a new thread — preserves all existing history
+        const newThreadId = chatStateStorage.createNewThread(projectRootPath);
+        clearCompactionDisabledWarning(projectRootPath, newThreadId);
+        console.log(`[RPC] New chat started (thread: ${newThreadId}) for: ${projectRootPath}`);
     }
+
+    async listThreads(): Promise<ThreadSummary[]> {
+        const projectRootPath = resolveProjectRootPath();
+        return chatStateStorage.listThreadsSummary(projectRootPath);
+    }
+
+    async switchThread(params: SwitchThreadRequest): Promise<void> {
+        const projectRootPath = resolveProjectRootPath();
+        chatStateStorage.switchToThread(projectRootPath, params.threadId);
+    }
+
+    async deleteThread(params: DeleteThreadRequest): Promise<void> {
+        const projectRootPath = resolveProjectRootPath();
+        await chatStateStorage.deleteThread(projectRootPath, params.threadId);
+    }
+
+    // TODO(auto-memory): memory management temporarily disabled for this release — restore once the memory feature is refined.
+    // async clearMemory(params: ClearMemoryRequest): Promise<void> {
+    //     const projectRootPath = resolveProjectRootPath();
+    //     const workspaceHash = computeWorkspaceHash(resolveWorkspaceIdentity(projectRootPath));
+    //     const wipeDir = (dir: string) => {
+    //         try {
+    //             for (const f of fs.readdirSync(dir)) {
+    //                 if (f.endsWith('.md') || f === '.consolidate-lock') {
+    //                     try { fs.unlinkSync(path.join(dir, f)); } catch { /* best-effort */ }
+    //                 }
+    //             }
+    //         } catch { /* dir may not exist yet */ }
+    //     };
+    //     if (params.scope === 'all') { wipeDir(getGlobalMemoryDir()); }
+    //     wipeDir(getMemoryDir(workspaceHash));
+    //     invalidateMemoryPromptCache(workspaceHash);
+    // }
+    //
+    // async openMemoryFiles(params: OpenMemoryRequest): Promise<void> {
+    //     const projectRootPath = resolveProjectRootPath();
+    //     const workspaceHash = computeWorkspaceHash(resolveWorkspaceIdentity(projectRootPath));
+    //     const dir = params.scope === 'global'
+    //         ? getGlobalMemoryDir()
+    //         : getMemoryDir(workspaceHash);
+    //     const indexPath = path.join(dir, 'MEMORY.md');
+    //     if (fs.existsSync(indexPath)) {
+    //         await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(indexPath));
+    //         return;
+    //     }
+    //     // MEMORY.md is missing — fall back to opening any topic file so the user
+    //     let firstTopicFile: string | undefined;
+    //     try {
+    //         firstTopicFile = fs.readdirSync(dir)
+    //             .find(f => f.endsWith('.md') && f !== 'MEMORY.md' && !f.startsWith('.'));
+    //     } catch { /* dir may not exist yet */ }
+    //     if (firstTopicFile) {
+    //         await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(path.join(dir, firstTopicFile)));
+    //         return;
+    //     }
+    //     vscode.window.showInformationMessage('No memories saved yet for this scope.');
+    // }
 
     async updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
         const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
 
         // The messageId is actually a generation ID
         // This is called when streaming completes to save the final UI-formatted response
@@ -709,7 +778,7 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getChatMessages(): Promise<UIChatMessage[]> {
         const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
 
         // Get all generations from chat storage
         const generations = chatStateStorage.getGenerations(projectRootPath, threadId);
@@ -740,7 +809,7 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getCheckpoints(): Promise<CheckpointInfo[]> {
         const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
 
         // Get checkpoints from ChatStateStorage
         const checkpoints = chatStateStorage.getCheckpoints(projectRootPath, threadId);
@@ -756,7 +825,7 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getActiveTempDir(): Promise<string> {
         const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
 
         // Always get tempProjectPath from active generation in chatStateStorage
         const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
@@ -785,7 +854,7 @@ User reverted the last made changes. The files have been restored to the state b
     }
 
     async getShowContextUsage(): Promise<boolean> {
-        return workspace.getConfiguration('ballerina').get<boolean>('ai.showContextUsage', false);
+        return workspace.getConfiguration('ballerina.copilot').get<boolean>('showContextUsage', false);
     }
 
     async getUsage(): Promise<UsageResponse | undefined> {
@@ -797,8 +866,9 @@ User reverted the last made changes. The files have been restored to the state b
             const url = BACKEND_URL + LLM_API_BASE_PATH + "/usage";
             const response = await fetchWithAuth(url, { method: "GET" });
             if (response && response.ok) {
-                const data = await response.json();
-                return data as UsageResponse;
+                const data = await response.json() as UsageResponse;
+                const orgId = platformExtStore.getState().state?.selectedContext?.org?.uuid;
+                return { ...data, orgId };
             }
             console.error("Failed to fetch usage: ", response?.status, response?.statusText);
             return undefined;
@@ -829,7 +899,7 @@ User reverted the last made changes. The files have been restored to the state b
 
         const context = StateMachine.context();
         const workspaceId = context.workspacePath || context.projectPath;
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
         const generation = chatStateStorage.getGeneration(workspaceId, threadId, params.generationId);
         const tempProjectPath = generation?.reviewState.tempProjectPath;
 
@@ -921,14 +991,6 @@ User reverted the last made changes. The files have been restored to the state b
 
     // ── Skills helpers ────────────────────────────────────────────────────────
 
-    /** Returns the config file path for the given skill tier. */
-    private resolveSkillsConfigPath(tier: SkillTier, projectRootPath: string | null): string {
-        if (tier === SkillTier.PROJECT && projectRootPath) {
-            return buildProjectSkillsConfigPath(projectRootPath);
-        }
-        return GLOBAL_SKILLS_CONFIG_PATH;
-    }
-
     /** Extracts the bare skill name from a prefixed id such as "user/foo" → "foo". */
     private extractBareSkillName(skillId: string): string {
         const slash = skillId.indexOf('/');
@@ -988,11 +1050,9 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getSkills(): Promise<GetSkillsResponse> {
         const projectRootPath = resolveProjectRootPath();
-        const globalConfig = getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH);
-        const projectConfigPath = projectRootPath ? buildProjectSkillsConfigPath(projectRootPath) : null;
-        const projectConfig = projectConfigPath ? getSkillsConfig(projectConfigPath) : { disabledSkills: [], enabledSkills: [] };
-        const allDisabled = new Set([...globalConfig.disabledSkills, ...projectConfig.disabledSkills]);
-        const allEnabled = new Set([...globalConfig.enabledSkills, ...projectConfig.enabledSkills]);
+        const config = getSkillsConfig(projectRootPath);
+        const allDisabled = new Set(config.disabledSkills);
+        const allEnabled  = new Set(config.enabledSkills);
 
         return {
             skills: [
@@ -1021,11 +1081,15 @@ User reverted the last made changes. The files have been restored to the state b
 
     async toggleSkill(params: ToggleSkillRequest): Promise<boolean> {
         try {
-            const configPath = this.resolveSkillsConfigPath(params.tier, resolveProjectRootPath());
             const builtinSkill = params.tier === SkillTier.BUILTIN
                 ? REGISTERED_SKILLS.find(s => s.name === params.skillId)
                 : undefined;
-            setSkillEnabled(configPath, params.skillId, params.enabled, builtinSkill?.default === false);
+            const projectRootPath = resolveProjectRootPath();
+            // USER skills always go to global user settings.
+            // BUILTIN and PROJECT skills use workspace settings when in a project context.
+            const scope: 'user' | 'workspace' =
+                params.tier !== SkillTier.USER && !!projectRootPath ? 'workspace' : 'user';
+            await setSkillEnabled(params.skillId, params.enabled, builtinSkill?.default === false, scope);
             return true;
         } catch (error) {
             console.error('[Skills] toggleSkill failed:', error);
@@ -1054,15 +1118,12 @@ User reverted the last made changes. The files have been restored to the state b
         try {
             const projectRootPath = resolveProjectRootPath();
             const builtinSkill = REGISTERED_SKILLS.find(s => s.name === params.skillId);
+            const isUserSkill = !builtinSkill && scanUserSkills().some(s => s.name === params.skillId);
+            const resolvedScope = !isUserSkill && !!projectRootPath ? 'workspace' : 'user';
             if (builtinSkill?.default === false) {
-                if (projectRootPath) {
-                    setSkillEnabled(buildProjectSkillsConfigPath(projectRootPath), params.skillId, true, true);
-                }
+                await setSkillEnabled(params.skillId, true, true, resolvedScope);
             } else {
-                setSkillEnabled(GLOBAL_SKILLS_CONFIG_PATH, params.skillId, true);
-                if (projectRootPath) {
-                    setSkillEnabled(buildProjectSkillsConfigPath(projectRootPath), params.skillId, true);
-                }
+                await setSkillEnabled(params.skillId, true, false, resolvedScope);
             }
             sendSkillEnableNotification({ type: "skill_enable_event", requestId: params.requestId, stage: SkillEnableStage.ENABLED, skillName: params.skillId, skillId: params.skillId } as any);
             approvalManager.resolveSkillEnable(params.requestId, true);
@@ -1159,13 +1220,6 @@ User reverted the last made changes. The files have been restored to the state b
         return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableMcpTools', false);
     }
 
-    async getSkillsEnabled(): Promise<boolean> {
-        return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableSkills', true);
-    }
-
-    async setSkillsEnabled(params: SetSkillsEnabledRequest): Promise<void> {
-        await workspace.getConfiguration('ballerina').update('copilot.enableSkills', !!params?.enabled, ConfigurationTarget.Global);
-    }
 
     async getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
         return { hasWorkspace: !!resolveProjectRootPath() && vscode.workspace.isTrusted };
@@ -1271,9 +1325,8 @@ User reverted the last made changes. The files have been restored to the state b
     }
 
     async setMcpToolsEnabled(params: SetMcpToolsEnabledRequest): Promise<void> {
-        await workspace.getConfiguration('ballerina').update('copilot.enableMcpTools', !!params?.enabled, ConfigurationTarget.Global);
-        // The existing onDidChangeConfiguration listener in activator.ts handles
-        // setup/teardown of the manager and pushes config_change + mcpServersChanged.
+        await workspace.getConfiguration('ballerina')
+            .update('copilot.enableMcpTools', !!params?.enabled, ConfigurationTarget.Global);
     }
 
     async getAgentsMdFileInfo(): Promise<AgentsMdFileInfoDTO> {

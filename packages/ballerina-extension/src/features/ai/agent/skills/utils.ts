@@ -14,10 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import skillMd from './SKILL.md';
-import { Skill } from '../types';
-
-function parseSkillMd(content: string): { name: string; description: string; body: string } {
+export function parseSkillMd(content: string): { name: string; description: string; body: string } {
     const start = content.indexOf('---');
     const end = content.indexOf('---', start + 3);
     const frontmatter = start !== -1 && end !== -1 ? content.slice(start + 3, end) : content;
@@ -28,13 +25,3 @@ function parseSkillMd(content: string): { name: string; description: string; bod
         body,
     };
 }
-
-const { name, description, body } = parseSkillMd(skillMd);
-
-export const skillCreatorSkill: Skill = {
-    name,
-    trigger: description,
-    content: body,
-    optional: true,
-    default: false,
-};

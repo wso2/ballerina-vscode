@@ -58,6 +58,10 @@ import { createClarifyTool, CLARIFY_TOOL } from './tools/clarify';
 import { createSkillTool, SKILL_TOOL_NAME } from './tools/skill-tool';
 import { REGISTERED_SKILLS } from './skills';
 import { getMcpTools } from './mcp';
+// TODO(auto-memory): temporarily disabled for this release — restore once the memory feature is refined.
+// import { createSaveMemoryTool, SAVE_MEMORY_TOOL_NAME } from './tools/save-memory';
+// import { createDeleteMemoryTool, DELETE_MEMORY_TOOL_NAME } from './tools/delete-memory';
+// import { createConsolidateMemoriesTool, CONSOLIDATE_MEMORIES_TOOL_NAME } from './tools/consolidate-memories';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -75,6 +79,9 @@ export interface ToolRegistryOptions {
     runningServices: RunningServicesManager;
     webSearchEnabled: boolean;
     ctx: ExecutionContext;
+    // TODO(auto-memory): temporarily disabled for this release.
+    // /** When true, registers save_memory and consolidate_memories tools in the main agent registry. */
+    // autoMemoryEnabled?: boolean;
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
@@ -142,5 +149,12 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [CLARIFY_TOOL]: createClarifyTool(eventHandler),
         [SKILL_TOOL_NAME]: createSkillTool(REGISTERED_SKILLS, projectRootPath, eventHandler),
         ...getMcpTools(eventHandler),
+        // TODO(auto-memory): memory tools temporarily disabled for this release — restore once the memory feature is refined.
+        // // Memory tools — registered only when auto-memory is enabled and a workspace root is known
+        // ...(autoMemoryEnabled && projectRootPath ? {
+        //     [SAVE_MEMORY_TOOL_NAME]:          createSaveMemoryTool(projectRootPath, eventHandler),
+        //     [DELETE_MEMORY_TOOL_NAME]:        createDeleteMemoryTool(projectRootPath, eventHandler),
+        //     [CONSOLIDATE_MEMORIES_TOOL_NAME]: createConsolidateMemoriesTool(projectRootPath, eventHandler),
+        // } : {}),
     };
 }

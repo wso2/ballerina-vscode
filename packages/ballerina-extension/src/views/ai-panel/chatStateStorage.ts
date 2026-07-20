@@ -26,6 +26,7 @@ import {
     Checkpoint,
 } from '@wso2/ballerina-core/lib/state-machine-types';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
+import { cleanupTempProject } from '../../features/ai/utils/project/temp-project';
 import { generateId } from './idGenerators';
 import {
     CopilotPersistenceStore,
@@ -46,7 +47,7 @@ import {
  * `CLOUD_INITIAL_PROJECT_ID`, use it directly as the identity. Otherwise fall
  * back to the resolved path (local dev and any non-cloud environment).
  */
-function resolveWorkspaceIdentity(projectRootPath: string): string {
+export function resolveWorkspaceIdentity(projectRootPath: string): string {
     return process.env.CLOUD_INITIAL_PROJECT_ID ?? path.resolve(projectRootPath);
 }
 
@@ -429,7 +430,7 @@ export class ChatStateStorage {
 
                     // Cleanup temp directory
                     if (!process.env.AI_TEST_ENV) {
-                        const { cleanupTempProject } = require('../../features/ai/utils/project/temp-project');
+                        
                         try {
                             await cleanupTempProject(pendingReview.reviewState.tempProjectPath);
                         } catch (error) {
@@ -504,6 +505,106 @@ export class ChatStateStorage {
     }
 
     // ============================================
+    // Thread Lifecycle Management
+    // ============================================
+
+    /**
+     * Creates a brand-new thread and makes it the active thread.
+     * The old thread is preserved — nothing is deleted.
+     * Used by "New Chat" so history is never lost.
+     */
+    createNewThread(projectRootPath: string): string {
+        const workspace = this.initializeWorkspace(projectRootPath);
+        const newThreadId = `thread-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const newThread: ChatThread = {
+            id: newThreadId,
+            name: 'New Chat',
+            generations: [],
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+        };
+        workspace.threads.set(newThreadId, newThread);
+        workspace.activeThreadId = newThreadId;
+        this.flushThread(projectRootPath, newThreadId);
+        this.flushWorkspaceMetadata(projectRootPath);
+        console.log(`[ChatStateStorage] Created new thread: ${newThreadId} in workspace: ${projectRootPath}`);
+        return newThreadId;
+    }
+
+    /**
+     * Returns a summary of all threads for the session history dropdown.
+     */
+    listThreadsSummary(projectRootPath: string): Array<{
+        id: string; name: string; isActive: boolean;
+        createdAt: number; updatedAt: number; messageCount: number;
+    }> {
+        const workspace = this.initializeWorkspace(projectRootPath);
+        const summaries = [];
+        for (const [id, thread] of workspace.threads) {
+            summaries.push({
+                id,
+                name: thread.name,
+                isActive: id === workspace.activeThreadId,
+                createdAt: thread.createdAt,
+                updatedAt: thread.updatedAt,
+                messageCount: thread.generations.length,
+            });
+        }
+        // Newest first
+        summaries.sort((a, b) => b.updatedAt - a.updatedAt);
+        return summaries;
+    }
+
+    /**
+     * Switches the active thread. The switch persists to disk immediately
+     * so that getChatMessages() will return the new thread's messages.
+     */
+    switchToThread(projectRootPath: string, threadId: string): void {
+        const workspace = this.initializeWorkspace(projectRootPath);
+        if (!workspace.threads.has(threadId)) {
+            console.warn(`[ChatStateStorage] Thread not found for switch: ${threadId}`);
+            return;
+        }
+        workspace.activeThreadId = threadId;
+        this.flushWorkspaceMetadata(projectRootPath);
+        console.log(`[ChatStateStorage] Switched to thread: ${threadId} in workspace: ${projectRootPath}`);
+    }
+
+    /**
+     * Deletes a single thread. If it was the active thread, switches to the
+     * most-recently-updated remaining thread (or creates a fresh one).
+     */
+    async deleteThread(projectRootPath: string, threadId: string): Promise<void> {
+        const workspace = this.storage.get(projectRootPath);
+        if (!workspace || !workspace.threads.has(threadId)) { return; }
+
+        // Cleanup temp project if needed
+        const pendingReview = this.getPendingReviewGeneration(projectRootPath, threadId);
+        if (pendingReview?.reviewState.tempProjectPath && !process.env.AI_TEST_ENV) {
+            
+            try { await cleanupTempProject(pendingReview.reviewState.tempProjectPath); } catch { /* ignore */ }
+        }
+
+        workspace.threads.delete(threadId);
+        this.persistenceStore.deleteThread(projectRootPath, threadId);
+
+        if (workspace.activeThreadId === threadId) {
+            // Pick the newest remaining thread, or create a fresh one
+            let newActiveId: string;
+            if (workspace.threads.size > 0) {
+                const sorted = [...workspace.threads.values()].sort((a, b) => b.updatedAt - a.updatedAt);
+                newActiveId = sorted[0].id;
+            } else {
+                newActiveId = this.createNewThread(projectRootPath);
+                return; // createNewThread already flushes metadata
+            }
+            workspace.activeThreadId = newActiveId;
+        }
+        this.flushWorkspaceMetadata(projectRootPath);
+        console.log(`[ChatStateStorage] Deleted thread: ${threadId} from workspace: ${projectRootPath}`);
+    }
+
+    // ============================================
     // Generation Management
     // ============================================
 
@@ -545,6 +646,12 @@ export class ChatStateStorage {
                 agentsMdLastReadHash: metadata.agentsMdLastReadHash,
             },
         };
+
+        // Auto-name thread from first user message
+        if (thread.name === 'New Chat' && thread.generations.length === 0) {
+            const trimmedName = userPrompt.slice(0, 60).trim();
+            if (trimmedName) { thread.name = trimmedName; }
+        }
 
         thread.generations.push(generation);
         thread.updatedAt = Date.now();

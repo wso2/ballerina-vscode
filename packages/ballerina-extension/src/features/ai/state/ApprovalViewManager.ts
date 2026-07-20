@@ -482,7 +482,7 @@ export class ApprovalViewManager {
 
     /**
      * Navigate ReviewMode to a specific index.
-     * If ReviewMode is already open, coalesces rapid index requests before notifying it.
+     * If ReviewMode is already open, reveals the panel and coalesces rapid index requests before notifying it.
      * If not open, opens it with cached data — rebuilt from the persisted review
      * state when the cache is gone (extension host restarted mid-review). Concurrent
      * requests share one open transition so they cannot create competing view loads.
@@ -493,6 +493,7 @@ export class ApprovalViewManager {
         this.lastReviewNavigationRequestAt = Date.now();
 
         if (this.isReviewModeReady()) {
+            VisualizerWebview.currentPanel?.getWebview()?.reveal();
             this.scheduleQueuedReviewNavigation();
             return;
         }

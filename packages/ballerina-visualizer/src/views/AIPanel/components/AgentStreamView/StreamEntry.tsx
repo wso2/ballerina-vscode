@@ -74,6 +74,10 @@ const TOOL_ICON_MAP: Record<string, ToolIconEntry> = {
     invoke_skill:                  { loading: "codicon-book" },
     migration_source_list:         { loading: "codicon-folder-opened" },
     migration_source_read:         { loading: "codicon-go-to-file" },
+    // TODO(auto-memory): temporarily disabled for this release.
+    // save_memory:                   { loading: "codicon-bookmark" },
+    // delete_memory:                 { loading: "codicon-trash" },
+    // consolidate_memories:          { loading: "codicon-sync" },
 };
 const DEFAULT_TOOL_ICON = "codicon-symbol-property";
 const MCP_TOOL_PREFIX = "mcp__";
@@ -141,6 +145,10 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { lab
         case "invoke_skill": return { label: toolInput?.skillName ? `Loading skill: ${toolInput.skillName}` : "Loading skill..." };
         case "migration_source_list": return { label: toolInput?.directory_path ? "Listing source:" : "Listing source directory...", detail: toolInput?.directory_path };
         case "migration_source_read": return { label: toolInput?.file_path ? "Reading source:" : "Reading source file...", detail: toolInput?.file_path };
+        // TODO(auto-memory): temporarily disabled for this release.
+        // case "save_memory":          return { label: "Saving to memory..." };
+        // case "delete_memory":        return { label: "Removing from memory..." };
+        // case "consolidate_memories": return { label: "Consolidating memories..." };
         default: return { label: "Working..." };
     }
 }
@@ -194,6 +202,19 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
         case "invoke_skill": return { label: toolOutput?.found ? `Using skill: ${toolOutput.skillName}` : `Skill not found: ${toolOutput?.message ?? ""}` };
         case "migration_source_list": return { label: toolOutput?.success ? "Source listed:" : "Failed to list source", detail: toolOutput?.directory_path };
         case "migration_source_read": return { label: toolOutput?.success ? (toolOutput?.file_path ? "Source read:" : "Source read") : "Failed to read source", detail: toolOutput?.file_path };
+        // TODO(auto-memory): temporarily disabled for this release.
+        // case "save_memory": {
+        //     if (toolOutput?.action === 'error') return { label: "Memory save failed" };
+        //     const scope = toolOutput?.scope === 'global' ? 'Global' : 'Project';
+        //     return { label: `${scope} memory saved`, detail: toolOutput?.name };
+        // }
+        // case "delete_memory": {
+        //     if (toolOutput?.action === 'error') return { label: "Memory removal failed" };
+        //     const scope = toolOutput?.scope === 'global' ? 'Global' : 'Project';
+        //     return { label: `${scope} memory removed`, detail: toolOutput?.filename };
+        // }
+        // case "consolidate_memories":
+        //     return { label: toolOutput?.action === 'error' ? "Consolidation failed" : "Memories consolidated" };
         default: return { label: "Done" };
     }
 }
