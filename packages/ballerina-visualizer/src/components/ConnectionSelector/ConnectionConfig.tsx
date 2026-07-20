@@ -126,6 +126,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
                     property: {
                         ...property,
                         metadata: {
+                            ...property.metadata,
                             label: property.metadata?.label || key,
                             description: property.metadata?.description || "",
                         },
