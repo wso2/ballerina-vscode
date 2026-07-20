@@ -22,13 +22,8 @@ import { Form } from '@wso2/playwright-vscode-tester';
 import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
-// "AI Chat Agent" (the product's artifact-card label / diagram title) and
-// "AI Chat Service" (the tracking-sheet scenario name) refer to the same
-// artifact — creating an AI Chat Agent produces an "AI Agent Service" in the
-// project tree. Test titles use the sheet's "AI Chat Service" wording so they
-// map 1:1 to the API Integration rows (Create = row 20, Delete = row 23);
-// the raw product-UI strings below are left as the extension actually renders
-// them.
+// Titles use "AI Chat Service"; the product UI calls the same artifact
+// "AI Chat Agent" (kept verbatim in the selectors below).
 export default function createTests() {
     test.describe.serial('AI Chat Service Tests', {
     }, async () => {
