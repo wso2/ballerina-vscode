@@ -87,6 +87,8 @@ import httpTryItExisting from './tryit/http-try-it-existing.spec';
 
 import testExplorer from './test-explorer/test-explorer.spec';
 
+import projectExplorer from './project-explorer/project-explorer.spec';
+
 test.describe.configure({ mode: 'default' });
 
 test.beforeAll(async () => {
@@ -203,6 +205,9 @@ test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
 
     // <----Test Explorer Test---->
     test.describe(testExplorer);
+
+    // <----Project Explorer Test---->
+    test.describe(projectExplorer);
 });
 
 test.afterAll(async () => {
