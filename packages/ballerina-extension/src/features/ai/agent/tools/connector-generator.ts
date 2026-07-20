@@ -37,6 +37,7 @@ import { approvalManager } from '../../state/ApprovalManager';
 import { sendNewFileDidOpen } from "../../utils/project/ls-schema-notifications";
 import { LIBRARY_SEARCH_TOOL } from "./library-search";
 import { recordAiTouchedFile } from "../../../../rpc-managers/diagram-validity";
+import { addToIntegration } from "../../../../rpc-managers/ai-panel/utils";
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 
@@ -278,10 +279,11 @@ async function generateConnector(
     const textEditsMap = new Map(Object.entries(response.source.textEditsMap));
 
     for (const [filePath, edits] of textEditsMap.entries()) {
-        await applyTextEdits(filePath, edits);
-        recordAiTouchedFile(filePath);
-
+        const content = await applyTextEdits(filePath, edits);
         const relativePath = path.relative(tempProjectPath, filePath);
+
+        await addToIntegration(tempProjectPath, [{ filePath: relativePath, content }]);
+        recordAiTouchedFile(filePath);
 
         // Send didOpen notification to Language Server (new file: frozen ai:// baseline, live file://)
         sendNewFileDidOpen(tempProjectPath, relativePath);
