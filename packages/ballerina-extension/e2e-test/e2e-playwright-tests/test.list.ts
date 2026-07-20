@@ -40,17 +40,15 @@ async function withTimeout<T>(operation: Promise<T>, timeoutMs: number, timeoutM
 }
 
 import automation from './automation/automation.spec';
-import automationFlowNodes from './automation/flow-nodes.spec';
-import automationRun from './automation-run/automation-run.spec';
-import runConflict from './run-conflict/run-conflict.spec';
-import runConcurrent from './run-concurrent/run-concurrent.spec';
-import automationDebug from './automation-debug/automation-debug.spec';
+import automationRun from './rundebug/run/automation-run.spec';
+import runConflict from './rundebug/run-conflict/run-conflict.spec';
+import runConcurrent from './rundebug/run-concurrent/run-concurrent.spec';
+import automationDebug from './rundebug/debug/automation-debug.spec';
 import expressionEditor from './expression-editor/expression-editor.spec';
 import expressionEditorAdvanced from './expression-editor/expression-editor-advanced.spec';
 
 import httpService from './api-integration/http-service.spec';
 import httpUpload from './api-integration/http-upload.spec';
-import httpTryItExisting from './api-integration/http-try-it-existing.spec';
 import aiChatService from './api-integration/ai-chat-service.spec';
 import graphqlService from './api-integration/graphql-service.spec';
 import tcpService from './api-integration/tcp-service.spec';
@@ -73,18 +71,21 @@ import connectionArtifact from './other-artifacts/connection.spec';
 import configuration from './configuration/configuration.spec';
 import typeTest from './type-editor/type.spec';
 import typeExplorerNavigationTest from './type-editor/type-explorer-navigation.spec';
-import serviceTest from './service-designer/service-class.spec';
+import serviceClassEditingTest from './type-editor/service-class-editing.spec';
 
 import importIntegration from './import-integration/import-integration.spec';
 
-import reusableDataMapper from './data-mapper/reusable-data-mapper.spec';
-import inlineDataMapper from './data-mapper/inline-data-mapper.spec';
+import reusableDataMapper from './datamapper/reusable-data-mapper.spec';
+import inlineDataMapper from './datamapper/inline-data-mapper.spec';
 
-import createProject from './project-creation/project-creation.spec';
+import createProject from './project-overview/project-creation.spec';
 
 import diagram from './diagram/diagram.spec';
+import automationFlowNodes from './diagram/flow-nodes.spec';
 
-import testFunction from './test-function/test-function.spec';
+import httpTryItExisting from './tryit/http-try-it-existing.spec';
+
+import testExplorer from './test-explorer/test-explorer.spec';
 
 test.describe.configure({ mode: 'default' });
 
@@ -192,7 +193,7 @@ test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
     // <----Other Artifacts Test---->
     test.describe(typeTest);
     test.describe(typeExplorerNavigationTest);
-    test.describe(serviceTest);
+    test.describe(serviceClassEditingTest);
 
     // <----Data Mapper Test---->
     test.describe.skip(inlineDataMapper); // Failing due to a issue
@@ -200,8 +201,8 @@ test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
     // <----Diagram Test---->
     test.describe(diagram);
 
-    // <----Test Function Test---->
-    test.describe(testFunction);
+    // <----Test Explorer Test---->
+    test.describe(testExplorer);
 });
 
 test.afterAll(async () => {

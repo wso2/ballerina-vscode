@@ -82,13 +82,13 @@ skill directory.
    packages/ballerina-extension/e2e-test/e2e-playwright-tests/<category>/<scenario-name>.spec.ts
    ```
 
-   Existing categories: `ai-copilot`, `api-integration`, `automation`,
-   `automation-debug`, `automation-run`, `configuration`, `data`,
-   `data-mapper`, `diagram`, `event-integration`, `expression-editor`,
-   `file-integration`, `import-integration`, `other-artifacts`,
-   `project-creation`, `run-concurrent`, `run-conflict`, `service-designer`,
-   `test-function`, `type-editor`. Check the subdirectories and pick the closest
-   match.
+   Existing categories: `api-integration`, `automation`, `configuration`,
+   `copilot`, `data`, `datamapper`, `diagram`, `event-integration`,
+   `expression-editor`, `file-integration`, `import-integration`,
+   `other-artifacts`, `project-explorer`, `project-overview`, `rundebug`
+   (with `debug`/`run`/`run-concurrent`/`run-conflict` subfolders),
+   `service-designer`, `test-function`, `tryit`, `type-editor`. Check the
+   subdirectories and pick the closest match.
 8. Register the promoted spec in
    `packages/ballerina-extension/e2e-test/e2e-playwright-tests/test.list.ts`
    (add the `import` and the matching `test.describe(...)`).

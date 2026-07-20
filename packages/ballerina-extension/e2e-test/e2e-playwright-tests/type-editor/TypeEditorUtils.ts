@@ -351,6 +351,133 @@ export class TypeEditorUtils {
     }
 
     /**
+     * Open an already-created service class for editing. Unlike editType()
+     * (which targets the record editor and waits for `type-editor-container`),
+     * a service class's Edit view renders the dedicated Method/Variable
+     * buttons and has no `type-editor-container`, so this only opens the node
+     * menu (via its icon) and clicks Edit, leaving the method/variable helpers
+     * to wait on their own buttons.
+     */
+    async openServiceClassForEditing(name: string): Promise<void> {
+        const menu = this.webView.getByTestId(`type-node-${name}-menu`);
+        await this.waitForElement(menu, 10000);
+        await menu.getByRole('img').click();
+        await this.webView.getByText('Edit', { exact: true }).click();
+    }
+
+    /**
+     * Add a method (Resource or Remote) to a service class already open for
+     * editing (via openServiceClassForEditing()) — the edit view exposes a
+     * dedicated "Method" button with a Resource/Remote picker, distinct from
+     * addFunction()'s generic identifier/type fields used at creation time.
+     */
+    async addMethod(name: string, returnType: string, kind: 'Resource' | 'Remote'): Promise<void> {
+        const methodButton = await this.waitForButton(' Method');
+        await methodButton.click();
+
+        await this.webView.getByText(kind).click();
+
+        const inputFieldName = kind === 'Remote'
+            ? 'Function Name*The name of the'
+            : 'Resource Path*The resource';
+
+        const nameField = await this.waitForTextbox(inputFieldName);
+        await nameField.fill(name);
+
+        const returnBox = await this.waitForTextbox('Return Type');
+        await returnBox.click();
+        await this.webView.getByText(returnType, { exact: true }).click();
+        await this.handleTypeCompletion(returnBox);
+
+        const saveButton = await this.waitForButton('Save');
+        await saveButton.click();
+    }
+
+    /**
+     * Add a variable to a service class already open for editing.
+     */
+    async addVariable(name: string, type: string): Promise<void> {
+        const variableButton = await this.waitForButton(' Variable');
+        await variableButton.click();
+
+        const nameField = await this.waitForTextbox('Variable Name*The name of the variable');
+        await nameField.fill(name);
+
+        const typeField = await this.waitForTextbox('Variable Type');
+        await typeField.click();
+        await typeField.fill(type);
+        await this.page.waitForTimeout(1000);
+        await this.webView.getByText(type, { exact: true }).click();
+        await this.handleTypeCompletion(typeField);
+
+        const saveButton = await this.waitForButton('Save');
+        await saveButton.click();
+    }
+
+    /**
+     * Rename an existing method on a service class open for editing.
+     */
+    async editMethod(methodName: string, newName: string): Promise<void> {
+        const editButton = this.webView.getByTestId(`edit-method-button-${methodName}`).locator('i');
+        await editButton.click();
+
+        const resourcePathField = await this.waitForTextbox('Resource Path*The resource');
+        await resourcePathField.fill(newName);
+
+        const saveButton = await this.waitForButton('Save');
+        await saveButton.click();
+        await this.page.waitForTimeout(3000);
+    }
+
+    /**
+     * Delete an existing variable on a service class open for editing.
+     */
+    async deleteVariable(variableName: string): Promise<void> {
+        const deleteButton = this.webView.getByTestId(`delete-variable-button-${variableName}`).locator('i');
+        await deleteButton.click({ force: true });
+
+        const okayButton = await this.waitForButton('Okay');
+        await okayButton.click({ force: true });
+    }
+
+    /**
+     * Wait for a button by accessible name — shared by the service-class
+     * method/variable editing helpers above.
+     */
+    private async waitForButton(name: string, timeout: number = 10000) {
+        const button = this.webView.getByRole('button', { name });
+        await button.waitFor({ state: 'visible', timeout });
+        return button;
+    }
+
+    /**
+     * Wait for a textbox by accessible name. vscode-text-area web components
+     * expose their label via a custom `arialabel` attribute rather than a
+     * standard `aria-label`; the fillable element is the <textarea> inside
+     * the shadow DOM, which Playwright pierces automatically via a
+     * descendant CSS selector.
+     */
+    private async waitForTextbox(name: string, timeout: number = 10000) {
+        const textbox = this.webView.getByRole('textbox', { name })
+            .or(this.webView.locator(`vscode-text-area[arialabel="${name}"] textarea`));
+        await textbox.waitFor({ state: 'visible', timeout });
+        return textbox;
+    }
+
+    /**
+     * Dismiss the type-completion suggestion popup if it appeared after
+     * typing into a return-type/variable-type field, so the typed value
+     * isn't immediately overwritten by an accepted suggestion.
+     */
+    private async handleTypeCompletion(inputElement: Locator): Promise<void> {
+        await this.page.waitForTimeout(3000);
+        const completion = this.webView.getByTestId('add-type-completion');
+        if (await completion.isVisible()) {
+            await inputElement.press('Escape');
+        }
+    }
+
+    /**
      * Toggle field options by clicking the chevron icon
      * @param fieldIndex Index of the field to toggle (default is 0 for the first field)
      */
