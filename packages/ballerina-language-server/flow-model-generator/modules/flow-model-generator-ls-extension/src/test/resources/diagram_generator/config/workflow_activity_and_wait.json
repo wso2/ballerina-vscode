@@ -94,7 +94,7 @@
         "metadata": {
           "label": "callActivity",
           "description": "Executes an activity function. The activity runs exactly once, even if the process crashes and restarts.\n\n```ballerina\nPaymentResult result = check ctx->callActivity(processPayment, args = {\"orderId\": orderId});\n```\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.5.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.7.0.png"
         },
         "codedata": {
           "node": "ACTIVITY_CALL",
@@ -192,10 +192,28 @@
             "dynamicFormFields": {
               "NoRetry": {},
               "AutoRetry": {
-                "maxRetryDelay": {
+                "maxRetries": {
                   "metadata": {
-                    "label": "Max Retry Delay",
-                    "description": "Maximum delay cap in seconds"
+                    "label": "Max Retries",
+                    "description": "Maximum number of retry attempts"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "int",
+                      "selected": true
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "retryDelay": {
+                  "metadata": {
+                    "label": "Retry Delay",
+                    "description": "Initial delay between retries in seconds"
                   },
                   "types": [
                     {
@@ -228,28 +246,10 @@
                   "advanced": false,
                   "hidden": false
                 },
-                "maxRetries": {
+                "maxRetryDelay": {
                   "metadata": {
-                    "label": "Max Retries",
-                    "description": "Maximum number of retry attempts"
-                  },
-                  "types": [
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "int",
-                      "selected": true
-                    }
-                  ],
-                  "value": "",
-                  "optional": false,
-                  "editable": true,
-                  "advanced": false,
-                  "hidden": false
-                },
-                "retryDelay": {
-                  "metadata": {
-                    "label": "Retry Delay",
-                    "description": "Initial delay between retries in seconds"
+                    "label": "Max Retry Delay",
+                    "description": "Maximum delay cap in seconds"
                   },
                   "types": [
                     {
@@ -746,7 +746,7 @@
           "timeout": {
             "metadata": {
               "label": "Timeout",
-              "description": "Maximum wait duration; returns error on timeout"
+              "description": "Maximum wait duration; returns an error on timeout"
             },
             "types": [
               {
@@ -755,7 +755,7 @@
                 "typeMembers": [
                   {
                     "type": "Duration",
-                    "packageInfo": "ballerina:time:2.8.0",
+                    "packageInfo": "ballerina:time:2.8.1",
                     "packageName": "time",
                     "kind": "RECORD_TYPE",
                     "selected": false
