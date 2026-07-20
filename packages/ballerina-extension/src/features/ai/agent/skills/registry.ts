@@ -14,11 +14,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import * as fs from 'fs';
+import * as path from 'path';
 import { keywords, SkillCommand } from '@wso2/ballerina-core';
 import { Skill } from './types';
 import { parseSkillMd } from './utils';
-import dataMapMd from './data-map/SKILL.md';
-import skillCreatorMd from './skill-creator/SKILL.md';
+
+// Webpack inlines '.md' as raw source (webpack.config.js); tsc-compiled test builds have no
+// such loader, so fall back to reading the SKILL.md next to the compiled module.
+function loadSkillMd(loadBundled: () => string, dir: string): string {
+    try {
+        return loadBundled();
+    } catch {
+        return fs.readFileSync(path.join(__dirname, dir, 'SKILL.md'), 'utf-8');
+    }
+}
+const dataMapMd = loadSkillMd(() => require('./data-map/SKILL.md'), 'data-map');
+const skillCreatorMd = loadSkillMd(() => require('./skill-creator/SKILL.md'), 'skill-creator');
 
 // data-map skill
 const dataMap = parseSkillMd(dataMapMd);
