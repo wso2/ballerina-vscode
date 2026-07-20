@@ -17,7 +17,8 @@
  */
 
 import * as path from 'path';
-import { runTests } from '@vscode/test-electron';
+import * as cp from 'child_process';
+import { runTests, downloadAndUnzipVSCode, resolveCliArgsFromVSCodeExecutablePath } from '@vscode/test-electron';
 const dotenv = require('dotenv');
 const { createEnvDefinePlugin } = require('../../../../common/scripts/env-webpack-helper');
 
@@ -38,7 +39,17 @@ async function main() {
             );
         }
 
+        // package.json declares extensionDependencies: ["wso2.hurl-client"], and VS Code won't
+        // activate us without it — the test VS Code instance starts with no extensions installed.
+        const vscodeExecutablePath = await downloadAndUnzipVSCode();
+        const [cli, ...cliArgs] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
+        cp.spawnSync(cli, [...cliArgs, '--install-extension', 'wso2.hurl-client'], {
+            encoding: 'utf-8',
+            stdio: 'inherit',
+        });
+
         await runTests({
+            vscodeExecutablePath,
             extensionDevelopmentPath,
             extensionTestsPath,
             launchArgs: [
