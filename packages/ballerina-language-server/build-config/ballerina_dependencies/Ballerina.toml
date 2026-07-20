@@ -227,3 +227,18 @@ version = "1.0.1"
 org = "ballerinax"
 name = "mongodb"
 version = "5.1.0"
+
+[[dependency]]
+org = "ballerinax"
+name = "ibm.ibmmq"
+version = "1.4.4"
+
+# ballerinax/ibm.ibmmq declares the IBM MQ client jar with 'provided' scope, so it
+# is not bundled and must be supplied by the consuming project. Declaring it here
+# (available on Maven Central) lets `bal build` resolve ibm.ibmmq and cache it for
+# the offline tests. Tests only need the semantic model, but bal build fails to
+# resolve the package graph without this.
+[[platform.java21.dependency]]
+groupId = "com.ibm.mq"
+artifactId = "com.ibm.mq.allclient"
+version = "9.4.1.0"

@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.13.3"
+distribution-version = "2201.13.4"
 
 [[package]]
 org = "ballerina"
@@ -935,6 +935,19 @@ modules = [
 
 [[package]]
 org = "ballerinax"
+name = "ibm.ibmmq"
+version = "1.4.4"
+dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerinax", packageName = "ibm.ibmmq", moduleName = "ibm.ibmmq"}
+]
+
+[[package]]
+org = "ballerinax"
 name = "kafka"
 version = "4.6.5"
 dependencies = [
@@ -1290,6 +1303,7 @@ dependencies = [
 	{org = "ballerinax", name = "docusign.dsadmin"},
 	{org = "ballerinax", name = "docusign.dsesign"},
 	{org = "ballerinax", name = "github"},
+	{org = "ballerinax", name = "ibm.ibmmq"},
 	{org = "ballerinax", name = "kafka"},
 	{org = "ballerinax", name = "mongodb"},
 	{org = "ballerinax", name = "mssql"},
