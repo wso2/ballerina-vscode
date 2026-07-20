@@ -167,7 +167,7 @@
                   "kind": "DEFAULTABLE",
                   "originalName": "retryPolicy"
                 },
-                "defaultValue": "NoRetry"
+                "defaultValue": "{}"
               }
             },
             "optional": false,
