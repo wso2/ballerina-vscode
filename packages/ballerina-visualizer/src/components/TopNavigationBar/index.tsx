@@ -268,6 +268,11 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
         [history, skippedViews, hasMultiplePackages]
     );
 
+    // Agent Builder mode: no home/back/breadcrumb navigation — hide the whole bar.
+    if (currentLocation?.isAgentBuilder) {
+        return null;
+    }
+
     return (
         <NavContainer>
             {onBack && (
