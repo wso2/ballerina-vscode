@@ -116,52 +116,38 @@
         },
         "returning": false,
         "properties": {
-          "processFunction": {
-            "metadata": {
-              "label": "Process Function",
-              "description": "The workflow function (must have `@Workflow`)"
-            },
-            "types": [
-              {
-                "fieldType": "EXPRESSION",
-                "ballerinaType": "function",
-                "selected": true
-              }
-            ],
-            "value": "orderWorkflow",
-            "placeholder": "",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "REQUIRED",
-              "originalName": "processFunction"
-            }
-          },
           "input": {
             "metadata": {
               "label": "Input",
-              "description": "Optional input data for the workflow. Must match the workflow\nfunction's declared input parameter type (any `anydata` subtype)"
+              "description": "Input data for the workflow"
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "OrderInput",
+                "typeMembers": [
+                  {
+                    "type": "OrderInput",
+                    "packageInfo": "$anon:.:0.0.0",
+                    "packageName": ".",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "anydata",
+                "ballerinaType": "OrderInput",
                 "selected": false
               }
             ],
             "value": "{orderId: \"123\", customerName: \"John\"}",
-            "placeholder": "{}",
-            "optional": true,
+            "placeholder": "",
+            "optional": false,
             "editable": true,
-            "advanced": true,
-            "hidden": false,
-            "codedata": {
-              "kind": "DEFAULTABLE",
-              "originalName": "input"
-            },
-            "defaultValue": "()"
+            "advanced": false,
+            "hidden": false
           },
           "checkError": {
             "metadata": {
