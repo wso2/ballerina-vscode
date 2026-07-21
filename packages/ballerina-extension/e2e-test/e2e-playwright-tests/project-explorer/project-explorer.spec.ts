@@ -16,8 +16,9 @@
  * under the License.
  */
 import { test, expect } from '@playwright/test';
+import { execFileSync } from 'child_process';
 import * as path from 'path';
-import { initTest, logStep, page } from '../utils/helpers';
+import { initTest, logStep, page, reacquireWindow } from '../utils/helpers';
 import { waitForBISidebarTreeView } from '../utils/helpers/sidebar';
 import { getWebview } from '../utils/helpers';
 import { BI_INTEGRATOR_LABEL } from '../utils/helpers/constants';
@@ -30,6 +31,38 @@ import { ProjectExplorer } from '../utils/pages';
 //     (kafkaListener / onConsumerRecord) and an Automation ("main")
 const EDUCATION_WORKSPACE_TEMPLATE = path.join(__dirname, '..', 'data', 'project_explorer_workspace');
 
+// Non-bundled Central packages this fixture's event integrations depend on.
+// `bal pull` fetches each package together with its transitive dependencies
+// (e.g. kafka pulls the confluent.* modules).
+const CONNECTOR_MODULES = ['ballerinax/kafka', 'ballerinax/rabbitmq'];
+
+// The event-integration tree nodes ("Kafka Event Integration", the RabbitMQ
+// listener) only appear once the language server resolves the connector
+// packages above and builds the project's semantic model. Unlike ballerina/http
+// (bundled in the distribution), these are pulled from Ballerina Central. On a
+// cold cache — every fresh CI runner — that resolution doesn't finish within
+// the tree assertion window, so the nodes never render and the suite fails
+// consistently. Pre-pulling the packages into the shared central cache before
+// VS Code opens the workspace makes CI mirror a warm local cache. `bal pull` is
+// idempotent: when a package is already cached it prints "Package already
+// exists." and exits 0, so this is a fast no-op on developer machines.
+function warmConnectorDependencies() {
+    for (const module of CONNECTOR_MODULES) {
+        try {
+            logStep(`Ensuring ${module} is available in the local Ballerina cache`);
+            execFileSync('bal', ['pull', module], { stdio: 'pipe', timeout: 180000 });
+        } catch (err) {
+            const details = err as { stdout?: unknown; stderr?: unknown; message?: string };
+            const output = `${details.stdout ?? ''}${details.stderr ?? ''}`;
+            // A non-zero exit for an already-cached package is expected on some
+            // distributions; only surface genuinely unexpected failures.
+            if (!/already exists/i.test(output)) {
+                console.warn(`  ⚠️  Failed to pre-pull ${module}: ${output || details.message}`);
+            }
+        }
+    }
+}
+
 function treeItem(label: string) {
     return page.page.locator(ProjectExplorer.treeItemSelector(label)).first();
 }
@@ -39,18 +72,45 @@ function treeItem(label: string) {
 // Integrator activity so the project tree renders.
 async function openWorkspaceTree() {
     logStep('Opening WSO2 Integrator sidebar for the Education workspace');
-    await page.page.keyboard.press('Escape').catch(() => undefined);
-    const gitPrompt = page.page.locator('.notification-toast-container', { hasText: 'git repository was found' });
-    const gitPromptShown = await gitPrompt.waitFor({ state: 'visible', timeout: 2000 }).then(() => true).catch(() => false);
-    if (gitPromptShown) {
-        await gitPrompt.getByRole('button', { name: 'Never' }).click().catch(() => undefined);
+
+    const dismissPromptsAndWaitForTree = async () => {
+        await page.page.keyboard.press('Escape').catch(() => undefined);
+        const gitPrompt = page.page.locator('.notification-toast-container', { hasText: 'git repository was found' });
+        const gitPromptShown = await gitPrompt.waitFor({ state: 'visible', timeout: 2000 }).then(() => true).catch(() => false);
+        if (gitPromptShown) {
+            await gitPrompt.getByRole('button', { name: 'Never' }).click().catch(() => undefined);
+        }
+        await waitForBISidebarTreeView(page, 60000);
+        await treeItem('School').waitFor({ timeout: 60000 });
+    };
+
+    try {
+        await dismissPromptsAndWaitForTree();
+    } catch (err) {
+        // The BI extension can reload the window once while finishing
+        // activation, closing the page this test was launched with. Depending on
+        // timing this surfaces either as "Target page ... has been closed" or as
+        // a downstream wait failing against the now-dead page. Retry only when
+        // the window was actually closed (the reliable signal); any other error
+        // propagates unchanged.
+        const message = (err as Error)?.message ?? '';
+        const windowClosed = page.page?.isClosed?.() === true || /has been closed/i.test(message);
+        if (!windowClosed) {
+            throw err;
+        }
+        logStep('Window reloaded during activation — re-acquiring VS Code window and retrying');
+        await reacquireWindow(60000);
+        await dismissPromptsAndWaitForTree();
     }
-    await waitForBISidebarTreeView(page, 60000);
-    await treeItem('School').waitFor({ timeout: 60000 });
 }
 
 export default function createTests() {
     test.describe.serial('Project Explorer Tests', {}, async () => {
+        // Warm the connector packages into the central cache before initTest
+        // launches VS Code, so the language server can resolve the event
+        // integrations without a slow cold-cache pull mid-test.
+        test.beforeAll(warmConnectorDependencies);
+
         initTest(true, true, undefined, undefined, EDUCATION_WORKSPACE_TEMPLATE);
 
         test('View project tree for a multi-integration workspace', async () => {
