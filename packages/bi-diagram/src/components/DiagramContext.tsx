@@ -110,6 +110,8 @@ export interface DiagramContextState {
         onChatWithAgent?: (node: FlowNode) => void;
         onAddActivity?: (node: FlowNode) => void;
         onAddHumanTask?: (node: FlowNode) => void;
+        onAddEvent?: (node: FlowNode) => void;
+        onAddAgentTool?: (node: FlowNode) => void;
         onEditCapability?: (node: FlowNode, capability: any) => void;
         onConfigureAgent?: (node: FlowNode) => void;
     };

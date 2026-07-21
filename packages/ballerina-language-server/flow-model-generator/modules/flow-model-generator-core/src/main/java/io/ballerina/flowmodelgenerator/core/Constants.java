@@ -121,7 +121,7 @@ public class Constants {
         public static final String WORKFLOW = "Workflow";
         public static final String ACTIVITY = "Activity";
         public static final String DEFAULT_CTX_PARAM_NAME = "ctx";
-        public static final String DEFAULT_AGENT_CTX_PARAM_NAME = "durableAgentContext";
+        public static final String DEFAULT_AGENT_CTX_PARAM_NAME = "ctx";
         public static final String DEFAULT_DATA_PARAM_NAME = "data";
         public static final String DEFAULT_INPUT_PARAM_NAME = "input";
         public static final String DATA_SUFFIX = "Data";

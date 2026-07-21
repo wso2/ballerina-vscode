@@ -99,6 +99,9 @@ export interface BIFlowDiagramProps {
     onUpdate: () => void;
     onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition, parentCodedata?: CodeData) => void;
     onSave?: () => void;
+    // Durable Agentic Workflow: render only Start → Agent (the control-flow chain stays
+    // hidden until the user reveals it with the "Edit configuration" toggle).
+    hideAgentConfiguration?: boolean;
 }
 
 // Navigation stack interface
@@ -123,7 +126,7 @@ type NodePromptLaunchOptions = {
 const SIDE_PANEL_DEFAULT_ERROR_MESSAGE = "Error while performing the action.";
 
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
-    const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave } = props;
+    const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave, hideAgentConfiguration } = props;
     const { rpcClient } = useRpcContext();
 
 
@@ -2924,6 +2927,62 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             });
     };
 
+    // Registers an event on the durable agent, inserted BEFORE the buildAndRunAgent call.
+    const handleOnAddDurableEvent = async (runNode: FlowNode) => {
+        const insertBefore = {
+            startLine: runNode.codedata.lineRange.startLine,
+            endLine: runNode.codedata.lineRange.startLine,
+        };
+        targetRef.current = insertBefore as any;
+        setTargetLineRange(insertBefore as any);
+        setShowProgressIndicator(true);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: insertBefore.startLine,
+                filePath: model?.fileName,
+                id: { node: "DURABLE_AGENT_REGISTER_EVENT" },
+            })
+            .then((response) => {
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    // Registers an agent tool on the durable agent, inserted BEFORE the buildAndRunAgent call.
+    const handleOnAddDurableTool = async (runNode: FlowNode) => {
+        const insertBefore = {
+            startLine: runNode.codedata.lineRange.startLine,
+            endLine: runNode.codedata.lineRange.startLine,
+        };
+        targetRef.current = insertBefore as any;
+        setTargetLineRange(insertBefore as any);
+        setShowProgressIndicator(true);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: insertBefore.startLine,
+                filePath: model?.fileName,
+                id: { node: "DURABLE_AGENT_REGISTER_TOOL" },
+            })
+            .then((response) => {
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
     // Opens the edit form for an already-registered activity or human task (from clicking its
     // agent-box circle). The capability metadata carries the statement line range and its parsed
     // argument values, so the form opens pre-filled and saving rewrites that statement.
@@ -3412,14 +3471,41 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         return meta?.kind === "AI Chat Agent" && meta?.label === "chat";
     })();
 
+    // Durable Agentic Workflow agent-only view: the LS flow model carries the synthetic
+    // agent box (or its draft placeholder) at index 0 followed by the full control-flow
+    // chain. While the configuration is hidden, render just [Start, agent box] — the
+    // visitor links the pair with a non-editable edge.
+    const isDurableAgentBoxNode = (node: FlowNode) =>
+        node.codedata?.node === "DURABLE_AGENT_RUN" &&
+        ((node.metadata?.data as { agentBox?: boolean })?.agentBox === true || node.metadata?.draft === true);
+    const agentOnlyView = !!hideAgentConfiguration && !!flowModel?.nodes?.some(isDurableAgentBoxNode);
+    const displayModel = agentOnlyView
+        ? {
+            ...flowModel,
+            nodes: [
+                ...flowModel.nodes.filter((node) => node.codedata?.node === "EVENT_START"),
+                ...flowModel.nodes.filter(isDurableAgentBoxNode),
+            ],
+        }
+        : flowModel;
+
+    // No RHS side panel in the agent-only view: node clicks (the Start pill) are inert;
+    // the agent box hosts its own affordances.
+    const handleOnEditNodeGuarded = (node: FlowNode) => {
+        if (agentOnlyView && node.codedata?.node === "EVENT_START") {
+            return;
+        }
+        return handleOnEditNode(node);
+    };
+
     const memoizedDiagramProps = useMemo(
         () => ({
-            model: flowModel,
+            model: displayModel,
             onAddNode: handleOnAddNode,
             onAddNodePrompt: handleOnAddNodePrompt,
             onDeleteNode: handleOnDeleteNode,
             onAddComment: handleOnAddComment,
-            onNodeSelect: handleOnEditNode,
+            onNodeSelect: handleOnEditNodeGuarded,
             onConnectionSelect: handleOnEditConnection,
             goToSource: handleOnGoToSource,
             addBreakpoint: handleAddBreakpoint,
@@ -3436,6 +3522,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAddTool: handleOnAddTool,
                 onAddActivity: handleOnAddDurableActivity,
                 onAddHumanTask: handleOnAddDurableHumanTask,
+                onAddEvent: handleOnAddDurableEvent,
+                onAddAgentTool: handleOnAddDurableTool,
                 onEditCapability: handleOnEditDurableCapability,
                 onConfigureAgent: handleOnConfigureAgentIdentifier,
                 onAddMcpServer: handleOnAddMcpServer,
@@ -3469,6 +3557,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }),
         [
             flowModel,
+            hideAgentConfiguration,
             fetchingAiSuggestions,
             projectOrg,
             projectPath,

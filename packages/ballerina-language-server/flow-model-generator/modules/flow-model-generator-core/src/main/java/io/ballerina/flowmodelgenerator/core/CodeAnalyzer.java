@@ -397,10 +397,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 .lineRange(functionBodyNode.lineRange())
                 .sourceCode(functionDefinitionNode.toSourceCode().strip());
 
-        // A durable agent's start node reads "Configure Agent": the body is where the
-        // agent's capabilities are registered before the terminal buildAndRun call.
+        // Remember the durable agentic workflow body: getFlowNodes() injects the synthetic
+        // agent box (or a draft placeholder) on top of the chain from these.
         if (kind == FunctionKind.DURABLE_AGENT) {
-            nodeBuilder.metadata().label("Configure Agent");
             this.analyzedDurableAgent = true;
             this.durableAgentBodyRange = functionBodyNode.lineRange();
         }
@@ -4767,9 +4766,7 @@ public class CodeAnalyzer extends NodeVisitor {
         FlowNode runNode = null;
         for (FlowNode node : flowNodeList) {
             NodeKind nodeKind = node.codedata() == null ? null : node.codedata().node();
-            if (nodeKind == NodeKind.EVENT_START) {
-                reordered.add(withMetadata(node, "Configure Agent", null, null));
-            } else if (nodeKind == NodeKind.DURABLE_AGENT_RUN) {
+            if (nodeKind == NodeKind.DURABLE_AGENT_RUN) {
                 runNode = node;
                 reordered.add(withMetadata(node, "Build and Run Agent", null, null));
             } else if (node.codedata() != null && node.codedata().lineRange() != null

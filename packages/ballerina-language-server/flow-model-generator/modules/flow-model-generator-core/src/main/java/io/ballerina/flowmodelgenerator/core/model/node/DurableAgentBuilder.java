@@ -34,26 +34,28 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.AGENT_CONTEXT_CLASS_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DURABLE_AGENT;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_AGENT_CTX_PARAM_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_DURABLE_AGENT_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
 /**
  * Represents the properties of a durable agent function definition node. A durable agent is a workflow
  * whose body configures the agent imperatively (model provider, tools, human tasks) and hands control to
- * the durable ReAct loop via {@code ctx->runDurableAgent(...)}.
+ * the durable ReAct loop via {@code ctx.buildAndRunAgent(...)}.
  *
  * @since 1.8.0
  */
 public class DurableAgentBuilder extends FunctionDefinitionBuilder {
 
     public static final String LABEL = "Durable Agentic Workflow";
-    public static final String DESCRIPTION = "Define a durable AI agent backed by a workflow";
+    public static final String DESCRIPTION = "Define a durable workflow driven by an agentic model";
 
-    // The simplified creation form only asks for a name and description; the input
-    // defaults to a json payload bound to a variable named "query".
+    // The simplified creation form only asks for a name; the input defaults to a
+    // json payload bound to a variable named "input".
     private static final String DEFAULT_INPUT_TYPE = "json";
-    private static final String DEFAULT_INPUT_NAME = "query";
+    private static final String DEFAULT_INPUT_NAME = "input";
     private static final String RETURN_TYPE = "error?";
 
     @Override
@@ -69,9 +71,9 @@ public class DurableAgentBuilder extends FunctionDefinitionBuilder {
     public void setConcreteTemplateData(TemplateContext context) {
         ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
         PackageUtil.pullModuleAndNotify(context.lsClientLogger(), workflowModuleInfo);
-        // The creation form asks only for a name and description; the input is always
-        // a json payload named "query".
-        properties().functionNameTemplate("agent", context.getAllVisibleSymbolNames());
+        // The creation form asks only for a name; the input is always a json payload
+        // named "input".
+        properties().functionNameTemplate("durableAgenticWorkflow", context.getAllVisibleSymbolNames());
         WorkflowBuilder.setMandatoryProperties(this, RETURN_TYPE, "", "");
     }
 
@@ -90,7 +92,7 @@ public class DurableAgentBuilder extends FunctionDefinitionBuilder {
         }
 
         sourceBuilder.token()
-                .name("@workflow:DurableAgent")
+                .name("@workflow:" + DURABLE_AGENT)
                 .newLine()
                 .keyword(SyntaxKind.FUNCTION_KEYWORD)
                 .name(funcName)
@@ -102,7 +104,7 @@ public class DurableAgentBuilder extends FunctionDefinitionBuilder {
                 WORKFLOW_MODULE + ":" + AGENT_CONTEXT_CLASS_NAME, DEFAULT_AGENT_CTX_PARAM_NAME);
 
         // The input parameter is mandatory (the compiler plugin rejects agents without it);
-        // the simplified creation always generates a json payload named "query". Editing the
+        // the simplified creation always generates a json payload named "input". Editing the
         // type/name later happens through the Agent Identifier form.
         Optional<Property> inputProperty = sourceBuilder.getProperty(WorkflowBuilder.INPUT_KEY);
         String inputTypeName = inputProperty.map(p -> p.value().toString()).orElse("");
@@ -129,7 +131,7 @@ public class DurableAgentBuilder extends FunctionDefinitionBuilder {
             // No provider in the project: omit the model argument — the resulting compiler
             // diagnostic renders on the agent box, guiding the user to configure a model.
             String modelArg = modelVar == null ? "" : ", model = " + modelVar;
-            String runStatement = "check " + DEFAULT_AGENT_CTX_PARAM_NAME + ".buildAndRun("
+            String runStatement = "check " + DEFAULT_AGENT_CTX_PARAM_NAME + "." + RUN_DURABLE_AGENT_METHOD_NAME + "("
                     + "systemPrompt = {role: string `" + funcName + "`, instructions: string `"
                     + instructions + "`}" + modelArg + ");";
             sourceBuilder

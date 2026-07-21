@@ -43,6 +43,9 @@ const WSO2_MODEL_PROVIDER_CODEDATA: CodeData = {
 };
 const WSO2_MODEL_PROVIDER_VAR = "wso2ModelProvider";
 
+// Default (auto-numbered) name offered by the Durable Agentic Workflow creation form.
+const DURABLE_AGENT_DEFAULT_NAME = "durableAgenticWorkflow";
+
 const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -273,8 +276,10 @@ export function FunctionForm(props: FunctionFormProps) {
         } else if (isDurableAgent) {
             nodeKind = 'DURABLE_AGENT';
             formType.current = 'Durable Agentic Workflow';
-            setTitleSubtitle('Build a durable AI agent backed by a workflow');
-            setFormSubtitle('Define a long-running AI agent with a strongly typed input payload');
+            setTitleSubtitle('Build a workflow driven by an agentic model');
+            setFormSubtitle(functionName
+                ? 'A durable workflow that expresses its logic as natural-language instructions and a model instead of explicit control flow'
+                : 'Name the workflow to get started; the model, instructions and capabilities are configured next');
         } else if (isActivity) {
             nodeKind = 'ACTIVITY';
             formType.current = 'Workflow Activity';
@@ -332,15 +337,22 @@ export function FunctionForm(props: FunctionFormProps) {
                 });
             }
 
-            // Durable agent form (create and edit): keep it minimal — only Name, Description
-            // and the input parameter (type + name). Hide the Public checkbox, the return type
-            // fields, the workflow:AgentContext context parameter row and the Add Parameter action.
+            // Durable Agentic Workflow form. Create mode is name-only: the function template
+            // supplies the context/input parameters, and the model, instructions and
+            // capabilities are configured on the agent diagram afterwards. Edit mode
+            // additionally shows the input parameter (type + name) but still hides the Public
+            // checkbox, the return type fields, the workflow:AgenticWorkflowContext context
+            // parameter row and the Add Parameter action.
             if (isDurableAgent) {
+                const isCreateMode = !functionName;
                 const isContextParam = (param: Parameter) =>
                     typeof param?.formValues?.type === "string" &&
-                    param.formValues.type.replace(/\s/g, "").endsWith("AgentContext");
+                    param.formValues.type.replace(/\s/g, "").endsWith("WorkflowContext");
                 fields.forEach((field) => {
                     if (field.key === "isPublic" || field.key === "type" || field.key === "typeDescription") {
+                        field.hidden = true;
+                    }
+                    if (isCreateMode && (field.key === "functionNameDescription" || field.key === "parameters")) {
                         field.hidden = true;
                     }
                     if (field.key === "parameters") {
@@ -554,6 +566,21 @@ export function FunctionForm(props: FunctionFormProps) {
             }
             if (flowNode.properties?.typeDescription) {
                 flowNode.properties.typeDescription.hidden = true;
+            }
+        }
+
+        // Durable Agentic Workflow creation: prefill the name with a workspace-unique
+        // default (durableAgenticWorkflow, durableAgenticWorkflow2, ...).
+        if (isDurableAgent && flowNode.properties?.functionName) {
+            try {
+                const taken = new Set((await rpcClient.getBIDiagramRpcClient().getFunctionNames()).mentions);
+                let defaultName = DURABLE_AGENT_DEFAULT_NAME;
+                for (let suffix = 2; taken.has(defaultName); suffix++) {
+                    defaultName = `${DURABLE_AGENT_DEFAULT_NAME}${suffix}`;
+                }
+                flowNode.properties.functionName.value = defaultName;
+            } catch (error) {
+                console.error("Failed to compute a default durable agentic workflow name:", error);
             }
         }
 
@@ -838,8 +865,37 @@ export function FunctionForm(props: FunctionFormProps) {
         }
     };
 
+    // Workspace-unique name guard for new durable agentic workflows: surface a field
+    // diagnostic instead of failing later at source generation.
+    const isDuplicateFunctionName = async (name: string): Promise<boolean> => {
+        try {
+            const taken = (await rpcClient.getBIDiagramRpcClient().getFunctionNames()).mentions;
+            return taken.includes(name);
+        } catch (error) {
+            console.error("Failed to check function name availability:", error);
+            return false;
+        }
+    };
+
     const handleFormSubmit = async (data: FormValues, formImports?: FormImports) => {
         setSaving(true);
+        if (isDurableAgent && !functionName && await isDuplicateFunctionName(data.functionName)) {
+            setFunctionFields((fields) =>
+                fields.map((field) =>
+                    field.key === "functionName"
+                        ? {
+                            ...field,
+                            diagnostics: [{
+                                message: `A function named '${data.functionName}' already exists in this workspace`,
+                                severity: "ERROR" as const,
+                            }],
+                        }
+                        : field
+                )
+            );
+            setSaving(false);
+            return;
+        }
         // HACK: Remove new lines from function description fields
         const descriptionFields = ["functionNameDescription", "typeDescription"];
         for (const field of descriptionFields) {
@@ -949,6 +1005,8 @@ export function FunctionForm(props: FunctionFormProps) {
                             <BodyText>
                                 {isAgentTool
                                     ? "Create a new agent tool that can be invoked by AI agents."
+                                    : isDurableAgent
+                                    ? "Create a new durable workflow driven by an agentic model."
                                     : (isWorkflow
                                     ? "Create a new workflow process with a configurable input type."
                                     : "Create a new function to define reusable logic.")}
@@ -974,7 +1032,11 @@ export function FunctionForm(props: FunctionFormProps) {
                                 recordTypeFields={recordTypeFields}
                                 isSaving={saving}
                                 onSubmit={handleFormSubmit}
-                                submitText={saving ? (functionName ? "Saving..." : "Creating...") : (functionName ? "Save" : "Create")}
+                                submitText={saving
+                                    ? (functionName ? "Saving..." : "Creating...")
+                                    : (functionName
+                                        ? "Save"
+                                        : (isDurableAgent ? "Configure Durable Agentic Workflow" : "Create"))}
                                 selectedNode={functionNode?.codedata?.node}
                                 preserveFieldOrder={true}
                                 injectedComponents={

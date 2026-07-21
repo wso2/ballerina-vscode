@@ -290,6 +290,101 @@ export namespace NodeStyles {
     export const MenuButton = styled(Button)`
         border-radius: 5px;
     `;
+
+    // Round "+" control at the bottom of the agent box that reveals the capability
+    // add-affordances at their fixed anchors.
+    export const AddControl = styled.div<{ active: boolean }>`
+        position: absolute;
+        bottom: -16px;
+        left: calc(50% - 16px);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: ${NODE_BG_COLOR};
+        border: 1.5px solid ${(props: { active: boolean }) =>
+            props.active ? NODE_BORDER_SELECTED_COLOR : NODE_BORDER_COLOR};
+        color: ${NODE_TEXT_COLOR};
+        cursor: pointer;
+        z-index: 4;
+        transition: border-color 0.1s ease, transform 0.1s ease;
+        transform: ${(props: { active: boolean }) => (props.active ? "rotate(45deg)" : "none")};
+        &:hover {
+            border-color: ${NODE_BORDER_SELECTED_COLOR};
+        }
+    `;
+
+    export type AffordanceAnchorName = "topLeft" | "bottomLeft" | "middleRight" | "bottomRight" | "topRight";
+
+    const anchorPosition: Record<AffordanceAnchorName, string> = {
+        topLeft: "top: -14px; left: -14px;",
+        bottomLeft: "bottom: -14px; left: -14px;",
+        middleRight: "top: calc(50% - 14px); right: -14px;",
+        bottomRight: "bottom: -14px; right: -14px;",
+        topRight: "top: -14px; right: -14px;",
+    };
+
+    // A capability add-affordance pinned to a fixed anchor of the agent box.
+    export const AffordanceButton = styled.div<{ anchor: AffordanceAnchorName }>`
+        position: absolute;
+        ${(props: { anchor: AffordanceAnchorName }) => anchorPosition[props.anchor]}
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: ${NODE_BG_COLOR};
+        border: 1.5px dashed ${NODE_BORDER_SELECTED_COLOR};
+        color: ${NODE_TEXT_COLOR};
+        cursor: pointer;
+        z-index: 4;
+        &:hover {
+            border-style: solid;
+            background-color: ${NODE_BG_HOVER_COLOR};
+        }
+    `;
+
+    // Small "+" badge on the corner of an affordance button.
+    export const AffordanceBadge = styled.div`
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        line-height: 1;
+        background-color: ${NODE_BORDER_SELECTED_COLOR};
+        color: ${NODE_BG_COLOR};
+        pointer-events: none;
+    `;
+
+    // Pill indicator shown on the node while a capability form is open: (+ <icon> <label>).
+    export const AddingPill = styled.div`
+        position: absolute;
+        top: -38px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 14px;
+        background-color: ${NODE_BG_COLOR};
+        border: 1px solid ${NODE_BORDER_SELECTED_COLOR};
+        color: ${NODE_TEXT_COLOR};
+        font-size: 12px;
+        font-family: "GilmerMedium";
+        white-space: nowrap;
+        cursor: pointer;
+        z-index: 4;
+    `;
 }
 
 interface DurableAgentRunNodeWidgetProps {
@@ -318,6 +413,22 @@ type CapabilityItem = {
     kind: "tool" | "activity" | "humanTask" | "event";
 };
 
+// Capabilities addable from the agent box's "+" affordances, each pinned to a fixed anchor.
+type AddableCapability = "humanTask" | "event" | "activity" | "agentTool" | "model";
+
+const ADD_AFFORDANCES: {
+    kind: AddableCapability;
+    label: string;
+    icon: string;
+    anchor: NodeStyles.AffordanceAnchorName;
+}[] = [
+    { kind: "humanTask", label: "Add Human Task", icon: "bi-user", anchor: "topLeft" },
+    { kind: "event", label: "Add Event", icon: "bi-arrow-outward", anchor: "bottomLeft" },
+    { kind: "activity", label: "Add Activity", icon: "bi-task", anchor: "middleRight" },
+    { kind: "agentTool", label: "Add Agent Tool", icon: "bi-function", anchor: "bottomRight" },
+    { kind: "model", label: "Configure Model", icon: "bi-ai-model", anchor: "topRight" },
+];
+
 export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps) {
     const { model, engine, onClick } = props;
     const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId } =
@@ -328,6 +439,10 @@ export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps)
     const [isBoxHovered, setIsBoxHovered] = useState(false);
     const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
+    // "+" affordance state: showAffordances reveals the anchored add buttons; while a
+    // capability form is open, addingCapability drives the pill indicator on the node.
+    const [showAffordances, setShowAffordances] = useState(false);
+    const [addingCapability, setAddingCapability] = useState<AddableCapability | null>(null);
     const isMenuOpen = menuPos !== null;
 
     const getMenuPos = (el: HTMLElement): { top: number; left: number } => {
@@ -422,6 +537,43 @@ export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps)
             return;
         }
         agentNode?.onEditCapability?.(model.node, { ...item.data, type: item.kind });
+    };
+
+    const onToggleAffordances = (event: React.MouseEvent<HTMLElement>) => {
+        if (readOnly) {
+            return;
+        }
+        event.stopPropagation();
+        setShowAffordances((show) => !show);
+        setAddingCapability(null);
+    };
+
+    // Fires the matching add callback and shows the pill; the diagram remounts the node
+    // once the generated statement lands, clearing the pill.
+    const onAffordanceClick = (kind: AddableCapability) => (event: React.MouseEvent<HTMLElement>) => {
+        if (readOnly) {
+            return;
+        }
+        event.stopPropagation();
+        setShowAffordances(false);
+        setAddingCapability(kind);
+        switch (kind) {
+            case "humanTask":
+                agentNode?.onAddHumanTask?.(model.node);
+                break;
+            case "event":
+                agentNode?.onAddEvent?.(model.node);
+                break;
+            case "activity":
+                agentNode?.onAddActivity?.(model.node);
+                break;
+            case "agentTool":
+                agentNode?.onAddAgentTool?.(model.node);
+                break;
+            case "model":
+                agentNode?.onModelSelect?.(model.node);
+                break;
+        }
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
@@ -843,6 +995,48 @@ export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps)
                     }
                 </NodeStyles.Column>
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
+
+                {/* Round "+" control: reveals the capability add-affordances at fixed anchors */}
+                {!readOnly && (
+                    <NodeStyles.AddControl
+                        data-testid="durable-agent-add-control"
+                        active={showAffordances}
+                        title={showAffordances ? "Close" : "Add capability"}
+                        onClick={onToggleAffordances}
+                    >
+                        <Icon name="bi-plus" sx={{ width: 16, height: 16, fontSize: 16 }} />
+                    </NodeStyles.AddControl>
+                )}
+                {!readOnly && showAffordances &&
+                    ADD_AFFORDANCES.map((affordance) => (
+                        <NodeStyles.AffordanceButton
+                            key={affordance.kind}
+                            data-testid={`durable-agent-affordance-${affordance.kind}`}
+                            anchor={affordance.anchor}
+                            title={affordance.label}
+                            onClick={onAffordanceClick(affordance.kind)}
+                        >
+                            <Icon name={affordance.icon} sx={{ width: 16, height: 16, fontSize: 16 }} />
+                            <NodeStyles.AffordanceBadge>+</NodeStyles.AffordanceBadge>
+                        </NodeStyles.AffordanceButton>
+                    ))}
+                {addingCapability && (
+                    <NodeStyles.AddingPill
+                        data-testid="durable-agent-adding-pill"
+                        title="Dismiss"
+                        onClick={(event: React.MouseEvent<HTMLElement>) => {
+                            event.stopPropagation();
+                            setAddingCapability(null);
+                        }}
+                    >
+                        <span>+</span>
+                        <Icon
+                            name={ADD_AFFORDANCES.find((a) => a.kind === addingCapability)?.icon || "bi-plus"}
+                            sx={{ width: 14, height: 14, fontSize: 14 }}
+                        />
+                        <span>{ADD_AFFORDANCES.find((a) => a.kind === addingCapability)?.label.replace(/^Add /, "").replace(/^Configure /, "")}</span>
+                    </NodeStyles.AddingPill>
+                )}
             </NodeStyles.Box>
 
             <svg

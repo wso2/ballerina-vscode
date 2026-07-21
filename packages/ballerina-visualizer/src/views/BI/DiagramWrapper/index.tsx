@@ -45,6 +45,16 @@ const ActionButton = styled(Button)`
 
 const TRACING_LABEL_BREAKPOINT = 600;
 
+// Floating toggle at the bottom of the durable agentic workflow diagram that reveals or
+// hides the generated function's control-flow (advanced configuration) view.
+const EditConfigurationBar = styled.div`
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+`;
+
 const SubTitleWrapper = styled.div`
     display: flex;
     align-items: center;
@@ -141,6 +151,9 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [isTracingEnabled, setIsTracingEnabled] = useState(false);
     const [isToggling, setIsToggling] = useState(false);
+    // Durable Agentic Workflow: the control-flow (configuration) view starts hidden;
+    // the "Edit configuration" toggle at the bottom of the agent diagram reveals it.
+    const [showAgentConfiguration, setShowAgentConfiguration] = useState(false);
     const [isNarrowViewport, setIsNarrowViewport] = useState(
         typeof window !== "undefined" && window.innerWidth < TRACING_LABEL_BREAKPOINT
     );
@@ -744,9 +757,27 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         projectPath={projectPath}
                         onUpdate={handleUpdateDiagram}
                         onReady={handleReadyDiagram}
+                        hideAgentConfiguration={isDurableAgent && !showAgentConfiguration}
                     />
                 )
             }
+            {isDurableAgent && !loadingDiagram && !showSequenceDiagram && !view && (
+                <EditConfigurationBar>
+                    <Button
+                        appearance="secondary"
+                        onClick={() => setShowAgentConfiguration((show) => !show)}
+                        tooltip={showAgentConfiguration
+                            ? "Return to the agent view"
+                            : "Show the generated workflow logic for advanced editing"}
+                    >
+                        <Icon
+                            name={showAgentConfiguration ? "bi-ai-agent" : "bi-settings"}
+                            sx={{ marginRight: 5, fontSize: "16px", width: "16px" }}
+                        />
+                        {showAgentConfiguration ? "Back to agent view" : "Edit configuration"}
+                    </Button>
+                </EditConfigurationBar>
+            )}
             {/* This is for editing a http resource */}
             <PanelContainer
                 title={"Resource Configuration"}

@@ -65,6 +65,7 @@ export function WorkflowPanel() {
                     id="durable-agent"
                     icon={<Icon name="bi-ai-agent" />}
                     title="Durable Agentic Workflow"
+                    tooltip="A durable workflow driven by an agentic model: natural-language instructions and a model instead of explicit control flow, with events, timers, human tasks, and crash recovery."
                     onClick={handleDurableAgentClick}
                 />
             </CardGrid>

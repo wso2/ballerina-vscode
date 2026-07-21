@@ -715,12 +715,18 @@ export class NodeFactoryVisitor implements BaseVisitor {
         this.nodes.push(nodeModel);
         // The synthetic agent-box copy (metadata.data.agentBox) floats above the chain:
         // skip updateNodeLinks so it gets no incoming link and does not become the link
-        // source for the following "Configure Agent" start pill (which would render an
-        // edge plus an add-button between the box and the pill). The pill still becomes
-        // lastNodeModel itself and links downward to the first statement.
+        // source for the following start pill (which would render an edge plus an
+        // add-button between the box and the pill). The pill still becomes lastNodeModel
+        // itself and links downward to the first statement.
+        //
+        // Exception — the agent-only view: there the flow model is just
+        // [Start, agent box], so a start node has already been visited. Link it to the
+        // box with a non-editable edge (no add-button).
         const isAgentBox = (node.metadata?.data as { agentBox?: boolean })?.agentBox === true;
         if (!isAgentBox) {
             this.updateNodeLinks(node, nodeModel);
+        } else if (this.lastNodeModel instanceof StartNodeModel) {
+            this.updateNodeLinks(node, nodeModel, { showAddButton: false });
         }
         this.addSuggestionsButton(node);
     }
