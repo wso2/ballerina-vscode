@@ -12,7 +12,7 @@
   await deleteBtn.waitFor({ timeout: 5000 });
   await deleteBtn.click();
   await window.waitForTimeout(1500);
-  const stillVisibleAfterDelete = await mainItem.isVisible().catch(() => false);
+  const stillVisibleAfterDelete = await mainItem.waitFor({ state: 'visible', timeout: 1000 }).then(() => true).catch(() => false);
   if (stillVisibleAfterDelete) throw new Error('main was not removed from the tree');
 
   const entryPoints = treeItem('Entry Points');
@@ -32,7 +32,7 @@
   await frame.locator('[data-testid="bi-diagram-canvas"], #bi-diagram-canvas').first().waitFor({ timeout: 30000 });
   await window.waitForTimeout(1500);
 
-  const reAppeared = await mainItem.isVisible({ timeout: 10000 }).catch(() => false);
+  const reAppeared = await mainItem.waitFor({ state: 'visible', timeout: 10000 }).then(() => true).catch(() => false);
   if (!reAppeared) throw new Error('main was not re-added to the tree via "Add Entry Point"');
   console.log('Delete + Add Entry Point round-trip verified');
 }

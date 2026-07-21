@@ -2,7 +2,8 @@
   await ensureWorkbench();
   await window.keyboard.press('Escape').catch(() => {});
   const gitPrompt = window.locator('.notification-toast-container', { hasText: 'git repository was found' });
-  if (await gitPrompt.isVisible({ timeout: 2000 }).catch(() => false)) {
+  const gitPromptShown = await gitPrompt.waitFor({ state: 'visible', timeout: 2000 }).then(() => true).catch(() => false);
+  if (gitPromptShown) {
     await gitPrompt.getByRole('button', { name: 'Never' }).click().catch(() => {});
   }
   await openIntegratorActivity();
