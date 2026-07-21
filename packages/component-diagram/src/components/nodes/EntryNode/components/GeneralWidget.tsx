@@ -18,12 +18,12 @@
 
 import React, { useState } from "react";
 import { PortWidget } from "@projectstorm/react-diagrams-core";
-import { CDAutomation, CDService, CDWorkflow } from "@wso2/ballerina-core";
+import { CDAutomation, CDService, CDWorkflow, CDWorkflowEvent, CDWorkflowHumanTask } from "@wso2/ballerina-core";
 import { Item, Menu, MenuItem, Popover, ImageWithFallback, Icon } from "@wso2/ui-toolkit";
 import { useDiagramContext } from "../../../DiagramContext";
 import { HttpIcon, TaskIcon } from "../../../../resources";
 import { MoreVertIcon } from "../../../../resources/icons/nodes/MoreVertIcon";
-import { getEntryNodeFunctionPortName } from "../../../../utils/diagram";
+import { getEntryNodeFunctionPortName, getWorkflowEventPortName } from "../../../../utils/diagram";
 import { PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../../Diagram";
 import { VIEW_ALL_RESOURCES_PORT_NAME, BaseNodeWidgetProps, EntryNodeModel } from "../EntryNodeModel";
 import { useClickWithDragTolerance } from "../../../../hooks/useClickWithDragTolerance";
@@ -43,6 +43,10 @@ import {
     FunctionBoxWrapper,
     StyledServiceBox,
     ResourceAccessor,
+    EventTypeText,
+    RowIconWrapper,
+    PlayButtonCircle,
+    PlayButtonPortWrapper,
     colors
 } from "./styles";
 
@@ -65,7 +69,7 @@ const getNodeDescription = (model: EntryNodeModel) => {
         return "Automation";
     }
     if (model.type === "workflow") {
-        return "Workflow";
+        return "Durable Workflow";
     }
     // Service
     if ((model.node as CDService).type) {
@@ -185,6 +189,39 @@ function FunctionBox(props: { func: any; model: EntryNodeModel; engine: any; rea
     );
 }
 
+function WorkflowEventBox(props: { event: CDWorkflowEvent; model: EntryNodeModel; engine: any }) {
+    const { event, model, engine } = props;
+
+    return (
+        <FunctionBoxWrapper>
+            <PortWidget port={model.getPort(getWorkflowEventPortName(event))!} engine={engine} />
+            <StyledServiceBox hovered={false} readonly={true} title={event.type}>
+                <RowIconWrapper>
+                    <Icon name="bi-import" sx={{ fontSize: 16, width: 16, height: 16 }} />
+                </RowIconWrapper>
+                <Title hovered={false}>{event.name}</Title>
+                <EventTypeText>Data Event</EventTypeText>
+            </StyledServiceBox>
+        </FunctionBoxWrapper>
+    );
+}
+
+function WorkflowHumanTaskBox(props: { humanTask: CDWorkflowHumanTask }) {
+    const { humanTask } = props;
+
+    return (
+        <FunctionBoxWrapper>
+            <StyledServiceBox hovered={false} readonly={true}>
+                <RowIconWrapper>
+                    <Icon name="bi-user" sx={{ fontSize: 16, width: 16, height: 16 }} />
+                </RowIconWrapper>
+                <Title hovered={false}>{humanTask.name}</Title>
+                <EventTypeText>Human Task</EventTypeText>
+            </StyledServiceBox>
+        </FunctionBoxWrapper>
+    );
+}
+
 export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
@@ -280,8 +317,17 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     return (
         <Node>
-            <TopPortWidget port={model.getPort("in")!} engine={engine} />
+            {model.type !== "workflow" && <TopPortWidget port={model.getPort("in")!} engine={engine} />}
             <Box hovered={!readonly && isHovered}>
+                {model.type === "workflow" && (
+                    // Explicit "run workflow" target: workflow:run edges point at this play button
+                    <PlayButtonCircle>
+                        <Icon isCodicon name="play" sx={{ fontSize: 14, width: 14, height: 14 }} />
+                        <PlayButtonPortWrapper>
+                            <PortWidget port={model.getPort("in")!} engine={engine} />
+                        </PlayButtonPortWrapper>
+                    </PlayButtonCircle>
+                )}
                 <ServiceBox
                     onMouseEnter={() => !readonly && setIsHovered(true)}
                     onMouseLeave={() => !readonly && setIsHovered(false)}
@@ -313,6 +359,16 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
                         readonly={readonly}
                     />
                 ))}
+
+                {model.type === "workflow" &&
+                    ((model.node as CDWorkflow).events ?? []).map((event) => (
+                        <WorkflowEventBox key={getWorkflowEventPortName(event)} event={event} model={model} engine={engine} />
+                    ))}
+
+                {model.type === "workflow" &&
+                    ((model.node as CDWorkflow).humanTasks ?? []).map((humanTask, index) => (
+                        <WorkflowHumanTaskBox key={`${humanTask.name}-${index}`} humanTask={humanTask} />
+                    ))}
 
                 {hasMoreFunctions && !isExpanded && (
                     <ViewAllButtonWrapper>
