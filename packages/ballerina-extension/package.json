@@ -1141,6 +1141,50 @@
                     "when": "false"
                 },
                 {
+                    "command": "BI.project-explorer.overview",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
+                    "command": "BI.project-explorer.add",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
+                    "command": "BI.project-explorer.add-connection",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
+                    "command": "BI.project-explorer.add-custom-connector",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
+                    "command": "BI.project-explorer.add-entry-point",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
+                    "command": "BI.project-explorer.add-type",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
+                    "command": "BI.project-explorer.add-function",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
+                    "command": "BI.project-explorer.add-configuration",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
+                    "command": "BI.project-explorer.add-data-mapper",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
+                    "command": "BI.project-explorer.add-natural-function",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
+                    "command": "ballerina.open.bi.new",
+                    "when": "!isAgentBuilderMode"
+                },
+                {
                     "command": "BI.test.edit.function.def",
                     "when": "false"
                 },
