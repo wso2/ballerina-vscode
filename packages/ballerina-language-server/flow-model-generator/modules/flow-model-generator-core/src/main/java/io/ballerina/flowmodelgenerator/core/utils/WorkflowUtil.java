@@ -21,9 +21,11 @@ package io.ballerina.flowmodelgenerator.core.utils;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
+import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
+import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -41,6 +43,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -103,6 +106,130 @@ public class WorkflowUtil {
             parent = parent.parent();
         }
         return false;
+    }
+
+    /**
+     * Checks if the given function symbol has the @workflow:DurableAgent annotation.
+     *
+     * @param symbol The function symbol to check
+     * @return true if the function has @workflow:DurableAgent annotation, false otherwise
+     */
+    public static boolean isDurableAgentFunction(Symbol symbol) {
+        return hasWorkflowAnnotation(symbol, Constants.Workflow.DURABLE_AGENT);
+    }
+
+    /**
+     * Checks whether the cursor node is inside a @workflow:DurableAgent function.
+     *
+     * @param semanticModel the semantic model
+     * @param node          the node at the cursor position
+     * @return true when the enclosing function is a durable agent
+     */
+    public static boolean isInsideDurableAgentFunction(SemanticModel semanticModel, Node node) {
+        Node parent = node;
+        while (parent != null) {
+            if (parent.kind() == SyntaxKind.FUNCTION_DEFINITION) {
+                return isDurableAgentFunction(semanticModel.symbol(parent).orElse(null));
+            }
+            parent = parent.parent();
+        }
+        return false;
+    }
+
+    private static boolean hasWorkflowAnnotation(Symbol symbol, String annotationName) {
+        if (symbol == null || symbol.kind() != SymbolKind.FUNCTION) {
+            return false;
+        }
+        for (AnnotationAttachmentSymbol attachment : ((FunctionSymbol) symbol).annotAttachments()) {
+            AnnotationSymbol annotation = attachment.typeDescriptor();
+            Optional<String> name = annotation.getName();
+            if (name.isPresent() && annotationName.equals(name.get()) && isWorkflowModule(annotation.getModule())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Finds the enclosing @workflow:DurableAgent function definition for the source builder's insertion point.
+     *
+     * @param sourceBuilder the source builder carrying the flow node's line range
+     * @return the enclosing durable agent function, or null when not found
+     */
+    // The request file path may be the project directory (e.g. connection-config saves pass
+    // the project root); resolve the actual source file from the node's line range.
+    private static Path resolveSourceFile(SourceBuilder sourceBuilder) {
+        Path filePath = sourceBuilder.filePath;
+        if (filePath.toString().endsWith(".bal")) {
+            return filePath;
+        }
+        LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
+        if (lineRange != null && lineRange.fileName() != null) {
+            return filePath.resolve(lineRange.fileName());
+        }
+        return filePath;
+    }
+
+    public static FunctionDefinitionNode findEnclosingDurableAgentFunction(SourceBuilder sourceBuilder) {
+        Path sourceFile = resolveSourceFile(sourceBuilder);
+        Document document = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, sourceFile);
+        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,
+                sourceFile);
+        LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
+        if (lineRange == null) {
+            return null;
+        }
+
+        SyntaxTree syntaxTree = document.syntaxTree();
+        int txtPos = document.textDocument().textPositionFrom(lineRange.startLine());
+        TextRange range = TextRange.from(txtPos, 0);
+
+        Node parent = ((ModulePartNode) syntaxTree.rootNode()).findNode(range);
+        while (parent != null) {
+            if (parent.kind() == SyntaxKind.FUNCTION_DEFINITION) {
+                return isDurableAgentFunction(semanticModel.symbol(parent).orElse(null))
+                        ? (FunctionDefinitionNode) parent : null;
+            }
+            parent = parent.parent();
+        }
+        return null;
+    }
+
+    /**
+     * Resolves the name of the {@code workflow:AgentContext} parameter of the enclosing durable agent
+     * function, defaulting to {@code ctx} (the generated signature always declares one).
+     *
+     * @param sourceBuilder the source builder carrying the flow node's line range
+     * @return the agent context parameter name
+     */
+    public static String resolveAgentContextParamName(SourceBuilder sourceBuilder) {
+        Path sourceFile = resolveSourceFile(sourceBuilder);
+        try {
+            sourceBuilder.workspaceManager.loadProject(sourceFile);
+        } catch (Exception e) {
+            return Constants.Workflow.DEFAULT_AGENT_CTX_PARAM_NAME;
+        }
+        FunctionDefinitionNode agentFunction = findEnclosingDurableAgentFunction(sourceBuilder);
+        if (agentFunction == null) {
+            return Constants.Workflow.DEFAULT_AGENT_CTX_PARAM_NAME;
+        }
+        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,
+                sourceFile);
+        for (io.ballerina.compiler.syntax.tree.ParameterNode parameter
+                : agentFunction.functionSignature().parameters()) {
+            Optional<Symbol> symbol = semanticModel.symbol(parameter);
+            if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.PARAMETER) {
+                continue;
+            }
+            ParameterSymbol paramSymbol = (ParameterSymbol) symbol.get();
+            TypeSymbol typeDesc = TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor());
+            boolean isAgentContext = isWorkflowModule(typeDesc.getModule())
+                    && typeDesc.getName().map(Constants.Workflow.AGENT_CONTEXT_CLASS_NAME::equals).orElse(false);
+            if (isAgentContext && paramSymbol.getName().isPresent()) {
+                return paramSymbol.getName().get();
+            }
+        }
+        return Constants.Workflow.DEFAULT_AGENT_CTX_PARAM_NAME;
     }
 
     /**
@@ -191,5 +318,44 @@ public class WorkflowUtil {
         TypeSymbol typeDesc = TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor());
         return WorkflowUtil.isWorkflowModule(typeDesc.getModule())
                 && typeDesc.getName().map(Constants.Workflow.CONTEXT_CLASS_NAME::equals).orElse(false);
+    }
+
+    /**
+     * Resolves the given type to a client class symbol, if it is one. Activities generated from a
+     * connection take the connection client (e.g. {@code http:Client}) as their first parameter; this
+     * detects such a parameter so a connection-backed activity call can be modelled with a connection
+     * association (and rendered with a connection arrow) rather than as a plain data argument.
+     *
+     * @param typeSymbol the parameter type to inspect
+     * @return the client {@link ClassSymbol} if {@code typeSymbol} resolves to a {@code client} class
+     */
+    public static Optional<ClassSymbol> resolveConnectionClass(TypeSymbol typeSymbol) {
+        if (typeSymbol == null) {
+            return Optional.empty();
+        }
+        TypeSymbol resolved = TypeUtils.resolveTypeReference(typeSymbol);
+        if (resolved instanceof ClassSymbol classSymbol && classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
+            return Optional.of(classSymbol);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Resolves the given type to any class symbol — client or plain. Used by the
+     * create-activity-from-connection wizard, which can also wrap methods of non-client classes
+     * such as {@code ai:Agent} (whose {@code run()} is a normal method, not a remote action).
+     *
+     * @param typeSymbol the variable type to inspect
+     * @return the {@link ClassSymbol} if {@code typeSymbol} resolves to a class
+     */
+    public static Optional<ClassSymbol> resolveWrappableClass(TypeSymbol typeSymbol) {
+        if (typeSymbol == null) {
+            return Optional.empty();
+        }
+        TypeSymbol resolved = TypeUtils.resolveTypeReference(typeSymbol);
+        if (resolved instanceof ClassSymbol classSymbol) {
+            return Optional.of(classSymbol);
+        }
+        return Optional.empty();
     }
 }

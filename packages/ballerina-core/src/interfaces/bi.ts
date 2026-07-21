@@ -360,6 +360,7 @@ export enum DIRECTORY_MAP {
     TYPE = "TYPE",
     VARIABLE = "VARIABLE",
     WORKFLOW = "WORKFLOW",
+    DURABLE_AGENT = "DURABLE_AGENT",
 }
 
 export enum FUNCTION_TYPE {
@@ -527,6 +528,7 @@ export type NodeKind =
     | "ACTION_OR_EXPRESSION"
     | "ACTIVITY"
     | "ACTIVITY_CALL"
+    | "CONNECTION_ACTIVITY_CALL"
     | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"
@@ -608,6 +610,13 @@ export type NodeKind =
     | "WHILE"
     | "WORKFLOW"
     | "WORKFLOW_RUN"
+    | "DURABLE_AGENT"
+    | "DURABLE_AGENT_ADD_ACTIVITY"
+    | "DURABLE_AGENT_HUMAN_TASK"
+    | "DURABLE_AGENT_REGISTER_EVENT"
+    | "DURABLE_AGENT_REGISTER_TOOL"
+    | "DURABLE_AGENT_RUN"
+    | "DURABLE_AGENT_UPDATE"
     | "WORKER"
     | "RECORD"
     | "VARIABLE";

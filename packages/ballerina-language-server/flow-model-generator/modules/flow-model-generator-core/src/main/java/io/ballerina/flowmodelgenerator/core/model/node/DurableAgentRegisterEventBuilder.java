@@ -1,0 +1,201 @@
+/*
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
+package io.ballerina.flowmodelgenerator.core.model.node;
+
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
+import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.modelgenerator.commons.ParameterData;
+import org.eclipse.lsp4j.TextEdit;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.AGENT_CONTEXT_CLASS_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_EVENT_DESCRIPTION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_EVENT_LABEL;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_UPDATE_EVENTS_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
+
+/**
+ * Declares a named two-way update channel for a durable agent. Generates
+ * {@code check durableAgentContext.registerUpdateEvents(<name>, <requestType>[, <responseType>]);}.
+ *
+ * @since 1.8.0
+ */
+public class DurableAgentRegisterEventBuilder extends CallBuilder {
+
+    public static final String NAME_KEY = "name";
+    public static final String NAME_LABEL = "Event Name";
+    public static final String NAME_DOC = "The update channel name (\"chat\" drives the conversation itself)";
+    public static final String REQUEST_TYPE_KEY = "requestType";
+    public static final String REQUEST_TYPE_LABEL = "Request Type";
+    public static final String REQUEST_TYPE_DOC = "The request payload type";
+    public static final String RESPONSE_TYPE_KEY = "responseType";
+    public static final String RESPONSE_TYPE_LABEL = "Response Type";
+    public static final String RESPONSE_TYPE_DOC = "The expected response type (optional)";
+
+    private static final String STRING_TYPE = "string";
+    private static final String DEFAULT_REQUEST_TYPE = "string";
+
+    @Override
+    protected NodeKind getFunctionNodeKind() {
+        return NodeKind.DURABLE_AGENT_REGISTER_EVENT;
+    }
+
+    @Override
+    protected FunctionData.Kind getFunctionResultKind() {
+        return FunctionData.Kind.FUNCTION;
+    }
+
+    @Override
+    public void setConcreteConstData() {
+        metadata().label(REGISTER_EVENT_LABEL).description(REGISTER_EVENT_DESCRIPTION);
+        codedata()
+                .node(NodeKind.DURABLE_AGENT_REGISTER_EVENT)
+                .org(WORKFLOW_ORG)
+                .module(WORKFLOW_MODULE)
+                .object(AGENT_CONTEXT_CLASS_NAME)
+                .symbol(REGISTER_UPDATE_EVENTS_METHOD_NAME);
+    }
+
+    @Override
+    public void setConcreteTemplateData(TemplateContext context) {
+        setConcreteConstData();
+
+        properties().custom()
+                .metadata()
+                    .label(NAME_LABEL)
+                    .description(NAME_DOC)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.TEXT)
+                    .ballerinaType(STRING_TYPE)
+                    .selected(true)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType(STRING_TYPE)
+                    .selected(false)
+                    .stepOut()
+                .codedata()
+                    .kind(ParameterData.Kind.REQUIRED.name())
+                    .stepOut()
+                .placeholder("chat")
+                .value("")
+                .editable(true)
+                .stepOut()
+                .addProperty(NAME_KEY);
+
+        properties().custom()
+                .metadata()
+                    .label(REQUEST_TYPE_LABEL)
+                    .description(REQUEST_TYPE_DOC)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.TYPE)
+                    .ballerinaType(DEFAULT_REQUEST_TYPE)
+                    .selected(true)
+                    .stepOut()
+                .codedata()
+                    .kind(ParameterData.Kind.REQUIRED.name())
+                    .stepOut()
+                .value(DEFAULT_REQUEST_TYPE)
+                .editable(true)
+                .stepOut()
+                .addProperty(REQUEST_TYPE_KEY);
+
+        properties().custom()
+                .metadata()
+                    .label(RESPONSE_TYPE_LABEL)
+                    .description(RESPONSE_TYPE_DOC)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.TYPE)
+                    .ballerinaType("")
+                    .selected(true)
+                    .stepOut()
+                .codedata()
+                    .kind(ParameterData.Kind.DEFAULTABLE.name())
+                    .stepOut()
+                .value("")
+                .editable(true)
+                .optional(true)
+                .stepOut()
+                .addProperty(RESPONSE_TYPE_KEY);
+
+        properties().checkError(true);
+    }
+
+    @Override
+    public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
+        String ctxParamName = WorkflowUtil.resolveAgentContextParamName(sourceBuilder);
+        String name = sourceBuilder.getProperty(NAME_KEY)
+                .filter(p -> p.value() != null && !p.value().toString().isEmpty())
+                .map(DurableAgentRegisterEventBuilder::quotedIfText)
+                .orElseThrow(() -> new IllegalStateException("An event name is required"));
+        String requestType = requireValue(sourceBuilder, REQUEST_TYPE_KEY, "A request type is required");
+        Optional<Property> responseType = sourceBuilder.getProperty(RESPONSE_TYPE_KEY)
+                .filter(p -> p.value() != null && !p.value().toString().isEmpty());
+
+        StringBuilder args = new StringBuilder(name).append(", ").append(requestType);
+        responseType.ifPresent(p -> args.append(", ").append(p.value()));
+
+        sourceBuilder.token()
+                .keyword(SyntaxKind.CHECK_KEYWORD)
+                .name(ctxParamName)
+                .keyword(SyntaxKind.DOT_TOKEN)
+                .name(REGISTER_UPDATE_EVENTS_METHOD_NAME)
+                .keyword(SyntaxKind.OPEN_PAREN_TOKEN)
+                .name(args.toString())
+                .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
+                .endOfStatement();
+
+        return sourceBuilder
+                .textEdit()
+                .acceptImport(WORKFLOW_ORG, WORKFLOW_MODULE)
+                .build();
+    }
+
+
+    // Renders a string-valued field: TEXT-mode values are quoted (with escaping) while
+    // expression-mode values pass through as written.
+    private static String quotedIfText(Property property) {
+        String value = property.value() == null ? "" : property.value().toString();
+        boolean textSelected = property.types() == null || property.types().stream()
+                .anyMatch(type -> type.fieldType() == Property.ValueType.TEXT && type.selected());
+        if (!textSelected || (value.startsWith("\"") && value.endsWith("\"") && value.length() >= 2)) {
+            return property.toSourceCode();
+        }
+        return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+    }
+
+    private static String requireValue(SourceBuilder sourceBuilder, String key, String message) {
+        return sourceBuilder.getProperty(key)
+                .filter(p -> p.value() != null && !p.value().toString().isEmpty())
+                .map(Property::toSourceCode)
+                .orElseThrow(() -> new IllegalStateException(message));
+    }
+}

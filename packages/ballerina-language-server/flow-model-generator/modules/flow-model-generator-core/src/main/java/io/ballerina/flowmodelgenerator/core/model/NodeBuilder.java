@@ -45,6 +45,13 @@ import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperCreationBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperDefinitionBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentAddActivityBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentHumanTaskBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentRegisterEventBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentRegisterToolBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentRunBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentUpdateBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ErrorHandlerBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EventStartBuilder;
@@ -189,6 +196,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.WORKFLOW, WorkflowBuilder::new);
         put(NodeKind.ACTIVITY, ActivityBuilder::new);
         put(NodeKind.ACTIVITY_CALL, ActivityCallBuilder::new);
+        put(NodeKind.CONNECTION_ACTIVITY_CALL, ActivityCallBuilder::new);
         put(NodeKind.BUILTIN_ACTIVITY, ActivityCallBuilder::new);
         put(NodeKind.ACTIVITY_CREATION, ActivityCreationBuilder::new);
         put(NodeKind.WAIT_DATA, WaitDataBuilder::new);
@@ -196,6 +204,13 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.WORKFLOW_RUN, WorkflowRunBuilder::new);
         put(NodeKind.HUMAN_TASK, HumanTaskBuilder::new);
         put(NodeKind.SLEEP, SleepBuilder::new);
+        put(NodeKind.DURABLE_AGENT, DurableAgentBuilder::new);
+        put(NodeKind.DURABLE_AGENT_ADD_ACTIVITY, DurableAgentAddActivityBuilder::new);
+        put(NodeKind.DURABLE_AGENT_HUMAN_TASK, DurableAgentHumanTaskBuilder::new);
+        put(NodeKind.DURABLE_AGENT_REGISTER_EVENT, DurableAgentRegisterEventBuilder::new);
+        put(NodeKind.DURABLE_AGENT_REGISTER_TOOL, DurableAgentRegisterToolBuilder::new);
+        put(NodeKind.DURABLE_AGENT_RUN, DurableAgentRunBuilder::new);
+        put(NodeKind.DURABLE_AGENT_UPDATE, DurableAgentUpdateBuilder::new);
     }};
 
     public static NodeBuilder getNodeFromKind(NodeKind kind) {

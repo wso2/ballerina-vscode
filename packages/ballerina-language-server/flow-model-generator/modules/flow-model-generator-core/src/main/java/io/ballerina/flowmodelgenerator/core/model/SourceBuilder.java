@@ -164,7 +164,7 @@ public class SourceBuilder {
                      DATA_LOADER, CHUNKER, CLASS_INIT -> CONNECTIONS_BAL;
                 case DATA_MAPPER_DEFINITION -> DATA_MAPPINGS_BAL;
                 case FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION, WORKFLOW, ACTIVITY,
-                     ACTIVITY_CREATION -> FUNCTIONS_BAL;
+                     ACTIVITY_CREATION, DURABLE_AGENT -> FUNCTIONS_BAL;
                 case AUTOMATION -> AUTOMATION_BAL;
                 case AGENT, MEMORY, SHORT_TERM_MEMORY_STORE, MCP_TOOL_KIT -> AGENTS_BAL;
                 default -> null;

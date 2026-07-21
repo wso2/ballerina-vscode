@@ -101,6 +101,9 @@ public class AvailableNodesGenerator {
     private static final String BALLERINAX = "ballerinax";
     private static final String TEST_MODULE_PREFIX = "test";
     private static final String TEST_CONFIG_ANNOTATION = "Config";
+    // Set per getAvailableNodes call: inside a @workflow:DurableAgent function the palette
+    // leads with the "Configure Durable Agentic Workflow" group, followed by the normal palette.
+    private boolean inDurableAgentFunction = false;
 
     public AvailableNodesGenerator(SemanticModel semanticModel, Document document, Package pkg, Path filePath) {
         this.rootBuilder = new Category.Builder(null).name(Category.Name.ROOT);
@@ -117,8 +120,9 @@ public class AvailableNodesGenerator {
                 && "true".equals(queryMap.get("checkAgentToolCompatibility"));
 
         boolean isInWorkflowFunction = isInsideWorkflowFunction(position);
+        this.inDurableAgentFunction = isInsideDurableAgentFunction(position);
 
-        if (!isInWorkflowFunction) {
+        if (!isInWorkflowFunction && !this.inDurableAgentFunction) {
             List<Category> connections = new ArrayList<>();
             List<Symbol> symbols = semanticModel.visibleSymbols(document, position);
             for (Symbol symbol : symbols) {
@@ -130,6 +134,13 @@ public class AvailableNodesGenerator {
             }
             connections.sort(Comparator.comparing(connection -> connection.metadata().label()));
             this.rootBuilder.stepIn(Category.Name.CONNECTIONS).items(new ArrayList<>(connections)).stepOut();
+        }
+
+        // Inside a durable agent the palette leads with the Configure Agent group.
+        if (this.inDurableAgentFunction) {
+            this.rootBuilder.stepIn(Category.Name.DURABLE_AGENT)
+                    .items(getConfigureAgentNodes())
+                    .stepOut();
         }
 
         boolean insideTestFunction = isInsideTestFunction(position);
@@ -149,6 +160,46 @@ public class AvailableNodesGenerator {
         }
 
         return jsonArray;
+    }
+
+    // The Configure Agent palette group: the four capability registrations.
+    private List<Item> getConfigureAgentNodes() {
+        List<Item> nodes = new ArrayList<>();
+        record NodeSpec(String label, String description, NodeKind kind) { }
+        List<NodeSpec> specs = List.of(
+                new NodeSpec(Workflow.REGISTER_EVENT_LABEL, Workflow.REGISTER_EVENT_DESCRIPTION,
+                        NodeKind.DURABLE_AGENT_REGISTER_EVENT),
+                new NodeSpec(Workflow.REGISTER_ACTIVITY_LABEL, Workflow.REGISTER_ACTIVITY_DESCRIPTION,
+                        NodeKind.DURABLE_AGENT_ADD_ACTIVITY),
+                new NodeSpec(Workflow.REGISTER_HUMAN_TASK_LABEL, Workflow.REGISTER_HUMAN_TASK_DESCRIPTION,
+                        NodeKind.DURABLE_AGENT_HUMAN_TASK),
+                new NodeSpec(Workflow.REGISTER_AGENT_TOOL_LABEL, Workflow.REGISTER_AGENT_TOOL_DESCRIPTION,
+                        NodeKind.DURABLE_AGENT_REGISTER_TOOL),
+                new NodeSpec(Workflow.RUN_DURABLE_AGENT_LABEL, Workflow.RUN_DURABLE_AGENT_DESCRIPTION,
+                        NodeKind.DURABLE_AGENT_RUN));
+        for (NodeSpec spec : specs) {
+            nodes.add(new AvailableNode(
+                    new Metadata.Builder<>(null)
+                            .label(spec.label())
+                            .description(spec.description())
+                            .build(),
+                    new Codedata.Builder<>(null)
+                            .node(spec.kind())
+                            .build(),
+                    true));
+        }
+        return nodes;
+    }
+
+    private boolean isInsideDurableAgentFunction(LinePosition position) {
+        try {
+            int txtPos = this.document.textDocument().textPositionFrom(position);
+            TextRange range = TextRange.from(txtPos, 0);
+            NonTerminalNode node = ((ModulePartNode) document.syntaxTree().rootNode()).findNode(range);
+            return WorkflowUtil.isInsideDurableAgentFunction(this.semanticModel, node);
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     private boolean isInsideWorkflowFunction(LinePosition position) {
@@ -316,15 +367,17 @@ public class AvailableNodesGenerator {
     }
 
     private void setDefaultNodes(boolean disableBallerinaAiNodes, boolean isInWorkflowFunction) {
-        if (!isInWorkflowFunction) {
+        if (!isInWorkflowFunction && !this.inDurableAgentFunction) {
             this.rootBuilder.stepIn(Category.Name.AI)
                     .items(getAiNodes(disableBallerinaAiNodes))
                     .stepOut();
         }
 
-        this.rootBuilder.stepIn(Category.Name.WORKFLOW)
-                .items(getWorkflowNodes(isInWorkflowFunction))
-                .stepOut();
+        if (!this.inDurableAgentFunction) {
+            this.rootBuilder.stepIn(Category.Name.WORKFLOW)
+                    .items(getWorkflowNodes(isInWorkflowFunction))
+                    .stepOut();
+        }
 
         AvailableNode function = new AvailableNode(
                 new Metadata.Builder<>(null)
@@ -357,7 +410,7 @@ public class AvailableNodesGenerator {
                     .node(NodeKind.PANIC)
                     .stepOut();
 
-        if (!isInWorkflowFunction) {
+        if (!isInWorkflowFunction && !this.inDurableAgentFunction) {
             this.rootBuilder
                     .stepIn(Category.Name.CONCURRENCY)
                         .node(NodeKind.FORK)
@@ -448,6 +501,7 @@ public class AvailableNodesGenerator {
         return List.of(directLlmCategory, ragCategory, agentCategory);
     }
 
+
     private List<Item> getWorkflowNodes(boolean isInWorkflowFunction) {
         List<Item> workflowNodes = new ArrayList<>();
 
@@ -526,8 +580,20 @@ public class AvailableNodesGenerator {
                     true
             );
 
+            AvailableNode updateAgent = new AvailableNode(
+                    new Metadata.Builder<>(null)
+                            .label(Workflow.UPDATE_AGENT_LABEL)
+                            .description(Workflow.UPDATE_AGENT_DESCRIPTION)
+                            .build(),
+                    new Codedata.Builder<>(null)
+                            .node(NodeKind.DURABLE_AGENT_UPDATE)
+                            .build(),
+                    true
+            );
+
             workflowNodes.add(runWorkflow);
             workflowNodes.add(sendData);
+            workflowNodes.add(updateAgent);
         }
 
         return workflowNodes;

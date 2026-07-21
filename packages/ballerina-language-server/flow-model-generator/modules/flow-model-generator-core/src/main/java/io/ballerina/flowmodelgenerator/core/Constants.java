@@ -121,6 +121,7 @@ public class Constants {
         public static final String WORKFLOW = "Workflow";
         public static final String ACTIVITY = "Activity";
         public static final String DEFAULT_CTX_PARAM_NAME = "ctx";
+        public static final String DEFAULT_AGENT_CTX_PARAM_NAME = "durableAgentContext";
         public static final String DEFAULT_DATA_PARAM_NAME = "data";
         public static final String DEFAULT_INPUT_PARAM_NAME = "input";
         public static final String DATA_SUFFIX = "Data";
@@ -144,6 +145,36 @@ public class Constants {
         public static final String SLEEP_METHOD_NAME = "sleep";
         public static final String SLEEP_LABEL = "Sleep";
         public static final String SLEEP_DESCRIPTION = "Pause workflow execution for a specified duration";
+
+        // Durable agent constants
+        public static final String DURABLE_AGENT = "DurableAgenticWorkflow";
+        public static final String AGENT_CONTEXT_CLASS_NAME = "AgenticWorkflowContext";
+        public static final String REGISTER_ACTIVITY_METHOD_NAME = "registerActivity";
+        public static final String REGISTER_ACTIVITY_LABEL = "Register Activity";
+        public static final String REGISTER_ACTIVITY_DESCRIPTION =
+                "Register a workflow activity as a durable agent tool";
+        public static final String REGISTER_HUMAN_TASK_METHOD_NAME = "registerHumanTask";
+        public static final String REGISTER_HUMAN_TASK_LABEL = "Register HumanTask";
+        public static final String REGISTER_HUMAN_TASK_DESCRIPTION =
+                "Register a human task the agent can create and wait on";
+        public static final String REGISTER_UPDATE_EVENTS_METHOD_NAME = "registerUpdateEvents";
+        public static final String REGISTER_EVENT_LABEL = "Register Event";
+        public static final String REGISTER_EVENT_DESCRIPTION =
+                "Declare a named two-way update channel the agent can wait on";
+        public static final String REGISTER_AGENT_TOOL_METHOD_NAME = "registerAgentTool";
+        public static final String REGISTER_AGENT_TOOL_LABEL = "Register AgentTool";
+        public static final String REGISTER_AGENT_TOOL_DESCRIPTION =
+                "Register an AI tool the agent can invoke";
+        public static final String RUN_DURABLE_AGENT_METHOD_NAME = "buildAndRunAgent";
+        public static final String RUN_DURABLE_AGENT_LABEL = "Build and Run Agent";
+        public static final String RUN_DURABLE_AGENT_DESCRIPTION =
+                "Build the agent from the registered capabilities and run the durable loop";
+        public static final String RUN_DURABLE_AGENT_FUNCTION_NAME = "runDurableAgent";
+        public static final String UPDATE_AGENT_FUNCTION_NAME = "updateAgent";
+        public static final String UPDATE_AGENT_ASYNC_FUNCTION_NAME = "updateAgentAsync";
+        public static final String UPDATE_AGENT_LABEL = "Update Durable Agentic Workflow";
+        public static final String UPDATE_AGENT_DESCRIPTION =
+                "Send a request to a running durable agent and receive its answer for that turn";
     }
 
     // Constants used for AI

@@ -743,6 +743,21 @@ const MainPanel = () => {
                             );
                             break;
                         }
+                        case MACHINE_VIEW.BIDurableAgentForm: {
+                            const { FunctionForm } = await import("./views/BI/FunctionForm");
+                            const defaultFunctionsFile = await getDefaultFunctionsFile();
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <FunctionForm
+                                    key={remountKey}
+                                    projectPath={value.projectPath}
+                                    filePath={defaultFunctionsFile}
+                                    functionName={value?.identifier}
+                                    isDurableAgent={true}
+                                />
+                            );
+                            break;
+                        }
                         case MACHINE_VIEW.BITestFunctionForm: {
                             const { TestFunctionForm } = await import("./views/BI/TestFunctionForm");
                             if (isStaleNavigation()) return;

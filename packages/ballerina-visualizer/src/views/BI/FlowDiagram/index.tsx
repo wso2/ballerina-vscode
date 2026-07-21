@@ -172,8 +172,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const targetRef = useRef<LineRange>();
     const suggestedText = useRef<string>();
     const selectedClientName = useRef<string>();
+    // True while the ACTIVITY_LIST panel was opened from the durable agent's "Add Activity"
+    // node: in-list searches must keep hiding builtins and produce DURABLE_AGENT_ADD_ACTIVITY items.
+    const durableAgentActivityListRef = useRef<boolean>(false);
     const initialCategoriesRef = useRef<any[]>([]);
     const showEditForm = useRef<boolean>(false);
+    // True while the call form open is step 3 of the create-activity-from-connection wizard.
+    const [showActivityCallStep, setShowActivityCallStep] = useState<boolean>(false);
     const selectedNodeMetadata = useRef<{ nodeId: string; metadata: any; fileName: string }>();
     const shouldUpdateLineRangeRef = useRef<boolean>(false);
     const updatedNodeRef = useRef<FlowNode>(undefined);
@@ -574,7 +579,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 const response = await rpcClient.getBIDiagramRpcClient().search({
                     position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
                     filePath: model?.fileName,
-                    queryMap: undefined,
+                    queryMap: durableAgentActivityListRef.current
+                        ? { nodeKind: "DURABLE_AGENT_ADD_ACTIVITY" }
+                        : undefined,
                     searchKind: "ACTIVITY_CALL",
                 });
                 const panelCategories = convertFunctionCategoriesToSidePanelCategories(
@@ -900,6 +907,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const resetNodeSelectionStates = () => {
         setShowSidePanel(false);
         setSidePanelView(SidePanelView.NODE_LIST);
+        setShowActivityCallStep(false);
         setSubPanel({ view: SubPanelView.UNDEFINED });
         setSelectedNodeId(undefined);
         selectedNodeRef.current = undefined;
@@ -1087,6 +1095,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 limit: 60,
                 offset: 0,
                 includeAvailableFunctions: "true",
+                ...(searchKind === "ACTIVITY_CALL" && durableAgentActivityListRef.current
+                    ? { nodeKind: "DURABLE_AGENT_ADD_ACTIVITY" }
+                    : {}),
             },
             searchKind,
         };
@@ -1395,6 +1406,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnSelectNode = (nodeId: string, metadata?: any, fileName?: string) => {
         selectedNodeMetadata.current = { nodeId, metadata, fileName: model?.fileName || fileName };
+        // A node selected through the normal palette flow is not part of the create-activity wizard.
+        setShowActivityCallStep(false);
         const { node, category } = metadata as { node: AvailableNode; category?: string };
 
         // Push current state to navigation stack before navigating
@@ -1532,6 +1545,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             case "ACTIVITY_CALL":
                 // First click from node list should open searchable activity list.
                 if (sidePanelView === SidePanelView.NODE_LIST) {
+                    durableAgentActivityListRef.current = false;
                     setShowProgressIndicator(true);
                     rpcClient
                         .getBIDiagramRpcClient()
@@ -1576,6 +1590,98 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         showEditForm.current = false;
                         setSidePanelView(SidePanelView.FORM);
                         setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
+            case "DURABLE_AGENT_ADD_ACTIVITY":
+                // First click from the palette opens the same searchable activity list the
+                // workflow "Call Activity" node uses, including the prebuilt (builtin)
+                // activities — those are registered as-is with bindings.
+                if (sidePanelView === SidePanelView.NODE_LIST) {
+                    durableAgentActivityListRef.current = true;
+                    setShowProgressIndicator(true);
+                    rpcClient
+                        .getBIDiagramRpcClient()
+                        .search({
+                            position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                            filePath: model?.fileName || fileName,
+                            queryMap: { nodeKind: "DURABLE_AGENT_ADD_ACTIVITY" },
+                            searchKind: "ACTIVITY_CALL",
+                        })
+                        .then((response) => {
+                            const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                                response.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            );
+                            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                                currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
+                            }
+                            setCategories(panelCategories);
+                            setSidePanelView(SidePanelView.ACTIVITY_LIST);
+                            setShowSidePanel(true);
+                        })
+                        .finally(() => {
+                            setShowProgressIndicator(false);
+                        });
+                    break;
+                }
+
+                // A prebuilt (builtin) activity needs its registration form: connection +
+                // fixed arguments (bindings) + tool name/description.
+                if (node.codedata?.module === "workflow.activity") {
+                    selectedClientName.current = category;
+                    setShowProgressIndicator(true);
+                    rpcClient
+                        .getBIDiagramRpcClient()
+                        .getNodeTemplate({
+                            position: targetRef.current.startLine,
+                            filePath: model?.fileName || fileName,
+                            id: node.codedata,
+                        })
+                        .then((response) => {
+                            selectedNodeRef.current = response.flowNode;
+                            nodeTemplateRef.current = response.flowNode;
+                            showEditForm.current = false;
+                            setSidePanelView(SidePanelView.FORM);
+                            setShowSidePanel(true);
+                        })
+                        .finally(() => {
+                            setShowProgressIndicator(false);
+                        });
+                    break;
+                }
+
+                // Selecting a project activity from the list is a complete choice — generate the
+                // registerActivity statement directly (no intermediate form) and close the panel.
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getNodeTemplate({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                        id: node.codedata,
+                    })
+                    .then(async (response) => {
+                        const activityNode = response.flowNode;
+                        activityNode.codedata.isNew = true;
+                        activityNode.codedata.lineRange = {
+                            fileName: model?.fileName,
+                            startLine: targetRef.current.startLine,
+                            endLine: targetRef.current.startLine,
+                        } as any;
+                        await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                            filePath: model.fileName,
+                            flowNode: activityNode,
+                        });
+                        durableAgentActivityListRef.current = false;
+                        closeSidePanelAndFetchUpdatedFlowModel();
+                    })
+                    .catch((error) => {
+                        console.error(">>> Error registering activity on the agent", error);
                     })
                     .finally(() => {
                         setShowProgressIndicator(false);
@@ -2104,6 +2210,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnEditNode = async (node: FlowNode) => {
         setSelectedNodeId(node.id);
+        // Editing an existing node is not part of the create-activity wizard.
+        setShowActivityCallStep(false);
         selectedNodeRef.current = node;
         if (suggestedText.current) {
             // use targetRef from suggested model
@@ -2748,7 +2856,138 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     // AI Agent callback handlers
+    // Adds a workflow activity to the durable agent: the registerActivities statement is
+    // inserted BEFORE the runDurableAgent call (capabilities must be registered before the
+    // agent starts), picked from the same activity list the workflow Call Activity uses.
+    const handleOnAddDurableActivity = async (runNode: FlowNode) => {
+        const insertBefore = {
+            startLine: runNode.codedata.lineRange.startLine,
+            endLine: runNode.codedata.lineRange.startLine,
+        };
+        targetRef.current = insertBefore as any;
+        setTargetLineRange(insertBefore as any);
+        durableAgentActivityListRef.current = true;
+        setShowProgressIndicator(true);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .search({
+                position: { startLine: insertBefore.startLine, endLine: insertBefore.endLine },
+                filePath: model?.fileName,
+                queryMap: { excludeBuiltins: "true", nodeKind: "DURABLE_AGENT_ADD_ACTIVITY" },
+                searchKind: "ACTIVITY_CALL",
+            })
+            .then((response) => {
+                const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                    response.categories as Category[],
+                    FUNCTION_TYPE.REGULAR
+                );
+                const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                    currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
+                }
+                setCategories(panelCategories);
+                setSidePanelView(SidePanelView.ACTIVITY_LIST);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    // Adds a human task to the durable agent, inserted BEFORE the runDurableAgent call.
+    const handleOnAddDurableHumanTask = async (runNode: FlowNode) => {
+        const insertBefore = {
+            startLine: runNode.codedata.lineRange.startLine,
+            endLine: runNode.codedata.lineRange.startLine,
+        };
+        targetRef.current = insertBefore as any;
+        setTargetLineRange(insertBefore as any);
+        setShowProgressIndicator(true);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: insertBefore.startLine,
+                filePath: model?.fileName,
+                id: { node: "DURABLE_AGENT_HUMAN_TASK" },
+            })
+            .then((response) => {
+                // The FORM reads the node from selectedNodeRef; both refs must point at the
+                // template or the form renders empty.
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    // Opens the edit form for an already-registered activity or human task (from clicking its
+    // agent-box circle). The capability metadata carries the statement line range and its parsed
+    // argument values, so the form opens pre-filled and saving rewrites that statement.
+    const handleOnEditDurableCapability = async (runNode: FlowNode, capability: any) => {
+        const lineRange = capability?.lineRange;
+        if (!lineRange) {
+            return;
+        }
+        const nodeKind = capability?.type === "activity" ? "DURABLE_AGENT_ADD_ACTIVITY"
+            : capability?.type === "event" ? "DURABLE_AGENT_REGISTER_EVENT"
+                : capability?.type === "tool" ? "DURABLE_AGENT_REGISTER_TOOL"
+                    : "DURABLE_AGENT_HUMAN_TASK";
+        targetRef.current = lineRange;
+        setTargetLineRange(lineRange);
+        setShowProgressIndicator(true);
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+                position: lineRange.startLine,
+                filePath: model?.fileName,
+                id: { node: nodeKind } as any,
+            });
+            const node = response.flowNode;
+            // Seed the form with the existing statement's values and point it at that statement.
+            const values = (capability?.values || {}) as Record<string, string>;
+            const nodeProps = node.properties as Record<string, { value: unknown }>;
+            for (const [key, value] of Object.entries(values)) {
+                if (nodeProps?.[key]) {
+                    nodeProps[key].value = value;
+                }
+            }
+            node.codedata.lineRange = lineRange;
+            node.codedata.isNew = false;
+            selectedNodeRef.current = node;
+            nodeTemplateRef.current = node;
+            showEditForm.current = true;
+            setSidePanelView(SidePanelView.FORM);
+            setShowSidePanel(true);
+        } finally {
+            setShowProgressIndicator(false);
+        }
+    };
+
+    // Opens the durable agent identifier form (name/description/input parameter) in the
+    // right side panel from the gear button in the agent box header. The agent identifier
+    // is the enclosing function name, carried in the run node's metadata.data.agentName.
+    const handleOnConfigureAgentIdentifier = async (node: FlowNode) => {
+        selectedNodeRef.current = node;
+        showEditForm.current = true;
+        setSelectedNodeId(node.id);
+        setSidePanelView(SidePanelView.AGENT_IDENTIFIER);
+        setShowSidePanel(true);
+    };
+
     const handleOnEditAgentModel = async (agentCallNode: FlowNode) => {
+        // The durable agent run node holds its own `model` property; configure it directly.
+        if (agentCallNode.codedata?.node === "DURABLE_AGENT_RUN") {
+            selectedNodeRef.current = agentCallNode;
+            showEditForm.current = true;
+            setSelectedNodeId(agentCallNode.id);
+            setSelectedConnectionKind('MODEL_PROVIDER');
+            setSidePanelView(SidePanelView.CONNECTION_CONFIG);
+            setShowSidePanel(true);
+            return;
+        }
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
         if (!agentNode) {
             console.error(`Agent node not found`, agentCallNode);
@@ -3195,6 +3434,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             agentNode: {
                 onModelSelect: handleOnEditAgentModel,
                 onAddTool: handleOnAddTool,
+                onAddActivity: handleOnAddDurableActivity,
+                onAddHumanTask: handleOnAddDurableHumanTask,
+                onEditCapability: handleOnEditDurableCapability,
+                onConfigureAgent: handleOnConfigureAgentIdentifier,
                 onAddMcpServer: handleOnAddMcpServer,
                 onSelectTool: handleOnSelectTool,
                 onSelectMcpToolkit: handleOnSelectMcpToolkit,
@@ -3262,6 +3505,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 nodeFormTemplate={nodeTemplateRef.current}
                 selectedClientName={selectedClientName.current}
                 showEditForm={showEditForm.current}
+                showActivityCallStep={showActivityCallStep}
                 targetLineRange={targetLineRange}
                 connections={model?.connections}
                 fileName={model?.fileName}
