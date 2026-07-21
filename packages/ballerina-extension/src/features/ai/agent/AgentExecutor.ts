@@ -32,7 +32,7 @@ import { createToolRegistry } from './tool-registry';
 import { loadSkillsContext } from './skills/context';
 
 import { refreshMcpClientManager } from './mcp';
-import { getProjectSource, getReviewBaselinePath } from '../utils/project/temp-project';
+import { getProjectSource } from '../utils/project/temp-project';
 import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
@@ -977,7 +977,9 @@ Generation stopped by user. The last in-progress task was not saved. Any complet
             await savePendingReviewRestore({
                 generationId: context.messageId,
                 tempProjectPath: context.ctx.tempProjectPath!,
-                baselineProjectPath: getReviewBaselinePath(context.ctx.tempProjectPath!),
+                // Direct-edit mode keeps no on-disk baseline copy; the checkpoint snapshot
+                // (fallbackOriginalContents on restore) is the source of pre-generation originals.
+                baselineProjectPath: undefined,
                 modifiedFiles: accumulatedModifiedFiles,
                 affectedPackagePaths: affectedPackages,
                 semanticDiffs,

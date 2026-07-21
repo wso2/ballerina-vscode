@@ -194,17 +194,17 @@ export function sendAgentDidCloseBatch(tempProjectPath: string, files: string[])
 }
 
 /**
- * Re-opens a pending review's modified files in the Language Server after it has
- * restarted (e.g. a VS Code window reload): the in-memory file:// (original
- * baseline) and ai:// (modified) documents are gone, while the temp project on
- * disk holds the modified content and its review baseline holds the originals.
- * Older payloads can fall back to a generation checkpoint. Restores both schemas
- * so semantic diff and flow-model lookups work.
- * @param tempProjectPath The root path of the temporary project
+ * Re-opens a generation's modified files in the Language Server after it has restarted
+ * (e.g. a VS Code window reload): the in-memory ai:// (frozen original baseline) and
+ * file:// (live/modified) documents are gone. The project on disk holds the live content;
+ * the original comes from the review baseline dir when present, otherwise the checkpoint
+ * snapshot. Restores both schemas so semantic diff and flow-model lookups work.
+ * @param tempProjectPath The root path of the project (real workspace root in direct-edit mode)
  * @param modifiedFiles Relative paths of the generation's modified files
- * @param baselineProjectPath Frozen pre-generation Ballerina sources. Its presence explicitly
- * distinguishes added files (modified only), deleted files (baseline only), and modifications.
- * @param fallbackOriginalContents Checkpoint snapshot for payloads written before baselines existed
+ * @param baselineProjectPath Frozen pre-generation sources dir, when one exists (temp-copy flows).
+ * Undefined in direct-edit mode, where fallbackOriginalContents supplies the originals.
+ * @param fallbackOriginalContents Checkpoint snapshot of pre-generation content — the original source
+ * in direct-edit mode, and a fallback for payloads written before baselines existed.
  */
 export function sendReviewRestoreDidOpenBatch(
   tempProjectPath: string,
@@ -257,11 +257,12 @@ export function sendReviewRestoreDidOpenBatch(
       const tempFileUri = Uri.file(tempFileFullPath).toString();
       const aiUri = 'ai' + tempFileUri.substring(4); // Replace 'file' prefix with 'ai'
 
+      // ai:// = frozen original baseline, file:// = live/modified (getSemanticDiff diffs ai://→file://).
       StateMachine.langClient().didOpen({
-        textDocument: { uri: tempFileUri, languageId, version: 1, text: originalContent }
+        textDocument: { uri: tempFileUri, languageId, version: 1, text: modifiedContent }
       });
       StateMachine.langClient().didOpen({
-        textDocument: { uri: aiUri, languageId, version: 1, text: modifiedContent }
+        textDocument: { uri: aiUri, languageId, version: 1, text: originalContent }
       });
       console.log(`[AgentNotification] Restored review schemas for: ${filePath}`);
     } catch (error) {

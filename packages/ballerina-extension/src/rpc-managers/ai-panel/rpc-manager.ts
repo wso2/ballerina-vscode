@@ -144,6 +144,7 @@ import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExe
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
+import { approvalViewManager } from '../../features/ai/state/ApprovalViewManager';
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
@@ -487,6 +488,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
             // Its edits are already live in the workspace — accept just finalizes status.
             chatStateStorage.finalizeLastGenerationIfDone(projectRootPath, threadId);
+            // The review is over: drop its cached nav state and stale restore Memento.
+            approvalViewManager.clearReviewData();
             console.log(`[Review Actions] Accepted generation: ${doneGeneration.id}`);
 
             sendGenerationKeptTelemetry(doneGeneration.id);
@@ -536,6 +539,8 @@ User reverted the last made changes. The files have been restored to the state b
             });
 
             chatStateStorage.revertLastGeneration(projectRootPath, threadId);
+            // The review is over: drop its cached nav state and stale restore Memento.
+            approvalViewManager.clearReviewData();
             console.log(`[Review Actions] Reverted generation: ${doneGeneration.id}`);
 
             sendGenerationDiscardTelemetry(doneGeneration.id);
