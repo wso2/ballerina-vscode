@@ -160,6 +160,9 @@ test.describe('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
 
     // <----Other Artifacts Test---->
     test.describe(functionArtifact);
+
+    // <----Project Explorer Test---->
+    test.describe(projectExplorer);
 });
 
 test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
@@ -205,9 +208,6 @@ test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
 
     // <----Test Explorer Test---->
     test.describe(testExplorer);
-
-    // <----Project Explorer Test---->
-    test.describe(projectExplorer);
 });
 
 test.afterAll(async () => {
