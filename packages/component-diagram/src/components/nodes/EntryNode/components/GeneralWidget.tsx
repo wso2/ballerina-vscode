@@ -21,7 +21,7 @@ import { PortWidget } from "@projectstorm/react-diagrams-core";
 import { CDAutomation, CDService, CDWorkflow } from "@wso2/ballerina-core";
 import { Item, Menu, MenuItem, Popover, ImageWithFallback, Icon } from "@wso2/ui-toolkit";
 import { useDiagramContext } from "../../../DiagramContext";
-import { ClockIcon, HttpIcon, TaskIcon } from "../../../../resources";
+import { HttpIcon, TaskIcon } from "../../../../resources";
 import { MoreVertIcon } from "../../../../resources/icons/nodes/MoreVertIcon";
 import { getEntryNodeFunctionPortName } from "../../../../utils/diagram";
 import { PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../../Diagram";
@@ -263,7 +263,7 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     const nodeIcon = (() => {
         switch (model.type) {
             case "workflow":
-                return <ClockIcon />;
+                return <Icon name="bi-flowchart" sx={{ fontSize: 24, width: 24, height: 24 }} />;
             case "automation":
                 return <TaskIcon />;
             case "service":

@@ -158,10 +158,11 @@ public class CodeAnalyzer extends NodeVisitor {
             displayName = getDisplayName(serviceDeclarationSymbol.annotAttachments());
             Optional<TypeSymbol> typeDescriptor = serviceDeclarationSymbol.typeDescriptor();
             if (serviceDeclarationNode.typeDescriptor().isPresent()
-                    && typeDescriptor.isPresent() && typeDescriptor.get().getModule().isPresent()) {
+                    && typeDescriptor.isPresent() && typeDescriptor.get().getModule().isPresent()
+                    && serviceDeclarationSymbol.getModule().isPresent()) {
                 TypeSymbol typeSymbol = typeDescriptor.get();
                 serviceType = CommonUtils.getTypeSignature(typeSymbol,
-                        CommonUtils.ModuleInfo.from(typeSymbol.getModule().get().id()));
+                        CommonUtils.ModuleInfo.from(serviceDeclarationSymbol.getModule().get().id()));
             }
         }
         String absoluteResourcePath = String.join("", serviceDeclarationNode.absoluteResourcePath()

@@ -37,6 +37,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ACTIVITY_MODULE;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_EMAIL_DESCRIPTION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_EMAIL_FUNCTION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_EMAIL_LABEL;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_REST_DESCRIPTION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_REST_FUNCTION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_REST_LABEL;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_SOAP_DESCRIPTION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_SOAP_FUNCTION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_SOAP_LABEL;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
+
 /**
  * Represents a command to search for workflow activity functions within a project.
  * This class extends SearchCommand and provides functionality to search for functions
@@ -99,7 +111,6 @@ class ActivitySearchCommand extends SearchCommand {
                                 .flatMap(doc -> doc.description())
                                 .orElse("Workflow activity function");
 
-                        // Build the codedata with ACTIVITY_CALL node kind
                         Codedata codedata = new Codedata.Builder<>(null)
                                 .node(NodeKind.ACTIVITY_CALL)
                                 .org(orgName)
@@ -113,10 +124,32 @@ class ActivitySearchCommand extends SearchCommand {
                                 .description(description)
                                 .build();
 
-                        AvailableNode node = new AvailableNode(metadata, codedata, true);
-                        activityCategory.node(node);
+                        activityCategory.node(new AvailableNode(metadata, codedata, true));
                     });
         });
+
+        // Add prebuilt activities section
+        Category.Builder builtinCategory = rootBuilder.stepIn(Category.Name.BUILTIN_ACTIVITIES);
+        addBuiltinNode(builtinCategory, BUILTIN_REST_LABEL, BUILTIN_REST_DESCRIPTION, BUILTIN_REST_FUNCTION);
+        addBuiltinNode(builtinCategory, BUILTIN_SOAP_LABEL, BUILTIN_SOAP_DESCRIPTION, BUILTIN_SOAP_FUNCTION);
+        addBuiltinNode(builtinCategory, BUILTIN_EMAIL_LABEL, BUILTIN_EMAIL_DESCRIPTION, BUILTIN_EMAIL_FUNCTION);
+    }
+
+    private void addBuiltinNode(Category.Builder category, String label, String description, String symbol) {
+        if (!matchesQuery(label)) {
+            return;
+        }
+        Codedata codedata = new Codedata.Builder<>(null)
+                .node(NodeKind.BUILTIN_ACTIVITY)
+                .org(WORKFLOW_ORG)
+                .module(ACTIVITY_MODULE)
+                .symbol(symbol)
+                .build();
+        Metadata metadata = new Metadata.Builder<>(null)
+                .label(label)
+                .description(description)
+                .build();
+        category.node(new AvailableNode(metadata, codedata, true));
     }
 
     /**

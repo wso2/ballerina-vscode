@@ -160,6 +160,67 @@ Open the repo in VS Code and press **F5**. The root `.vscode/launch.json` provid
 To debug the language server: run the **`build:ballerina-language-server (with debug agent)`**
 task (Cmd+Shift+P → "Tasks: Run Task") and then launch **Attach to Ballerina Language Server**.
 
+## Testing
+
+How to run, write, and add tests at every level is in [docs/TEST_GUIDE.md](docs/TEST_GUIDE.md). In short,
+we push tests **down** a layered pyramid so most coverage is fast and deterministic:
+
+| Layer | What | Runs in |
+|---|---|---|
+| **L0** Static | TS strict + shared contract types | compile |
+| **L1** Unit | pure logic (codegen, search, range math) | Jest, node |
+| **L2** Component | fixture → render → assert *semantics* (the workhorse: forms, diagrams) | Jest + jsdom + RTL |
+| **L3** Contract | rpc-manager request/response shapes vs recorded LS fixtures | Jest, node, `vscode` mocked |
+| **L4** LS integration | a real headless LS over stdio (no VSCode) + nightly fixture validation | Jest, node |
+| **L5** E2E smoke | ~critical journeys only | Playwright + VSCode |
+| **L6** QA-owned | visual / UX / perf — not automated | humans + perf scripts |
+
+**Deciding where a test goes:** pure in/out → L1. "Does the right UI render for this
+data?" → L2. "Do the two sides exchange the right message?" → L3. "Does the LS produce
+the right model?" → L4. Whole app → L5 (only if no lower layer can see it).
+
+### Running the fast tests (L0–L3)
+
+Fast tests use **Jest** (Node ≥ 20 required):
+
+```bash
+# one package
+cd packages/ballerina-side-panel && pnpm test
+
+# what CI runs: every package that has a jest.config.js
+for cfg in packages/*/jest.config.js; do ( cd "$(dirname "$cfg")" && pnpm test ); done
+```
+
+CI runs the same set in the **`fast-tests`** job on every PR (it auto-discovers any
+package with a `jest.config.js` — see `.github/workflows/build.yml`).
+
+### Adding tests to a package
+
+Shared Jest config, jsdom mocks and fixture helpers live in `@wso2/test-config`. A new
+package opts in with a 3-line `jest.config.js` — see
+[packages/test-config/README.md](packages/test-config/README.md) for the recipe and the
+`renderField` / `mockEditors` form-test helpers.
+
+### Capturing fixtures
+
+Tests replay recorded LS/RPC traffic instead of spawning the LS. To record real traffic,
+launch the extension (or an E2E run) with recording on:
+
+```bash
+BAL_RECORD_FIXTURES=1 BAL_FIXTURES_DIR=/tmp/fixtures  # then run the app / a flow
+```
+
+Curate the JSON under `packages/<pkg>/src/test/fixtures/<method>/`, naming regression
+cases `issue-<n>.json`. Secrets and machine paths are redacted on capture.
+
+### Regression policy
+
+**Every bug fix ships a fixture-driven test named after its issue** (`issue-<n>.json` +
+an assertion), so the bug can't silently return. Reviewers should ask for it. For
+first-occurrence (non-regression) bugs, prefer an **invariant** test (a rule asserted
+over the whole fixture corpus, e.g. "every array-typed field renders the array editor")
+so untested siblings of the reported bug are caught too.
+
 ## Working with the language server jar
 
 The extension reads its LS jar from `packages/ballerina-extension/ls/*.jar`. By default
@@ -254,6 +315,7 @@ Release process is documented at `.github/workflows/README.md`:
 ## Where to read next
 
 - `AGENTS.md` — guidance for AI coding agents working in this repo
+- [`docs/TEST_GUIDE.md`](docs/TEST_GUIDE.md) — how to run, write, and add tests at every level
 - `.github/workflows/README.md` — what each CI workflow does, and required secrets
 - `packages/ballerina-language-server/README.md` — language server architecture
 - Upstream Rush documentation: <https://rushjs.io>

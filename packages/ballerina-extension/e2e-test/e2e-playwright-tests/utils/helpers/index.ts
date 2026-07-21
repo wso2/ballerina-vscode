@@ -37,10 +37,13 @@ export {
 export { getWebview } from './webview';
 
 // Re-export from artifacts
-export { addArtifact, enableICP } from './artifacts';
+export { addArtifact, createArtifactAndGetWebview, enableICP } from './artifacts';
+
+// Re-export from serviceActions
+export { confirmSaveChangesAndGoBack, deleteArtifactFromTree } from './serviceActions';
 
 // Re-export from verification
-export { verifyGeneratedSource } from './verification';
+export { verifyGeneratedSource, verifyRecordFields } from './verification';
 
 // Re-export from progress
 export { logStep } from './progress';
