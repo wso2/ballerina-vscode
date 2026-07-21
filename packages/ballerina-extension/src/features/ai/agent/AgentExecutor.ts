@@ -934,14 +934,15 @@ Generation stopped by user. The last in-progress task was not saved. Any complet
             let affectedPackages: string[] = [];
             const diffPackageMap: string[] = [];
             const langClient = StateMachine.context().langClient;
-            const tempDir = context.ctx.tempProjectPath!;
+            // The execution's working root: the real workspace in direct-edit mode.
+            const workingProjectPath = context.ctx.tempProjectPath!;
             affectedPackages = cachedAffectedPackages.length > 0
                 ? cachedAffectedPackages
-                : await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
+                : await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, workingProjectPath);
             const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
             for (const pkg of affectedPackages) {
                 // Skip workspace root — it only contains Ballerina.toml, not a real package
-                if (isWorkspace && pkg === tempDir) { continue; }
+                if (isWorkspace && pkg === workingProjectPath) { continue; }
                 const pkgName = path.basename(pkg);
                 try {
                     const res = await langClient.getSemanticDiff({ projectPath: pkg });
@@ -966,7 +967,7 @@ Generation stopped by user. The last in-progress task was not saved. Any complet
                 loadDesignDiagrams,
                 affectedPackages,
                 modifiedFiles: accumulatedModifiedFiles,
-                tempProjectPath: context.ctx.tempProjectPath!,
+                tempProjectPath: workingProjectPath,
                 isWorkspace,
             };
 
@@ -976,7 +977,7 @@ Generation stopped by user. The last in-progress task was not saved. Any complet
             // stash what the diff view needs to reopen after an extension host restart.
             await savePendingReviewRestore({
                 generationId: context.messageId,
-                tempProjectPath: context.ctx.tempProjectPath!,
+                tempProjectPath: workingProjectPath,
                 // Direct-edit mode keeps no on-disk baseline copy; the checkpoint snapshot
                 // (fallbackOriginalContents on restore) is the source of pre-generation originals.
                 baselineProjectPath: undefined,
