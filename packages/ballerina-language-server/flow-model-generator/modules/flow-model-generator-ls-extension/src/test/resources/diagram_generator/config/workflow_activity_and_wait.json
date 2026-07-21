@@ -44,6 +44,9 @@
           "sourceCode": "# Process an order workflow with events\n@workflow:Workflow\nfunction orderWorkflow(workflow:Context ctx, OrderInput input, OrderWorkflowEvents events) returns error? {\n    // Activity call - should be ACTIVITY_CALL\n    int intResult = check ctx->callActivity(calculateDiscount, {amount: 100.0});\n    io:println(\"Discount calculated: \" + intResult.toString());\n\n    // Wait for data - should be WAIT_DATA\n    ApprovalData approval = check wait events.approve;\n    io:println(\"Approved by: \" + approval.approverName);\n}"
         },
         "returning": false,
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
         "flags": 0
       },
       {
@@ -406,6 +409,9 @@
             "hidden": false,
             "codedata": {}
           }
+        },
+        "diagnostics": {
+          "hasDiagnostics": true
         },
         "flags": 1
       },

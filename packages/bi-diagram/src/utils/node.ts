@@ -18,7 +18,7 @@
 
 import { Branch, FlowNode } from "./types";
 
-const WORKFLOW_NODE_KINDS = new Set(["WORKFLOW_RUN", "ACTIVITY_CALL", "SEND_DATA", "WAIT_DATA"]);
+const WORKFLOW_NODE_KINDS = new Set(["WORKFLOW_RUN", "ACTIVITY_CALL", "SEND_DATA", "WAIT_DATA", "HUMAN_TASK"]);
 
 export function getNodeIdFromModel(node: FlowNode, prefix?: string) {
     if (!node) {

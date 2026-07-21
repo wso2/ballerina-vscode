@@ -131,6 +131,7 @@ import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.flowmodelgenerator.core.model.Branch;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.CommentProperty;
+import io.ballerina.flowmodelgenerator.core.model.Diagnostics;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.ItemOption;
@@ -172,6 +173,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.WorkflowRunBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.builtin.BuiltinActivityStrategy;
 import io.ballerina.flowmodelgenerator.core.model.node.builtin.EmailActivityStrategy;
@@ -232,6 +234,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SLEEP_METH
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_PROCESS_FUNCTION_PARAM;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_DATA_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder.EXCLUDED_CALL_ACTIVITY_PARAMS;
 import static io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder.EXCLUDED_KEYS;
@@ -3331,7 +3334,84 @@ public class CodeAnalyzer extends NodeVisitor {
                                               FunctionSymbol functionSymbol) {
         if (isWorkflowOperation(functionSymbol, RUN_METHOD_NAME)) {
             overrideSymbolFromFirstArg(functionCallExpressionNode.arguments());
+            populateWorkflowRunProperties(functionCallExpressionNode);
         }
+    }
+
+    /**
+     * Fixes properties after {@code processFunctionSymbol} runs on a {@code workflow:run(...)} call.
+     * The generic path types the {@code input} property from the library signature of
+     * {@code workflow:run} ({@code anydata input}), which loses the specific input type of the
+     * target workflow function. This re-derives the {@code input} property type from the workflow
+     * function's declared input parameter (the first parameter that is a subtype of {@code anydata};
+     * {@code workflow:Context} and the events record are not anydata), matching the template path in
+     * {@link WorkflowRunBuilder}. The raw {@code processFunction} property is dropped because the
+     * function reference is carried in {@code codedata.symbol}.
+     *
+     * @param callNode the {@code workflow:run(...)} call node
+     */
+    private void populateWorkflowRunProperties(FunctionCallExpressionNode callNode) {
+        SeparatedNodeList<FunctionArgumentNode> args = callNode.arguments();
+        Map<String, Property> currentProps = nodeBuilder.properties().build();
+        currentProps.remove(RUN_PROCESS_FUNCTION_PARAM);
+
+        if (args.isEmpty() || !(args.get(0) instanceof PositionalArgumentNode firstArg)) {
+            return;
+        }
+        Optional<Symbol> resolvedSymbol = semanticModel.symbol(firstArg.expression());
+        if (resolvedSymbol.isEmpty() || !(resolvedSymbol.get() instanceof FunctionSymbol workflowFuncSymbol)) {
+            return;
+        }
+
+        // The workflow's input parameter is the first parameter that is a subtype of anydata.
+        TypeSymbol inputType = WorkflowRunBuilder.findWorkflowInputType(workflowFuncSymbol, semanticModel);
+        if (inputType == null) {
+            // The workflow function declares no input; drop the library-derived input property.
+            currentProps.remove(WorkflowRunBuilder.INPUT_KEY);
+            return;
+        }
+
+        // Resolve the current input value from the call source (second positional or named arg).
+        Node valueNode = null;
+        if (args.size() > 1 && args.get(1) instanceof PositionalArgumentNode secondArg) {
+            valueNode = secondArg.expression();
+        }
+        for (FunctionArgumentNode arg : args) {
+            if (arg instanceof NamedArgumentNode namedArg
+                    && WorkflowRunBuilder.INPUT_KEY.equals(namedArg.argumentName().name().text())) {
+                valueNode = namedArg.expression();
+            }
+        }
+        // The input property built by processFunctionSymbol already consumed the diagnostic-handler
+        // cursor for this value node, so its diagnostics are correct — only its type is wrong
+        // (library map<anydata>? vs the workflow's declared type). Capture those diagnostics and
+        // re-apply them, and rebuild the type WITHOUT the handler so the single-pass cursor is not
+        // advanced a second time for the same node (which would drop or misattribute diagnostics).
+        Property existingInputProp = currentProps.get(WorkflowRunBuilder.INPUT_KEY);
+        String value = valueNode != null ? valueNode.toSourceCode().strip()
+                : (existingInputProp != null && existingInputProp.value() != null
+                        ? existingInputProp.value().toString() : "");
+        Diagnostics existingDiagnostics = existingInputProp != null ? existingInputProp.diagnostics() : null;
+
+        // Re-adding at the same key preserves the property's position in the form.
+        Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom();
+        FormBuilder<NodeBuilder> formBuilder = customPropBuilder
+                .metadata()
+                    .label(WorkflowRunBuilder.INPUT_LABEL)
+                    .description(WorkflowRunBuilder.INPUT_DOC)
+                    .stepOut()
+                .value(value)
+                .placeholder("")
+                .editable()
+                .stepOut();
+        customPropBuilder.typeWithExpression(inputType, moduleInfo, valueNode, semanticModel, customPropBuilder);
+        if (existingDiagnostics != null && existingDiagnostics.hasDiagnostics()) {
+            customPropBuilder.diagnostics().hasDiagnostics();
+            if (existingDiagnostics.diagnostics() != null) {
+                customPropBuilder.diagnostics().diagnostics(existingDiagnostics.diagnostics());
+            }
+        }
+        formBuilder.addProperty(WorkflowRunBuilder.INPUT_KEY, valueNode);
     }
 
     private void processFunctionSymbol(NonTerminalNode callNode, SeparatedNodeList<FunctionArgumentNode> arguments,
