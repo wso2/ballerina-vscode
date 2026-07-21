@@ -90,8 +90,6 @@
      */
     "globalOverrides": {
       "lodash": "4.18.1",
-      // CVE-2026-13149: brace-expansion DoS (exponential-time complexity).
-      // Fix versions differ per major line: 1.x->1.1.16, 2.x->2.1.2, 5.x->5.0.7.
       "brace-expansion@>=1 <2": "1.1.16",
       "brace-expansion@>=2 <3": "2.1.2",
       "brace-expansion@>=5.0.0 <6": "5.0.7",
@@ -100,11 +98,7 @@
       // consumers, narrow the selector (e.g. "pkg@<x.y.z": "x.y.z").
       "@babel/core@>=7 <8": "7.29.6",
       "@tootallnate/once": "3.0.1",
-      // GHSA-42h9-826w-cgv3 / GHSA-pmv8-rq9r-6j72 / GHSA-xj6q-8x83-jv6g:
-      // axios DoS (formDataToJSON / formToJSON recursion) + prototype
-      // pollution in auth subfields. First 1.x fix is 1.18.0.
-      "axios@>=1 <2": "1.18.0",
-      // CVE-2026-12590: body-parser DoS via invalid limit option; first 1.x fix is 1.20.6.
+      "axios@<1.18.0": "1.18.0",
       "body-parser@>=1 <2": "1.20.6",
       "braces": "3.0.3",
       "dompurify": "3.4.11",
@@ -116,8 +110,7 @@
       // 0.17.x transitive is not flagged, so leave it untouched.
       "http-proxy-middleware@>=2 <3": "2.0.10",
       "joi@>=17 <18": "17.13.4",
-      // js-yaml v3 has no in-line fix for CVE-2026-53550; the GHSA only fixes
-      // in v4. CVE-2026-59869 (DoS via crafted YAML) then requires 4.3.0.
+      // js-yaml v3 has no in-line fix; the fix only lands in v4.3.0+.
       // Force all consumers to v4 — revert with narrower selector if a
       // workspace package needs the v3 sync API.
       "js-yaml": "4.3.0",
@@ -125,11 +118,9 @@
       "markdown-it@>=14 <15": "14.2.0",
       "micromatch": "4.0.8",
       "prismjs": "1.30.0",
-      // CVE-2026-59877: protobufjs DoS via infinite loop in .proto parsing; 7.x fix is 7.6.5.
       "protobufjs@>=7 <8": "7.6.5",
       "qs@6": "6.15.2",
       "serialize-javascript": "7.0.5",
-      // CVE-2026-13311: shell-quote DoS in shell-quote/parse; fixed in 1.9.0.
       "shell-quote": "1.9.0",
       "tmp": "0.2.7",
       // CVE-2026-12151/6734/9697/9678/9679/11525/6733: 7.28.0 is the 7.x fix
@@ -139,8 +130,8 @@
       // if this breaks consumers that strictly need uuid v8 API.
       "uuid@8": "11.1.1",
       "uuid@>=11 <11.1.1": "11.1.1",
-      // CVE-2026-9595 then CVE-2026-14620 (arbitrary file read): 5.2.6 is the
-      // 5.x fix. The 2.11.3 transitive is not flagged, so leave it untouched.
+      // CVE-2026-9595: 5.2.6 is the 5.x fix. The 2.11.3 transitive is not
+      // flagged, so leave it untouched.
       "webpack-dev-server@>=5 <6": "5.2.6",
       "yaml@2": "2.8.3"
     },
