@@ -66,7 +66,6 @@ import directoryIntegration from './file-integration/directory.spec';
 
 import functionArtifact from './other-artifacts/function.spec';
 import naturalFunctionArtifact from './other-artifacts/np.spec';
-import connectionArtifact from './other-artifacts/connection.spec';
 import connections from './connections/connections.spec';
 
 import configuration from './configuration/configuration.spec';
@@ -172,8 +171,6 @@ test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
 
     // <----Other Artifacts Test---->
     test.describe.skip(naturalFunctionArtifact); // TODO: Enable this once the ballerina version is switchable
-    test.describe(connectionArtifact);
-    test.describe(connections);
     test.describe(configuration);
 
     // <----Import Integration Test---->
@@ -205,6 +202,8 @@ test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
 
     // <----Test Explorer Test---->
     test.describe(testExplorer);
+
+    test.describe(connections);
 });
 
 test.afterAll(async () => {
