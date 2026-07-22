@@ -97,10 +97,11 @@
       // first fix version listed for each CVE. If a bump breaks workspace
       // consumers, narrow the selector (e.g. "pkg@<x.y.z": "x.y.z").
       "@babel/core@>=7 <8": "7.29.6",
-      // Security fix: no 1.x fix; force the 2.x line. Transitive-only (used
-      // by the wso2-vscode-extensions submodule's tooling), not shipped in
-      // the built extension.
-      "@hono/node-server": "2.0.5",
+      // Security fix: no 1.x fix; force the 2.x line, at the version fixing
+      // a follow-up advisory on the earlier 2.x releases. Transitive-only
+      // (used by the wso2-vscode-extensions submodule's tooling), not
+      // shipped in the built extension.
+      "@hono/node-server": "2.0.10",
       "@tootallnate/once": "3.0.1",
       "axios@<1.18.0": "1.18.0",
       "body-parser@>=1 <2": "1.20.6",
