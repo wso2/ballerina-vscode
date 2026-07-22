@@ -98,7 +98,7 @@ describeLs("node-template form-field type invariants", () => {
             .filter(({ prop }) => isArrayTyped(prop) && !ARRAY_EDITOR_TYPES.has(prop.valueType))
             .map(({ action, key, prop }) => `${action}.${key}: ${prop.valueTypeConstraint} offered as ${prop.valueType}`);
         // eslint-disable-next-line no-console
-        if (violations.length) console.log("[invariant violations]\n  " + violations.join("\n  "));
+        if (violations.length) { console.log("[invariant violations]\n  " + violations.join("\n  ")); }
         expect(violations).toEqual([]);
     });
 

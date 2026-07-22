@@ -534,6 +534,18 @@ public class CodeAnalyzer extends NodeVisitor {
             // plugin diagnostics on the typed binding pattern (e.g. WORKFLOW_123 on non-nilable tuple
             // members) attach to the WAIT_DATA flow node.
             startNode(NodeKind.WAIT_DATA, remoteMethodCallActionNode.parent());
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                Constants.Workflow.RUN_CHILD_WORKFLOW_METHOD_NAME)) {
+            startNode(NodeKind.CHILD_WORKFLOW_RUN, expressionNode.parent());
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                Constants.Workflow.CALL_CHILD_WORKFLOW_METHOD_NAME)) {
+            startNode(NodeKind.CHILD_WORKFLOW_CALL, expressionNode.parent());
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                Constants.Workflow.WAIT_CHILD_WORKFLOW_METHOD_NAME)) {
+            startNode(NodeKind.CHILD_WORKFLOW_WAIT, expressionNode.parent());
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                Constants.Workflow.SEND_DATA_CHILD_WORKFLOW_METHOD_NAME)) {
+            startNode(NodeKind.CHILD_WORKFLOW_SEND_DATA, expressionNode.parent());
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
@@ -559,6 +571,13 @@ public class CodeAnalyzer extends NodeVisitor {
             populateHumanTaskProperties(remoteMethodCallActionNode);
         } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, AWAIT_METHOD_NAME)) {
             populateAwaitWaitDataProperties(remoteMethodCallActionNode);
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                Constants.Workflow.RUN_CHILD_WORKFLOW_METHOD_NAME)
+                || isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                        Constants.Workflow.CALL_CHILD_WORKFLOW_METHOD_NAME)) {
+            // Carry the child workflow function as the node symbol so the diagram labels the node
+            // with the workflow it starts, matching the palette-created template.
+            overrideSymbolFromFirstArg(remoteMethodCallActionNode.arguments());
         }
     }
 

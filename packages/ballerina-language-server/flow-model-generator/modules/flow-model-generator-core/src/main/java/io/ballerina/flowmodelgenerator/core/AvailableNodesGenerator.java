@@ -506,56 +506,48 @@ public class AvailableNodesGenerator {
         List<Item> workflowNodes = new ArrayList<>();
 
         if (isInWorkflowFunction) {
-            // Inside a workflow function: Call Activity, Await HumanTask, Await Data, Sleep
-            AvailableNode callActivity = new AvailableNode(
-                    new Metadata.Builder<>(null)
-                            .label(Workflow.CALL_ACTIVITY_LABEL)
-                            .description(Workflow.CALL_ACTIVITY_DESCRIPTION)
-                            .build(),
-                    new Codedata.Builder<>(null)
-                            .node(NodeKind.ACTIVITY_CALL)
-                            .build(),
-                    true
-            );
+            // Inside a workflow function the single Workflow section groups its items by
+            // functionality: durable Steps, Child Workflows, and the (advanced) context
+            // utility functions.
+            Category steps = new Category.Builder(null).name(Category.Name.WORKFLOW_STEPS)
+                    .items(List.of(
+                            workflowNode(Workflow.CALL_ACTIVITY_LABEL, Workflow.CALL_ACTIVITY_DESCRIPTION,
+                                    NodeKind.ACTIVITY_CALL),
+                            workflowNode(Workflow.HUMAN_TASK_LABEL, Workflow.HUMAN_TASK_DESCRIPTION,
+                                    NodeKind.HUMAN_TASK),
+                            workflowNode(Workflow.WAIT_DATA_LABEL, Workflow.WAIT_DATA_DESCRIPTION,
+                                    NodeKind.WAIT_DATA),
+                            workflowNode(Workflow.SLEEP_LABEL, Workflow.SLEEP_DESCRIPTION, NodeKind.SLEEP)))
+                    .build();
 
-            workflowNodes.add(callActivity);
+            Category childWorkflows = new Category.Builder(null).name(Category.Name.CHILD_WORKFLOWS)
+                    .items(List.of(
+                            workflowNode(Workflow.RUN_CHILD_WORKFLOW_LABEL, Workflow.RUN_CHILD_WORKFLOW_DESCRIPTION,
+                                    NodeKind.CHILD_WORKFLOW_RUN),
+                            workflowNode(Workflow.CALL_CHILD_WORKFLOW_LABEL, Workflow.CALL_CHILD_WORKFLOW_DESCRIPTION,
+                                    NodeKind.CHILD_WORKFLOW_CALL),
+                            workflowNode(Workflow.WAIT_CHILD_WORKFLOW_LABEL, Workflow.WAIT_CHILD_WORKFLOW_DESCRIPTION,
+                                    NodeKind.CHILD_WORKFLOW_WAIT),
+                            workflowNode(Workflow.SEND_DATA_CHILD_WORKFLOW_LABEL,
+                                    Workflow.SEND_DATA_CHILD_WORKFLOW_DESCRIPTION,
+                                    NodeKind.CHILD_WORKFLOW_SEND_DATA)))
+                    .build();
 
-            AvailableNode humanTask = new AvailableNode(
-                    new Metadata.Builder<>(null)
-                            .label(Workflow.HUMAN_TASK_LABEL)
-                            .description(Workflow.HUMAN_TASK_DESCRIPTION)
-                            .build(),
-                    new Codedata.Builder<>(null)
-                            .node(NodeKind.HUMAN_TASK)
-                            .build(),
-                    true
-            );
+            Category workflowFunctions = new Category.Builder(null).name(Category.Name.WORKFLOW_FUNCTIONS)
+                    .items(List.of(
+                            workflowNode(Workflow.CURRENT_TIME_LABEL, Workflow.CURRENT_TIME_DESCRIPTION,
+                                    NodeKind.WORKFLOW_CURRENT_TIME),
+                            workflowNode(Workflow.IS_REPLAYING_LABEL, Workflow.IS_REPLAYING_DESCRIPTION,
+                                    NodeKind.WORKFLOW_IS_REPLAYING),
+                            workflowNode(Workflow.GET_WORKFLOW_ID_LABEL, Workflow.GET_WORKFLOW_ID_DESCRIPTION,
+                                    NodeKind.WORKFLOW_GET_ID),
+                            workflowNode(Workflow.GET_WORKFLOW_TYPE_LABEL, Workflow.GET_WORKFLOW_TYPE_DESCRIPTION,
+                                    NodeKind.WORKFLOW_GET_TYPE)))
+                    .build();
 
-            AvailableNode waitData = new AvailableNode(
-                    new Metadata.Builder<>(null)
-                            .label(Workflow.WAIT_DATA_LABEL)
-                            .description(Workflow.WAIT_DATA_DESCRIPTION)
-                            .build(),
-                    new Codedata.Builder<>(null)
-                            .node(NodeKind.WAIT_DATA)
-                            .build(),
-                    true
-            );
-
-            AvailableNode sleep = new AvailableNode(
-                    new Metadata.Builder<>(null)
-                            .label(Workflow.SLEEP_LABEL)
-                            .description(Workflow.SLEEP_DESCRIPTION)
-                            .build(),
-                    new Codedata.Builder<>(null)
-                            .node(NodeKind.SLEEP)
-                            .build(),
-                    true
-            );
-
-            workflowNodes.add(humanTask);
-            workflowNodes.add(waitData);
-            workflowNodes.add(sleep);
+            workflowNodes.add(steps);
+            workflowNodes.add(childWorkflows);
+            workflowNodes.add(workflowFunctions);
         } else {
             // Outside workflow function: Run Workflow and Send Data
             AvailableNode runWorkflow = new AvailableNode(
@@ -597,6 +589,14 @@ public class AvailableNodesGenerator {
         }
 
         return workflowNodes;
+    }
+
+    // Builds a plain palette entry: a label/description pair whose click resolves to the node kind.
+    private static AvailableNode workflowNode(String label, String description, NodeKind kind) {
+        return new AvailableNode(
+                new Metadata.Builder<>(null).label(label).description(description).build(),
+                new Codedata.Builder<>(null).node(kind).build(),
+                true);
     }
 
     private void setStopNode(NonTerminalNode node) {
