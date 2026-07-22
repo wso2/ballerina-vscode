@@ -381,6 +381,18 @@ const AIChat: React.FC = () => {
     // replay's high-water mark) and opens the gate once replay is done.
     const liveGateClosedRef = useRef(true);
     const liveQueueRef = useRef<ChatNotify[]>([]);
+    // Resolved once the mount-time reconnect (history load + buffer replay + recovery
+    // persist) has settled. Sends await this before hitting the backend: a new run's
+    // beginRun resets the event buffer, so a send racing the replay (e.g. an
+    // auto-submitted initial prompt) would wipe a finished run's not-yet-persisted
+    // tail — review chip and final transcript included.
+    const reconnectSettledResolveRef = useRef<(() => void) | null>(null);
+    const reconnectSettledRef = useRef<Promise<void> | null>(null);
+    if (reconnectSettledRef.current === null) {
+        reconnectSettledRef.current = new Promise<void>((resolve) => {
+            reconnectSettledResolveRef.current = resolve;
+        });
+    }
 
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
@@ -675,20 +687,22 @@ const AIChat: React.FC = () => {
             // (per-step save_chat writes partial uiResponses mid-run, so a history bubble
             // for this generation does NOT imply completeness) — whenever one exists,
             // rebuild the turn from it; the persist that follows clears it, so this
-            // converges. Exception: a truncated (overflowed) buffer can't rebuild the
-            // whole turn, so prefer a persisted partial when one exists. A live run always
-            // proceeds, even with an empty buffer, to arm the spinner and polling fallback.
+            // converges. A live run always proceeds, even with an empty buffer, to arm
+            // the spinner and polling fallback.
             const assistantAlreadyLoaded = !!generationId &&
                 historyMessages.some((m) => m.role === "Copilot" && m.messageId === generationId);
-            if (!runStatus.isRunning &&
-                (runStatus.events.length === 0 || (runStatus.truncated && assistantAlreadyLoaded))) {
+            if (!runStatus.isRunning && runStatus.events.length === 0) {
                 return;
             }
-            // Truncated buffer on a LIVE run with a persisted partial: the partial covers
-            // the turn's beginning, which the buffer has already evicted — keep it, skip
-            // the replay, and fast-forward the seq watermark past the buffered events so
-            // only newer live/polled events append after it.
-            const keepPartialSkipReplay = runStatus.isRunning && runStatus.truncated && assistantAlreadyLoaded;
+            // Truncated (overflowed) buffer with a persisted partial: the partial covers
+            // the turn's beginning, which the buffer has already evicted, so a full replay
+            // can't rebuild the turn — keep the partial instead of dropping it, skip the
+            // bulk replay, and fast-forward the seq watermark past the buffered events so
+            // only newer live/polled events append after it. Structural tail events
+            // (review chip, diagnostics, a final error) are still replayed selectively
+            // below: they are emitted after the last mid-run persist, so the partial
+            // cannot contain them, and unlike text deltas they graft onto it safely.
+            const keepPartialSkipReplay = runStatus.truncated && assistantAlreadyLoaded;
 
             // Adopt this run so any stray events from a prior run are dropped.
             activeRunGenerationIdRef.current = generationId;
@@ -722,10 +736,14 @@ const AIChat: React.FC = () => {
                     }
                 } else {
                     // The run may be blocked on a prompt whose event is in the skipped
-                    // buffer — re-surface still-pending prompts so it stays answerable.
+                    // buffer — re-surface still-pending prompts so it stays answerable —
+                    // and replay the structural tail events the kept partial can't contain.
                     for (const ev of runStatus.events) {
                         const reqId = (ev as any).requestId;
-                        if (reqId && pendingRequestIdsRef.current.has(reqId)) {
+                        const stillPendingPrompt = !!reqId && pendingRequestIdsRef.current.has(reqId);
+                        const structuralTail = ev.type === "chat_component" || ev.type === "diagnostics"
+                            || (!runStatus.isRunning && ev.type === "error");
+                        if (stillPendingPrompt || structuralTail) {
                             await handleChatNotifyRef.current(ev);
                         }
                     }
@@ -820,6 +838,7 @@ const AIChat: React.FC = () => {
                     }
                 }
                 liveGateClosedRef.current = false;
+                reconnectSettledResolveRef.current?.();
             }
         };
 
@@ -1587,6 +1606,11 @@ const AIChat: React.FC = () => {
      * triggers the auto-submit effect.
      */
     async function handleSend(content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) {
+        // A new run's beginRun resets the backend event buffer — wait for the
+        // mount-time reconnect to finish replaying/persisting any buffered run
+        // first, so an auto-submitted prompt can't wipe a finished run's
+        // not-yet-persisted tail (review chip and final transcript included).
+        await reconnectSettledRef.current;
         setCurrentGeneratingPromptIndex(otherMessages.length);
         setIsPromptExecutedInCurrentWindow(true);
         setFeedbackGiven(null);
