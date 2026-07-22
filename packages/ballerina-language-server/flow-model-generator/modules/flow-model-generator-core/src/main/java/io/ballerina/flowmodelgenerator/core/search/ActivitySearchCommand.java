@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
@@ -98,9 +99,17 @@ class ActivitySearchCommand extends SearchCommand {
         // Create the category for current integration activities
         Category.Builder activityCategory = rootBuilder.stepIn(Category.Name.CURRENT_ACTIVITIES);
 
-        // Search for functions with @workflow:Activity annotation in all modules
+        // Search for functions with @workflow:Activity annotation in all modules. A module whose
+        // compilation fails (e.g. an unresolvable dependency pinned in Dependencies.toml) is skipped
+        // so the rest of the list — including the prebuilt activities — still renders.
         currentPackage.modules().forEach(module -> {
-            module.getCompilation().getSemanticModel().moduleSymbols().stream()
+            SemanticModel semanticModel;
+            try {
+                semanticModel = module.getCompilation().getSemanticModel();
+            } catch (RuntimeException e) {
+                return;
+            }
+            semanticModel.moduleSymbols().stream()
                     .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
                     .map(symbol -> (FunctionSymbol) symbol)
                     .filter(WorkflowUtil::isActivityFunction)
