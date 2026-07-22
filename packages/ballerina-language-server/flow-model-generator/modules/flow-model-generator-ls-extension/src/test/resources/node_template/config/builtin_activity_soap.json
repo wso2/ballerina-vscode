@@ -18,7 +18,7 @@
       "description": "Call a SOAP web service as a workflow activity using a configured soap11:Client or soap12:Client connection."
     },
     "codedata": {
-      "node": "ACTIVITY_CALL",
+      "node": "CONNECTION_ACTIVITY_CALL",
       "org": "ballerina",
       "module": "workflow.activity",
       "symbol": "callSoapAPI",

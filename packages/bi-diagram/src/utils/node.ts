@@ -169,7 +169,18 @@ export function getNodeTitle(node: FlowNode) {
         return "wait";
     }
 
-    if (node.codedata?.node === "ACTIVITY_CALL") {
+    if (node.codedata?.node === "ACTIVITY_CALL" || node.codedata?.node === "CONNECTION_ACTIVITY_CALL") {
+        // Builtin activities (ballerina/workflow.activity) carry a friendly label ("Call REST API");
+        // older language servers set the generic "callActivity" method name — fall through for those.
+        const label = node.metadata?.label;
+        if (
+            node.codedata?.org === "ballerina" &&
+            node.codedata?.module === "workflow.activity" &&
+            label &&
+            label !== "callActivity"
+        ) {
+            return label;
+        }
         const activityFunction =
             getFunctionName(getPropertyString("activityFunction")) ||
             getFunctionName(typeof node.codedata?.symbol === "string" ? node.codedata.symbol : undefined);

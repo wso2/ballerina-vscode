@@ -44,7 +44,7 @@ import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { ConnectorErrorView } from "./components/ErrorContainer";
 import { AgentIdentifierPanel } from "./AgentIdentifierPanel";
-import { ActivityWizardSteps } from "./ActivityWizardSteps";
+import { NewActivityFromConnection } from "./NewActivityFromConnection";
 
 const Container = styled.div`
     display: flex;
@@ -58,6 +58,7 @@ export enum SidePanelView {
     FUNCTION_LIST = "FUNCTION_LIST",
     WORKFLOW_LIST = "WORKFLOW_LIST",
     ACTIVITY_LIST = "ACTIVITY_LIST",
+    ACTIVITY_FROM_CONNECTION = "ACTIVITY_FROM_CONNECTION",
     DATA_MAPPER_LIST = "DATA_MAPPER_LIST",
     NP_FUNCTION_LIST = "NP_FUNCTION_LIST",
     MODEL_PROVIDERS = "MODEL_PROVIDERS",
@@ -104,7 +105,6 @@ interface PanelManagerProps {
     selectedClientName?: string;
     showEditForm?: boolean;
     /** True when the call form open is step 3 of the create-activity-from-connection wizard. */
-    showActivityCallStep?: boolean;
     targetLineRange?: LineRange;
     connections?: any[];
     fileName?: string;
@@ -129,6 +129,9 @@ interface PanelManagerProps {
     onAddFunction?: () => void;
     onAddWorkflow?: () => void;
     onAddActivity?: () => void;
+    onAddActivityFromConnection?: () => void;
+    onActivityFromConnectionCreated?: (activityName: string) => void;
+    onActivityFromConnectionCreatedReturnToList?: (activityName: string) => void;
     onAddNPFunction?: () => void;
     onAddDataMapper?: () => void;
     onAddModelProvider?: () => void;
@@ -188,7 +191,6 @@ export function PanelManager(props: PanelManagerProps) {
         nodeFormTemplate,
         selectedClientName,
         showEditForm,
-        showActivityCallStep,
         targetLineRange,
         connections,
         fileName,
@@ -211,6 +213,9 @@ export function PanelManager(props: PanelManagerProps) {
         onAddFunction,
         onAddWorkflow,
         onAddActivity,
+        onAddActivityFromConnection,
+        onActivityFromConnectionCreated,
+        onActivityFromConnectionCreatedReturnToList,
         onAddNPFunction,
         onAddDataMapper,
         onAddAgent,
@@ -443,10 +448,22 @@ export function PanelManager(props: PanelManagerProps) {
                         onSelect={onSelectNode}
                         onSearchTextChange={(searchText) => onSearchActivity?.(searchText, FUNCTION_TYPE.REGULAR)}
                         onAddFunction={onAddActivity}
+                        onAdd={onAddActivityFromConnection}
                         onClose={onClose}
                         title={"Activities"}
                         searchPlaceholder={"Search activities"}
                         onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.ACTIVITY_FROM_CONNECTION:
+                return (
+                    <NewActivityFromConnection
+                        fileName={fileName}
+                        onActivityCreated={onActivityFromConnectionCreated}
+                        onActivityCreatedReturnToList={onActivityFromConnectionCreatedReturnToList}
+                        onBack={canGoBack ? onBack : undefined}
+                        onClose={onClose}
                     />
                 );
 
@@ -721,7 +738,6 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.FORM:
                 return (
                     <>
-                    {showActivityCallStep && <ActivityWizardSteps activeStep={2} />}
                     <FlowNodeForm
                         key={selectedNode?.id ?? 'no-node'}
                         fileName={fileName}

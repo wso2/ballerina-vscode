@@ -87,6 +87,8 @@ import httpTryItExisting from './tryit/http-try-it-existing.spec';
 
 import testExplorer from './test-explorer/test-explorer.spec';
 
+import projectExplorer from './project-explorer/project-explorer.spec';
+
 test.describe.configure({ mode: 'default' });
 
 test.beforeAll(async () => {
@@ -158,6 +160,9 @@ test.describe('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
 
     // <----Other Artifacts Test---->
     test.describe(functionArtifact);
+
+    // <----Project Explorer Test---->
+    test.describe(projectExplorer);
 });
 
 test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
