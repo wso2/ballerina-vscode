@@ -124,6 +124,27 @@ describe("hasIncompleteRequiredFormFields", () => {
                 )
             ).toBe(false);
         });
+
+        const connectionField = () =>
+            field({
+                key: "connection",
+                optional: false,
+                hidden: false,
+                enabled: true,
+                types: [{ fieldType: "CONNECTION", selected: true } as any],
+            });
+
+        it("true when a required connection selector still holds the new-connection sentinel", () => {
+            expect(
+                hasIncompleteRequiredFormFields([connectionField()], { connection: "NEW_CONNECTION" })
+            ).toBe(true);
+        });
+
+        it("false when a required connection selector has a real connection", () => {
+            expect(
+                hasIncompleteRequiredFormFields([connectionField()], { connection: "currencyClient" })
+            ).toBe(false);
+        });
     });
 
     describe("dynamic child fields", () => {
