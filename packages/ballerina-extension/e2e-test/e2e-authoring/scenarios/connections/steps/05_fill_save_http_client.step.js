@@ -26,8 +26,14 @@
   const state = JSON.parse(fs.readFileSync(path.join(sessionDir, 'state.json'), 'utf8'));
   fs.writeFileSync(path.join(sessionDir, 'state.json'), JSON.stringify({ ...state, httpConnectionName: connectionName }, null, 2));
 
-  const connections = fs.readFileSync(path.join(state.integrationDir, 'connections.bal'), 'utf8');
-  if (!connections.includes(`${connectionName}`)) {
+  const fileDeadline = Date.now() + 30000;
+  let connections = '';
+  while (Date.now() < fileDeadline) {
+    connections = fs.readFileSync(path.join(state.integrationDir, 'connections.bal'), 'utf8');
+    if (connections.includes(connectionName)) break;
+    await window.waitForTimeout(1000);
+  }
+  if (!connections.includes(connectionName)) {
     throw new Error(`connections.bal missing ${connectionName}:\n${connections}`);
   }
   console.log(`connections.bal contains ${connectionName}; connection shown in side panel`);

@@ -140,7 +140,15 @@ export default function createTests() {
             }
             await sidePanel.getLocator().getByText(CONNECTION_NAME, { exact: false }).first().click({ force: true });
             await page.page.waitForTimeout(1500);
-            await sidePanel.getLocator().getByText('Get', { exact: true }).first().click({ force: true });
+            const getMethodItem = sidePanel.getLocator().getByText('Get', { exact: true }).first();
+            const getMethodVisible = await getMethodItem
+                .waitFor({ state: 'visible', timeout: 30000 }).then(() => true).catch(() => false);
+            if (!getMethodVisible) {
+                // The methods list can fail to expand on a slower CI runner - retry the click.
+                await sidePanel.getLocator().getByText(CONNECTION_NAME, { exact: false }).first().click({ force: true });
+                await getMethodItem.waitFor({ state: 'visible', timeout: 30000 });
+            }
+            await getMethodItem.click({ force: true });
 
             await form.switchToFormView(false, artifactWebView);
             await form.fill({
@@ -170,6 +178,11 @@ export default function createTests() {
                 if (await targetTypeField.count() > 0) {
                     try {
                         await targetTypeField.click({ force: true, timeout: 2000 });
+                        // Clear any leftover value first - a previous attempt may have
+                        // typed into this same field without the value being committed,
+                        // and retyping without clearing would append instead of replace.
+                        await page.page.keyboard.press('ControlOrMeta+A');
+                        await page.page.keyboard.press('Backspace');
                         await page.page.keyboard.type('http:Response', { delay: 20 });
                         await page.page.waitForTimeout(1000);
                         // Typing opens the field's autocomplete/type-helper panel, which keeps the
