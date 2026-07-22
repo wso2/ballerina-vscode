@@ -129,6 +129,16 @@ public class ModelGenerator {
         int end = textDocument.textPositionFrom(lineRange.endLine());
         NonTerminalNode canvasNode = modulePartNode.findNode(TextRange.from(start, end - start), true);
 
+        // A module-level declaration fragment (e.g. a durable agent opened by its name range)
+        // resolves to the whole declaration so the declaration canvas can render.
+        NonTerminalNode declarationAncestor = canvasNode;
+        while (declarationAncestor != null && declarationAncestor.kind() != SyntaxKind.MODULE_VAR_DECL) {
+            declarationAncestor = declarationAncestor.parent();
+        }
+        if (declarationAncestor != null) {
+            canvasNode = declarationAncestor;
+        }
+
         // Obtain the connections visible at the module-level
         List<FlowNode> moduleConnections =
                 semanticModel.visibleSymbols(document, canvasNode.lineRange().startLine()).stream()

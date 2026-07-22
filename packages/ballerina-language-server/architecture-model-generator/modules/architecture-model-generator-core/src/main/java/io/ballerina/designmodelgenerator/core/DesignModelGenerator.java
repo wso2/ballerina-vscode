@@ -291,6 +291,7 @@ public class DesignModelGenerator {
                 String sortText = lineRange.fileName() + lineRange.startLine().line();
                 Workflow agent = new Workflow(symbol.getName().get(), sortText, getLocation(lineRange),
                         Workflow.KIND_DURABLE_AGENT);
+                populateAgentDeclaredEvents(agent, lineRange);
                 intermediateModel.workflowMap.put(symbol.getName().get(), agent);
                 intermediateModel.uuidToWorkflowMap.put(agent.getUuid(), agent);
             }
@@ -340,6 +341,75 @@ public class DesignModelGenerator {
                 workflow.addEvent(new Workflow.Event(fieldName, eventType));
             }
         });
+    }
+
+
+    /**
+     * Derives the event channels a durable agent declares: the {@code events} list of the
+     * declaration's config literal, each entry contributing its name and request type.
+     *
+     * @param agent     the agent's design node
+     * @param lineRange the declaration's line range
+     */
+    private void populateAgentDeclaredEvents(Workflow agent, LineRange lineRange) {
+        ModulePartNode root = this.documentMap.get(lineRange.fileName());
+        if (root == null) {
+            return;
+        }
+        for (io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode member : root.members()) {
+            if (!(member instanceof io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode varDecl)
+                    || !varDecl.lineRange().startLine().equals(lineRange.startLine())
+                    || varDecl.initializer().isEmpty()) {
+                continue;
+            }
+            io.ballerina.compiler.syntax.tree.ExpressionNode initializer = varDecl.initializer().get();
+            if (initializer instanceof io.ballerina.compiler.syntax.tree.CheckExpressionNode checkExpr) {
+                initializer = checkExpr.expression();
+            }
+            if (!(initializer instanceof io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode newExpr)
+                    || newExpr.parenthesizedArgList().isEmpty()
+                    || newExpr.parenthesizedArgList().get().arguments().isEmpty()
+                    || !(newExpr.parenthesizedArgList().get().arguments().get(0)
+                            instanceof io.ballerina.compiler.syntax.tree.PositionalArgumentNode configArg)
+                    || !(configArg.expression()
+                            instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode config)) {
+                return;
+            }
+            for (io.ballerina.compiler.syntax.tree.MappingFieldNode field : config.fields()) {
+                if (!(field instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode specificField)
+                        || !"events".equals(specificField.fieldName().toSourceCode().trim())
+                        || specificField.valueExpr().isEmpty()
+                        || !(specificField.valueExpr().get()
+                                instanceof io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode events)) {
+                    continue;
+                }
+                for (io.ballerina.compiler.syntax.tree.Node item : events.expressions()) {
+                    if (!(item instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode entry)) {
+                        continue;
+                    }
+                    String name = null;
+                    String requestType = null;
+                    for (io.ballerina.compiler.syntax.tree.MappingFieldNode entryField : entry.fields()) {
+                        if (!(entryField instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode entrySpecific)
+                                || entrySpecific.valueExpr().isEmpty()) {
+                            continue;
+                        }
+                        String fieldName = entrySpecific.fieldName().toSourceCode().trim();
+                        String value = entrySpecific.valueExpr().get().toSourceCode().trim();
+                        if ("name".equals(fieldName) && value.length() >= 2
+                                && value.startsWith("\"") && value.endsWith("\"")) {
+                            name = value.substring(1, value.length() - 1);
+                        } else if ("request".equals(fieldName)) {
+                            requestType = value;
+                        }
+                    }
+                    if (name != null) {
+                        agent.addEvent(new Workflow.Event(name, requestType == null ? "anydata" : requestType));
+                    }
+                }
+            }
+            return;
+        }
     }
 
     private void populateModuleLevelActivities(IntermediateModel intermediateModel) {

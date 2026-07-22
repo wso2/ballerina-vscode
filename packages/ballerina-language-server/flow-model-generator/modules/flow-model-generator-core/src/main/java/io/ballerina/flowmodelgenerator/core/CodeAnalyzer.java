@@ -3603,15 +3603,23 @@ public class CodeAnalyzer extends NodeVisitor {
                 || varDecl.initializer().isEmpty()) {
             return false;
         }
+        boolean isAgentDeclaration = false;
         Optional<Symbol> symbol = semanticModel.symbol(varDecl.typedBindingPattern().bindingPattern());
-        if (symbol.isEmpty() || !(symbol.get() instanceof VariableSymbol variableSymbol)) {
-            return false;
+        if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
+            TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
+            isAgentDeclaration = rawType instanceof ClassSymbol classSymbol
+                    && classSymbol.getName()
+                            .map(Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME::equals).orElse(false)
+                    && isWorkflowModule(classSymbol.getModule());
         }
-        TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
-        if (!(rawType instanceof ClassSymbol classSymbol)
-                || !classSymbol.getName()
-                        .map(Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME::equals).orElse(false)
-                || !isWorkflowModule(classSymbol.getModule())) {
+        if (!isAgentDeclaration) {
+            // Syntactic fallback: the semantic model may not resolve the binding pattern symbol
+            // (e.g. while the module is still loading); match the declared type name instead.
+            String typeText = varDecl.typedBindingPattern().typeDescriptor().toSourceCode().trim();
+            isAgentDeclaration = typeText.equals(Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME)
+                    || typeText.endsWith(":" + Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME);
+        }
+        if (!isAgentDeclaration) {
             return false;
         }
 
