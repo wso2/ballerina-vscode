@@ -88,9 +88,9 @@ public class DurableAgentBuilder extends FunctionDefinitionBuilder {
 
         boolean isNew = Boolean.TRUE.equals(sourceBuilder.flowNode.codedata().isNew());
         if (isNew || sourceBuilder.flowNode.codedata().lineRange() == null) {
-            // Object model: the agent is a module-level declaration whose config carries every
-            // capability, plus a starter workflow function that runs it — the agent box renders
-            // inside that workflow's flow diagram.
+            // Object model: the agent IS the workflow — only the module-level declaration is
+            // generated. It is started from other artifacts via `<name>.run(...)` or through the
+            // management API, and its events/capabilities all live on the declaration's config.
             String modelVar = resolveExistingModelProvider(sourceBuilder);
             if (modelVar == null) {
                 // The creation wizard creates the shared WSO2 default provider when none exists.
@@ -100,16 +100,10 @@ public class DurableAgentBuilder extends FunctionDefinitionBuilder {
             String declaration = "final workflow:DurableAgent " + funcName + " = check new ({"
                     + "systemPrompt: {role: string `" + funcName + "`, instructions: string `"
                     + instructions + "`}, model: " + modelVar + "});";
-            String workflowFunction = "@workflow:Workflow\nfunction " + funcName
-                    + "Workflow(workflow:Context ctx, json input) returns error? {\n"
-                    + "    string " + funcName + "RunId = check " + funcName + ".run(input.toJsonString());\n"
-                    + "    string _ = check " + funcName + ".waitForResult(" + funcName + "RunId);\n}";
             sourceBuilder
                     .token()
                         .skipFormatting()
                         .name(declaration)
-                        .name("\n\n")
-                        .name(workflowFunction)
                         .stepOut()
                     .textEdit(SourceBuilder.SourceKind.DECLARATION)
                     .acceptImport();

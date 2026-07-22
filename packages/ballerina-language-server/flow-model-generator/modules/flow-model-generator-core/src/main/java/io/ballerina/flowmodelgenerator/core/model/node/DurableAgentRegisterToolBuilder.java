@@ -113,6 +113,16 @@ public class DurableAgentRegisterToolBuilder extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
+        // Object model: the capability lives on the declaration's `tools` list.
+        if (WorkflowUtil.isDurableAgentObjectTarget(sourceBuilder)) {
+            String toolRef = sourceBuilder.getProperty(TOOL_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            if (toolRef.isBlank()) {
+                throw new IllegalStateException("An agent tool function must be selected");
+            }
+            return WorkflowUtil.upsertAgentCapabilityEntry(sourceBuilder, "tools", toolRef);
+        }
+
         String ctxParamName = WorkflowUtil.resolveAgentContextParamName(sourceBuilder);
         Optional<Property> toolProperty = sourceBuilder.getProperty(TOOL_KEY);
         String tool = toolProperty.map(p -> p.value() == null ? "" : p.value().toString()).orElse("");

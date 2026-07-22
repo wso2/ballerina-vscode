@@ -169,6 +169,42 @@ public class DurableAgentHumanTaskBuilder extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
+        // Object model: the human task lives on the declaration's `humanTasks` list.
+        if (WorkflowUtil.isDurableAgentObjectTarget(sourceBuilder)) {
+            String name = sourceBuilder.getProperty(TASK_NAME_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            if (name.isBlank()) {
+                throw new IllegalStateException("A human task name is required");
+            }
+            String roles = sourceBuilder.getProperty(USER_ROLES_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            String title = sourceBuilder.getProperty(TITLE_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            String taskDescription = sourceBuilder.getProperty(DESCRIPTION_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            String resultType = sourceBuilder.getProperty(RESULT_TYPE_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            String timeout = sourceBuilder.getProperty(TIMEOUT_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            StringBuilder entry = new StringBuilder("{name: ").append(WorkflowUtil.quoteIfPlain(name))
+                    .append(", roles: ").append(roles.isBlank() ? "\"manager\""
+                            : WorkflowUtil.quoteIfPlain(roles));
+            if (!resultType.isBlank()) {
+                entry.append(", resultType: ").append(resultType);
+            }
+            if (!title.isBlank()) {
+                entry.append(", title: ").append(WorkflowUtil.quoteIfPlain(title));
+            }
+            if (!taskDescription.isBlank()) {
+                entry.append(", description: ").append(WorkflowUtil.quoteIfPlain(taskDescription));
+            }
+            if (!timeout.isBlank()) {
+                entry.append(", timeout: ").append(timeout);
+            }
+            entry.append("}");
+            return WorkflowUtil.upsertAgentCapabilityEntry(sourceBuilder, "humanTasks", entry.toString());
+        }
+
         String ctxParamName = WorkflowUtil.resolveAgentContextParamName(sourceBuilder);
         String taskName = sourceBuilder.getProperty(TASK_NAME_KEY)
                 .filter(p -> p.value() != null && !p.value().toString().isEmpty())

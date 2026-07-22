@@ -182,6 +182,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     // (CHILD_WORKFLOW_RUN / CHILD_WORKFLOW_CALL): in-list searches must keep producing
     // items of that kind instead of the default WORKFLOW_RUN.
     const childWorkflowKindRef = useRef<"CHILD_WORKFLOW_RUN" | "CHILD_WORKFLOW_CALL" | null>(null);
+    // Set while a capability add/edit was started from an OBJECT-MODEL agent box
+    // (`final workflow:DurableAgent x = ...`): capability forms must edit the declaration's
+    // config literal, so their codedata targets the agent variable instead of ctx statements.
+    const durableAgentObjectVarRef = useRef<string | null>(null);
     const initialCategoriesRef = useRef<any[]>([]);
     const showEditForm = useRef<boolean>(false);
     // True while the call form open is step 3 of the create-activity-from-connection wizard.
@@ -916,6 +920,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setSidePanelView(SidePanelView.NODE_LIST);
         setShowActivityCallStep(false);
         childWorkflowKindRef.current = null;
+        durableAgentObjectVarRef.current = null;
         setSubPanel({ view: SubPanelView.UNDEFINED });
         setSelectedNodeId(undefined);
         selectedNodeRef.current = undefined;
@@ -1562,6 +1567,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // First click from node list should open searchable workflow list.
                 if (sidePanelView === SidePanelView.NODE_LIST) {
                     childWorkflowKindRef.current = null;
+        durableAgentObjectVarRef.current = null;
                     setShowProgressIndicator(true);
                     const workflowSearchRequest: BISearchRequest = {
                         position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
@@ -2481,6 +2487,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             id: { node: "FUNCTION_CREATION" },
         })
             .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -2505,6 +2512,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 id: { node: "WORKFLOW" },
             })
             .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -2534,6 +2542,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 id: { node: "ACTIVITY" },
             })
             .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -2569,6 +2578,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             id: { node: "DATA_MAPPER_CREATION" },
         })
             .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -2926,10 +2936,28 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     // AI Agent callback handlers
+    // Stamps a capability node template so the LS edits the object-model agent declaration's
+    // config literal instead of generating ctx.register* statements.
+    const applyDurableAgentObjectTarget = (node: FlowNode) => {
+        if (durableAgentObjectVarRef.current) {
+            node.codedata = {
+                ...node.codedata,
+                object: "DurableAgent",
+                parentSymbol: durableAgentObjectVarRef.current,
+                isNew: node.codedata?.isNew !== false,
+            } as any;
+        }
+        return node;
+    };
+
     // Adds a workflow activity to the durable agent: the registerActivities statement is
     // inserted BEFORE the runDurableAgent call (capabilities must be registered before the
     // agent starts), picked from the same activity list the workflow Call Activity uses.
     const handleOnAddDurableActivity = async (runNode: FlowNode) => {
+        durableAgentObjectVarRef.current = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+
         const insertBefore = {
             startLine: runNode.codedata.lineRange.startLine,
             endLine: runNode.codedata.lineRange.startLine,
@@ -2966,6 +2994,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     // Adds a human task to the durable agent, inserted BEFORE the runDurableAgent call.
     const handleOnAddDurableHumanTask = async (runNode: FlowNode) => {
+        durableAgentObjectVarRef.current = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+
         const insertBefore = {
             startLine: runNode.codedata.lineRange.startLine,
             endLine: runNode.codedata.lineRange.startLine,
@@ -2996,6 +3028,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     // Registers an event on the durable agent, inserted BEFORE the buildAndRunAgent call.
     const handleOnAddDurableEvent = async (runNode: FlowNode) => {
+        durableAgentObjectVarRef.current = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+
         const insertBefore = {
             startLine: runNode.codedata.lineRange.startLine,
             endLine: runNode.codedata.lineRange.startLine,
@@ -3011,6 +3047,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 id: { node: "DURABLE_AGENT_REGISTER_EVENT" },
             })
             .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -3024,6 +3061,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     // Registers an agent tool on the durable agent, inserted BEFORE the buildAndRunAgent call.
     const handleOnAddDurableTool = async (runNode: FlowNode) => {
+        durableAgentObjectVarRef.current = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+
         const insertBefore = {
             startLine: runNode.codedata.lineRange.startLine,
             endLine: runNode.codedata.lineRange.startLine,
@@ -3039,6 +3080,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 id: { node: "DURABLE_AGENT_REGISTER_TOOL" },
             })
             .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -3054,6 +3096,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     // agent-box circle). The capability metadata carries the statement line range and its parsed
     // argument values, so the form opens pre-filled and saving rewrites that statement.
     const handleOnEditDurableCapability = async (runNode: FlowNode, capability: any) => {
+        durableAgentObjectVarRef.current = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
         const lineRange = capability?.lineRange;
         if (!lineRange) {
             return;
@@ -3082,6 +3127,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
             node.codedata.lineRange = lineRange;
             node.codedata.isNew = false;
+            applyDurableAgentObjectTarget(node);
             selectedNodeRef.current = node;
             nodeTemplateRef.current = node;
             showEditForm.current = true;

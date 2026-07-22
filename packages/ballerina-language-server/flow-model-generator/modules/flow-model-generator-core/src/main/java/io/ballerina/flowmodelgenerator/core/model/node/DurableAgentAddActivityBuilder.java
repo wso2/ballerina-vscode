@@ -230,6 +230,37 @@ public class DurableAgentAddActivityBuilder extends CallBuilder {
             return toSourceBuiltinRegistration(sourceBuilder, strategy);
         }
 
+        // Object model: the capability lives on the declaration's `activities` list.
+        if (WorkflowUtil.isDurableAgentObjectTarget(sourceBuilder)) {
+            String activityRef = sourceBuilder.getProperty(ACTIVITY_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            if (activityRef.isBlank()) {
+                throw new IllegalStateException("An activity function must be selected");
+            }
+            String toolName = sourceBuilder.getProperty(TOOL_NAME_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            String toolDescription = sourceBuilder.getProperty(TOOL_DESCRIPTION_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            boolean requiresApproval = isRequiresApproval(sourceBuilder);
+            String entry;
+            if (toolName.isBlank() && toolDescription.isBlank() && !requiresApproval) {
+                entry = activityRef;
+            } else {
+                StringBuilder mapping = new StringBuilder("{activity: ").append(activityRef);
+                if (!toolName.isBlank()) {
+                    mapping.append(", name: ").append(WorkflowUtil.quoteIfPlain(toolName));
+                }
+                if (!toolDescription.isBlank()) {
+                    mapping.append(", description: ").append(WorkflowUtil.quoteIfPlain(toolDescription));
+                }
+                if (requiresApproval) {
+                    mapping.append(", requiresApproval: true");
+                }
+                entry = mapping.append("}").toString();
+            }
+            return WorkflowUtil.upsertAgentCapabilityEntry(sourceBuilder, "activities", entry);
+        }
+
         String ctxParamName = WorkflowUtil.resolveAgentContextParamName(sourceBuilder);
         Optional<Property> activityProperty = sourceBuilder.getProperty(ACTIVITY_KEY);
         String activity = activityProperty.map(p -> p.value() == null ? "" : p.value().toString()).orElse("");

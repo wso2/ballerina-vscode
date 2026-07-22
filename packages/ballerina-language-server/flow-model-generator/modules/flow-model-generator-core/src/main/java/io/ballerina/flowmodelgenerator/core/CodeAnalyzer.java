@@ -1118,7 +1118,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 || configArg.expression().kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
             return;
         }
-        LineRange declRange = varNodeOpt.get().lineRange();
         List<AgentCapabilityData> activities = new ArrayList<>();
         List<AgentCapabilityData> humanTasks = new ArrayList<>();
         List<AgentCapabilityData> agentTools = new ArrayList<>();
@@ -1150,12 +1149,16 @@ public class CodeAnalyzer extends NodeVisitor {
                             : new ModelData(valueExpr.toSourceCode().trim(), null, ""));
                 }
                 case "activities" -> collectDeclaredCapabilities(valueExpr, "activity", "activity",
-                        declRange, activities);
+                        Map.of("activity", "activity", "name", "name", "description", "description",
+                                "requiresApproval", "requiresApproval"), activities);
                 case "tools", "peers" -> collectDeclaredCapabilities(valueExpr, "tool", "tool",
-                        declRange, agentTools);
-                case "events" -> collectDeclaredCapabilities(valueExpr, "event", null, declRange, updateEvents);
+                        Map.of("tool", "tool", "name", "name", "description", "description"), agentTools);
+                case "events" -> collectDeclaredCapabilities(valueExpr, "event", null,
+                        Map.of("name", "name", "request", "requestType", "response", "responseType"), updateEvents);
                 case "humanTasks" -> collectDeclaredCapabilities(valueExpr, "humanTask", null,
-                        declRange, humanTasks);
+                        Map.of("name", "taskName", "roles", "userRoles", "title", "title",
+                                "description", "description", "resultType", "resultType", "timeout", "timeout"),
+                        humanTasks);
                 default -> {
                 }
             }
@@ -1166,18 +1169,24 @@ public class CodeAnalyzer extends NodeVisitor {
         nodeBuilder.metadata().addData("events", updateEvents);
     }
 
-    // Extracts capability names from a declaration config list: bare function/variable
-    // references use their identifier; mapping entries prefer `name`, falling back to the
-    // given reference field (e.g. `activity`/`tool`).
+    // Extracts capabilities from a declaration config list. Bare function/variable references
+    // use their identifier; mapping entries carry their fields as form values (keyed by the
+    // matching builder property via fieldToPropertyKey). Each capability records the ITEM's own
+    // line range so its circle opens a pre-filled edit form that rewrites that exact entry.
     private void collectDeclaredCapabilities(ExpressionNode listExpr, String capabilityType, String refField,
-                                             LineRange declRange, List<AgentCapabilityData> out) {
+                                             Map<String, String> fieldToPropertyKey,
+                                             List<AgentCapabilityData> out) {
         if (listExpr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
             return;
         }
         for (Node item : ((ListConstructorExpressionNode) listExpr).expressions()) {
             String name = null;
+            Map<String, String> values = new LinkedHashMap<>();
             if (item.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE || item.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
                 name = item.toSourceCode().trim();
+                if (refField != null) {
+                    values.put(fieldToPropertyKey.getOrDefault(refField, refField), name);
+                }
             } else if (item.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
                 String refName = null;
                 String declaredName = null;
@@ -1187,17 +1196,21 @@ public class CodeAnalyzer extends NodeVisitor {
                         continue;
                     }
                     String fieldName = specificField.fieldName().toSourceCode().trim();
-                    String value = specificField.valueExpr().get().toSourceCode().trim();
+                    String rawValue = specificField.valueExpr().get().toSourceCode().trim();
+                    String propertyKey = fieldToPropertyKey.get(fieldName);
+                    if (propertyKey != null) {
+                        values.put(propertyKey, "name".equals(fieldName) ? stripQuotes(rawValue) : rawValue);
+                    }
                     if ("name".equals(fieldName)) {
-                        declaredName = stripQuotes(value);
+                        declaredName = stripQuotes(rawValue);
                     } else if (refField != null && refField.equals(fieldName)) {
-                        refName = value;
+                        refName = rawValue;
                     }
                 }
                 name = declaredName != null ? declaredName : refName;
             }
             if (name != null && !name.isBlank()) {
-                out.add(new AgentCapabilityData(name, capabilityType, declRange, new LinkedHashMap<>()));
+                out.add(new AgentCapabilityData(name, capabilityType, item.lineRange(), values));
             }
         }
     }

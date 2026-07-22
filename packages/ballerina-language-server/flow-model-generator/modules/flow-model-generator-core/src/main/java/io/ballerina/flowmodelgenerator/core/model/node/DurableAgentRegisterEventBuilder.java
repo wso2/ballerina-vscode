@@ -151,6 +151,27 @@ public class DurableAgentRegisterEventBuilder extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
+        // Object model: the event lives on the declaration's `events` list.
+        if (WorkflowUtil.isDurableAgentObjectTarget(sourceBuilder)) {
+            String eventName = sourceBuilder.getProperty(NAME_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            if (eventName.isBlank()) {
+                throw new IllegalStateException("An event name is required");
+            }
+            String requestType = sourceBuilder.getProperty(REQUEST_TYPE_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            String responseType = sourceBuilder.getProperty(RESPONSE_TYPE_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            StringBuilder entry = new StringBuilder("{name: ")
+                    .append(WorkflowUtil.quoteIfPlain(eventName))
+                    .append(", request: ").append(requestType.isBlank() ? "json" : requestType);
+            if (!responseType.isBlank()) {
+                entry.append(", response: ").append(responseType);
+            }
+            entry.append("}");
+            return WorkflowUtil.upsertAgentCapabilityEntry(sourceBuilder, "events", entry.toString());
+        }
+
         String ctxParamName = WorkflowUtil.resolveAgentContextParamName(sourceBuilder);
         String name = sourceBuilder.getProperty(NAME_KEY)
                 .filter(p -> p.value() != null && !p.value().toString().isEmpty())

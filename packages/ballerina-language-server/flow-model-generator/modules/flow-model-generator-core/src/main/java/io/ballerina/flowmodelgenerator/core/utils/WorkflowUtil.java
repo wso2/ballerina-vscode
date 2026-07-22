@@ -44,6 +44,7 @@ import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
 
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -357,5 +358,177 @@ public class WorkflowUtil {
             return Optional.of(classSymbol);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Inserts a capability entry into a module-level {@code workflow:DurableAgent} declaration's
+     * config literal: appended to the named list field when present, otherwise the field is
+     * added with a single-element list.
+     *
+     * @param sourceBuilder the source builder carrying the workspace
+     * @param agentVarName  the agent's module-level variable name
+     * @param fieldName     the config field ({@code activities}/{@code tools}/{@code events}/{@code humanTasks})
+     * @param entryText     the Ballerina source of the new entry
+     * @return the text edits keyed by file path
+     */
+    public static Map<Path, List<org.eclipse.lsp4j.TextEdit>> insertAgentCapabilityEntry(
+            SourceBuilder sourceBuilder, String agentVarName, String fieldName, String entryText) {
+        AgentDeclaration declaration = findAgentDeclaration(sourceBuilder, agentVarName);
+        if (declaration == null) {
+            throw new IllegalStateException("Cannot locate the durable agent declaration: " + agentVarName);
+        }
+        io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode config = declaration.config();
+
+        io.ballerina.tools.text.LinePosition insertAt = null;
+        String newText = null;
+        for (io.ballerina.compiler.syntax.tree.MappingFieldNode field : config.fields()) {
+            if (field instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode specificField
+                    && fieldName.equals(specificField.fieldName().toSourceCode().trim())
+                    && specificField.valueExpr().isPresent()
+                    && specificField.valueExpr().get()
+                            instanceof io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode list) {
+                insertAt = list.closeBracket().lineRange().startLine();
+                newText = (list.expressions().isEmpty() ? "" : ", ") + entryText;
+                break;
+            }
+        }
+        if (insertAt == null) {
+            insertAt = config.closeBrace().lineRange().startLine();
+            newText = (config.fields().isEmpty() ? "" : ", ") + fieldName + ": [" + entryText + "]";
+        }
+        org.eclipse.lsp4j.Position position =
+                new org.eclipse.lsp4j.Position(insertAt.line(), insertAt.offset());
+        Map<Path, List<org.eclipse.lsp4j.TextEdit>> edits = new HashMap<>();
+        edits.put(declaration.filePath(), List.of(new org.eclipse.lsp4j.TextEdit(
+                new org.eclipse.lsp4j.Range(position, position), newText)));
+        return edits;
+    }
+
+    /**
+     * Replaces an existing capability entry of a durable agent declaration with regenerated
+     * entry source. The entry's range is the capability item's own line range, recorded by
+     * the analyzer on the agent-box metadata.
+     *
+     * @param sourceBuilder the source builder whose flow node's line range is the entry range
+     * @param agentVarName  the agent's module-level variable name (locates the file)
+     * @param entryText     the replacement entry source
+     * @return the text edits keyed by file path
+     */
+    public static Map<Path, List<org.eclipse.lsp4j.TextEdit>> replaceAgentCapabilityEntry(
+            SourceBuilder sourceBuilder, String agentVarName, String entryText) {
+        AgentDeclaration declaration = findAgentDeclaration(sourceBuilder, agentVarName);
+        LineRange entryRange = sourceBuilder.flowNode.codedata().lineRange();
+        if (declaration == null || entryRange == null) {
+            throw new IllegalStateException("Cannot locate the durable agent capability entry to update");
+        }
+        Map<Path, List<org.eclipse.lsp4j.TextEdit>> edits = new HashMap<>();
+        edits.put(declaration.filePath(), List.of(new org.eclipse.lsp4j.TextEdit(
+                new org.eclipse.lsp4j.Range(
+                        new org.eclipse.lsp4j.Position(entryRange.startLine().line(),
+                                entryRange.startLine().offset()),
+                        new org.eclipse.lsp4j.Position(entryRange.endLine().line(),
+                                entryRange.endLine().offset())),
+                entryText)));
+        return edits;
+    }
+
+    private record AgentDeclaration(Path filePath,
+            io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode config) {
+    }
+
+    // Scans the default module for `final workflow:DurableAgent <name> = check new ({...})`
+    // and returns the config mapping plus the declaring file.
+    private static AgentDeclaration findAgentDeclaration(SourceBuilder sourceBuilder, String agentVarName) {
+        io.ballerina.projects.Project project;
+        try {
+            project = sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to load the project for " + sourceBuilder.filePath, e);
+        }
+        io.ballerina.projects.Module module = project.currentPackage().getDefaultModule();
+        for (io.ballerina.projects.DocumentId documentId : module.documentIds()) {
+            Document document = module.document(documentId);
+            ModulePartNode root = document.syntaxTree().rootNode();
+            for (io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode member : root.members()) {
+                if (!(member instanceof io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode varDecl)) {
+                    continue;
+                }
+                if (!(varDecl.typedBindingPattern().bindingPattern()
+                        instanceof io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode capture)
+                        || !agentVarName.equals(capture.variableName().text())) {
+                    continue;
+                }
+                if (varDecl.initializer().isEmpty()) {
+                    continue;
+                }
+                io.ballerina.compiler.syntax.tree.ExpressionNode initializer = varDecl.initializer().get();
+                if (initializer instanceof io.ballerina.compiler.syntax.tree.CheckExpressionNode checkExpr) {
+                    initializer = checkExpr.expression();
+                }
+                if (!(initializer instanceof io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode newExpr)
+                        || newExpr.parenthesizedArgList().isEmpty()
+                        || newExpr.parenthesizedArgList().get().arguments().isEmpty()) {
+                    continue;
+                }
+                io.ballerina.compiler.syntax.tree.FunctionArgumentNode firstArg =
+                        newExpr.parenthesizedArgList().get().arguments().get(0);
+                if (firstArg instanceof io.ballerina.compiler.syntax.tree.PositionalArgumentNode positional
+                        && positional.expression()
+                                instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode config) {
+                    return new AgentDeclaration(project.documentPath(documentId).orElse(sourceBuilder.filePath),
+                            config);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Whether the node targets an object-model durable agent declaration: the codedata carries
+     * the {@code DurableAgent} object and the agent variable as the parent symbol.
+     *
+     * @param sourceBuilder the source builder
+     * @return {@code true} when capability source generation must edit the declaration literal
+     */
+    public static boolean isDurableAgentObjectTarget(SourceBuilder sourceBuilder) {
+        return Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME
+                .equals(sourceBuilder.flowNode.codedata().object())
+                && sourceBuilder.flowNode.codedata().parentSymbol() != null
+                && !sourceBuilder.flowNode.codedata().parentSymbol().isBlank();
+    }
+
+    /**
+     * Adds or rewrites a capability entry on the targeted agent declaration: new nodes append to
+     * the config list field, existing ones (codedata carries the entry's line range) are replaced.
+     *
+     * @param sourceBuilder the source builder
+     * @param fieldName     the config field the entry belongs to
+     * @param entryText     the entry source
+     * @return the text edits keyed by file path
+     */
+    public static Map<Path, List<org.eclipse.lsp4j.TextEdit>> upsertAgentCapabilityEntry(
+            SourceBuilder sourceBuilder, String fieldName, String entryText) {
+        String agentVarName = sourceBuilder.flowNode.codedata().parentSymbol();
+        boolean isNew = Boolean.TRUE.equals(sourceBuilder.flowNode.codedata().isNew())
+                || sourceBuilder.flowNode.codedata().lineRange() == null;
+        return isNew
+                ? insertAgentCapabilityEntry(sourceBuilder, agentVarName, fieldName, entryText)
+                : replaceAgentCapabilityEntry(sourceBuilder, agentVarName, entryText);
+    }
+
+    /**
+     * Quotes a plain value as a string literal; already-quoted values and template strings pass
+     * through unchanged.
+     *
+     * @param value the raw form value
+     * @return a Ballerina string expression
+     */
+    public static String quoteIfPlain(String value) {
+        String trimmed = value.trim();
+        if ((trimmed.startsWith("\"") && trimmed.endsWith("\""))
+                || trimmed.startsWith("string `")) {
+            return trimmed;
+        }
+        return "\"" + trimmed.replace("\"", "\\\"") + "\"";
     }
 }
