@@ -113,7 +113,20 @@ export default function createTests() {
             // Verify via the project explorer tree (decoupled from the
             // webview's own re-render timing) rather than racing the side
             // panel's connection list for the new entry's text.
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Connections', CONNECTION_NAME]);
+            // ProjectExplorer.findItem() only waits 5s per tree level, which
+            // can be too short on a slower CI runner while the LS re-indexes
+            // after the save — retry instead of a single attempt.
+            let connectionListed = false;
+            for (let attempt = 0; attempt < 3 && !connectionListed; attempt++) {
+                connectionListed = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Connections', CONNECTION_NAME])
+                    .then(() => true).catch(() => false);
+                if (!connectionListed) {
+                    await page.page.waitForTimeout(2000);
+                }
+            }
+            if (!connectionListed) {
+                throw new Error('httpClient connection did not appear in the project explorer tree');
+            }
             logStep('httpClient connection saved and shown in the side panel');
         });
 
