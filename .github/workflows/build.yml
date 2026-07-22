@@ -126,7 +126,7 @@ jobs:
           # Must be a single line: trivy splits on ',' verbatim. A folded
           # YAML string (>-) introduces a space after each comma, which
           # makes every entry except the first start with ' ' and never match.
-          skip-dirs: 'common/temp,submodules,packages/ballerina-language-server/**/src/test/resources,packages/ballerina-language-server/**/src/test/data'
+          skip-dirs: 'common/temp,submodules,packages/ballerina-language-server/**/src/test/resources,packages/ballerina-language-server/**/src/test/data,packages/ballerina-language-server/**/build/resources/test'
           ignore-unfixed: true
           trivyignores: .trivyignore,submodules/wso2-vscode-extensions/.trivyignore
 
@@ -179,11 +179,14 @@ jobs:
           balVersion: ${{ steps.set-version.outputs.balVersion }}
           balHome: ${{ steps.set-version.outputs.balHome }}
 
-  ExtTest_Ballerina_Diagrams:
-    name: Run Ballerina diagram snapshot tests
+  # Fast, deterministic tests (unit / component / contract) that run on every PR.
+  # Auto-discovers every package that has a jest.config.js, so new jest packages
+  # from the test-coverage rollout (docs/TEST_PLAN.md, docs/TEST_BACKLOG.md) are
+  # picked up automatically — no edits to this workflow needed.
+  fast-tests:
+    name: Fast tests (unit + component + contract)
     needs: Build_Stage
-    if: ${{ inputs.runTests || (inputs.isReleaseBuild && inputs.ballerina) || needs.Build_Stage.outputs.runBalExtTests == 'true' || github.base_ref == 'release-ballerina' }}
-    timeout-minutes: 30
+    timeout-minutes: 20
     runs-on: ${{ inputs.runOnAWS && inputs.awsRunnerId || 'ubuntu-latest' }}
     steps:
       - name: Restore build
@@ -204,25 +207,36 @@ jobs:
           node: 22.x
           rush-install: true
 
-      - name: Run BI diagram snapshot tests
+      - name: Run jest across all packages with a jest.config.js
         run: |
-          cd packages/bi-diagram
-          xvfb-run --auto-servernum pnpm run test
+          set -uo pipefail
+          shopt -s nullglob
+          failed=0
+          for cfg in packages/*/jest.config.js; do
+            pkg=$(dirname "$cfg")
+            echo "::group::jest ${pkg}"
+            if ! ( cd "$pkg" && xvfb-run --auto-servernum node --experimental-require-module ./node_modules/jest/bin/jest.js --coverage --ci ); then
+              echo "::error::jest failed in ${pkg}"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $failed
 
-      - name: Run component diagram snapshot tests
-        run: |
-          cd packages/component-diagram
-          xvfb-run --auto-servernum pnpm run test
+      - name: Type-check test code
+        # Test files are excluded from the emitting build and babel/ts-jest don't type-check
+        # at run time, so this catches type errors in test code. Reports only test-file errors
+        # (pre-existing production / cross-package errors are tallied but don't gate).
+        run: node scripts/typecheck-tests.js
 
-      - name: Run type diagram snapshot tests
-        run: |
-          cd packages/type-diagram
-          xvfb-run --auto-servernum pnpm run test
-
-      - name: Run sequence diagram snapshot tests
-        run: |
-          cd packages/sequence-diagram
-          xvfb-run --auto-servernum pnpm run test
+      - name: Upload coverage (per-package lcov)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: fast-tests-coverage
+          path: packages/*/coverage/lcov.info
+          if-no-files-found: warn
+          retention-days: 5
 
   BalE2ETest:
     name: Run Ballerina e2e Test

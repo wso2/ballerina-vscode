@@ -254,6 +254,26 @@ async function initVSCode(workspacePath: string = newProjectPath) {
     page = new ExtendedPage(await vscode!.firstWindow({ timeout: 60000 }));
 }
 
+/**
+ * Re-acquire the current VS Code window into the shared `page` binding.
+ *
+ * The BI extension can trigger a `workbench.action.reloadWindow` while it
+ * finishes activation (e.g. its distribution setup flow). That closes the
+ * Electron page a test is currently driving, surfacing as
+ * "Target page, context or browser has been closed". This helper grabs the
+ * fresh window the reload produced so the caller can retry against it, mirroring
+ * how the initTest reload path re-acquires `page`. Returns true if a live window
+ * was obtained.
+ */
+export async function reacquireWindow(timeout: number = 60000): Promise<boolean> {
+    if (!vscode) {
+        return false;
+    }
+    page = new ExtendedPage(await vscode.firstWindow({ timeout }));
+    await page.page.waitForLoadState();
+    return true;
+}
+
 async function resumeVSCode() {
     if (vscode && page) {
         await page.executePaletteCommand('Reload Window');

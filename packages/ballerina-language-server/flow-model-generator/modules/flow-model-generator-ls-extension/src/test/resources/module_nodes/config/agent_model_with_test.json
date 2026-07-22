@@ -1266,6 +1266,34 @@
             },
             "defaultValue": "false"
           },
+          "executeToolCallsInParallel": {
+            "metadata": {
+              "label": "Execute Tool Calls In Parallel",
+              "description": "Specifies whether multiple tool calls returned in a single LLM response are executed in parallel.\nIf `true`, all tool calls from one LLM response are executed concurrently;\notherwise, they are executed sequentially, one after another."
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean",
+                "selected": false
+              }
+            ],
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "executeToolCallsInParallel"
+            },
+            "defaultValue": "true"
+          },
           "credential": {
             "metadata": {
               "label": "Agent Credential",

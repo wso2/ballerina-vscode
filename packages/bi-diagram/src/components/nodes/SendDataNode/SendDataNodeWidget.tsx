@@ -498,7 +498,7 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
                         }}
                     >
                         <Icon
-                            name="bi-workflow"
+                            name="bi-flowchart"
                             sx={{
                                 width: 24,
                                 height: 24,

@@ -253,6 +253,7 @@ jobs:
           format: 'table'
           timeout: '10m0s'
           exit-code: '1'
+          trivyignores: packages/ballerina-language-server/.trivyignore
 
   # ─────────────────────────────────────────────────────────────────────────
   # Ballerina VSCode extension — build VSIX + tests

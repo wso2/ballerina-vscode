@@ -405,7 +405,7 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
                         isActiveBreakpoint={isActiveBreakpoint}
                         onClick={handleOnClick}
                     >
-                        <Icon name="bi-pause" sx={{ fontSize: 32, width: 32, height: 32, color: NODE_TEXT_COLOR }} />
+                        <Icon name="bi-wait" sx={{ fontSize: 32, width: 32, height: 32, color: NODE_TEXT_COLOR }} />
                     </NodeStyles.Circle>
                 </Tooltip>
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />

@@ -17,6 +17,7 @@
  */
 
 import { LanguageClient, LanguageClientOptions, ServerOptions } from "vscode-languageclient/node";
+import { isRecording, recordLs } from "../test-support/fixtureRecorder";
 import { CodeAction, CodeActionParams, DocumentSymbol, DocumentSymbolParams, ExecuteCommandParams, RenameParams, SymbolInformation, WorkspaceEdit } from "monaco-languageclient";
 import {
     Connectors,
@@ -299,6 +300,7 @@ import {
     AIGetPackageVersionResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
+import { emitMigrationToolState, emitMigrationToolLog, emitMigratedProject } from "../features/ai/migration/migrationEvents";
 import { debug, handlePullModuleProgress } from "../utils";
 import { CMP_LS_CLIENT_COMPLETIONS, CMP_LS_CLIENT_DIAGNOSTICS, getMessageObject, sendTelemetryEvent, TM_EVENT_LANG_CLIENT } from "../features/telemetry";
 import { DefinitionParams, InitializeParams, InitializeResult, Location, LocationLink, TextDocumentPositionParams } from 'vscode-languageserver-protocol';
@@ -548,6 +550,11 @@ enum VSCODE_APIS {
     DID_CHANGE_WATCHED_FILES = 'workspace/didChangeWatchedFiles'
 }
 
+// Cached once at module load: recording is enabled process-wide via BAL_RECORD_FIXTURES
+// before the extension launches and never toggles at runtime, so the per-request
+// sendRequest hook below branches on this const instead of reading process.env each call.
+const RECORDING_ENABLED = isRecording();
+
 export class ExtendedLangClient extends LanguageClient implements ExtendedLangClientInterface {
     private ballerinaExtendedServices: Set<String> | undefined;
     private isDynamicRegistrationSupported: boolean;
@@ -564,6 +571,24 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         this.timeConsumption = { diagnostics: [], completion: [] };
     }
     init?: (params: InitializeParams) => Promise<InitializeResult>;
+
+    // Records all LS request/response traffic to fixtures when BAL_RECORD_FIXTURES is set.
+    // When not recording this is a single branch on a cached const per request (no env read).
+    // See src/test-support/fixtureRecorder.ts.
+    public sendRequest<R = any>(...args: any[]): Promise<R> {
+        const result = (super.sendRequest as any)(...args) as Promise<R>;
+        if (RECORDING_ENABLED) {
+            const method = typeof args[0] === "string" ? args[0] : args[0]?.method;
+            const maybeParams = args[1];
+            const request =
+                maybeParams && typeof maybeParams.isCancellationRequested === "boolean" ? undefined : maybeParams;
+            Promise.resolve(result).then(
+                (response) => recordLs(method, request, response),
+                () => { /* ignore rejected LS calls */ }
+            );
+        }
+        return result;
+    }
 
     // <------------ VS CODE RELATED APIS START --------------->
     didOpen(params: DidOpenParams): void {
@@ -612,6 +637,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                     { type: "webview", webviewType: VisualizerWebview.viewType },
                     res
                 );
+                emitMigrationToolState(res as any);
             } catch (error) {
                 console.error("Error in MIGRATION_TOOL_STATE handler:", error);
             }
@@ -624,6 +650,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                     { type: "webview", webviewType: VisualizerWebview.viewType },
                     res
                 );
+                emitMigrationToolLog(res as any);
             } catch (error) {
                 console.error("Error in MIGRATION_TOOL_LOG handler:", error);
             }
@@ -636,6 +663,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
                     { type: "webview", webviewType: VisualizerWebview.viewType },
                     res
                 );
+                emitMigratedProject(res);
             } catch (error) {
                 console.error("Error in PUSH_MIGRATED_PROJECT handler:", error);
             }
