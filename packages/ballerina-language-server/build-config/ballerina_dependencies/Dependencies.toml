@@ -556,7 +556,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "workflow"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
 	{org = "ballerina", name = "email"},
 	{org = "ballerina", name = "http"},
@@ -1377,6 +1377,23 @@ modules = [
 
 [[package]]
 org = "ballerinax"
+name = "trigger.hubspot"
+version = "0.12.0"
+dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "time"},
+	{org = "ballerinai", name = "observe"},
+	{org = "ballerinax", name = "asyncapi.native.handler"}
+]
+modules = [
+	{org = "ballerinax", packageName = "trigger.hubspot", moduleName = "trigger.hubspot"}
+]
+
+[[package]]
+org = "ballerinax"
 name = "trigger.salesforce"
 version = "0.10.0"
 dependencies = [
@@ -1481,6 +1498,7 @@ dependencies = [
 	{org = "ballerinax", name = "snowflake"},
 	{org = "ballerinax", name = "solace"},
 	{org = "ballerinax", name = "trigger.github"},
+	{org = "ballerinax", name = "trigger.hubspot"},
 	{org = "ballerinax", name = "trigger.salesforce"},
 	{org = "ballerinax", name = "trigger.shopify"},
 	{org = "ballerinax", name = "wso2.controlplane"}

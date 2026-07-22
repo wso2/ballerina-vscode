@@ -45,4 +45,5 @@ import ballerinax/azure.datalake as _;
 import ballerinax/docusign.dsesign as _;
 import ballerinax/mongodb as _;
 import ballerinax/ibm.ibmmq as _;
+import ballerinax/trigger.hubspot as _;
 

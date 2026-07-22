@@ -211,7 +211,7 @@ version = "0.8.1"
 [[dependency]]
 org = "ballerina"
 name = "workflow"
-version = "0.5.0"
+version = "0.7.0"
 
 [[dependency]]
 org = "ballerina"
@@ -262,6 +262,11 @@ version = "5.1.0"
 org = "ballerinax"
 name = "ibm.ibmmq"
 version = "1.4.4"
+
+[[dependency]]
+org = "ballerinax"
+name = "trigger.hubspot"
+version = "0.12.0"
 
 # ballerinax/ibm.ibmmq declares the IBM MQ client jar with 'provided' scope, so it
 # is not bundled and must be supplied by the consuming project. Declaring it here
