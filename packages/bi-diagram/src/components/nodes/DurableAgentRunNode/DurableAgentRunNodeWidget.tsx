@@ -291,31 +291,6 @@ export namespace NodeStyles {
         border-radius: 5px;
     `;
 
-    // Round "+" control at the bottom of the agent box that reveals the capability
-    // add-affordances at their fixed anchors.
-    export const AddControl = styled.div<{ active: boolean }>`
-        position: absolute;
-        bottom: -16px;
-        left: calc(50% - 16px);
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: ${NODE_BG_COLOR};
-        border: 1.5px solid ${(props: { active: boolean }) =>
-            props.active ? NODE_BORDER_SELECTED_COLOR : NODE_BORDER_COLOR};
-        color: ${NODE_TEXT_COLOR};
-        cursor: pointer;
-        z-index: 4;
-        transition: border-color 0.1s ease, transform 0.1s ease;
-        transform: ${(props: { active: boolean }) => (props.active ? "rotate(45deg)" : "none")};
-        &:hover {
-            border-color: ${NODE_BORDER_SELECTED_COLOR};
-        }
-    `;
-
     export type AffordanceAnchorName = "topLeft" | "bottomLeft" | "middleRight" | "bottomRight" | "topRight";
 
     const anchorPosition: Record<AffordanceAnchorName, string> = {
@@ -439,9 +414,7 @@ export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps)
     const [isBoxHovered, setIsBoxHovered] = useState(false);
     const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
-    // "+" affordance state: showAffordances reveals the anchored add buttons; while a
-    // capability form is open, addingCapability drives the pill indicator on the node.
-    const [showAffordances, setShowAffordances] = useState(false);
+    // While a capability form is open, addingCapability drives the pill indicator on the node.
     const [addingCapability, setAddingCapability] = useState<AddableCapability | null>(null);
     const isMenuOpen = menuPos !== null;
 
@@ -539,15 +512,6 @@ export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps)
         agentNode?.onEditCapability?.(model.node, { ...item.data, type: item.kind });
     };
 
-    const onToggleAffordances = (event: React.MouseEvent<HTMLElement>) => {
-        if (readOnly) {
-            return;
-        }
-        event.stopPropagation();
-        setShowAffordances((show) => !show);
-        setAddingCapability(null);
-    };
-
     // Fires the matching add callback and shows the pill; the diagram remounts the node
     // once the generated statement lands, clearing the pill.
     const onAffordanceClick = (kind: AddableCapability) => (event: React.MouseEvent<HTMLElement>) => {
@@ -555,7 +519,6 @@ export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps)
             return;
         }
         event.stopPropagation();
-        setShowAffordances(false);
         setAddingCapability(kind);
         switch (kind) {
             case "humanTask":
@@ -996,19 +959,12 @@ export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps)
                 </NodeStyles.Column>
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
 
-                {/* Round "+" control: reveals the capability add-affordances at fixed anchors */}
-                {!readOnly && (
-                    <NodeStyles.AddControl
-                        data-testid="durable-agent-add-control"
-                        active={showAffordances}
-                        title={showAffordances ? "Close" : "Add capability"}
-                        onClick={onToggleAffordances}
-                    >
-                        <Icon name="bi-plus" sx={{ width: 16, height: 16, fontSize: 16 }} />
-                    </NodeStyles.AddControl>
-                )}
-                {!readOnly && showAffordances &&
-                    ADD_AFFORDANCES.map((affordance) => (
+                {/* Capability add-affordances at fixed anchors; the model affordance hides
+                    once the declaration has a model. */}
+                {!readOnly &&
+                    ADD_AFFORDANCES
+                        .filter((affordance) => affordance.kind !== "model" || !nodeMetadata?.model)
+                        .map((affordance) => (
                         <NodeStyles.AffordanceButton
                             key={affordance.kind}
                             data-testid={`durable-agent-affordance-${affordance.kind}`}

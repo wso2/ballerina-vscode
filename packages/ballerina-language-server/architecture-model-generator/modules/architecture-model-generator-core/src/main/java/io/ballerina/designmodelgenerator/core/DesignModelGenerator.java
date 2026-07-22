@@ -94,8 +94,8 @@ public class DesignModelGenerator {
     public DesignModel generate() {
         IntermediateModel intermediateModel = new IntermediateModel();
         this.populateModuleLevelConnections(intermediateModel);
-        this.populateModuleLevelWorkflows(intermediateModel);
         this.populateModuleLevelActivities(intermediateModel);
+        this.populateModuleLevelWorkflows(intermediateModel);
         ConnectionFinder connectionFinder = new ConnectionFinder(semanticModel, rootPath, documentMap,
                 intermediateModel);
         this.defaultModule.documentIds().forEach(d -> {
@@ -291,7 +291,7 @@ public class DesignModelGenerator {
                 String sortText = lineRange.fileName() + lineRange.startLine().line();
                 Workflow agent = new Workflow(symbol.getName().get(), sortText, getLocation(lineRange),
                         Workflow.KIND_DURABLE_AGENT);
-                populateAgentDeclaredEvents(agent, lineRange);
+                populateAgentDeclaredCapabilities(intermediateModel, agent, lineRange);
                 intermediateModel.workflowMap.put(symbol.getName().get(), agent);
                 intermediateModel.uuidToWorkflowMap.put(agent.getUuid(), agent);
             }
@@ -345,20 +345,24 @@ public class DesignModelGenerator {
 
 
     /**
-     * Derives the event channels a durable agent declares: the {@code events} list of the
-     * declaration's config literal, each entry contributing its name and request type.
+     * Derives a durable agent's declared capabilities from the declaration's config literal:
+     * event channels (name + request type), human tasks, and links to declared activities.
      *
-     * @param agent     the agent's design node
-     * @param lineRange the declaration's line range
+     * @param intermediateModel the intermediate model holding the activity registry
+     * @param agent             the agent's design node
+     * @param lineRange         the agent variable symbol's line range
      */
-    private void populateAgentDeclaredEvents(Workflow agent, LineRange lineRange) {
+    private void populateAgentDeclaredCapabilities(IntermediateModel intermediateModel, Workflow agent,
+                                                   LineRange lineRange) {
         ModulePartNode root = this.documentMap.get(lineRange.fileName());
         if (root == null) {
             return;
         }
         for (io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode member : root.members()) {
+            // The symbol's location is the variable-name token, so match by line containment.
             if (!(member instanceof io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode varDecl)
-                    || !varDecl.lineRange().startLine().equals(lineRange.startLine())
+                    || varDecl.lineRange().startLine().line() > lineRange.startLine().line()
+                    || varDecl.lineRange().endLine().line() < lineRange.startLine().line()
                     || varDecl.initializer().isEmpty()) {
                 continue;
             }
@@ -373,43 +377,96 @@ public class DesignModelGenerator {
                             instanceof io.ballerina.compiler.syntax.tree.PositionalArgumentNode configArg)
                     || !(configArg.expression()
                             instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode config)) {
-                return;
+                continue;
             }
             for (io.ballerina.compiler.syntax.tree.MappingFieldNode field : config.fields()) {
                 if (!(field instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode specificField)
-                        || !"events".equals(specificField.fieldName().toSourceCode().trim())
                         || specificField.valueExpr().isEmpty()
                         || !(specificField.valueExpr().get()
-                                instanceof io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode events)) {
+                                instanceof io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode list)) {
                     continue;
                 }
-                for (io.ballerina.compiler.syntax.tree.Node item : events.expressions()) {
-                    if (!(item instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode entry)) {
-                        continue;
-                    }
-                    String name = null;
-                    String requestType = null;
-                    for (io.ballerina.compiler.syntax.tree.MappingFieldNode entryField : entry.fields()) {
-                        if (!(entryField instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode entrySpecific)
-                                || entrySpecific.valueExpr().isEmpty()) {
-                            continue;
-                        }
-                        String fieldName = entrySpecific.fieldName().toSourceCode().trim();
-                        String value = entrySpecific.valueExpr().get().toSourceCode().trim();
-                        if ("name".equals(fieldName) && value.length() >= 2
-                                && value.startsWith("\"") && value.endsWith("\"")) {
-                            name = value.substring(1, value.length() - 1);
-                        } else if ("request".equals(fieldName)) {
-                            requestType = value;
-                        }
-                    }
-                    if (name != null) {
-                        agent.addEvent(new Workflow.Event(name, requestType == null ? "anydata" : requestType));
+                String fieldName = specificField.fieldName().toSourceCode().trim();
+                switch (fieldName) {
+                    case "events" -> populateAgentEvents(agent, list);
+                    case "humanTasks" -> populateAgentHumanTasks(agent, list);
+                    case "activities" -> linkAgentActivities(intermediateModel, agent, list);
+                    default -> {
                     }
                 }
             }
             return;
         }
+    }
+
+    private void populateAgentEvents(Workflow agent,
+                                     io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode events) {
+        for (io.ballerina.compiler.syntax.tree.Node item : events.expressions()) {
+            if (!(item instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode entry)) {
+                continue;
+            }
+            String name = getMappingStringField(entry, "name");
+            String requestType = getMappingRawField(entry, "request");
+            if (name != null) {
+                agent.addEvent(new Workflow.Event(name, requestType == null ? "anydata" : requestType));
+            }
+        }
+    }
+
+    private void populateAgentHumanTasks(Workflow agent,
+                                         io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode tasks) {
+        for (io.ballerina.compiler.syntax.tree.Node item : tasks.expressions()) {
+            if (!(item instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode entry)) {
+                continue;
+            }
+            String name = getMappingStringField(entry, "name");
+            if (name != null) {
+                agent.addHumanTask(new Workflow.HumanTask(name, getLocation(item.lineRange())));
+            }
+        }
+    }
+
+    // Declared activity functions link the agent to the shared activities column, exactly like
+    // ctx->callActivity does for workflow functions.
+    private void linkAgentActivities(IntermediateModel intermediateModel, Workflow agent,
+                                     io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode activities) {
+        for (io.ballerina.compiler.syntax.tree.Node item : activities.expressions()) {
+            String activityName = null;
+            if (item.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
+                activityName = item.toSourceCode().trim();
+            } else if (item instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode entry) {
+                activityName = getMappingRawField(entry, "activity");
+            }
+            if (activityName == null) {
+                continue;
+            }
+            Activity activity = intermediateModel.activityMap.get(activityName);
+            if (activity != null) {
+                agent.addActivity(activity.getUuid());
+                activity.addAttachedWorkflow(agent.getUuid());
+            }
+        }
+    }
+
+    private static String getMappingStringField(
+            io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode mapping, String fieldName) {
+        String raw = getMappingRawField(mapping, fieldName);
+        if (raw != null && raw.length() >= 2 && raw.startsWith("\"") && raw.endsWith("\"")) {
+            return raw.substring(1, raw.length() - 1);
+        }
+        return raw;
+    }
+
+    private static String getMappingRawField(
+            io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode mapping, String fieldName) {
+        for (io.ballerina.compiler.syntax.tree.MappingFieldNode field : mapping.fields()) {
+            if (field instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode specificField
+                    && fieldName.equals(specificField.fieldName().toSourceCode().trim())
+                    && specificField.valueExpr().isPresent()) {
+                return specificField.valueExpr().get().toSourceCode().trim();
+            }
+        }
+        return null;
     }
 
     private void populateModuleLevelActivities(IntermediateModel intermediateModel) {
