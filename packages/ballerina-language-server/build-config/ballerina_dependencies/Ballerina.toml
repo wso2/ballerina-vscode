@@ -18,7 +18,7 @@
 org = "wso2"
 name = "ballerina_dependencies"
 version = "0.1.0"
-lockingMode = "LOCK"
+lockingMode = "LOCKED"
 
 [build-options]
 sticky = true
@@ -134,14 +134,14 @@ name = "ai.deepseek"
 version = "1.0.4"
 
 [[dependency]]
+org = "ballerinax"
+name = "ai.mistral"
+version = "1.2.3"
+
+[[dependency]]
 org = "ballerina"
 name = "ai"
 version = "1.11.2"
-
-[[dependency]]
-org = "ballerinax"
-name = "ai"
-version = "1.0.1"
 
 [[dependency]]
 org = "ballerinax"
