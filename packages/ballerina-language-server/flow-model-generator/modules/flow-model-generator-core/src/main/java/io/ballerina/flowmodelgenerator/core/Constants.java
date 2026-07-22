@@ -182,6 +182,8 @@ public class Constants {
 
         // Durable agent constants
         public static final String DURABLE_AGENT = "DurableAgenticWorkflow";
+        public static final String DURABLE_AGENT_OBJECT_CLASS_NAME = "DurableAgent";
+        public static final String AGENT_OBJECT_RUN_METHOD_NAME = "run";
         public static final String AGENT_CONTEXT_CLASS_NAME = "AgenticWorkflowContext";
         public static final String REGISTER_ACTIVITY_METHOD_NAME = "registerActivity";
         public static final String REGISTER_ACTIVITY_LABEL = "Register Activity";

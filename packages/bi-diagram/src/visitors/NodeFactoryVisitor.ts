@@ -727,6 +727,10 @@ export class NodeFactoryVisitor implements BaseVisitor {
             this.updateNodeLinks(node, nodeModel);
         } else if (this.lastNodeModel instanceof StartNodeModel) {
             this.updateNodeLinks(node, nodeModel, { showAddButton: false });
+        } else if (this.lastNodeModel) {
+            // Object-model agent box rendered in-chain (an `agent.run(...)` statement inside a
+            // workflow function): keep the normal chain links.
+            this.updateNodeLinks(node, nodeModel);
         }
         this.addSuggestionsButton(node);
     }

@@ -36,7 +36,6 @@ import java.util.Optional;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.AGENT_CONTEXT_CLASS_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DURABLE_AGENT;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_AGENT_CTX_PARAM_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_DURABLE_AGENT_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
@@ -87,62 +86,65 @@ public class DurableAgentBuilder extends FunctionDefinitionBuilder {
         }
         String funcName = funcNameProperty.get().value().toString();
 
-        if (!description.isEmpty()) {
-            sourceBuilder.token().descriptionDoc(description);
-        }
-
-        sourceBuilder.token()
-                .name("@workflow:" + DURABLE_AGENT)
-                .newLine()
-                .keyword(SyntaxKind.FUNCTION_KEYWORD)
-                .name(funcName)
-                .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
-
-        // The agent context parameter comes first, followed by the optional input record
-        // and the chat events record used for conversational interactions.
-        WorkflowBuilder.generateParameter(sourceBuilder,
-                WORKFLOW_MODULE + ":" + AGENT_CONTEXT_CLASS_NAME, DEFAULT_AGENT_CTX_PARAM_NAME);
-
-        // The input parameter is mandatory (the compiler plugin rejects agents without it);
-        // the simplified creation always generates a json payload named "input". Editing the
-        // type/name later happens through the Agent Identifier form.
-        Optional<Property> inputProperty = sourceBuilder.getProperty(WorkflowBuilder.INPUT_KEY);
-        String inputTypeName = inputProperty.map(p -> p.value().toString()).orElse("");
-        if (inputTypeName.isEmpty()) {
-            inputTypeName = DEFAULT_INPUT_TYPE;
-        }
-        sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
-        WorkflowBuilder.generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_NAME);
-
-        sourceBuilder.token()
-                .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
-                .keyword(SyntaxKind.RETURNS_KEYWORD)
-                .name(RETURN_TYPE);
-
         boolean isNew = Boolean.TRUE.equals(sourceBuilder.flowNode.codedata().isNew());
         if (isNew || sourceBuilder.flowNode.codedata().lineRange() == null) {
-            // Pre-populate the body with the agent run call so a freshly created durable agent is
-            // immediately runnable. Reference an existing model provider variable if the project
-            // has one; otherwise fall back to `wso2ModelProvider`, which the creation wizard
-            // creates only when no provider exists yet.
+            // Object model: the agent is a module-level declaration whose config carries every
+            // capability, plus a starter workflow function that runs it — the agent box renders
+            // inside that workflow's flow diagram.
             String modelVar = resolveExistingModelProvider(sourceBuilder);
-            // The creation description becomes the agent's initial instructions.
+            if (modelVar == null) {
+                // The creation wizard creates the shared WSO2 default provider when none exists.
+                modelVar = "wso2ModelProvider";
+            }
             String instructions = description.replace("`", "'");
-            // No provider in the project: omit the model argument — the resulting compiler
-            // diagnostic renders on the agent box, guiding the user to configure a model.
-            String modelArg = modelVar == null ? "" : ", model = " + modelVar;
-            String runStatement = "check " + DEFAULT_AGENT_CTX_PARAM_NAME + "." + RUN_DURABLE_AGENT_METHOD_NAME + "("
-                    + "systemPrompt = {role: string `" + funcName + "`, instructions: string `"
-                    + instructions + "`}" + modelArg + ");";
+            String declaration = "final workflow:DurableAgent " + funcName + " = check new ({"
+                    + "systemPrompt: {role: string `" + funcName + "`, instructions: string `"
+                    + instructions + "`}, model: " + modelVar + "});";
+            String workflowFunction = "@workflow:Workflow\nfunction " + funcName
+                    + "Workflow(workflow:Context ctx, json input) returns error? {\n"
+                    + "    string " + funcName + "RunId = check " + funcName + ".run(input.toJsonString());\n"
+                    + "    string _ = check " + funcName + ".waitForResult(" + funcName + "RunId);\n}";
             sourceBuilder
                     .token()
-                        .openBrace()
-                        .name(runStatement)
-                        .closeBrace()
+                        .skipFormatting()
+                        .name(declaration)
+                        .name("\n\n")
+                        .name(workflowFunction)
                         .stepOut()
                     .textEdit(SourceBuilder.SourceKind.DECLARATION)
                     .acceptImport();
         } else {
+            if (!description.isEmpty()) {
+                sourceBuilder.token().descriptionDoc(description);
+            }
+
+            sourceBuilder.token()
+                    .name("@workflow:" + DURABLE_AGENT)
+                    .newLine()
+                    .keyword(SyntaxKind.FUNCTION_KEYWORD)
+                    .name(funcName)
+                    .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
+
+            // The agent context parameter comes first, followed by the optional input record
+            // and the chat events record used for conversational interactions.
+            WorkflowBuilder.generateParameter(sourceBuilder,
+                    WORKFLOW_MODULE + ":" + AGENT_CONTEXT_CLASS_NAME, DEFAULT_AGENT_CTX_PARAM_NAME);
+
+            // The input parameter is mandatory (the compiler plugin rejects agents without it);
+            // the simplified creation always generates a json payload named "input". Editing the
+            // type/name later happens through the Agent Identifier form.
+            Optional<Property> inputProperty = sourceBuilder.getProperty(WorkflowBuilder.INPUT_KEY);
+            String inputTypeName = inputProperty.map(p -> p.value().toString()).orElse("");
+            if (inputTypeName.isEmpty()) {
+                inputTypeName = DEFAULT_INPUT_TYPE;
+            }
+            sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
+            WorkflowBuilder.generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_NAME);
+
+            sourceBuilder.token()
+                    .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
+                    .keyword(SyntaxKind.RETURNS_KEYWORD)
+                    .name(RETURN_TYPE);
             sourceBuilder
                     .token().skipFormatting().stepOut()
                     .textEdit();
