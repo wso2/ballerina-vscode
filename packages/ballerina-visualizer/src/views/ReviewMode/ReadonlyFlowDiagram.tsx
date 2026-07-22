@@ -301,8 +301,12 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
             return null;
         }
         if (!metadataMatchesExpected(newFlow, expectedMetadata)) {
+            // The new version resolved to a different function than the diff recorded —
+            // rendering it would show the wrong function. Return null to match the
+            // "new" branch's verdict for the same flow, so the fallback re-render
+            // shows the unavailable message instead of flashing the wrong diagram.
             onDiffUnavailableRef.current?.();
-            return newFlow;
+            return null;
         }
         if (!oldFlow || !isSameExpectedFunction(oldFlow, newFlow, expectedMetadata)) {
             onDiffUnavailableRef.current?.();
