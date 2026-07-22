@@ -33,6 +33,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Test cases for the flow model generator service for agents.
@@ -44,17 +47,17 @@ public class FlowNodeGeneratorTest extends AbstractLSTest {
     @DataProvider(name = "data-provider")
     @Override
     protected Object[] getConfigsList() {
-        return new Object[][]{
-                {Path.of("agent_call_flow_node_1.json")},
-                {Path.of("agent_call_flow_node_2.json")},
-                {Path.of("agent_call_flow_node_3.json")},
-                {Path.of("agent_call_flow_node_4.json")},
-                {Path.of("agent_call_flow_node_7.json")},
-                {Path.of("agent_call_flow_node_8.json")},
-                {Path.of("agent_call_flow_node_9.json")}
-//                {Path.of("agent_call_flow_node_5.json")},
-//                {Path.of("agent_call_flow_node_6.json")}
-        };
+        List<String> skip = Arrays.asList(skipList());
+        return Stream.of(
+                "agent_call_flow_node_1.json",
+                "agent_call_flow_node_2.json",
+                "agent_call_flow_node_3.json",
+                "agent_call_flow_node_4.json",
+                "agent_call_flow_node_7.json",
+                "agent_call_flow_node_8.json",
+                "agent_call_flow_node_9.json"
+                // agent_call_flow_node_5/6 intentionally excluded (pre-existing)
+        ).filter(c -> !skip.contains(c)).map(c -> new Object[]{Path.of(c)}).toArray(Object[][]::new);
     }
 
     @Override
