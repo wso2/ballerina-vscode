@@ -171,7 +171,14 @@ export default function createTests() {
                     try {
                         await targetTypeField.click({ force: true, timeout: 2000 });
                         await page.page.keyboard.type('http:Response', { delay: 20 });
-                        await page.page.waitForTimeout(500);
+                        await page.page.waitForTimeout(1000);
+                        // Typing opens the field's autocomplete/type-helper panel, which keeps the
+                        // field from blurring and the Save button's validation from settling - same
+                        // as the path field above, dismiss it before checking Save.
+                        await page.page.keyboard.press('Escape');
+                        await page.page.waitForTimeout(300);
+                        await page.page.keyboard.press('Escape');
+                        await page.page.waitForTimeout(300);
                         await saveGetActionButton.waitFor({ state: 'visible', timeout: 5000 });
                         if (await saveGetActionButton.isEnabled().catch(() => false)) {
                             getFormReady = true;
