@@ -32,8 +32,14 @@ import java.util.Set;
  */
 public final class Workflow extends DesignGraphNode {
 
+    /** A plain {@code @workflow:Workflow} function. */
+    public static final String KIND_WORKFLOW = "WORKFLOW";
+    /** A module-level {@code workflow:DurableAgent} declaration. */
+    public static final String KIND_DURABLE_AGENT = "DURABLE_AGENT";
+
     private final String symbol;
     private final Location location;
+    private final String kind;
     private final Set<String> attachedServices;
     private final Set<String> attachedFunctions;
     private final List<Event> events;
@@ -43,9 +49,14 @@ public final class Workflow extends DesignGraphNode {
     private final Set<String> invalidSendDataFunctions;
 
     public Workflow(String symbol, String sortText, Location location) {
+        this(symbol, sortText, location, KIND_WORKFLOW);
+    }
+
+    public Workflow(String symbol, String sortText, Location location, String kind) {
         super(true, sortText);
         this.symbol = symbol;
         this.location = location;
+        this.kind = kind;
         this.attachedServices = new HashSet<>();
         this.attachedFunctions = new HashSet<>();
         this.events = new ArrayList<>();
@@ -53,6 +64,10 @@ public final class Workflow extends DesignGraphNode {
         this.activities = new HashSet<>();
         this.invalidSendDataServices = new HashSet<>();
         this.invalidSendDataFunctions = new HashSet<>();
+    }
+
+    public String getKind() {
+        return kind;
     }
 
     public Set<String> getInvalidSendDataServices() {

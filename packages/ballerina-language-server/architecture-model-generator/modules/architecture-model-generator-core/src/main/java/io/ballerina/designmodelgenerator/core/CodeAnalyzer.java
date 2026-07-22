@@ -406,6 +406,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (this.currentFunctionModel != null) {
             String methodName = methodCallExpressionNode.methodName().toSourceCode().trim();
             this.currentFunctionModel.dependentObjFuncs.add(methodName);
+            handleDurableAgentCall(methodCallExpressionNode);
         }
 
         if (isAiMethodCall(methodCallExpressionNode.expression())) {
@@ -413,6 +414,26 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         methodCallExpressionNode.arguments().forEach(arg -> arg.accept(this));
+    }
+
+    /**
+     * Draws the trigger edge for durable agent driver calls: any method call on a module-level
+     * {@code workflow:DurableAgent} variable ({@code agent.run(...)}, {@code agent.sendEvent(...)},
+     * {@code agent.waitForResult(...)}, ...) connects the caller to the agent's overview node,
+     * exactly like {@code workflow:run} does for workflow functions.
+     *
+     * @param methodCallExpressionNode the method call to inspect
+     */
+    private void handleDurableAgentCall(MethodCallExpressionNode methodCallExpressionNode) {
+        Optional<Symbol> targetSymbol = semanticModel.symbol(methodCallExpressionNode.expression());
+        if (targetSymbol.isEmpty() || targetSymbol.get().getName().isEmpty()) {
+            return;
+        }
+        Workflow agent = intermediateModel.workflowMap.get(targetSymbol.get().getName().get());
+        if (agent == null || !Workflow.KIND_DURABLE_AGENT.equals(agent.getKind())) {
+            return;
+        }
+        this.currentFunctionModel.workflows.add(agent.getUuid());
     }
 
     @Override

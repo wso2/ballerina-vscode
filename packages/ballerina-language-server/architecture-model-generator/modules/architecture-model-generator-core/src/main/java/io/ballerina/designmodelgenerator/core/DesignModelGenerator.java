@@ -76,6 +76,7 @@ public class DesignModelGenerator {
     public static final String MAIN_FUNCTION_NAME = "main";
     private static final String AUTOMATION = "automation";
     private static final String SERVICE = "Service";
+    private static final String DURABLE_AGENT_CLASS_NAME = "DurableAgent";
     private final Map<String, ModulePartNode> documentMap;
 
     public DesignModelGenerator(Package ballerinaPackage) {
@@ -273,20 +274,46 @@ public class DesignModelGenerator {
 
     private void populateModuleLevelWorkflows(IntermediateModel intermediateModel) {
         for (Symbol symbol : this.semanticModel.moduleSymbols()) {
-            if (!WorkflowUtil.isWorkflowFunction(symbol)) {
-                continue;
-            }
-
             if (symbol.getName().isEmpty() || symbol.getLocation().isEmpty()) {
                 continue;
             }
-            LineRange lineRange = symbol.getLocation().get().lineRange();
-            String sortText = lineRange.fileName() + lineRange.startLine().line();
-            Workflow workflow = new Workflow(symbol.getName().get(), sortText, getLocation(lineRange));
-            populateWorkflowEvents(workflow, (FunctionSymbol) symbol);
-            intermediateModel.workflowMap.put(symbol.getName().get(), workflow);
-            intermediateModel.uuidToWorkflowMap.put(workflow.getUuid(), workflow);
+            if (WorkflowUtil.isWorkflowFunction(symbol)) {
+                LineRange lineRange = symbol.getLocation().get().lineRange();
+                String sortText = lineRange.fileName() + lineRange.startLine().line();
+                Workflow workflow = new Workflow(symbol.getName().get(), sortText, getLocation(lineRange));
+                populateWorkflowEvents(workflow, (FunctionSymbol) symbol);
+                intermediateModel.workflowMap.put(symbol.getName().get(), workflow);
+                intermediateModel.uuidToWorkflowMap.put(workflow.getUuid(), workflow);
+            } else if (isDurableAgentVariable(symbol)) {
+                // A module-level `workflow:DurableAgent` declaration joins the overview's workflow
+                // column as a durable agentic workflow; its identity is the variable name.
+                LineRange lineRange = symbol.getLocation().get().lineRange();
+                String sortText = lineRange.fileName() + lineRange.startLine().line();
+                Workflow agent = new Workflow(symbol.getName().get(), sortText, getLocation(lineRange),
+                        Workflow.KIND_DURABLE_AGENT);
+                intermediateModel.workflowMap.put(symbol.getName().get(), agent);
+                intermediateModel.uuidToWorkflowMap.put(agent.getUuid(), agent);
+            }
         }
+    }
+
+    /**
+     * Checks whether the symbol is a module-level variable of the {@code workflow:DurableAgent} class.
+     *
+     * @param symbol the module symbol to check
+     * @return {@code true} for a durable agent declaration
+     */
+    private boolean isDurableAgentVariable(Symbol symbol) {
+        if (!(symbol instanceof VariableSymbol variableSymbol)) {
+            return false;
+        }
+        TypeSymbol typeDescriptor = variableSymbol.typeDescriptor();
+        TypeSymbol rawType = CommonUtils.getRawType(typeDescriptor);
+        if (!(rawType instanceof ClassSymbol classSymbol)) {
+            return false;
+        }
+        return classSymbol.getName().map(DURABLE_AGENT_CLASS_NAME::equals).orElse(false)
+                && WorkflowUtil.isWorkflowModule(classSymbol.getModule());
     }
 
     /**
