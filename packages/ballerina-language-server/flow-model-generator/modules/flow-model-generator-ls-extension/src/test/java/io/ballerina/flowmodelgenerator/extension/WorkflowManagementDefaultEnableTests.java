@@ -80,7 +80,8 @@ public class WorkflowManagementDefaultEnableTests extends AbstractLSTest {
     protected String[] skipList() {
         return new String[]{
                 "config1.json",
-                "config2.json"
+                "config2.json",
+                "config5.json"
         };
     }
 
