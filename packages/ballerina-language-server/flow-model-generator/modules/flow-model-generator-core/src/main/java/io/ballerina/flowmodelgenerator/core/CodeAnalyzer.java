@@ -1070,15 +1070,8 @@ public class CodeAnalyzer extends NodeVisitor {
                     .org(WORKFLOW_ORG)
                     .module(WORKFLOW_MODULE)
                     .object(Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME)
+                    .parentSymbol(agentVarName)
                     .symbol(functionName);
-
-        FunctionData functionData = new FunctionDataBuilder()
-                .name(functionName)
-                .functionSymbol(functionSymbol)
-                .semanticModel(semanticModel)
-                .userModuleInfo(moduleInfo)
-                .build();
-        processFunctionSymbol(callNode, callNode.arguments(), functionSymbol, functionData);
 
         nodeBuilder.metadata().addData("agentName", agentVarName);
         nodeBuilder.metadata().addData("agentBox", true);
@@ -1132,21 +1125,40 @@ public class CodeAnalyzer extends NodeVisitor {
                 case "systemPrompt" -> {
                     if (valueExpr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
                         Map<String, String> agentData = new LinkedHashMap<>();
+                        Map<String, AiUtils.AgentPropertyValue> promptValues = new LinkedHashMap<>();
                         for (MappingFieldNode promptField
                                 : ((MappingConstructorExpressionNode) valueExpr).fields()) {
                             if (promptField instanceof SpecificFieldNode promptSpecific
                                     && promptSpecific.valueExpr().isPresent()) {
-                                agentData.put(promptSpecific.fieldName().toSourceCode().trim(),
-                                        extractPromptText(promptSpecific.valueExpr().get()));
+                                String promptText = extractPromptText(promptSpecific.valueExpr().get());
+                                String promptFieldName = promptSpecific.fieldName().toSourceCode().trim();
+                                agentData.put(promptFieldName, promptText);
+                                promptValues.put(promptFieldName,
+                                        new AiUtils.AgentPropertyValue(promptText, Property.ValueType.PROMPT));
                             }
                         }
                         nodeBuilder.metadata().addData("agent", agentData);
+                        // The box's edit form exposes the declaration identity: Role/Instructions
+                        // prompt fields, saved back into the declaration's systemPrompt.
+                        DurableAgentRunBuilder.applyAgentFormShape(nodeBuilder, promptValues);
                     }
                 }
                 case "model" -> {
                     ModelData modelData = getModelIconUrl(valueExpr);
                     nodeBuilder.metadata().addData("model", modelData != null ? modelData
                             : new ModelData(valueExpr.toSourceCode().trim(), null, ""));
+                    nodeBuilder.properties().custom()
+                            .metadata()
+                                .label("Model")
+                                .description("The model provider used for the agent's LLM calls")
+                                .stepOut()
+                            .type(Property.ValueType.EXPRESSION)
+                            .value(valueExpr.toSourceCode().trim())
+                            .editable(true)
+                            .stepOut()
+                            .addProperty(DurableAgentRunBuilder.MODEL_KEY);
+                    DurableAgentRunBuilder.convertModelToSelect(nodeBuilder,
+                            DurableAgentRunBuilder.modelProviderOptions(semanticModel));
                 }
                 case "activities" -> collectDeclaredCapabilities(valueExpr, "activity", "activity",
                         Map.of("activity", "activity", "name", "name", "description", "description",

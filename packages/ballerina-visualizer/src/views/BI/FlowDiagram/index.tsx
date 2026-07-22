@@ -3142,6 +3142,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     // right side panel from the gear button in the agent box header. The agent identifier
     // is the enclosing function name, carried in the run node's metadata.data.agentName.
     const handleOnConfigureAgentIdentifier = async (node: FlowNode) => {
+        // Object-model agent: the gear edits the declaration (role/instructions/model)
+        // through the box's node form — there is no function identifier to configure.
+        if (node.codedata?.object === "DurableAgent") {
+            return handleOnEditNode(node);
+        }
         selectedNodeRef.current = node;
         showEditForm.current = true;
         setSelectedNodeId(node.id);
@@ -3150,6 +3155,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnEditAgentModel = async (agentCallNode: FlowNode) => {
+        // Object-model agent: the model lives on the declaration; edit it via the box form.
+        if (agentCallNode.codedata?.node === "DURABLE_AGENT_RUN" && agentCallNode.codedata?.object === "DurableAgent") {
+            return handleOnEditNode(agentCallNode);
+        }
         // The durable agent run node holds its own `model` property; configure it directly.
         if (agentCallNode.codedata?.node === "DURABLE_AGENT_RUN") {
             selectedNodeRef.current = agentCallNode;

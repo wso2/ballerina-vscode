@@ -531,4 +531,62 @@ public class WorkflowUtil {
         }
         return "\"" + trimmed.replace("\"", "\\\"") + "\"";
     }
+
+    /**
+     * Sets a top-level field of the targeted agent declaration's config literal: replaces the
+     * existing field's value, or appends the field when missing.
+     *
+     * @param sourceBuilder the source builder carrying the workspace
+     * @param agentVarName  the agent's module-level variable name
+     * @param fieldName     the config field name (e.g. {@code systemPrompt}, {@code model})
+     * @param valueText     the new value source
+     * @return the text edits keyed by file path
+     */
+    public static Map<Path, List<org.eclipse.lsp4j.TextEdit>> setAgentConfigField(
+            SourceBuilder sourceBuilder, String agentVarName, String fieldName, String valueText) {
+        AgentDeclaration declaration = findAgentDeclaration(sourceBuilder, agentVarName);
+        if (declaration == null) {
+            throw new IllegalStateException("Cannot locate the durable agent declaration: " + agentVarName);
+        }
+        io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode config = declaration.config();
+        org.eclipse.lsp4j.Range range = null;
+        String newText = null;
+        for (io.ballerina.compiler.syntax.tree.MappingFieldNode field : config.fields()) {
+            if (field instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode specificField
+                    && fieldName.equals(specificField.fieldName().toSourceCode().trim())
+                    && specificField.valueExpr().isPresent()) {
+                LineRange valueRange = specificField.valueExpr().get().lineRange();
+                range = new org.eclipse.lsp4j.Range(
+                        new org.eclipse.lsp4j.Position(valueRange.startLine().line(),
+                                valueRange.startLine().offset()),
+                        new org.eclipse.lsp4j.Position(valueRange.endLine().line(),
+                                valueRange.endLine().offset()));
+                newText = valueText;
+                break;
+            }
+        }
+        if (range == null) {
+            io.ballerina.tools.text.LinePosition closeBrace = config.closeBrace().lineRange().startLine();
+            org.eclipse.lsp4j.Position position =
+                    new org.eclipse.lsp4j.Position(closeBrace.line(), closeBrace.offset());
+            range = new org.eclipse.lsp4j.Range(position, position);
+            newText = (config.fields().isEmpty() ? "" : ", ") + fieldName + ": " + valueText;
+        }
+        Map<Path, List<org.eclipse.lsp4j.TextEdit>> edits = new HashMap<>();
+        edits.put(declaration.filePath(), new java.util.ArrayList<>(
+                List.of(new org.eclipse.lsp4j.TextEdit(range, newText))));
+        return edits;
+    }
+
+    /**
+     * Merges text-edit maps produced by successive declaration edits into one response.
+     *
+     * @param target    the map collecting all edits
+     * @param additions the edits to fold in
+     */
+    public static void mergeTextEdits(Map<Path, List<org.eclipse.lsp4j.TextEdit>> target,
+                                      Map<Path, List<org.eclipse.lsp4j.TextEdit>> additions) {
+        additions.forEach((path, edits) ->
+                target.computeIfAbsent(path, key -> new java.util.ArrayList<>()).addAll(edits));
+    }
 }

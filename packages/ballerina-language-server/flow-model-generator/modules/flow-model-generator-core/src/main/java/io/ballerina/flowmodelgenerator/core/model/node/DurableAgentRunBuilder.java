@@ -367,6 +367,27 @@ public class DurableAgentRunBuilder extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
+        // Object model: the box's form edits the agent DECLARATION — the systemPrompt
+        // (role/instructions) and model fields of the config literal. The run statement
+        // itself is not rewritten here.
+        if (WorkflowUtil.isDurableAgentObjectTarget(sourceBuilder)) {
+            String agentVarName = sourceBuilder.flowNode.codedata().parentSymbol();
+            String role = sourceBuilder.getProperty(ROLE_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString()).orElse("").replace("`", "'");
+            String instructions = sourceBuilder.getProperty(INSTRUCTIONS_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString()).orElse("").replace("`", "'");
+            String modelValue = sourceBuilder.getProperty(MODEL_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            String promptText = "{role: string `" + role + "`, instructions: string `" + instructions + "`}";
+            Map<Path, List<TextEdit>> edits = WorkflowUtil.setAgentConfigField(
+                    sourceBuilder, agentVarName, SYSTEM_PROMPT_KEY, promptText);
+            if (!modelValue.isBlank()) {
+                WorkflowUtil.mergeTextEdits(edits, WorkflowUtil.setAgentConfigField(
+                        sourceBuilder, agentVarName, MODEL_KEY, modelValue));
+            }
+            return edits;
+        }
+
         String ctxParamName = WorkflowUtil.resolveAgentContextParamName(sourceBuilder);
 
         String systemPrompt = buildSystemPromptSource(sourceBuilder);
