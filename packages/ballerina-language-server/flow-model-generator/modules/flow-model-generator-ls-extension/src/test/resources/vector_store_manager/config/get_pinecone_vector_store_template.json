@@ -14,7 +14,7 @@
       "metadata": {
         "label": "Vector Store",
         "description": "Initializes the PineconeVectorStore with the given configuration.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.pinecone_1.1.4.png"
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.pinecone_1.1.5.png"
       },
       "codedata": {
         "node": "VECTOR_STORE",
@@ -22,7 +22,7 @@
         "module": "ai.pinecone",
         "packageName": "ai.pinecone",
         "object": "VectorStore",
-        "version": "1.1.4",
+        "version": "1.1.5",
         "isNew": true
       },
       "returning": false,
@@ -172,7 +172,7 @@
               "typeMembers": [
                 {
                   "type": "Configuration",
-                  "packageInfo": "ballerinax:ai.pinecone:1.1.4",
+                  "packageInfo": "ballerinax:ai.pinecone:1.1.5",
                   "packageName": "ai.pinecone",
                   "kind": "RECORD_TYPE",
                   "selected": false

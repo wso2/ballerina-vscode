@@ -3,7 +3,7 @@
   "typeMembers": [
     {
       "type": "ConnectionConfig",
-      "packageInfo": "ballerinax:mongodb:5.2.4",
+      "packageInfo": "ballerinax:mongodb:5.1.0",
       "packageName": "mongodb",
       "kind": "RECORD_TYPE",
       "selected": false
@@ -50,7 +50,7 @@
                         "name": "ServerAddress",
                         "orgName": "ballerinax",
                         "moduleName": "mongodb",
-                        "version": "5.2.4"
+                        "version": "5.1.0"
                       },
                       "defaultable": false,
                       "isRestType": false,
@@ -88,7 +88,7 @@
                           "name": "ServerAddress",
                           "orgName": "ballerinax",
                           "moduleName": "mongodb",
-                          "version": "5.2.4"
+                          "version": "5.1.0"
                         },
                         "defaultable": false,
                         "isRestType": false,
@@ -158,7 +158,7 @@
                         "name": "BasicAuthCredential",
                         "orgName": "ballerinax",
                         "moduleName": "mongodb",
-                        "version": "5.2.4"
+                        "version": "5.1.0"
                       },
                       "defaultable": false,
                       "isRestType": false,
@@ -211,7 +211,7 @@
                         "name": "ScramSha1AuthCredential",
                         "orgName": "ballerinax",
                         "moduleName": "mongodb",
-                        "version": "5.2.4"
+                        "version": "5.1.0"
                       },
                       "defaultable": false,
                       "isRestType": false,
@@ -264,7 +264,7 @@
                         "name": "ScramSha256AuthCredential",
                         "orgName": "ballerinax",
                         "moduleName": "mongodb",
-                        "version": "5.2.4"
+                        "version": "5.1.0"
                       },
                       "defaultable": false,
                       "isRestType": false,
@@ -299,7 +299,7 @@
                         "name": "X509Credential",
                         "orgName": "ballerinax",
                         "moduleName": "mongodb",
-                        "version": "5.2.4"
+                        "version": "5.1.0"
                       },
                       "defaultable": false,
                       "isRestType": false,
@@ -343,7 +343,7 @@
                         "name": "GssApiCredential",
                         "orgName": "ballerinax",
                         "moduleName": "mongodb",
-                        "version": "5.2.4"
+                        "version": "5.1.0"
                       },
                       "defaultable": false,
                       "isRestType": false,
@@ -367,7 +367,7 @@
                 "name": "ConnectionParameters",
                 "orgName": "ballerinax",
                 "moduleName": "mongodb",
-                "version": "5.2.4"
+                "version": "5.1.0"
               },
               "defaultable": false,
               "isRestType": false,
@@ -436,7 +436,7 @@
                 "name": "ReadConcern",
                 "orgName": "ballerinax",
                 "moduleName": "mongodb",
-                "version": "5.2.4"
+                "version": "5.1.0"
               },
               "defaultable": false,
               "documentation": "The read concern level to use",
@@ -519,7 +519,7 @@
                     "name": "TrustStore",
                     "orgName": "ballerina",
                     "moduleName": "crypto",
-                    "version": "2.11.0"
+                    "version": "2.12.1"
                   },
                   "defaultable": false,
                   "documentation": "Configurations associated with the TrustStore",
@@ -555,7 +555,7 @@
                     "name": "KeyStore",
                     "orgName": "ballerina",
                     "moduleName": "crypto",
-                    "version": "2.11.0"
+                    "version": "2.12.1"
                   },
                   "defaultable": false,
                   "documentation": "Configurations associated with the KeyStore",
@@ -580,7 +580,7 @@
                 "name": "SecureSocket",
                 "orgName": "ballerinax",
                 "moduleName": "mongodb",
-                "version": "5.2.4"
+                "version": "5.1.0"
               },
               "defaultable": false,
               "documentation": "Configurations related to facilitating secure connection",
@@ -677,7 +677,7 @@
             "name": "ConnectionProperties",
             "orgName": "ballerinax",
             "moduleName": "mongodb",
-            "version": "5.2.4"
+            "version": "5.1.0"
           },
           "defaultable": false,
           "documentation": "The additional connection options for the MongoDB connection",

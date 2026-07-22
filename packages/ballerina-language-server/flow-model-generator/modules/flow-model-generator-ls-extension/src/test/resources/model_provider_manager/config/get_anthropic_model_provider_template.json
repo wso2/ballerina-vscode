@@ -14,7 +14,7 @@
       "metadata": {
         "label": "Model Provider",
         "description": "Initializes the Anthropic model with the given connection configuration and model configuration.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.anthropic_1.3.3.png"
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.anthropic_1.3.4.png"
       },
       "codedata": {
         "node": "MODEL_PROVIDER",
@@ -23,7 +23,7 @@
         "packageName": "ai.anthropic",
         "object": "ModelProvider",
         "symbol": "init",
-        "version": "1.3.3",
+        "version": "1.3.4",
         "isNew": true
       },
       "returning": false,

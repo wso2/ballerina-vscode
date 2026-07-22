@@ -14,7 +14,7 @@
       "metadata": {
         "label": "Model Provider",
         "description": "Initializes the OpenAI model with the given connection configuration and model configuration.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.3.4.png"
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.3.5.png"
       },
       "codedata": {
         "node": "MODEL_PROVIDER",
@@ -23,7 +23,7 @@
         "packageName": "ai.openai",
         "object": "ModelProvider",
         "symbol": "init",
-        "version": "1.3.4",
+        "version": "1.3.5",
         "isNew": true
       },
       "returning": false,

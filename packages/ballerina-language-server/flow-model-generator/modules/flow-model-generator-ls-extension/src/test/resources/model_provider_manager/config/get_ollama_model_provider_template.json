@@ -14,7 +14,7 @@
       "metadata": {
         "label": "Model Provider",
         "description": "Initializes the client with the given connection configuration and model configuration.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.ollama_1.2.3.png"
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.ollama_1.2.4.png"
       },
       "codedata": {
         "node": "MODEL_PROVIDER",
@@ -23,7 +23,7 @@
         "packageName": "ai.ollama",
         "object": "ModelProvider",
         "symbol": "init",
-        "version": "1.2.3",
+        "version": "1.2.4",
         "isNew": true
       },
       "returning": false,

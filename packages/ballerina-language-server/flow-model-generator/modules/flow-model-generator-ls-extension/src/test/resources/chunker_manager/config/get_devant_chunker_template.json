@@ -14,7 +14,7 @@
       "metadata": {
         "label": "Chunker",
         "description": "Initializes a new `Chunker` instance.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.devant_1.0.3.png"
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.devant_1.0.4.png"
       },
       "codedata": {
         "node": "CHUNKER",
@@ -22,7 +22,7 @@
         "module": "ai.devant",
         "packageName": "ai.devant",
         "object": "Chunker",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "isNew": true
       },
       "returning": false,
