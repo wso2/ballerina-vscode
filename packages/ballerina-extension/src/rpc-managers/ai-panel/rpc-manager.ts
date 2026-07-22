@@ -857,7 +857,12 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getRunStatus(params: GetRunStatusRequest): Promise<GetRunStatusResponse> {
         const projectRootPath = params?.projectRootPath || resolveProjectRootPath();
-        const threadId = params?.threadId || 'default';
+        // Runs execute (and buffer their events) under the active thread — resolve
+        // it the same way generateAgent does, or a reconnect on a non-default
+        // thread would look up an empty buffer.
+        const threadId = params?.threadId
+            || chatStateStorage.getActiveThread(projectRootPath)?.id
+            || 'default';
         const status = runEventStore.getRunStatus(projectRootPath, threadId, params?.sinceSeq);
         // Resolve plan mode from the active generation's persisted metadata (the
         // single source of truth) rather than duplicating it into the buffer.
