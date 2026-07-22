@@ -171,6 +171,9 @@ public class DurableAgentHumanTaskBuilder extends CallBuilder {
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
         // Object model: the human task lives on the declaration's `humanTasks` list.
         if (WorkflowUtil.isDurableAgentObjectTarget(sourceBuilder)) {
+            if (WorkflowUtil.isCapabilityDeleteRequest(sourceBuilder)) {
+                return WorkflowUtil.removeAgentCapabilityEntry(sourceBuilder);
+            }
             String name = sourceBuilder.getProperty(TASK_NAME_KEY)
                     .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
             if (name.isBlank()) {

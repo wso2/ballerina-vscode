@@ -113,6 +113,7 @@ export interface DiagramContextState {
         onAddEvent?: (node: FlowNode) => void;
         onAddAgentTool?: (node: FlowNode) => void;
         onEditCapability?: (node: FlowNode, capability: any) => void;
+        onDeleteCapability?: (node: FlowNode, capability: any) => void;
         onConfigureAgent?: (node: FlowNode) => void;
     };
     aiNodes?: {

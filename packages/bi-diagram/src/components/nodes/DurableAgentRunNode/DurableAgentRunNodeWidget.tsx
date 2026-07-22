@@ -512,6 +512,14 @@ export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps)
         agentNode?.onEditCapability?.(model.node, { ...item.data, type: item.kind });
     };
 
+    const onCapabilityDelete = (item: CapabilityItem) => (event: React.MouseEvent<SVGGElement>) => {
+        if (readOnly) {
+            return;
+        }
+        event.stopPropagation();
+        agentNode?.onDeleteCapability?.(model.node, { ...item.data, type: item.kind });
+    };
+
     // Fires the matching add callback and shows the pill; the diagram remounts the node
     // once the generated statement lands, clearing the pill.
     const onAffordanceClick = (kind: AddableCapability) => (event: React.MouseEvent<HTMLElement>) => {
@@ -808,6 +816,22 @@ export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps)
                                     <div className="connector-icon">{renderCapabilityIcon(item)}</div>
                                 </foreignObject>
 
+                                <g
+                                    transform="translate(236, 8)"
+                                    onClick={onCapabilityDelete(item)}
+                                    css={css`
+                                        cursor: ${readOnly ? "default" : "pointer"};
+                                        opacity: 0.75;
+                                        &:hover {
+                                            opacity: 1;
+                                        }
+                                    `}
+                                >
+                                    <title>Remove</title>
+                                    <circle cx="0" cy="0" r="7" fill={NODE_BG_COLOR} stroke={NODE_BORDER_COLOR} strokeWidth={1} />
+                                    <text x="0" y="2.8" textAnchor="middle" fontSize="9" fill={NODE_TEXT_COLOR}>✕</text>
+                                </g>
+
                                 <text
                                     x="190"
                                     y="28"
@@ -1088,6 +1112,22 @@ export function DurableAgentRunNodeWidget(props: DurableAgentRunNodeWidgetProps)
                             >
                                 <div className="connector-icon">{renderCapabilityIcon(item)}</div>
                             </foreignObject>
+
+                            <g
+                                transform="translate(96, 8)"
+                                onClick={onCapabilityDelete(item)}
+                                css={css`
+                                    cursor: ${readOnly ? "default" : "pointer"};
+                                    opacity: 0.75;
+                                    &:hover {
+                                        opacity: 1;
+                                    }
+                                `}
+                            >
+                                <title>Remove</title>
+                                <circle cx="0" cy="0" r="7" fill={NODE_BG_COLOR} stroke={NODE_BORDER_COLOR} strokeWidth={1} />
+                                <text x="0" y="2.8" textAnchor="middle" fontSize="9" fill={NODE_TEXT_COLOR}>✕</text>
+                            </g>
 
                             <text
                                 x="110"

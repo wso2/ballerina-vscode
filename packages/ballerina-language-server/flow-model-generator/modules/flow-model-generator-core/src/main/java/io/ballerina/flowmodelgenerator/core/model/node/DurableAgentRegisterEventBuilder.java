@@ -153,6 +153,9 @@ public class DurableAgentRegisterEventBuilder extends CallBuilder {
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
         // Object model: the event lives on the declaration's `events` list.
         if (WorkflowUtil.isDurableAgentObjectTarget(sourceBuilder)) {
+            if (WorkflowUtil.isCapabilityDeleteRequest(sourceBuilder)) {
+                return WorkflowUtil.removeAgentCapabilityEntry(sourceBuilder);
+            }
             String eventName = sourceBuilder.getProperty(NAME_KEY)
                     .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
             if (eventName.isBlank()) {

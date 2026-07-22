@@ -379,13 +379,12 @@ public class DurableAgentRunBuilder extends CallBuilder {
             String modelValue = sourceBuilder.getProperty(MODEL_KEY)
                     .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
             String promptText = "{role: string `" + role + "`, instructions: string `" + instructions + "`}";
-            Map<Path, List<TextEdit>> edits = WorkflowUtil.setAgentConfigField(
-                    sourceBuilder, agentVarName, SYSTEM_PROMPT_KEY, promptText);
+            java.util.LinkedHashMap<String, String> fields = new java.util.LinkedHashMap<>();
+            fields.put(SYSTEM_PROMPT_KEY, promptText);
             if (!modelValue.isBlank()) {
-                WorkflowUtil.mergeTextEdits(edits, WorkflowUtil.setAgentConfigField(
-                        sourceBuilder, agentVarName, MODEL_KEY, modelValue));
+                fields.put(MODEL_KEY, modelValue);
             }
-            return edits;
+            return WorkflowUtil.setAgentConfigFields(sourceBuilder, agentVarName, fields);
         }
 
         String ctxParamName = WorkflowUtil.resolveAgentContextParamName(sourceBuilder);

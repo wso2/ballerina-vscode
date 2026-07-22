@@ -3138,6 +3138,47 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
+    // Removes a declared capability from the object-model agent: the LS deletes the entry
+    // from the declaration's config list (comma-aware) via the capability builder's
+    // delete request.
+    const handleOnDeleteDurableCapability = async (runNode: FlowNode, capability: any) => {
+        const lineRange = capability?.lineRange;
+        const agentVar = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+        if (!lineRange || !agentVar) {
+            return;
+        }
+        durableAgentObjectVarRef.current = agentVar;
+        const nodeKind = capability?.type === "activity" ? "DURABLE_AGENT_ADD_ACTIVITY"
+            : capability?.type === "event" ? "DURABLE_AGENT_REGISTER_EVENT"
+                : capability?.type === "tool" ? "DURABLE_AGENT_REGISTER_TOOL"
+                    : "DURABLE_AGENT_HUMAN_TASK";
+        setShowProgressIndicator(true);
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+                position: lineRange.startLine,
+                filePath: model?.fileName,
+                id: { node: nodeKind } as any,
+            });
+            const node = response.flowNode;
+            node.codedata.lineRange = lineRange;
+            node.codedata.isNew = false;
+            applyDurableAgentObjectTarget(node);
+            (node.properties as any)["__delete"] = {
+                value: "true",
+                optional: true,
+                editable: false,
+                advanced: false,
+                hidden: true,
+            };
+            await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: model?.fileName, flowNode: node });
+        } finally {
+            setShowProgressIndicator(false);
+            durableAgentObjectVarRef.current = null;
+        }
+    };
+
     // Opens the durable agent identifier form (name/description/input parameter) in the
     // right side panel from the gear button in the agent box header. The agent identifier
     // is the enclosing function name, carried in the run node's metadata.data.agentName.
@@ -3647,6 +3688,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAddEvent: handleOnAddDurableEvent,
                 onAddAgentTool: handleOnAddDurableTool,
                 onEditCapability: handleOnEditDurableCapability,
+                onDeleteCapability: handleOnDeleteDurableCapability,
                 onConfigureAgent: handleOnConfigureAgentIdentifier,
                 onAddMcpServer: handleOnAddMcpServer,
                 onSelectTool: handleOnSelectTool,

@@ -115,6 +115,9 @@ public class DurableAgentRegisterToolBuilder extends CallBuilder {
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
         // Object model: the capability lives on the declaration's `tools` list.
         if (WorkflowUtil.isDurableAgentObjectTarget(sourceBuilder)) {
+            if (WorkflowUtil.isCapabilityDeleteRequest(sourceBuilder)) {
+                return WorkflowUtil.removeAgentCapabilityEntry(sourceBuilder);
+            }
             String toolRef = sourceBuilder.getProperty(TOOL_KEY)
                     .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
             if (toolRef.isBlank()) {

@@ -589,4 +589,130 @@ public class WorkflowUtil {
         additions.forEach((path, edits) ->
                 target.computeIfAbsent(path, key -> new java.util.ArrayList<>()).addAll(edits));
     }
+
+    /** Property key the front end sets to request removal of a capability entry. */
+    public static final String CAPABILITY_DELETE_KEY = "__delete";
+
+    /**
+     * Whether the node is a capability-delete request: the front end stamps the
+     * {@link #CAPABILITY_DELETE_KEY} property when the user removes a capability circle.
+     *
+     * @param sourceBuilder the source builder
+     * @return {@code true} when the targeted entry must be removed
+     */
+    public static boolean isCapabilityDeleteRequest(SourceBuilder sourceBuilder) {
+        return sourceBuilder.getProperty(CAPABILITY_DELETE_KEY)
+                .map(p -> p.value() != null && "true".equals(p.value().toString()))
+                .orElse(false);
+    }
+
+    /**
+     * Removes a capability entry (the flow node's line range) from its declaration config list,
+     * consuming the adjacent comma so the list stays valid; a now-empty list is left as {@code []}.
+     *
+     * @param sourceBuilder the source builder whose flow node's line range is the entry range
+     * @return the text edits keyed by file path
+     */
+    public static Map<Path, List<org.eclipse.lsp4j.TextEdit>> removeAgentCapabilityEntry(
+            SourceBuilder sourceBuilder) {
+        String agentVarName = sourceBuilder.flowNode.codedata().parentSymbol();
+        LineRange entryRange = sourceBuilder.flowNode.codedata().lineRange();
+        AgentDeclaration declaration = findAgentDeclaration(sourceBuilder, agentVarName);
+        if (declaration == null || entryRange == null) {
+            throw new IllegalStateException("Cannot locate the durable agent capability entry to remove");
+        }
+        for (io.ballerina.compiler.syntax.tree.MappingFieldNode field : declaration.config().fields()) {
+            if (!(field instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode specificField)
+                    || specificField.valueExpr().isEmpty()
+                    || !(specificField.valueExpr().get()
+                            instanceof io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode list)) {
+                continue;
+            }
+            var expressions = list.expressions();
+            for (int i = 0; i < expressions.size(); i++) {
+                io.ballerina.compiler.syntax.tree.Node item = expressions.get(i);
+                if (!item.lineRange().startLine().equals(entryRange.startLine())) {
+                    continue;
+                }
+                io.ballerina.tools.text.LinePosition from;
+                io.ballerina.tools.text.LinePosition to;
+                if (expressions.size() == 1) {
+                    // Only element: clear the list interior, leaving `field: []`.
+                    from = list.openBracket().lineRange().endLine();
+                    to = list.closeBracket().lineRange().startLine();
+                } else if (i > 0) {
+                    // Delete from the end of the previous element (consumes the separating comma).
+                    from = expressions.get(i - 1).lineRange().endLine();
+                    to = item.lineRange().endLine();
+                } else {
+                    // First of several: delete up to the next element's start (consumes the comma).
+                    from = item.lineRange().startLine();
+                    to = expressions.get(1).lineRange().startLine();
+                }
+                Map<Path, List<org.eclipse.lsp4j.TextEdit>> edits = new HashMap<>();
+                edits.put(declaration.filePath(), new java.util.ArrayList<>(List.of(
+                        new org.eclipse.lsp4j.TextEdit(new org.eclipse.lsp4j.Range(
+                                new org.eclipse.lsp4j.Position(from.line(), from.offset()),
+                                new org.eclipse.lsp4j.Position(to.line(), to.offset())), ""))));
+                return edits;
+            }
+        }
+        throw new IllegalStateException("The capability entry was not found in the agent declaration");
+    }
+
+    /**
+     * Sets several top-level config fields at once: existing fields are replaced individually and
+     * all missing ones are appended in a single insertion, keeping the mapping's commas valid even
+     * when the config starts empty.
+     *
+     * @param sourceBuilder the source builder carrying the workspace
+     * @param agentVarName  the agent's module-level variable name
+     * @param fields        field name to new value source, in insertion order
+     * @return the text edits keyed by file path
+     */
+    public static Map<Path, List<org.eclipse.lsp4j.TextEdit>> setAgentConfigFields(
+            SourceBuilder sourceBuilder, String agentVarName,
+            java.util.LinkedHashMap<String, String> fields) {
+        AgentDeclaration declaration = findAgentDeclaration(sourceBuilder, agentVarName);
+        if (declaration == null) {
+            throw new IllegalStateException("Cannot locate the durable agent declaration: " + agentVarName);
+        }
+        io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode config = declaration.config();
+        List<org.eclipse.lsp4j.TextEdit> edits = new java.util.ArrayList<>();
+        java.util.LinkedHashMap<String, String> missing = new java.util.LinkedHashMap<>(fields);
+        for (io.ballerina.compiler.syntax.tree.MappingFieldNode field : config.fields()) {
+            if (field instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode specificField
+                    && specificField.valueExpr().isPresent()) {
+                String name = specificField.fieldName().toSourceCode().trim();
+                String replacement = missing.remove(name);
+                if (replacement != null) {
+                    LineRange valueRange = specificField.valueExpr().get().lineRange();
+                    edits.add(new org.eclipse.lsp4j.TextEdit(new org.eclipse.lsp4j.Range(
+                            new org.eclipse.lsp4j.Position(valueRange.startLine().line(),
+                                    valueRange.startLine().offset()),
+                            new org.eclipse.lsp4j.Position(valueRange.endLine().line(),
+                                    valueRange.endLine().offset())), replacement));
+                }
+            }
+        }
+        if (!missing.isEmpty()) {
+            StringBuilder insertion = new StringBuilder();
+            boolean first = config.fields().isEmpty();
+            for (Map.Entry<String, String> entry : missing.entrySet()) {
+                if (!first) {
+                    insertion.append(", ");
+                }
+                insertion.append(entry.getKey()).append(": ").append(entry.getValue());
+                first = false;
+            }
+            io.ballerina.tools.text.LinePosition closeBrace = config.closeBrace().lineRange().startLine();
+            org.eclipse.lsp4j.Position position =
+                    new org.eclipse.lsp4j.Position(closeBrace.line(), closeBrace.offset());
+            edits.add(new org.eclipse.lsp4j.TextEdit(
+                    new org.eclipse.lsp4j.Range(position, position), insertion.toString()));
+        }
+        Map<Path, List<org.eclipse.lsp4j.TextEdit>> result = new HashMap<>();
+        result.put(declaration.filePath(), edits);
+        return result;
+    }
 }

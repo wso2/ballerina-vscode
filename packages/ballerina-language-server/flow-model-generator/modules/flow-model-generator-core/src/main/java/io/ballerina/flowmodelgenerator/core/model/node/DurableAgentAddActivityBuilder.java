@@ -232,6 +232,9 @@ public class DurableAgentAddActivityBuilder extends CallBuilder {
 
         // Object model: the capability lives on the declaration's `activities` list.
         if (WorkflowUtil.isDurableAgentObjectTarget(sourceBuilder)) {
+            if (WorkflowUtil.isCapabilityDeleteRequest(sourceBuilder)) {
+                return WorkflowUtil.removeAgentCapabilityEntry(sourceBuilder);
+            }
             String activityRef = sourceBuilder.getProperty(ACTIVITY_KEY)
                     .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
             if (activityRef.isBlank()) {
