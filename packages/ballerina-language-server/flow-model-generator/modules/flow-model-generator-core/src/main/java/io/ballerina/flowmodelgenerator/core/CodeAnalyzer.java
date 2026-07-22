@@ -50,6 +50,7 @@ import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.BlockStatementNode;
 import io.ballerina.compiler.syntax.tree.BreakStatementNode;
 import io.ballerina.compiler.syntax.tree.ByteArrayLiteralNode;
+import io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ClientResourceAccessActionNode;
@@ -1098,7 +1099,13 @@ public class CodeAnalyzer extends NodeVisitor {
         if (varNodeOpt.isEmpty()) {
             return;
         }
-        ExpressionNode initializer = getInitializerFromVariableNode(varNodeOpt.get());
+        populateAgentDeclarationMetadata(varNodeOpt.get());
+    }
+
+    // Variant taking the declaration node directly (used when the declaration itself is the
+    // diagram canvas).
+    private void populateAgentDeclarationMetadata(NonTerminalNode varNode) {
+        ExpressionNode initializer = getInitializerFromVariableNode(varNode);
         if (initializer == null) {
             return;
         }
@@ -3581,7 +3588,55 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(ModuleVariableDeclarationNode moduleVariableDeclarationNode) {
+        if (tryHandleDurableAgentDeclarationCanvas(moduleVariableDeclarationNode)) {
+            return;
+        }
         handleVariableNode(moduleVariableDeclarationNode);
+    }
+
+    // A module-level `workflow:DurableAgent` declaration opened as the diagram canvas (e.g. from
+    // the overview): synthesize the agent-only view — a Start pill followed by the agent box
+    // built from the declaration's config literal.
+    private boolean tryHandleDurableAgentDeclarationCanvas(ModuleVariableDeclarationNode varDecl) {
+        if (!(varDecl.typedBindingPattern().bindingPattern()
+                instanceof CaptureBindingPatternNode captureBindingPattern)
+                || varDecl.initializer().isEmpty()) {
+            return false;
+        }
+        Optional<Symbol> symbol = semanticModel.symbol(varDecl.typedBindingPattern().bindingPattern());
+        if (symbol.isEmpty() || !(symbol.get() instanceof VariableSymbol variableSymbol)) {
+            return false;
+        }
+        TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
+        if (!(rawType instanceof ClassSymbol classSymbol)
+                || !classSymbol.getName()
+                        .map(Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME::equals).orElse(false)
+                || !isWorkflowModule(classSymbol.getModule())) {
+            return false;
+        }
+
+        String agentVarName = captureBindingPattern.variableName().text();
+        startNode(NodeKind.EVENT_START, varDecl).codedata()
+                .lineRange(varDecl.lineRange())
+                .sourceCode(varDecl.toSourceCode().strip());
+        nodeBuilder.metadata()
+                .addData(KIND_KEY, "Durable Agentic Workflow")
+                .addData(LABEL_KEY, agentVarName);
+        endNode();
+
+        startNode(NodeKind.DURABLE_AGENT_RUN, varDecl).codedata()
+                .org(WORKFLOW_ORG)
+                .module(WORKFLOW_MODULE)
+                .object(Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME)
+                .parentSymbol(agentVarName)
+                .symbol(Constants.Workflow.AGENT_OBJECT_RUN_METHOD_NAME)
+                .lineRange(varDecl.lineRange())
+                .sourceCode(varDecl.toSourceCode().strip());
+        nodeBuilder.metadata().addData("agentName", agentVarName);
+        nodeBuilder.metadata().addData("agentBox", true);
+        populateAgentDeclarationMetadata(varDecl);
+        endNode();
+        return true;
     }
 
     @Override
