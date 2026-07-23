@@ -194,6 +194,7 @@ const MainPanel = () => {
     const errorBoundaryRef = createRef<any>();
     const [viewComponent, setViewComponent] = useState<React.ReactNode>();
     const [viewError, setViewError] = useState<string>();
+    const [isAgentBuilder, setIsAgentBuilder] = useState<boolean>(false);
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
     const [popupState, setPopupState] = useState<PopupMachineStateValue>("initialize");
@@ -292,6 +293,8 @@ const MainPanel = () => {
 
         rpcClient.getVisualizerLocation().then(async (value) => {
             const isStaleNavigation = () => navKey !== navKeyRef.current;
+            console.log("[MainPanel] getVisualizerLocation response:", { view: value?.view, isAgentBuilder: value?.isAgentBuilder });
+            setIsAgentBuilder(!!value?.isAgentBuilder);
 
             try {
                 if (isStaleNavigation()) return;
@@ -590,6 +593,7 @@ const MainPanel = () => {
                                 <ComponentListView
                                     projectPath={value?.projectPath}
                                     scope={value.scope}
+                                    isAgentBuilder={!!value?.isAgentBuilder}
                                 />
                             );
                             break;
@@ -597,7 +601,11 @@ const MainPanel = () => {
                         case MACHINE_VIEW.AIChatAgentWizard: {
                             const { AIChatAgentWizard } = await import("./views/BI/AIChatAgent/AIChatAgentWizard");
                             if (isStaleNavigation()) return;
-                            setViewComponent(<AIChatAgentWizard />);
+                            setViewComponent(
+                                <AIChatAgentWizard
+                                    isAgentBuilder={!!value?.isAgentBuilder}
+                                />
+                            );
                             break;
                         }
                         case MACHINE_VIEW.BIServiceWizard: {
@@ -929,8 +937,8 @@ const MainPanel = () => {
                             <LoadingViewContainer>
                                 <LoadingContent>
                                     <ProgressRing />
-                                    <LoadingTitle>Loading Integration</LoadingTitle>
-                                    <LoadingSubtitle>Setting up your integration environment</LoadingSubtitle>
+                                    <LoadingTitle>Loading {isAgentBuilder ? "Agent" : "Integration"}</LoadingTitle>
+                                    <LoadingSubtitle>Setting up your {isAgentBuilder ? "agent" : "integration"} environment</LoadingSubtitle>
                                     <LoadingText>
                                         <span className="loading-dots">Please wait</span>
                                     </LoadingText>

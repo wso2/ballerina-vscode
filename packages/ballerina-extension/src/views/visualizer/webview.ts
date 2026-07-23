@@ -32,13 +32,14 @@ import { AiPanelWebview } from "../ai-panel/webview";
 import { approvalViewManager } from "../../features/ai/state/ApprovalViewManager";
 import { StateMachinePopup } from "../../stateMachinePopup";
 import { clearFormState } from "../../rpc-managers/bi-diagram/form-state";
-import { isInWI } from "../../utils/config";
+import { isAgentBuilderMode, isInWI } from "../../utils/config";
 
 export class VisualizerWebview {
     public static currentPanel: VisualizerWebview | undefined;
     public static readonly viewType = "ballerina.visualizer";
     public static readonly ballerinaTitle = "Ballerina Visualizer";
     public static readonly biTitle = "WSO2 Integrator";
+    public static readonly agentBuilderTitle = "WSO2 Agent Builder";
     private _panel: vscode.WebviewPanel | undefined;
     private _disposables: vscode.Disposable[] = [];
     private _pendingProjectInfoRefresh = false;
@@ -158,6 +159,9 @@ export class VisualizerWebview {
     }
 
     public static get webviewTitle(): string {
+        if (isAgentBuilderMode()) {
+            return VisualizerWebview.agentBuilderTitle;
+        }
         const biExtension = isInWI() || vscode.extensions.getExtension('wso2.ballerina-integrator');
         return biExtension ? VisualizerWebview.biTitle : VisualizerWebview.ballerinaTitle;
     }
@@ -204,7 +208,7 @@ export class VisualizerWebview {
                         <div class="logo-container">
                             <div class="loader"></div>
                         </div>
-                        <h1 class="welcome-title">${biExtension ? VisualizerWebview.biTitle : VisualizerWebview.ballerinaTitle}</h1>
+                        <h1 class="welcome-title">${isAgentBuilderMode() ? VisualizerWebview.agentBuilderTitle : (biExtension ? VisualizerWebview.biTitle : VisualizerWebview.ballerinaTitle)}</h1>
                         <p class="welcome-subtitle">Setting up your workspace and tools</p>
                         <div class="loading-text">
                             <span class="loading-dots">Loading</span>
