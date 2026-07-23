@@ -27,6 +27,28 @@
             "envFile": "${workspaceFolder}/packages/ballerina-extension/.env"
         },
         {
+            "name": "Ballerina Extension (Agent Builder)",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/ballerina-extension"
+            ],
+            "env": {
+                "AGENT_BUILDER_MODE": "true",
+                "LS_EXTENSIONS_PATH": "",
+                "LSDEBUG": "false",
+                "WEB_VIEW_WATCH_MODE": "true",
+                "WEB_VIEW_DEV_HOST": "http://localhost:9000",
+                "BALLERINA_STAGE_CENTRAL": "false",
+                "TRACE_WEB_VIEW_DEV_HOST": "http://localhost:9001"
+            },
+            "outFiles": [
+                "${workspaceFolder}/packages/ballerina-extension/dist/**/*.js"
+            ],
+            "preLaunchTask": "watch-ballerina"
+        },
+        {
             "name": "Ballerina Extension (no watch)",
             "type": "extensionHost",
             "request": "launch",
