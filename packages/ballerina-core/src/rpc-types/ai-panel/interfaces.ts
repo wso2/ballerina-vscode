@@ -18,7 +18,7 @@
  */
 
 import { FunctionDefinition } from "@wso2/syntax-tree";
-import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
+import { AIMachineContext, AIMachineStateValue, ChatNotify } from "../../state-machine-types";
 import { Command, SkillCommand, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
 import { ComponentInfo, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, OperationType } from "../..";
@@ -546,6 +546,42 @@ export interface AbortAIGenerationRequest {
     projectRootPath?: string;
     /** Thread identifier (defaults to 'default') */
     threadId?: string;
+}
+
+/**
+ * Request for the current run status of a thread (panel reconnection).
+ * Optional params default to current workspace and 'default' thread.
+ */
+export interface GetRunStatusRequest {
+    /** Project root path (defaults to current workspace/project root) */
+    projectRootPath?: string;
+    /** Thread identifier (defaults to 'default') */
+    threadId?: string;
+    /** When set, only return buffered events with `seq > sinceSeq` (polling dedup) */
+    sinceSeq?: number;
+}
+
+/**
+ * Response describing whether a run is in flight and the buffered events a
+ * reconnecting panel should replay.
+ */
+export interface GetRunStatusResponse {
+    isRunning: boolean;
+    events: ChatNotify[];
+    isPlanMode?: boolean;
+    /** Id of the buffered (active or finished-but-unrecorded) generation, if any. */
+    generationId?: string;
+    /**
+     * True when the buffer overflowed and its earliest events were evicted, so a
+     * replay cannot rebuild the turn from the beginning.
+     */
+    truncated?: boolean;
+    /**
+     * Request ids of interactive prompts (clarify/approval/etc.) still awaiting a user
+     * response. On reopen the panel re-surfaces the buffered prompt for these (so the
+     * question can be answered) and skips prompts already resolved earlier in the run.
+     */
+    pendingRequestIds?: string[];
 }
 
 export interface UsageResponse {

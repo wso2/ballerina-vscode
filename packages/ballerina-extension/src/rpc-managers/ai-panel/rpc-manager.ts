@@ -26,6 +26,8 @@ import {
     AddFilesToProjectRequest,
     CheckpointInfo,
     Command,
+    GetRunStatusRequest,
+    GetRunStatusResponse,
     DocGenerationRequest,
     GenerateAgentCodeRequest,
     GenerateOpenAPIRequest,
@@ -146,6 +148,7 @@ import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/Con
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { approvalViewManager } from '../../features/ai/state/ApprovalViewManager';
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
+import { runEventStore } from '../../features/ai/utils/run-event-store';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
 import { executeRun } from "../../features/ai/agent/tools/ballerina-run";
@@ -715,6 +718,14 @@ User reverted the last made changes. The files have been restored to the state b
             return;
         }
 
+        // Once the transcript is durably saved as uiResponse and the run is no longer
+        // active, the reconnection event buffer is redundant — drop it so a future
+        // reopen serves the turn from persisted history instead of replaying it.
+        const active = chatStateStorage.getActiveExecution(projectRootPath, threadId);
+        if (active?.generationId !== params.messageId) {
+            runEventStore.clearBuffer(projectRootPath, threadId, params.messageId);
+        }
+
         // Update the UI response with the final formatted content
         chatStateStorage.updateGeneration(projectRootPath, threadId, params.messageId, {
             uiResponse: params.content
@@ -789,6 +800,33 @@ User reverted the last made changes. The files have been restored to the state b
     async hasPendingReview(): Promise<boolean> {
         const projectRootPath = resolveProjectRootPath();
         return !!chatStateStorage.getDoneGeneration(projectRootPath, 'default');
+    }
+
+    async getRunStatus(params: GetRunStatusRequest): Promise<GetRunStatusResponse> {
+        const projectRootPath = params?.projectRootPath || resolveProjectRootPath();
+        // Runs execute (and buffer their events) under the active thread — resolve
+        // it the same way generateAgent does, or a reconnect on a non-default
+        // thread would look up an empty buffer.
+        const threadId = params?.threadId
+            || chatStateStorage.getActiveThread(projectRootPath)?.id
+            || 'default';
+        const status = runEventStore.getRunStatus(projectRootPath, threadId, params?.sinceSeq);
+        // Resolve plan mode from the active generation's persisted metadata (the
+        // single source of truth) rather than duplicating it into the buffer.
+        let isPlanMode: boolean | undefined;
+        if (status.isRunning) {
+            const generationId = chatStateStorage.getActiveExecution(projectRootPath, threadId)?.generationId;
+            if (generationId) {
+                isPlanMode = chatStateStorage.getGeneration(projectRootPath, threadId, generationId)?.metadata?.isPlanMode;
+            }
+        }
+        return {
+            ...status,
+            isPlanMode,
+            // Interactive prompts still awaiting an answer — lets the reopened panel
+            // re-surface only still-pending prompts during replay and skip resolved ones.
+            pendingRequestIds: approvalManager.getPendingRequestIds(),
+        };
     }
 
     async compactConversation(_params: CompactConversationRequest): Promise<CompactConversationResponse> {

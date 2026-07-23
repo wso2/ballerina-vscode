@@ -45,6 +45,7 @@ import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import { MigrationPanelWebview } from "../../../views/migration-panel/webview";
 import { VisualizerWebview } from "../../../views/visualizer/webview";
 import { GenerationType } from "./libs/libraries";
+import { runEventStore } from "./run-event-store";
 // import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
 
 export function populateHistory(chatHistory: ChatEntry[]): ModelMessage[] {
@@ -326,7 +327,20 @@ export function sendWebToolToggleNotification(active: boolean): void {
 }
 
 export function sendAIPanelNotification(msg: ChatNotify): void {
-    RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
+    // Stamp seq/generationId and buffer under the active run (for panel reconnection)
+    // before forwarding. No-op when no run is active.
+    const stamped = runEventStore.stampCurrent(msg);
+    // The agent keeps running after the panel is closed (by design). The event is
+    // already buffered above, so skipping the post loses nothing — reconnect replays
+    // it on reopen. Guard on the live panel and swallow any late-dispose race.
+    if (!AiPanelWebview.currentPanel) {
+        return;
+    }
+    try {
+        RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, stamped);
+    } catch (e) {
+        // Panel was disposed between the guard and the send — safe to ignore (buffer has the event).
+    }
 }
 
 /**

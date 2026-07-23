@@ -473,8 +473,12 @@ export class ApprovalViewManager {
      * Data is cached for chip re-clicks while review is active.
      */
     openReviewMode(data: ReviewModeData, autoOpen: boolean = true): void {
-        if (!AiPanelWebview.currentPanel) { return; }
+        // Cache regardless of panel state: a run can finish while the AI panel is
+        // closed, and the chip click after reopen must hit this cache — the
+        // storage-rebuild fallback re-opens the LS documents and is meant for the
+        // extension-host-restart case only.
         this.cachedReviewData = data;
+        if (!AiPanelWebview.currentPanel) { return; }
         if (!autoOpen) { return; }
         void this.navigateReviewMode(data.currentIndex).catch((error) =>
             console.error('[ApprovalViewManager] Failed to open ReviewMode:', error));

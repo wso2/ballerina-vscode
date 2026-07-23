@@ -14,10 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { ChatNotify, Command, onChatNotify } from "@wso2/ballerina-core";
+import { ChatNotify, Command } from "@wso2/ballerina-core";
 import { ModelUsage } from "./libs/function-registry";
-import { RPCLayer } from "../../../RPCLayer";
-import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import {
     sendContentAppendNotification,
     sendContentReplaceNotification,
@@ -197,15 +195,15 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "compaction_start":
                 console.log('[Compaction] Context compaction started');
-                RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, event);
+                sendAIPanelNotification(event);
                 break;
             case "compaction_end":
                 console.log('[Compaction] Context compaction completed');
-                RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, event);
+                sendAIPanelNotification(event);
                 break;
             case "compaction_disabled":
                 console.warn('[Compaction] Compaction disabled — codebase floor exceeds trigger threshold');
-                RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, event);
+                sendAIPanelNotification(event);
                 break;
             default:
                 console.warn(`Unhandled event type: ${event}`);

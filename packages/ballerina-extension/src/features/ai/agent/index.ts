@@ -115,6 +115,9 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
             threadId,
         });
 
+        // Buffer this run's events so a closed/reopened panel can reconnect.
+        config.trackForReconnection = true;
+
         // Inject migration source tools for projects that have been AI-enhanced
         const migrationSourcePath = getMigrationSourcePathForProject(projectRootPath);
         if (migrationSourcePath) {
