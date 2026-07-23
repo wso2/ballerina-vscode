@@ -45,6 +45,8 @@ import {
     UIChatMessage,
     UpdateChatMessageRequest,
     UsageResponse,
+    QuotaRequestParams,
+    QuotaRequestResult,
     WebToolApprovalRequest,
     CompactConversationRequest,
     CompactConversationResponse,
@@ -822,6 +824,32 @@ User reverted the last made changes. The files have been restored to the state b
         } catch (error) {
             console.error("Failed to fetch usage:", error);
             return undefined;
+        }
+    }
+
+    async requestQuota(params: QuotaRequestParams): Promise<QuotaRequestResult> {
+        const loginMethod = await getLoginMethod();
+        if (loginMethod !== LoginMethod.BI_INTEL) {
+            return { status: "failed" };
+        }
+        try {
+            const email = platformExtStore.getState().state?.userInfo?.userEmail;
+            const url = BACKEND_URL + LLM_API_BASE_PATH + "/quota-requests";
+            const response = await fetchWithAuth(url, {
+                method: "POST",
+                body: JSON.stringify({ note: params.note, email }),
+            });
+            if (response?.status === 201) {
+                return { status: "submitted" };
+            }
+            if (response?.status === 409) {
+                return { status: "already_requested" };
+            }
+            console.error("Failed to submit quota request: ", response?.status, response?.statusText);
+            return { status: "failed" };
+        } catch (error) {
+            console.error("Failed to submit quota request:", error);
+            return { status: "failed" };
         }
     }
 

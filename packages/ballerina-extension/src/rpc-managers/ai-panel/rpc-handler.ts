@@ -90,7 +90,9 @@ import {
     approveWebTool,
     declineWebTool,
     WebToolApprovalRequest,
+    QuotaRequestParams,
     getUsage,
+    requestQuota,
     compactConversation,
     CompactConversationRequest,
     getShowContextUsage,
@@ -200,6 +202,7 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getActiveTempDir, () => rpcManger.getActiveTempDir());
     messenger.onRequest(hasPendingReview, () => rpcManger.hasPendingReview());
     messenger.onRequest(getUsage, () => rpcManger.getUsage());
+    messenger.onRequest(requestQuota, (args: QuotaRequestParams) => rpcManger.requestQuota(args));
     messenger.onNotification(openFileDiff, (args: OpenFileDiffRequest) => rpcManger.openFileDiff(args));
     messenger.onRequest(approveWebTool, (args: WebToolApprovalRequest) => rpcManger.approveWebTool(args));
     messenger.onRequest(declineWebTool, (args: WebToolApprovalRequest) => rpcManger.declineWebTool(args));
