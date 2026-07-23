@@ -552,6 +552,15 @@ export interface UsageResponse {
     remainingUsagePercentage: number;
     resetsIn: number; // in seconds
     orgId?: string;  // org UUID for the quota request portal link
+    alreadyRequested?: boolean;  // an open quota top-up request already exists for this cap-hit
+}
+
+export interface QuotaRequestParams {
+    note?: string;  // optional message from the user to the reviewer
+}
+
+export interface QuotaRequestResult {
+    status: "submitted" | "already_requested" | "failed";
 }
 
 export interface OpenFileDiffRequest {
