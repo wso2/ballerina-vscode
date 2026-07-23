@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { AvailableNode, CDModel, CodeData, EVENT_TYPE, NodeKind } from '@wso2/ballerina-core';
+import { AvailableNode, CDModel, CodeData, EVENT_TYPE, MACHINE_VIEW, NodeKind } from '@wso2/ballerina-core';
 import { View, ViewContent, TextField, Button, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -74,6 +74,7 @@ const FormFields = styled.div`
 `;
 
 export interface AIChatAgentWizardProps {
+    isAgentBuilder?: boolean;
 }
 
 const AI_CHAT_AGENT_LISTENER = "chatAgentListener";
@@ -116,6 +117,7 @@ function toBaseName(name: string): string {
 
 
 export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
+    const { isAgentBuilder } = props;
     // module name for ai agent
     const type = "ai";
     const { rpcClient } = useRpcContext();
@@ -362,6 +364,14 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
         }
     }
 
+    // Agent Builder: go straight back to the Artifacts page instead of relying on history.
+    const handleBackToArtifacts = () => {
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: { view: MACHINE_VIEW.BIComponentView }
+        });
+    };
+
     return (
         <View>
             <TopNavigationBar projectPath={projectPath.current} />
@@ -394,6 +404,15 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                                 autoFocus
                             />
                             <ButtonContainer>
+                                {isAgentBuilder && (
+                                    <Button
+                                        appearance="secondary"
+                                        onClick={handleBackToArtifacts}
+                                        disabled={isCreating}
+                                    >
+                                        Back
+                                    </Button>
+                                )}
                                 <Button
                                     appearance="primary"
                                     onClick={handleCreateService}

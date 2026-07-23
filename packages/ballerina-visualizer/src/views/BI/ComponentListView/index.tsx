@@ -36,10 +36,11 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 interface ComponentListViewProps {
     projectPath: string;
     scope: SCOPE;
+    isAgentBuilder?: boolean;
 };
 
 export function ComponentListView(props: ComponentListViewProps) {
-    const { projectPath, scope } = props;
+    const { projectPath, scope, isAgentBuilder } = props;
     const { rpcClient } = useRpcContext();
     const [triggers, setTriggers] = useState<TriggerModelsResponse>({ local: [] });
     const { cacheTriggers, setCacheTriggers } = useVisualizerContext();
@@ -90,15 +91,23 @@ export function ComponentListView(props: ComponentListViewProps) {
                     <AddPanel>
                         {!isLibrary && (
                             <>
-                                <AutomationPanel scope={scope} />
-                                <WorkflowPanel />
-                                <AIAgentPanel scope={scope} triggers={triggers} />
-                                <IntegrationAPIPanel scope={scope} />
-                                <EventIntegrationPanel triggers={triggers} scope={scope} />
-                                <FileIntegrationPanel triggers={triggers} scope={scope} />
+                                {!isAgentBuilder ? (
+                                    <>
+                                        <AutomationPanel scope={scope} />
+                                        <WorkflowPanel />
+                                        <AIAgentPanel scope={scope} triggers={triggers} />
+                                        <IntegrationAPIPanel scope={scope} />
+                                        <EventIntegrationPanel triggers={triggers} scope={scope} />
+                                        <FileIntegrationPanel triggers={triggers} scope={scope} />
+                                    </>
+                                ) : (
+                                    /* AI Integration is always shown; it's the only option in agent-builder mode */
+                                    <AIAgentPanel scope={scope} triggers={triggers} isAgentBuilder={isAgentBuilder} />
+                                )}
+                                
                             </>
                         )}
-                        <OtherArtifactsPanel isNPSupported={isNPSupported} isLibrary={isLibrary} />
+                        {!isAgentBuilder && <OtherArtifactsPanel isNPSupported={isNPSupported} isLibrary={isLibrary} />}
                     </AddPanel>
                 </Container>
             </ViewContent>
