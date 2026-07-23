@@ -237,6 +237,12 @@ export function isInDevant(): boolean {
     return !!process.env.CLOUD_STS_TOKEN;
 }
 
+export function isAgentBuilderMode(): boolean {
+    const result = process.env.AGENT_BUILDER_MODE === "true";
+    console.log("[isAgentBuilderMode] AGENT_BUILDER_MODE env:", process.env.AGENT_BUILDER_MODE, "→", result);
+    return result;
+}
+
 export async function checkIsBallerinaPackage(uri: Uri): Promise<boolean> {
     const ballerinaTomlPath = path.join(uri.fsPath, 'Ballerina.toml');
 

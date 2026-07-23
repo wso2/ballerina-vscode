@@ -1,11 +1,12 @@
 
 import { ExtendedLangClient } from './core';
-import { createMachine, assign, interpret } from 'xstate';
+import { createMachine, assign, interpret, send } from 'xstate';
 import { activateBallerina } from './extension';
 import {
     EVENT_TYPE,
     SyntaxTree,
     History,
+    HistoryEntry,
     MachineStateValue,
     IUndoRedoManager,
     VisualizerLocation,
@@ -41,7 +42,7 @@ import * as path from 'path';
 import { extension } from './BalExtensionContext';
 import { AIStateMachine, openAIPanelWithPrompt } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace, isInWI, isInDevant } from './utils';
+import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace, isInWI, isInDevant, isAgentBuilderMode } from './utils';
 import { activateDevantFeatures } from './features/devant/activator';
 import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
@@ -63,6 +64,7 @@ interface MachineContext extends VisualizerLocation {
     errorCode: string | null;
     dependenciesResolved?: boolean;
     isInDevant: boolean;
+    isAgentBuilder: boolean;
     isViewUpdateTransition?: boolean;
 }
 
@@ -81,9 +83,12 @@ const stateMachine = createMachine<MachineContext>(
             langClient: null,
             errorCode: null,
             isBISupported: false,
-            view: MACHINE_VIEW.PackageOverview,
+            // In agent builder mode, keep the initial view undefined so MainPanel shows
+            // the LoadingRing until the forced agent navigation lands (avoids overview flash).
+            view: isAgentBuilderMode() ? undefined : MACHINE_VIEW.PackageOverview,
             dependenciesResolved: false,
-            isInDevant: isInDevant()
+            isInDevant: isInDevant(),
+            isAgentBuilder: isAgentBuilderMode()
         },
         on: {
             RESET_TO_EXTENSION_READY: {
@@ -154,7 +159,9 @@ const stateMachine = createMachine<MachineContext>(
                         // Rebuild project structure with updated project info
                         await buildProjectsStructure(event.projectInfo, StateMachine.langClient(), true);
                         if (!event.silent) {
-                            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
+                            openView(EVENT_TYPE.OPEN_VIEW, isAgentBuilderMode()
+                                ? getDefaultRootLocation()
+                                : { view: MACHINE_VIEW.WorkspaceOverview });
                         }
                     }
                 ]
@@ -280,16 +287,33 @@ const stateMachine = createMachine<MachineContext>(
             fetchProjectStructure: {
                 invoke: {
                     src: 'registerProjectArtifactsStructure',
-                    onDone: {
-                        target: "extensionReady",
-                        actions: [
-                            assign({
-                                projectStructure: (context, event) => event.data.projectStructure
-                            }),
-                            () => {
-                            }
-                        ]
-                    },
+                    onDone: [
+                        {
+                            // Agent Builder mode: skip all home/overview pages and force-navigate
+                            // straight to the AI agent diagram (or the "no agent" choice view).
+                            target: "extensionReady",
+                            cond: (context) => isAgentBuilderMode() && !!(context.projectPath || context.workspacePath),
+                            actions: [
+                                assign({
+                                    projectStructure: (context, event) => event.data.projectStructure
+                                }),
+                                send((context, event) => ({
+                                    type: "OPEN_VIEW",
+                                    viewLocation: getAgentBuilderLocation(event.data.projectStructure, context.projectPath)
+                                }))
+                            ]
+                        },
+                        {
+                            target: "extensionReady",
+                            actions: [
+                                assign({
+                                    projectStructure: (context, event) => event.data.projectStructure
+                                }),
+                                () => {
+                                }
+                            ]
+                        }
+                    ],
                     onError: {
                         target: "lsError",
                         actions: () => {
@@ -382,6 +406,7 @@ const stateMachine = createMachine<MachineContext>(
                                 target: "viewReady",
                                 actions: assign({
                                     view: (context, event) => event.data.view,
+                                    documentUri: (context, event) => event.data.documentUri ?? context.documentUri,
                                     identifier: (context, event) => event.data.identifier,
                                     parentIdentifier: (context, event) => event.data.parentIdentifier,
                                     position: (context, event) => event.data.position,
@@ -663,7 +688,9 @@ const stateMachine = createMachine<MachineContext>(
                 const { orgName, packageName } = getOrgAndPackageName(context.projectInfo, context.projectPath);
                 if (!context.view && context.langClient) {
                     if (!context.position || ("groupId" in context.position)) {
-                        if (!context.projectPath && context.workspacePath) {
+                        if (isAgentBuilderMode()) {
+                            history.push({ location: getDefaultRootLocation(context) });
+                        } else if (!context.projectPath && context.workspacePath) {
                             history.push({
                                 location: {
                                     view: MACHINE_VIEW.WorkspaceOverview
@@ -682,11 +709,25 @@ const stateMachine = createMachine<MachineContext>(
                         return resolve();
                     }
                     const view = await getView(context.documentUri, context.position, context?.projectPath);
+                    if (isAgentBuilderMode() && !isAgentBuilderViewAllowed(view.location.view)) {
+                        console.log(`[AGENT_BUILDER] Blocked navigation to view "${view.location.view}" (${context.documentUri})`);
+                        if (!getLastHistory()) {
+                            history.push(await resolveAgentBuilderRootEntry(context));
+                        }
+                        return resolve();
+                    }
                     view.location.package = packageName || context.package;
                     view.location.package = packageName || context.package;
                     history.push(view);
                     return resolve();
                 } else {
+                    if (isAgentBuilderMode() && !isAgentBuilderViewAllowed(context.view)) {
+                        console.log(`[AGENT_BUILDER] Blocked navigation to view "${context.view}"`);
+                        if (!getLastHistory()) {
+                            history.push(await resolveAgentBuilderRootEntry(context));
+                        }
+                        return resolve();
+                    }
                     history.push({
                         location: {
                             view: context.view,
@@ -716,19 +757,19 @@ const stateMachine = createMachine<MachineContext>(
                 const selectedEntry = getLastHistory();
                 if (!context.langClient) {
                     if (!selectedEntry) {
-                        return resolve(
-                            context.workspacePath
-                                ? { view: MACHINE_VIEW.WorkspaceOverview }
-                                : { view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri }
-                        );
+                        return resolve(getDefaultRootLocation(context));
                     }
-                    return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.PackageOverview });
+                    return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : getDefaultRootLocation(context).view });
                 }
 
                 if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.view === MACHINE_VIEW.BIDiagram || selectedEntry.location.view === MACHINE_VIEW.ReviewMode)) {
                     // Get updated location and identifier if transition was from VIEW_UPDATE event
                     if (context.isViewUpdateTransition && selectedEntry.location.view !== MACHINE_VIEW.ReviewMode) {
                         const updatedView = await getView(selectedEntry.location.documentUri, selectedEntry.location.position, context?.projectPath);
+                        if (isAgentBuilderMode() && !isAgentBuilderViewAllowed(updatedView.location.view)) {
+                            console.log(`[AGENT_BUILDER] Blocked view update to "${updatedView.location.view}"; keeping current view`);
+                            return resolve(selectedEntry.location);
+                        }
                         return resolve(updatedView.location);
                     }
                     return resolve(selectedEntry.location);
@@ -753,11 +794,7 @@ const stateMachine = createMachine<MachineContext>(
                 }) as SyntaxTree;
 
                 if (!selectedEntry?.location.view) {
-                    return resolve(
-                        context.workspacePath
-                            ? { view: MACHINE_VIEW.WorkspaceOverview }
-                            : { view: MACHINE_VIEW.PackageOverview, documentUri: context.documentUri }
-                    );
+                    return resolve(getDefaultRootLocation(context));
                 }
 
                 let selectedST;
@@ -883,6 +920,106 @@ export const StateMachine = {
         stateService.send({ type: 'RESET_TO_EXTENSION_READY' });
     },
 };
+
+/**
+ * Agent Builder mode: resolve the startup/root view from the project structure.
+ * Returns the first `ai` service's diagram location if any agent exists,
+ * otherwise the "No AI agent found" choice view.
+ */
+export function getAgentBuilderLocation(projectStructure?: ProjectStructureResponse, projectPath?: string): VisualizerLocation {
+    const packagePath = projectStructure?.projects?.[0]?.projectPath ?? projectPath;
+    const aiService = findFirstAiService(projectStructure);
+    if (aiService) {
+        return {
+            documentUri: aiService.path,
+            position: aiService.position,
+            identifier: aiService.name,
+            projectPath: packagePath
+        };
+    }
+    // No AI agent found — show the Artifacts page (filtered to AI Integration only in agent mode).
+    return { view: MACHINE_VIEW.BIComponentView, projectPath: packagePath };
+}
+
+/**
+ * Finds the first `ai` service artifact across all projects in the structure
+ * (project-structure order is deterministic).
+ */
+function findFirstAiService(projectStructure?: ProjectStructureResponse): ProjectStructureArtifactResponse | undefined {
+    if (!projectStructure?.projects) {
+        return undefined;
+    }
+    for (const project of projectStructure.projects) {
+        const services = project.directoryMap?.[DIRECTORY_MAP.SERVICE] as ProjectStructureArtifactResponse[] | undefined;
+        const aiService = services?.find(service => service.moduleName === "ai");
+        if (aiService) {
+            return aiService;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Resolves the default "root" location used by home/undo/redo fallbacks.
+ * In Agent Builder mode this is the agent diagram (or the no-agent view) so
+ * navigation never escapes to the overview pages. Otherwise it mirrors the
+ * legacy Workspace/Package overview fallback behavior.
+ */
+export function getDefaultRootLocation(context?: MachineContext): VisualizerLocation {
+    const ctx = context ?? StateMachine.context();
+    if (isAgentBuilderMode()) {
+        return getAgentBuilderLocation(ctx?.projectStructure, ctx?.projectPath);
+    }
+    // Mirror the legacy showView fallback exactly for non-agent mode.
+    return ctx?.workspacePath
+        ? { view: MACHINE_VIEW.WorkspaceOverview }
+        : { view: MACHINE_VIEW.PackageOverview, documentUri: ctx?.documentUri };
+}
+
+/**
+ * Main-webview views that may be shown while Agent Builder mode is active:
+ * the agent's flow diagram plus the agent-internal editing surfaces (tools,
+ * data mappers, connections, configurables, AI review). Navigation resolving
+ * to anything else (overviews, type/service designers, creation wizards) is
+ * dropped at history-entry creation in `findView`/`addToHistory`, so every
+ * entry point — extension commands, debug hits, webview RPCs, history
+ * restore — is covered without per-call-site guards.
+ */
+const AGENT_BUILDER_ALLOWED_VIEWS: MACHINE_VIEW[] = [
+    MACHINE_VIEW.BIDiagram,
+    MACHINE_VIEW.BIComponentView,  // Artifacts page (filtered to AI Integration when no agent exists)
+    MACHINE_VIEW.AIChatAgentWizard,  // AI agent creation flow
+    MACHINE_VIEW.AIAgentDesigner,
+    MACHINE_VIEW.BIAgentToolForm,
+    MACHINE_VIEW.AddConnectionWizard,
+    MACHINE_VIEW.EditConnectionWizard,
+    MACHINE_VIEW.ConnectionConfiguration,
+    MACHINE_VIEW.ViewConfigVariables,
+    MACHINE_VIEW.EditConfigVariables,
+    MACHINE_VIEW.AddConfigVariables,
+    MACHINE_VIEW.ReviewMode,
+    MACHINE_VIEW.ConfigurationCollector,
+    MACHINE_VIEW.SetupView,  // Setup page for Ballerina installation
+    MACHINE_VIEW.BIWelcome,  // Welcome page
+];
+
+export function isAgentBuilderViewAllowed(view?: MACHINE_VIEW | null): boolean {
+    // Locations without a view are resolved later through fallbacks that are
+    // already agent-aware (getDefaultRootLocation).
+    return !view || AGENT_BUILDER_ALLOWED_VIEWS.includes(view);
+}
+
+/**
+ * The agent root as a concrete, renderable history entry: the agent service
+ * resolved to its diagram view, or the "no agent" choice view.
+ */
+async function resolveAgentBuilderRootEntry(context: MachineContext): Promise<HistoryEntry> {
+    const root = getAgentBuilderLocation(context.projectStructure, context.projectPath);
+    if (!root.view && root.documentUri && root.position && context.langClient) {
+        return getView(root.documentUri, root.position, context.projectPath);
+    }
+    return { location: root };
+}
 
 export function openView(type: EVENT_TYPE, viewLocation: VisualizerLocation, resetHistory = false) {
     if (resetHistory) {
@@ -1134,4 +1271,5 @@ function notifyTreeView(
 function setContextValues(isBI: boolean, projectPath?: string, workspacePath?: string) {
     commands.executeCommand('setContext', 'isBIProject', isBI);
     commands.executeCommand('setContext', 'isSupportedProject', projectPath || workspacePath);
+    commands.executeCommand('setContext', 'isAgentBuilderMode', isAgentBuilderMode());
 }
