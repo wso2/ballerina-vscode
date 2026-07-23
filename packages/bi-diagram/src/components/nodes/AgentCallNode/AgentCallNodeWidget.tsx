@@ -435,7 +435,7 @@ const AgentRow = styled.div<{ clickable: boolean }>`
     }
 
     &:hover {
-        background-color: ${(props: { clickable: boolean }) => (props.clickable ? "rgba(0, 0, 0, 0.18)" : "transparent")};
+        background-color: ${(props: { clickable: boolean }) => (props.clickable ? "var(--list-hover-background)" : "transparent")};
     }
 
     &:hover [data-agent-name] {

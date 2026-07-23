@@ -250,13 +250,13 @@ export namespace NodeStyles {
         width: 100%;
         min-height: 0;
         overflow: hidden;
-        padding: 4px 4px 12px;
+        padding: 4px 0 12px;
         cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
         z-index: 2;
     `;
 
     export const AgentDescription = styled(Instructions)`
-        padding: 0;
+        padding: 0 4px;
     `;
 
     export const Divider = styled.div`
