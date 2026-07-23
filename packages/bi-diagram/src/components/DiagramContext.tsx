@@ -124,6 +124,8 @@ export interface DiagramContextState {
         getFunctionLocation?: (functionName: string) => Promise<VisualizerLocation | undefined>;
     };
     readOnly?: boolean;
+    disableNodeAddition?: boolean;
+    isAgentBuilder?: boolean;
     lockCanvas?: boolean;
     setLockCanvas?: (lock: boolean) => void;
     isUserAuthenticated?: boolean;
@@ -161,6 +163,8 @@ export const DiagramContext = React.createContext<DiagramContextState>({
         description: "",
     },
     selectedNodeId: undefined,
+    disableNodeAddition: false,
+    isAgentBuilder: false,
     agentNode: {
         onModelSelect: () => { },
         onAddTool: () => { },

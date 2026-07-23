@@ -91,6 +91,8 @@ export interface DiagramProps {
     };
     breakpointInfo?: BreakpointInfo;
     readOnly?: boolean;
+    disableNodeAddition?: boolean;
+    isAgentBuilder?: boolean;
     overlay?: {
         visible: boolean;
         onClickOverlay: () => void;
@@ -125,6 +127,8 @@ export function Diagram(props: DiagramProps) {
         removeBreakpoint,
         breakpointInfo,
         readOnly,
+        disableNodeAddition,
+        isAgentBuilder,
         overlay,
         isUserAuthenticated,
         expressionContext,
@@ -336,6 +340,8 @@ export function Diagram(props: DiagramProps) {
         suggestions: suggestions,
         project: project,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,
+        disableNodeAddition: disableNodeAddition,
+        isAgentBuilder: isAgentBuilder,
         isUserAuthenticated: isUserAuthenticated,
         nodeComments: nodeComments,
         expressionContext: expressionContext || {

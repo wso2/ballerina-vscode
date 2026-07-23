@@ -89,7 +89,7 @@ interface EmptyNodeWidgetProps {
 
 export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     const { node, engine } = props;
-    const { onAddNode, onAddNodePrompt, readOnly, isUserAuthenticated } = useDiagramContext();
+    const { onAddNode, onAddNodePrompt, readOnly, disableNodeAddition, isUserAuthenticated } = useDiagramContext();
 
     const [isHovered, setIsHovered] = useState(false);
     const [isCommentButtonHovered, setIsCommentButtonHovered] = useState(false);
@@ -155,9 +155,9 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
             onMouseEnter={() => !readOnly && setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <S.Circle show={node.isVisible()} clickable={node.showButton && !readOnly}>
+            <S.Circle show={node.isVisible()} clickable={node.showButton && !readOnly && !disableNodeAddition}>
                 <S.TopPortWidget port={node.getPort("in")!} engine={engine} />
-                {node.showButton && (
+                {node.showButton && !disableNodeAddition && (
                     <div
                         css={css`
                             display: flex;

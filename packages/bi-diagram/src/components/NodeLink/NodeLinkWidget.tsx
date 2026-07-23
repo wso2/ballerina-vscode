@@ -53,7 +53,7 @@ const fadeInZoomIn = keyframes`
 `;
 
 export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) => {
-    const { onAddNode, onAddNodePrompt, onAddComment, setLockCanvas, readOnly, isUserAuthenticated } = useDiagramContext();
+    const { onAddNode, onAddNodePrompt, onAddComment, setLockCanvas, readOnly, disableNodeAddition, isUserAuthenticated } = useDiagramContext();
 
     const [isHovered, setIsHovered] = useState(false);
     const [isCommentButtonHovered, setIsCommentButtonHovered] = useState(false);
@@ -66,7 +66,7 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
         setLockCanvas(isCommentBoxOpen);
     }, [isCommentBoxOpen, setLockCanvas]);
 
-    const showAddButton = link.showAddButton && !link.disabled;
+    const showAddButton = link.showAddButton && !link.disabled && !disableNodeAddition;
     const shouldHighlight =
         showAddButton && (isHovered || link.showButtonAlways || isCommentBoxOpen);
     const linkColor = link.disabled

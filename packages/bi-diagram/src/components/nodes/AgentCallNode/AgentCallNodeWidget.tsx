@@ -501,7 +501,7 @@ export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "childre
 
 export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId, entrypointContext } = useDiagramContext();
+    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId, entrypointContext, isAgentBuilder } = useDiagramContext();
     const traceAnimation = useTraceAnimation();
 
     const isSelected = selectedNodeId === model.node.id;
@@ -755,7 +755,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             onClick: () => onNodeClick(),
         },
         { id: "goToSource", label: "Source", onClick: () => onGoToSource() },
-        { id: "delete", label: "Delete", onClick: () => deleteNode() },
+        // The agent node is the flow invariant in Agent Builder mode — not deletable
+        ...(isAgentBuilder ? [] : [{ id: "delete", label: "Delete", onClick: () => deleteNode() }]),
     ];
 
     const toolMenuItems = (tool: ToolData): Item[] => [
