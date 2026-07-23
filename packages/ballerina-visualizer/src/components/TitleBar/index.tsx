@@ -126,6 +126,7 @@ export function TitleBar(props: TitleBarProps) {
     const { rpcClient } = useRpcContext();
 
     const [isDiagramView, setIsDiagramView] = useState(false);
+    const [isAgentBuilder, setIsAgentBuilder] = useState(false);
 
     useEffect(() => {
         rpcClient.getVisualizerLocation().then((res) => {
@@ -134,6 +135,7 @@ export function TitleBar(props: TitleBarProps) {
             } else {
                 setIsDiagramView(false);
             }
+            setIsAgentBuilder(!!res.isAgentBuilder);
         });
     }, [title]);
 
@@ -148,7 +150,7 @@ export function TitleBar(props: TitleBarProps) {
     return (
         <TitleBarContainer data-testid="title-bar-container">
             <LeftContainer>
-                {!hideBack && (
+                {!hideBack && !isAgentBuilder && (
                     <IconButton data-testid="back-button" onClick={handleBackButtonClick}>
                         <Icon name="bi-arrow-back" iconSx={{ fontSize: "20px", color: "var(--vscode-foreground)" }} />
                     </IconButton>
