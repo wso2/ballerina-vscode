@@ -526,7 +526,7 @@ public class WorkflowUtil {
     public static String quoteIfPlain(String value) {
         String trimmed = value.trim();
         if ((trimmed.startsWith("\"") && trimmed.endsWith("\""))
-                || trimmed.startsWith("string `")) {
+                || trimmed.startsWith("string `") || trimmed.startsWith("[")) {
             return trimmed;
         }
         return "\"" + trimmed.replace("\"", "\\\"") + "\"";

@@ -76,6 +76,7 @@ public class DurableAgentAddActivityBuilder extends CallBuilder {
             "Tells the model what this tool does and when to use it";
 
     public static final String REQUIRES_APPROVAL_KEY = "requiresApproval";
+    public static final String USER_ROLES_KEY = "userRoles";
     public static final String REQUIRES_APPROVAL_LABEL = "Requires Approval";
     public static final String REQUIRES_APPROVAL_DOC =
             "Gate this tool: before the agent runs it, a review activity is created and the agent suspends "
@@ -162,6 +163,20 @@ public class DurableAgentAddActivityBuilder extends CallBuilder {
                 .advanced(true)
                 .stepOut()
                 .addProperty(REQUIRES_APPROVAL_KEY);
+        properties().custom()
+                .metadata()
+                    .label("Reviewer Roles")
+                    .description("Role(s) permitted to decide the approval review of this activity, "
+                            + "e.g. \"support-lead\" or [\"finance\", \"manager\"].")
+                    .stepOut()
+                .type().fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType("string|string[]").selected(true).stepOut()
+                .placeholder("")
+                .editable(true)
+                .optional(true)
+                .advanced(true)
+                .stepOut()
+                .addProperty(USER_ROLES_KEY);
     }
 
     /**
@@ -244,9 +259,11 @@ public class DurableAgentAddActivityBuilder extends CallBuilder {
                     .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
             String toolDescription = sourceBuilder.getProperty(TOOL_DESCRIPTION_KEY)
                     .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
+            String userRoles = sourceBuilder.getProperty(USER_ROLES_KEY)
+                    .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
             boolean requiresApproval = isRequiresApproval(sourceBuilder);
             String entry;
-            if (toolName.isBlank() && toolDescription.isBlank() && !requiresApproval) {
+            if (toolName.isBlank() && toolDescription.isBlank() && !requiresApproval && userRoles.isBlank()) {
                 entry = activityRef;
             } else {
                 StringBuilder mapping = new StringBuilder("{activity: ").append(activityRef);
@@ -258,6 +275,9 @@ public class DurableAgentAddActivityBuilder extends CallBuilder {
                 }
                 if (requiresApproval) {
                     mapping.append(", requiresApproval: true");
+                }
+                if (!userRoles.isBlank()) {
+                    mapping.append(", userRoles: ").append(WorkflowUtil.quoteIfPlain(userRoles));
                 }
                 entry = mapping.append("}").toString();
             }
