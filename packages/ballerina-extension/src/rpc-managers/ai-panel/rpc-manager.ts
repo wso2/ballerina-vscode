@@ -832,12 +832,19 @@ User reverted the last made changes. The files have been restored to the state b
         if (loginMethod !== LoginMethod.BI_INTEL) {
             return { status: "failed" };
         }
+        const email = platformExtStore.getState().state?.userInfo?.userEmail;
+        if (!email) {
+            console.error("Failed to submit quota request: no account email available");
+            return { status: "failed" };
+        }
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 20000);
         try {
-            const email = platformExtStore.getState().state?.userInfo?.userEmail;
             const url = BACKEND_URL + LLM_API_BASE_PATH + "/quota-requests";
             const response = await fetchWithAuth(url, {
                 method: "POST",
                 body: JSON.stringify({ note: params.note, email }),
+                signal: controller.signal,
             });
             if (response?.status === 201) {
                 return { status: "submitted" };
@@ -850,6 +857,8 @@ User reverted the last made changes. The files have been restored to the state b
         } catch (error) {
             console.error("Failed to submit quota request:", error);
             return { status: "failed" };
+        } finally {
+            clearTimeout(timeout);
         }
     }
 

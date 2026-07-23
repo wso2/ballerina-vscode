@@ -135,13 +135,19 @@ const QuotaRequestDialog: React.FC<QuotaRequestDialogProps> = ({ submitting, err
 
     return (
         <Overlay>
-            <DialogContainer>
-                <Title>Request additional quota</Title>
-                <Text>Let the team know you'd like more Integrator Copilot quota this week.</Text>
+            <DialogContainer
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="quota-request-title"
+                aria-describedby="quota-request-desc"
+            >
+                <Title id="quota-request-title">Request additional quota</Title>
+                <Text id="quota-request-desc">Let the team know you'd like more Integrator Copilot quota this week.</Text>
                 <TextArea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Add a message (optional)"
+                    aria-label="Message (optional)"
                     maxLength={NOTE_MAX_LENGTH}
                     autoFocus
                 />
@@ -151,7 +157,7 @@ const QuotaRequestDialog: React.FC<QuotaRequestDialogProps> = ({ submitting, err
                 <Notice>
                     Reach us at {QUOTA_CONTACT_EMAIL}.
                 </Notice>
-                {error && <ErrorText>{error}</ErrorText>}
+                {error && <ErrorText role="alert">{error}</ErrorText>}
                 <ButtonContainer>
                     <Button appearance="secondary" onClick={onCancel} disabled={submitting}>
                         Cancel
