@@ -37,7 +37,16 @@ import { getEntryNodeIcon } from "./EventIntegrationPanel";
 interface AIAgentPanelProps {
     scope: SCOPE;
     triggers: TriggerModelsResponse;
+    isAgentBuilder?: boolean;
 }
+
+// Demo-only, non-clickable trigger placeholders shown in Agent Builder mode.
+const DEMO_TRIGGERS: { id: string; title: string; icon: string }[] = [
+    { id: "whatsapp", title: "WhatsApp", icon: "device-mobile" },
+    { id: "slack", title: "Slack", icon: "comment-discussion" },
+    { id: "salesforce", title: "Salesforce", icon: "cloud" },
+    { id: "github", title: "GitHub", icon: "github" },
+];
 
 export function AIAgentPanel(props: AIAgentPanelProps) {
     const { rpcClient } = useRpcContext();
@@ -84,7 +93,7 @@ export function AIAgentPanel(props: AIAgentPanelProps) {
                     tooltip={isDisabled ? OutOfScopeComponentTooltip : ""}
                 />
                 {props.triggers.local.length === 0 && <RelativeLoader />}
-                {props.triggers.local
+                {!props.isAgentBuilder && props.triggers.local
                     .filter((t) => t.type === "mcp")
                     .map((item, index) => {
                         return (
@@ -102,6 +111,18 @@ export function AIAgentPanel(props: AIAgentPanelProps) {
                             />
                         );
                     })}
+                {props.isAgentBuilder &&
+                    DEMO_TRIGGERS.map((trigger) => (
+                        <ButtonCard
+                            id={`demo-trigger-${trigger.id}`}
+                            key={trigger.id}
+                            title={trigger.title}
+                            icon={<Icon name={trigger.icon} isCodicon={true} />}
+                            onClick={() => {}}
+                            disabled={true}
+                            tooltip="Coming soon"
+                        />
+                    ))}
             </CardGrid>
         </PanelViewMore>
     );
