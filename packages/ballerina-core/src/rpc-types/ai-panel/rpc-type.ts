@@ -45,6 +45,8 @@ import {
     CheckpointInfo,
     AbortAIGenerationRequest,
     UsageResponse,
+    QuotaRequestParams,
+    QuotaRequestResult,
     OpenFileDiffRequest,
     WebToolApprovalRequest,
     CompactConversationRequest,
@@ -130,6 +132,7 @@ export const updateChatMessage: RequestType<UpdateChatMessageRequest, void> = { 
 export const getActiveTempDir: RequestType<void, string> = { method: `${_preFix}/getActiveTempDir` };
 export const hasPendingReview: RequestType<void, boolean> = { method: `${_preFix}/hasPendingReview` };
 export const getUsage: RequestType<void, UsageResponse | undefined> = { method: `${_preFix}/getUsage` };
+export const requestQuota: RequestType<QuotaRequestParams, QuotaRequestResult> = { method: `${_preFix}/requestQuota` };
 export const openFileDiff: NotificationType<OpenFileDiffRequest> = { method: `${_preFix}/openFileDiff` };
 export const approveWebTool: RequestType<WebToolApprovalRequest, void> = { method: `${_preFix}/approveWebTool` };
 export const declineWebTool: RequestType<WebToolApprovalRequest, void> = { method: `${_preFix}/declineWebTool` };

@@ -88,6 +88,7 @@ import WelcomeMessage from "./Welcome";
 import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isContainsSyntaxError } from "./utils/utils";
 
 import FeedbackBar from "./../FeedbackBar";
+import QuotaRequestDialog from "./../QuotaRequestDialog";
 import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
 import { MigrationContextCard } from "../MigrationContextCard";
@@ -101,7 +102,6 @@ const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the docume
 
 const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
 const QUOTA_CONTACT_EMAIL = "support@wso2.com";
-const QUOTA_PORTAL_BASE_URL = "https://subscriptions.wso2.com/cloud/devant/subscriptions";
 
 //TODO: Add better error handling from backend. stream error type and non 200 status codes
 
@@ -292,8 +292,11 @@ const AIChat: React.FC = () => {
 
     const [migrationSession, setMigrationSession] = useState<ActiveMigrationSession | null>(null);
     const [isMigrationEnhancementRunning, setIsMigrationEnhancementRunning] = useState(false);
-    const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number; orgId?: string } | null>(null);
+    const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number; orgId?: string; alreadyRequested?: boolean } | null>(null);
     const [isUsageExceeded, setIsUsageExceeded] = useState(false);
+    const [showQuotaDialog, setShowQuotaDialog] = useState(false);
+    const [quotaRequestSubmitting, setQuotaRequestSubmitting] = useState(false);
+    const [quotaRequestError, setQuotaRequestError] = useState<string | undefined>(undefined);
     const [loginMethod, setLoginMethod] = useState<LoginMethod | null>(null);
 
     const [contextUsage, setContextUsage] = useState<{
@@ -450,6 +453,25 @@ const AIChat: React.FC = () => {
             // Reset on error to avoid permanently blocking the user on transient failures
             setUsage(null);
             setIsUsageExceeded(false);
+        }
+    };
+
+    const handleQuotaRequestSubmit = async (note: string) => {
+        setQuotaRequestSubmitting(true);
+        setQuotaRequestError(undefined);
+        try {
+            const result = await rpcClient.getAiPanelRpcClient().requestQuota({ note });
+            if (result.status === "submitted" || result.status === "already_requested") {
+                setShowQuotaDialog(false);
+                await fetchUsage();
+            } else {
+                setQuotaRequestError(`Something went wrong. Please try again or email ${QUOTA_CONTACT_EMAIL}.`);
+            }
+        } catch (e) {
+            console.error("Failed to submit quota request:", e);
+            setQuotaRequestError(`Something went wrong. Please try again or email ${QUOTA_CONTACT_EMAIL}.`);
+        } finally {
+            setQuotaRequestSubmitting(false);
         }
     };
 
@@ -2298,12 +2320,20 @@ const AIChat: React.FC = () => {
                             <span>
                                 You've reached your Integrator Copilot usage limit
                                 {usage && usage.resetsIn !== -1 ? `, which resets in ${formatResetsIn(usage.resetsIn)}` : ""}.
-                                {usage?.orgId
-                                    ? <>{" "}<a href={`${QUOTA_PORTAL_BASE_URL}?orgId=${usage.orgId}`}>Request additional quota</a>.</>
-                                    : <>{" "}Email <a href={`mailto:${QUOTA_CONTACT_EMAIL}`}>{QUOTA_CONTACT_EMAIL}</a> to request additional quota.</>
+                                {usage?.alreadyRequested
+                                    ? <>{" "}Your request for additional quota has been submitted. Reach us at <a href={`mailto:${QUOTA_CONTACT_EMAIL}`}>{QUOTA_CONTACT_EMAIL}</a>.</>
+                                    : <>{" "}<a href="#" onClick={(e) => { e.preventDefault(); setShowQuotaDialog(true); }}>Request additional quota</a>.</>
                                 }
                             </span>
                         </UsageLimitNoticeContainer>
+                    )}
+                    {showQuotaDialog && (
+                        <QuotaRequestDialog
+                            submitting={quotaRequestSubmitting}
+                            error={quotaRequestError}
+                            onCancel={() => { setShowQuotaDialog(false); setQuotaRequestError(undefined); }}
+                            onSubmit={handleQuotaRequestSubmit}
+                        />
                     )}
                     {(() => {
                         const lastAssistantMsg = [...otherMessages].reverse().find(m => m.role === "Copilot");

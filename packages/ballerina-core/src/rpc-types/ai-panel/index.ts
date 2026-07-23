@@ -43,6 +43,8 @@ import {
     CheckpointInfo,
     AbortAIGenerationRequest,
     UsageResponse,
+    QuotaRequestParams,
+    QuotaRequestResult,
     OpenFileDiffRequest,
     WebToolApprovalRequest,
     CompactConversationRequest,
@@ -142,6 +144,7 @@ export interface AIPanelAPI {
     getActiveTempDir: () => Promise<string>;
     hasPendingReview: () => Promise<boolean>;
     getUsage: () => Promise<UsageResponse | undefined>;
+    requestQuota: (params: QuotaRequestParams) => Promise<QuotaRequestResult>;
     openFileDiff: (params: OpenFileDiffRequest) => void;
     approveWebTool: (params: WebToolApprovalRequest) => Promise<void>;
     declineWebTool: (params: WebToolApprovalRequest) => Promise<void>;
