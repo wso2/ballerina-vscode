@@ -108,6 +108,7 @@ interface PanelManagerProps {
     updatedExpressionField?: ExpressionFormField;
     showProgressIndicator?: boolean;
     canGoBack?: boolean;
+    isAgentBuilder?: boolean;
     selectedMcpToolkitName?: string;
     selectedConnectionKind?: ConnectionKind;
     showProgressSpinner?: boolean;
@@ -239,6 +240,7 @@ export function PanelManager(props: PanelManagerProps) {
         onImportDevantConn,
         onLinkDevantProject,
         onRefreshDevantConnections,
+        isAgentBuilder,
     } = props;
 
     const backOverrideRef = useRef<(() => void) | null>(null);
@@ -754,7 +756,8 @@ export function PanelManager(props: PanelManagerProps) {
                 // Read ref at call time so registering an override never causes a re-render
                 return () => (backOverrideRef.current ?? handleOnBackToAddTool)();
             case SidePanelView.ADD_MCP_SERVER:
-                return handleOnBackToAddTool;
+                // Agent Builder opens this form directly (no tool-type chooser to go back to)
+                return isAgentBuilder ? undefined : handleOnBackToAddTool;
             case SidePanelView.CONNECTION_SELECT:
             case SidePanelView.CONNECTION_CREATE:
                 return onBack;

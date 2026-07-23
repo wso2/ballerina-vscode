@@ -146,6 +146,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [selectedNodeId, setSelectedNodeId] = useState<string>();
     const [importingConn, setImportingConn] = useState<ConnectionListItem>();
     const [projectOrg, setProjectOrg] = useState<string>("");
+    const [isAgentBuilder, setIsAgentBuilder] = useState<boolean>(false);
     const [entrypointContext, setEntrypointContext] = useState<{ serviceName?: string; functionName?: string }>();
     const [isUserAuthenticated, setIsUserAuthenticated] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -278,6 +279,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
         rpcClient.getVisualizerLocation().then((location) => {
             setProjectOrg(location.org);
+            setIsAgentBuilder(!!location.isAgentBuilder);
         });
 
         // Check user authentication status
@@ -2860,14 +2862,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnAddTool = (node: FlowNode) => {
         selectedNodeRef.current = node;
-        selectedClientName.current = "Add Tool";
+        selectedClientName.current = isAgentBuilder ? "Add MCP Server" : "Add Tool";
         setSelectedNodeId(node.id);
 
         // Open the tool selection panel
         setShowProgressIndicator(true);
 
         setTimeout(() => {
-            setSidePanelView(SidePanelView.ADD_TOOL);
+            // Agent Builder supports MCP tools only — skip the tool-type chooser
+            setSidePanelView(isAgentBuilder ? SidePanelView.ADD_MCP_SERVER : SidePanelView.ADD_TOOL);
             setShowSidePanel(true);
             setShowProgressIndicator(false);
         }, 100);
@@ -3180,6 +3183,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             onAddNodePrompt: handleOnAddNodePrompt,
             onDeleteNode: handleOnDeleteNode,
             onAddComment: handleOnAddComment,
+            disableNodeAddition: isAgentBuilder,
+            isAgentBuilder: isAgentBuilder,
             onNodeSelect: handleOnEditNode,
             onConnectionSelect: handleOnEditConnection,
             goToSource: handleOnGoToSource,
@@ -3237,6 +3242,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             rpcClient,
             isUserAuthenticated,
             entrypointContext,
+            isAgentBuilder,
         ]
     );
 
@@ -3269,6 +3275,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 editForm={showEditForm.current}
                 updatedExpressionField={updatedExpressionField}
                 canGoBack={navigationStack.length > 0}
+                isAgentBuilder={isAgentBuilder}
                 selectedConnectionKind={selectedConnectionKind}
                 setSidePanelView={setSidePanelView}
                 showProgressSpinner={showProgressSpinner}
