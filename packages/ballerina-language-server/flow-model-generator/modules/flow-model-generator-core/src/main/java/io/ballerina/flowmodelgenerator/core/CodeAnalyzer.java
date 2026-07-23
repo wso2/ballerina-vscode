@@ -2028,11 +2028,13 @@ public class CodeAnalyzer extends NodeVisitor {
                 retryDelay = fields.getOrDefault(ActivityCallBuilder.RETRY_DELAY_KEY, "");
                 retryBackoff = fields.getOrDefault(ActivityCallBuilder.RETRY_BACKOFF_KEY, "");
                 maxRetryDelay = fields.getOrDefault(ActivityCallBuilder.MAX_RETRY_DELAY_KEY, "");
-            } else if (!trimmed.equals("()") && !trimmed.contains("NoRetry")) {
-                // ManualRetry is the reviewer role(s): a string, a role list, or the legacy
+            } else if (!trimmed.equals("()") && !trimmed.contains("NoRetry")
+                    && !trimmed.contains("NoAutomaticRetry")) {
+                // HumanReview is the reviewer role(s): a string, a role list, or the legacy
                 // workflow:ManualRetry sentinel (any role).
                 dropdownValue = ActivityCallBuilder.MANUAL_RETRY_VALUE;
-                if (!trimmed.contains("ManualRetry") && !trimmed.equals("[]")) {
+                if (!trimmed.contains("ManualRetry") && !trimmed.contains("HumanReview")
+                        && !trimmed.equals("[]")) {
                     retryUserRoles = trimmed;
                 }
             }

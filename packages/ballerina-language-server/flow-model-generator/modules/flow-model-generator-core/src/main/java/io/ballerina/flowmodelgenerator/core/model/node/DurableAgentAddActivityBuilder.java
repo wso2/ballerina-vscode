@@ -177,6 +177,10 @@ public class DurableAgentAddActivityBuilder extends CallBuilder {
                 .advanced(true)
                 .stepOut()
                 .addProperty(USER_ROLES_KEY);
+        // Feature parity with workflow Call Activity: agent-declared activities can be
+        // auto-retried by the engine or gated by a human review on failure.
+        ActivityCallBuilder.addRetryPolicyFormProperties(this, ActivityCallBuilder.NO_RETRY_VALUE,
+                "", "", "", "", "");
     }
 
     /**
@@ -262,8 +266,11 @@ public class DurableAgentAddActivityBuilder extends CallBuilder {
             String userRoles = sourceBuilder.getProperty(USER_ROLES_KEY)
                     .map(p -> p.value() == null ? "" : p.value().toString().trim()).orElse("");
             boolean requiresApproval = isRequiresApproval(sourceBuilder);
+            String retryPolicyValue = ActivityCallBuilder.retryPolicyEntryValue(
+                    sourceBuilder.flowNode.properties());
             String entry;
-            if (toolName.isBlank() && toolDescription.isBlank() && !requiresApproval && userRoles.isBlank()) {
+            if (toolName.isBlank() && toolDescription.isBlank() && !requiresApproval && userRoles.isBlank()
+                    && retryPolicyValue == null) {
                 entry = activityRef;
             } else {
                 StringBuilder mapping = new StringBuilder("{activity: ").append(activityRef);
@@ -278,6 +285,9 @@ public class DurableAgentAddActivityBuilder extends CallBuilder {
                 }
                 if (!userRoles.isBlank()) {
                     mapping.append(", userRoles: ").append(WorkflowUtil.quoteIfPlain(userRoles));
+                }
+                if (retryPolicyValue != null) {
+                    mapping.append(", retryPolicy: ").append(retryPolicyValue);
                 }
                 entry = mapping.append("}").toString();
             }

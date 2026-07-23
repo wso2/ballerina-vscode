@@ -376,9 +376,9 @@ public class ActivityCallBuilder extends CallBuilder {
                                                     String retryBackoff, String maxRetryDelay,
                                                     String retryUserRoles) {
         List<Option> options = List.of(
-                new Option("No Retry", NO_RETRY_VALUE),
+                new Option("No Automatic Retry", NO_RETRY_VALUE),
                 new Option("Auto Retry", AUTO_RETRY_VALUE),
-                new Option("Manual Retry", MANUAL_RETRY_VALUE));
+                new Option("Human Review", MANUAL_RETRY_VALUE));
 
         // Sub-property definitions for the AutoRetry option. Empty values are intentional:
         // the UI reads real values from the root hidden properties with matching keys.
@@ -404,14 +404,15 @@ public class ActivityCallBuilder extends CallBuilder {
         dynamicFields.put(AUTO_RETRY_VALUE, autoRetryFields);
         Map<String, Property> manualRetryFields = new LinkedHashMap<>();
         manualRetryFields.put(RETRY_USER_ROLES_KEY, buildRetrySubProperty("Reviewer Roles",
-                "Role(s) permitted to decide the retry review, e.g. \"manager\" or "
+                "Role(s) permitted to decide the human review, e.g. \"manager\" or "
                         + "[\"finance\", \"manager\"]. Leave empty to allow any role.", "string|string[]"));
         dynamicFields.put(MANUAL_RETRY_VALUE, manualRetryFields);
 
         nodeBuilder.properties().custom()
                 .metadata()
                     .label("Retry Policy")
-                    .description("Retry strategy to apply when the activity call fails")
+                    .description("Engine retry strategy when the activity fails: no automatic retry (an AI agent "
+                            + "may still re-invoke it), automatic backoff retries, or a human review task")
                     .stepOut()
                 .type()
                     .fieldType(Property.ValueType.DROPDOWN_CHOICE)
@@ -758,6 +759,26 @@ public class ActivityCallBuilder extends CallBuilder {
                 .whiteSpace()
                 .keyword(SyntaxKind.EQUAL_TOKEN)
                 .name(retryPolicyExpr);
+    }
+
+    /**
+     * The retry-policy value for a declaration entry, or {@code null} when no engine retry is
+     * configured (the default, not emitted).
+     *
+     * @param properties the node's properties
+     * @return the policy expression or {@code null}
+     */
+    public static String retryPolicyEntryValue(Map<String, Property> properties) {
+        if (properties == null) {
+            return null;
+        }
+        Property retryPolicy = properties.get(RETRY_POLICY_PARAM);
+        if (retryPolicy == null || retryPolicy.value() == null || retryPolicy.value().toString().isEmpty()
+                || NO_RETRY_VALUE.equals(retryPolicy.value().toString())) {
+            return null;
+        }
+        String expression = retryPolicyExpression(retryPolicy, properties);
+        return expression == null || expression.isEmpty() ? null : expression;
     }
 
     private static String retryPolicyExpression(Property retryPolicy, Map<String, Property> properties) {
