@@ -2321,7 +2321,7 @@ const AIChat: React.FC = () => {
                                 You've reached your Integrator Copilot usage limit
                                 {usage && usage.resetsIn !== -1 ? `, which resets in ${formatResetsIn(usage.resetsIn)}` : ""}.
                                 {usage?.alreadyRequested
-                                    ? <>{" "}Your request for additional quota has been submitted. Prefer email? Reach us at <a href={`mailto:${QUOTA_CONTACT_EMAIL}`}>{QUOTA_CONTACT_EMAIL}</a>.</>
+                                    ? <>{" "}Your request for additional quota has been submitted. Reach us at <a href={`mailto:${QUOTA_CONTACT_EMAIL}`}>{QUOTA_CONTACT_EMAIL}</a>.</>
                                     : <>{" "}<a href="#" onClick={(e) => { e.preventDefault(); setShowQuotaDialog(true); }}>Request additional quota</a>.</>
                                 }
                             </span>

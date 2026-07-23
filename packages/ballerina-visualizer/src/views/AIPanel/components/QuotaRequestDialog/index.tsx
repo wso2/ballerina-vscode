@@ -149,7 +149,7 @@ const QuotaRequestDialog: React.FC<QuotaRequestDialogProps> = ({ submitting, err
                     Your WSO2 account email will be included with this request so the team can follow up.
                 </Notice>
                 <Notice>
-                    Prefer email? Reach us at {QUOTA_CONTACT_EMAIL}.
+                    Reach us at {QUOTA_CONTACT_EMAIL}.
                 </Notice>
                 {error && <ErrorText>{error}</ErrorText>}
                 <ButtonContainer>
