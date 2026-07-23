@@ -101,6 +101,9 @@ public class AvailableNodesGenerator {
     private static final String BALLERINAX = "ballerinax";
     private static final String TEST_MODULE_PREFIX = "test";
     private static final String TEST_CONFIG_ANNOTATION = "Config";
+    // Set per getAvailableNodes call: inside a @workflow:DurableAgent function the palette
+    // leads with the "Configure Durable Agentic Workflow" group, followed by the normal palette.
+    private boolean inDurableAgentFunction = false;
 
     public AvailableNodesGenerator(SemanticModel semanticModel, Document document, Package pkg, Path filePath) {
         this.rootBuilder = new Category.Builder(null).name(Category.Name.ROOT);
@@ -117,8 +120,9 @@ public class AvailableNodesGenerator {
                 && "true".equals(queryMap.get("checkAgentToolCompatibility"));
 
         boolean isInWorkflowFunction = isInsideWorkflowFunction(position);
+        this.inDurableAgentFunction = isInsideDurableAgentFunction(position);
 
-        if (!isInWorkflowFunction) {
+        if (!isInWorkflowFunction && !this.inDurableAgentFunction) {
             List<Category> connections = new ArrayList<>();
             List<Symbol> symbols = semanticModel.visibleSymbols(document, position);
             for (Symbol symbol : symbols) {
@@ -130,6 +134,13 @@ public class AvailableNodesGenerator {
             }
             connections.sort(Comparator.comparing(connection -> connection.metadata().label()));
             this.rootBuilder.stepIn(Category.Name.CONNECTIONS).items(new ArrayList<>(connections)).stepOut();
+        }
+
+        // Inside a durable agent the palette leads with the Configure Agent group.
+        if (this.inDurableAgentFunction) {
+            this.rootBuilder.stepIn(Category.Name.DURABLE_AGENT)
+                    .items(getConfigureAgentNodes())
+                    .stepOut();
         }
 
         boolean insideTestFunction = isInsideTestFunction(position);
@@ -149,6 +160,46 @@ public class AvailableNodesGenerator {
         }
 
         return jsonArray;
+    }
+
+    // The Configure Agent palette group: the four capability registrations.
+    private List<Item> getConfigureAgentNodes() {
+        List<Item> nodes = new ArrayList<>();
+        record NodeSpec(String label, String description, NodeKind kind) { }
+        List<NodeSpec> specs = List.of(
+                new NodeSpec(Workflow.REGISTER_EVENT_LABEL, Workflow.REGISTER_EVENT_DESCRIPTION,
+                        NodeKind.DURABLE_AGENT_REGISTER_EVENT),
+                new NodeSpec(Workflow.REGISTER_ACTIVITY_LABEL, Workflow.REGISTER_ACTIVITY_DESCRIPTION,
+                        NodeKind.DURABLE_AGENT_ADD_ACTIVITY),
+                new NodeSpec(Workflow.REGISTER_HUMAN_TASK_LABEL, Workflow.REGISTER_HUMAN_TASK_DESCRIPTION,
+                        NodeKind.DURABLE_AGENT_HUMAN_TASK),
+                new NodeSpec(Workflow.REGISTER_AGENT_TOOL_LABEL, Workflow.REGISTER_AGENT_TOOL_DESCRIPTION,
+                        NodeKind.DURABLE_AGENT_REGISTER_TOOL),
+                new NodeSpec(Workflow.RUN_DURABLE_AGENT_LABEL, Workflow.RUN_DURABLE_AGENT_DESCRIPTION,
+                        NodeKind.DURABLE_AGENT_RUN));
+        for (NodeSpec spec : specs) {
+            nodes.add(new AvailableNode(
+                    new Metadata.Builder<>(null)
+                            .label(spec.label())
+                            .description(spec.description())
+                            .build(),
+                    new Codedata.Builder<>(null)
+                            .node(spec.kind())
+                            .build(),
+                    true));
+        }
+        return nodes;
+    }
+
+    private boolean isInsideDurableAgentFunction(LinePosition position) {
+        try {
+            int txtPos = this.document.textDocument().textPositionFrom(position);
+            TextRange range = TextRange.from(txtPos, 0);
+            NonTerminalNode node = ((ModulePartNode) document.syntaxTree().rootNode()).findNode(range);
+            return WorkflowUtil.isInsideDurableAgentFunction(this.semanticModel, node);
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     private boolean isInsideWorkflowFunction(LinePosition position) {
@@ -316,15 +367,17 @@ public class AvailableNodesGenerator {
     }
 
     private void setDefaultNodes(boolean disableBallerinaAiNodes, boolean isInWorkflowFunction) {
-        if (!isInWorkflowFunction) {
+        if (!isInWorkflowFunction && !this.inDurableAgentFunction) {
             this.rootBuilder.stepIn(Category.Name.AI)
                     .items(getAiNodes(disableBallerinaAiNodes))
                     .stepOut();
         }
 
-        this.rootBuilder.stepIn(Category.Name.WORKFLOW)
-                .items(getWorkflowNodes(isInWorkflowFunction))
-                .stepOut();
+        if (!this.inDurableAgentFunction) {
+            this.rootBuilder.stepIn(Category.Name.WORKFLOW)
+                    .items(getWorkflowNodes(isInWorkflowFunction))
+                    .stepOut();
+        }
 
         AvailableNode function = new AvailableNode(
                 new Metadata.Builder<>(null)
@@ -357,7 +410,7 @@ public class AvailableNodesGenerator {
                     .node(NodeKind.PANIC)
                     .stepOut();
 
-        if (!isInWorkflowFunction) {
+        if (!isInWorkflowFunction && !this.inDurableAgentFunction) {
             this.rootBuilder
                     .stepIn(Category.Name.CONCURRENCY)
                         .node(NodeKind.FORK)
@@ -448,60 +501,53 @@ public class AvailableNodesGenerator {
         return List.of(directLlmCategory, ragCategory, agentCategory);
     }
 
+
     private List<Item> getWorkflowNodes(boolean isInWorkflowFunction) {
         List<Item> workflowNodes = new ArrayList<>();
 
         if (isInWorkflowFunction) {
-            // Inside a workflow function: Call Activity, Await HumanTask, Await Data, Sleep
-            AvailableNode callActivity = new AvailableNode(
-                    new Metadata.Builder<>(null)
-                            .label(Workflow.CALL_ACTIVITY_LABEL)
-                            .description(Workflow.CALL_ACTIVITY_DESCRIPTION)
-                            .build(),
-                    new Codedata.Builder<>(null)
-                            .node(NodeKind.ACTIVITY_CALL)
-                            .build(),
-                    true
-            );
+            // Inside a workflow function the single Workflow section groups its items by
+            // functionality: durable Steps, Child Workflows, and the (advanced) context
+            // utility functions.
+            Category steps = new Category.Builder(null).name(Category.Name.WORKFLOW_STEPS)
+                    .items(List.of(
+                            workflowNode(Workflow.CALL_ACTIVITY_LABEL, Workflow.CALL_ACTIVITY_DESCRIPTION,
+                                    NodeKind.ACTIVITY_CALL),
+                            workflowNode(Workflow.HUMAN_TASK_LABEL, Workflow.HUMAN_TASK_DESCRIPTION,
+                                    NodeKind.HUMAN_TASK),
+                            workflowNode(Workflow.WAIT_DATA_LABEL, Workflow.WAIT_DATA_DESCRIPTION,
+                                    NodeKind.WAIT_DATA),
+                            workflowNode(Workflow.SLEEP_LABEL, Workflow.SLEEP_DESCRIPTION, NodeKind.SLEEP)))
+                    .build();
 
-            workflowNodes.add(callActivity);
+            Category childWorkflows = new Category.Builder(null).name(Category.Name.CHILD_WORKFLOWS)
+                    .items(List.of(
+                            workflowNode(Workflow.RUN_CHILD_WORKFLOW_LABEL, Workflow.RUN_CHILD_WORKFLOW_DESCRIPTION,
+                                    NodeKind.CHILD_WORKFLOW_RUN),
+                            workflowNode(Workflow.CALL_CHILD_WORKFLOW_LABEL, Workflow.CALL_CHILD_WORKFLOW_DESCRIPTION,
+                                    NodeKind.CHILD_WORKFLOW_CALL),
+                            workflowNode(Workflow.WAIT_CHILD_WORKFLOW_LABEL, Workflow.WAIT_CHILD_WORKFLOW_DESCRIPTION,
+                                    NodeKind.CHILD_WORKFLOW_WAIT),
+                            workflowNode(Workflow.SEND_DATA_CHILD_WORKFLOW_LABEL,
+                                    Workflow.SEND_DATA_CHILD_WORKFLOW_DESCRIPTION,
+                                    NodeKind.CHILD_WORKFLOW_SEND_DATA)))
+                    .build();
 
-            AvailableNode humanTask = new AvailableNode(
-                    new Metadata.Builder<>(null)
-                            .label(Workflow.HUMAN_TASK_LABEL)
-                            .description(Workflow.HUMAN_TASK_DESCRIPTION)
-                            .build(),
-                    new Codedata.Builder<>(null)
-                            .node(NodeKind.HUMAN_TASK)
-                            .build(),
-                    true
-            );
+            Category workflowFunctions = new Category.Builder(null).name(Category.Name.WORKFLOW_FUNCTIONS)
+                    .items(List.of(
+                            workflowNode(Workflow.CURRENT_TIME_LABEL, Workflow.CURRENT_TIME_DESCRIPTION,
+                                    NodeKind.WORKFLOW_CURRENT_TIME),
+                            workflowNode(Workflow.IS_REPLAYING_LABEL, Workflow.IS_REPLAYING_DESCRIPTION,
+                                    NodeKind.WORKFLOW_IS_REPLAYING),
+                            workflowNode(Workflow.GET_WORKFLOW_ID_LABEL, Workflow.GET_WORKFLOW_ID_DESCRIPTION,
+                                    NodeKind.WORKFLOW_GET_ID),
+                            workflowNode(Workflow.GET_WORKFLOW_TYPE_LABEL, Workflow.GET_WORKFLOW_TYPE_DESCRIPTION,
+                                    NodeKind.WORKFLOW_GET_TYPE)))
+                    .build();
 
-            AvailableNode waitData = new AvailableNode(
-                    new Metadata.Builder<>(null)
-                            .label(Workflow.WAIT_DATA_LABEL)
-                            .description(Workflow.WAIT_DATA_DESCRIPTION)
-                            .build(),
-                    new Codedata.Builder<>(null)
-                            .node(NodeKind.WAIT_DATA)
-                            .build(),
-                    true
-            );
-
-            AvailableNode sleep = new AvailableNode(
-                    new Metadata.Builder<>(null)
-                            .label(Workflow.SLEEP_LABEL)
-                            .description(Workflow.SLEEP_DESCRIPTION)
-                            .build(),
-                    new Codedata.Builder<>(null)
-                            .node(NodeKind.SLEEP)
-                            .build(),
-                    true
-            );
-
-            workflowNodes.add(humanTask);
-            workflowNodes.add(waitData);
-            workflowNodes.add(sleep);
+            workflowNodes.add(steps);
+            workflowNodes.add(childWorkflows);
+            workflowNodes.add(workflowFunctions);
         } else {
             // Outside workflow function: Run Workflow and Send Data
             AvailableNode runWorkflow = new AvailableNode(
@@ -526,11 +572,31 @@ public class AvailableNodesGenerator {
                     true
             );
 
+            AvailableNode updateAgent = new AvailableNode(
+                    new Metadata.Builder<>(null)
+                            .label(Workflow.UPDATE_AGENT_LABEL)
+                            .description(Workflow.UPDATE_AGENT_DESCRIPTION)
+                            .build(),
+                    new Codedata.Builder<>(null)
+                            .node(NodeKind.DURABLE_AGENT_UPDATE)
+                            .build(),
+                    true
+            );
+
             workflowNodes.add(runWorkflow);
             workflowNodes.add(sendData);
+            workflowNodes.add(updateAgent);
         }
 
         return workflowNodes;
+    }
+
+    // Builds a plain palette entry: a label/description pair whose click resolves to the node kind.
+    private static AvailableNode workflowNode(String label, String description, NodeKind kind) {
+        return new AvailableNode(
+                new Metadata.Builder<>(null).label(label).description(description).build(),
+                new Codedata.Builder<>(null).node(kind).build(),
+                true);
     }
 
     private void setStopNode(NonTerminalNode node) {

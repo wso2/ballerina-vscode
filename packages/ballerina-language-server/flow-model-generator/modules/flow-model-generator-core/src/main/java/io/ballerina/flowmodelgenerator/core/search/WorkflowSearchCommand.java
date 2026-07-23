@@ -50,8 +50,22 @@ import java.util.Map;
  */
 class WorkflowSearchCommand extends SearchCommand {
 
+    private static final String NODE_KIND_KEY = "nodeKind";
+
+    // The node kind selected items resolve to. The same workflow list serves Run Workflow
+    // (default) and the child-workflow nodes, which pass their kind via queryMap["nodeKind"].
+    private final NodeKind itemKind;
+
     public WorkflowSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
+        String requestedKind = queryMap == null ? null : queryMap.get(NODE_KIND_KEY);
+        if (NodeKind.CHILD_WORKFLOW_RUN.name().equals(requestedKind)) {
+            this.itemKind = NodeKind.CHILD_WORKFLOW_RUN;
+        } else if (NodeKind.CHILD_WORKFLOW_CALL.name().equals(requestedKind)) {
+            this.itemKind = NodeKind.CHILD_WORKFLOW_CALL;
+        } else {
+            this.itemKind = NodeKind.WORKFLOW_RUN;
+        }
     }
 
     @Override
@@ -99,9 +113,8 @@ class WorkflowSearchCommand extends SearchCommand {
                                 .flatMap(doc -> doc.description())
                                 .orElse("Workflow process function");
 
-                        // Build the codedata with WORKFLOW_RUN node kind
                         Codedata codedata = new Codedata.Builder<>(null)
-                                .node(NodeKind.WORKFLOW_RUN)
+                                .node(itemKind)
                                 .org(orgName)
                                 .module(moduleName)
                                 .symbol(funcName)

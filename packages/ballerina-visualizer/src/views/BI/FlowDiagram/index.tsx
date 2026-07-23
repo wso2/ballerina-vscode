@@ -99,6 +99,9 @@ export interface BIFlowDiagramProps {
     onUpdate: () => void;
     onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition, parentCodedata?: CodeData) => void;
     onSave?: () => void;
+    // Durable Agentic Workflow: render only Start → Agent (the control-flow chain stays
+    // hidden until the user reveals it with the "Edit configuration" toggle).
+    hideAgentConfiguration?: boolean;
 }
 
 // Navigation stack interface
@@ -123,7 +126,7 @@ type NodePromptLaunchOptions = {
 const SIDE_PANEL_DEFAULT_ERROR_MESSAGE = "Error while performing the action.";
 
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
-    const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave } = props;
+    const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave, hideAgentConfiguration } = props;
     const { rpcClient } = useRpcContext();
 
 
@@ -172,8 +175,20 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const targetRef = useRef<LineRange>();
     const suggestedText = useRef<string>();
     const selectedClientName = useRef<string>();
+    // True while the ACTIVITY_LIST panel was opened from the durable agent's "Add Activity"
+    // node: in-list searches must keep hiding builtins and produce DURABLE_AGENT_ADD_ACTIVITY items.
+    const durableAgentActivityListRef = useRef<boolean>(false);
+    // Set while the WORKFLOW_LIST panel was opened from a child-workflow palette node
+    // (CHILD_WORKFLOW_RUN / CHILD_WORKFLOW_CALL): in-list searches must keep producing
+    // items of that kind instead of the default WORKFLOW_RUN.
+    const childWorkflowKindRef = useRef<"CHILD_WORKFLOW_RUN" | "CHILD_WORKFLOW_CALL" | null>(null);
+    // Set while a capability add/edit was started from an OBJECT-MODEL agent box
+    // (`final workflow:DurableAgent x = ...`): capability forms must edit the declaration's
+    // config literal, so their codedata targets the agent variable instead of ctx statements.
+    const durableAgentObjectVarRef = useRef<string | null>(null);
     const initialCategoriesRef = useRef<any[]>([]);
     const showEditForm = useRef<boolean>(false);
+    // True while the call form open is step 3 of the create-activity-from-connection wizard.
     const selectedNodeMetadata = useRef<{ nodeId: string; metadata: any; fileName: string }>();
     const shouldUpdateLineRangeRef = useRef<boolean>(false);
     const updatedNodeRef = useRef<FlowNode>(undefined);
@@ -574,7 +589,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 const response = await rpcClient.getBIDiagramRpcClient().search({
                     position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
                     filePath: model?.fileName,
-                    queryMap: undefined,
+                    queryMap: durableAgentActivityListRef.current
+                        ? { nodeKind: "DURABLE_AGENT_ADD_ACTIVITY" }
+                        : undefined,
                     searchKind: "ACTIVITY_CALL",
                 });
                 const panelCategories = convertFunctionCategoriesToSidePanelCategories(
@@ -900,6 +917,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const resetNodeSelectionStates = () => {
         setShowSidePanel(false);
         setSidePanelView(SidePanelView.NODE_LIST);
+        childWorkflowKindRef.current = null;
+        durableAgentObjectVarRef.current = null;
         setSubPanel({ view: SubPanelView.UNDEFINED });
         setSelectedNodeId(undefined);
         selectedNodeRef.current = undefined;
@@ -1087,6 +1106,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 limit: 60,
                 offset: 0,
                 includeAvailableFunctions: "true",
+                ...(searchKind === "ACTIVITY_CALL" && durableAgentActivityListRef.current
+                    ? { nodeKind: "DURABLE_AGENT_ADD_ACTIVITY" }
+                    : {}),
+                ...(searchKind === "WORKFLOW_RUN" && childWorkflowKindRef.current
+                    ? { nodeKind: childWorkflowKindRef.current }
+                    : {}),
             },
             searchKind,
         };
@@ -1395,6 +1420,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnSelectNode = (nodeId: string, metadata?: any, fileName?: string) => {
         selectedNodeMetadata.current = { nodeId, metadata, fileName: model?.fileName || fileName };
+        // A node selected through the normal palette flow is not part of the create-activity wizard.
         const { node, category } = metadata as { node: AvailableNode; category?: string };
 
         // Push current state to navigation stack before navigating
@@ -1476,9 +1502,69 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     });
                 break;
 
+            case "CHILD_WORKFLOW_RUN":
+            case "CHILD_WORKFLOW_CALL":
+                // First click from the palette opens the same searchable workflow list as
+                // Run Workflow; the nodeKind override makes selected items resolve to the
+                // child-workflow node so the right template/codegen kicks in.
+                if (sidePanelView === SidePanelView.NODE_LIST) {
+                    childWorkflowKindRef.current = node.codedata.node as "CHILD_WORKFLOW_RUN" | "CHILD_WORKFLOW_CALL";
+                    setShowProgressIndicator(true);
+                    rpcClient
+                        .getBIDiagramRpcClient()
+                        .search({
+                            position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                            filePath: model?.fileName || fileName,
+                            queryMap: { nodeKind: childWorkflowKindRef.current },
+                            searchKind: "WORKFLOW_RUN",
+                        })
+                        .then((response) => {
+                            const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                                response.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            );
+                            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                                currentIntegrationCategory.description =
+                                    "No workflows defined. Click below to create a new workflow.";
+                            }
+                            setCategories(panelCategories);
+                            setSidePanelView(SidePanelView.WORKFLOW_LIST);
+                            setShowSidePanel(true);
+                        })
+                        .finally(() => {
+                            setShowProgressIndicator(false);
+                        });
+                    break;
+                }
+
+                // Selecting a workflow from the list opens the node template form.
+                selectedClientName.current = category;
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getNodeTemplate({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                        id: node.codedata,
+                    })
+                    .then((response) => {
+                        selectedNodeRef.current = response.flowNode;
+                        nodeTemplateRef.current = response.flowNode;
+                        showEditForm.current = false;
+                        setSidePanelView(SidePanelView.FORM);
+                        setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
             case "WORKFLOW_RUN":
                 // First click from node list should open searchable workflow list.
                 if (sidePanelView === SidePanelView.NODE_LIST) {
+                    childWorkflowKindRef.current = null;
+        durableAgentObjectVarRef.current = null;
                     setShowProgressIndicator(true);
                     const workflowSearchRequest: BISearchRequest = {
                         position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
@@ -1532,6 +1618,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             case "ACTIVITY_CALL":
                 // First click from node list should open searchable activity list.
                 if (sidePanelView === SidePanelView.NODE_LIST) {
+                    durableAgentActivityListRef.current = false;
                     setShowProgressIndicator(true);
                     rpcClient
                         .getBIDiagramRpcClient()
@@ -1576,6 +1663,98 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         showEditForm.current = false;
                         setSidePanelView(SidePanelView.FORM);
                         setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
+            case "DURABLE_AGENT_ADD_ACTIVITY":
+                // First click from the palette opens the same searchable activity list the
+                // workflow "Call Activity" node uses, including the prebuilt (builtin)
+                // activities — those are registered as-is with bindings.
+                if (sidePanelView === SidePanelView.NODE_LIST) {
+                    durableAgentActivityListRef.current = true;
+                    setShowProgressIndicator(true);
+                    rpcClient
+                        .getBIDiagramRpcClient()
+                        .search({
+                            position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                            filePath: model?.fileName || fileName,
+                            queryMap: { nodeKind: "DURABLE_AGENT_ADD_ACTIVITY" },
+                            searchKind: "ACTIVITY_CALL",
+                        })
+                        .then((response) => {
+                            const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                                response.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            );
+                            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                                currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
+                            }
+                            setCategories(panelCategories);
+                            setSidePanelView(SidePanelView.ACTIVITY_LIST);
+                            setShowSidePanel(true);
+                        })
+                        .finally(() => {
+                            setShowProgressIndicator(false);
+                        });
+                    break;
+                }
+
+                // A prebuilt (builtin) activity needs its registration form: connection +
+                // fixed arguments (bindings) + tool name/description.
+                if (node.codedata?.module === "workflow.activity") {
+                    selectedClientName.current = category;
+                    setShowProgressIndicator(true);
+                    rpcClient
+                        .getBIDiagramRpcClient()
+                        .getNodeTemplate({
+                            position: targetRef.current.startLine,
+                            filePath: model?.fileName || fileName,
+                            id: node.codedata,
+                        })
+                        .then((response) => {
+                            selectedNodeRef.current = response.flowNode;
+                            nodeTemplateRef.current = response.flowNode;
+                            showEditForm.current = false;
+                            setSidePanelView(SidePanelView.FORM);
+                            setShowSidePanel(true);
+                        })
+                        .finally(() => {
+                            setShowProgressIndicator(false);
+                        });
+                    break;
+                }
+
+                // Selecting a project activity from the list is a complete choice — generate the
+                // registerActivity statement directly (no intermediate form) and close the panel.
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getNodeTemplate({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                        id: node.codedata,
+                    })
+                    .then(async (response) => {
+                        const activityNode = response.flowNode;
+                        activityNode.codedata.isNew = true;
+                        activityNode.codedata.lineRange = {
+                            fileName: model?.fileName,
+                            startLine: targetRef.current.startLine,
+                            endLine: targetRef.current.startLine,
+                        } as any;
+                        await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                            filePath: model.fileName,
+                            flowNode: activityNode,
+                        });
+                        durableAgentActivityListRef.current = false;
+                        closeSidePanelAndFetchUpdatedFlowModel();
+                    })
+                    .catch((error) => {
+                        console.error(">>> Error registering activity on the agent", error);
                     })
                     .finally(() => {
                         setShowProgressIndicator(false);
@@ -2303,6 +2482,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             id: { node: "FUNCTION_CREATION" },
         })
             .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -2327,6 +2507,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 id: { node: "WORKFLOW" },
             })
             .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -2343,6 +2524,104 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             });
     };
 
+    const handleOnAddActivityFromConnection = () => {
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+        setSidePanelView(SidePanelView.ACTIVITY_FROM_CONNECTION);
+        setShowSidePanel(true);
+    };
+
+    const handleActivityFromConnectionCreated = async (activityName: string) => {
+        // After the activity function is generated, open its call form with the new activity selected —
+        // the workflow data is wired into the call there.
+        setShowProgressIndicator(true);
+        try {
+            // The activity is generated in functions.bal, so the workflow file is untouched and the
+            // original insertion point (targetRef, from the diagram "+") stays valid — use it so the
+            // call is inserted inside the workflow body.
+            const insertLine = targetRef.current.startLine;
+
+            const response = await rpcClient.getBIDiagramRpcClient().search({
+                position: { startLine: insertLine, endLine: insertLine },
+                filePath: model?.fileName,
+                queryMap: undefined,
+                searchKind: "ACTIVITY_CALL",
+            });
+            const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                response.categories as Category[],
+                FUNCTION_TYPE.REGULAR
+            );
+            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+            const newActivityNode = (currentIntegrationCategory?.items || [])
+                .map((item) => (item && "metadata" in item ? (item.metadata as AvailableNode) : undefined))
+                .find((node) => node?.codedata?.symbol === activityName);
+
+            if (newActivityNode) {
+                const template = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+                    position: insertLine,
+                    filePath: model?.fileName,
+                    id: newActivityNode.codedata,
+                });
+                selectedNodeRef.current = template.flowNode;
+                nodeTemplateRef.current = template.flowNode;
+                showEditForm.current = false;
+                // The activity list frame pushed on entry stays on the stack, so the form's back
+                // button returns to the activity list.
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+                return;
+            }
+            // Fallback: could not resolve the new activity — just refresh the activity list.
+            await handleActivityAdded();
+        } catch (error) {
+            console.error(">>> Error opening call form for the created activity", error);
+            await handleActivityAdded();
+        } finally {
+            setShowProgressIndicator(false);
+        }
+    };
+
+    // "Create Activity": after generating the activity, return to the activity selection screen instead
+    // of opening the call form. The activity goes to functions.bal, so the workflow file — and the
+    // insertion point the flow was launched from — is unchanged; just reload the list so the new
+    // activity is selectable, and keep the existing targetRef for the eventual call insertion.
+    const handleActivityFromConnectionCreatedReturnToList = async () => {
+        // Restore the activity-list frame (the form's back-button target) before the async refresh, so
+        // the panel lands on the activity list even when the stack lookup below finds nothing.
+        popNavigationStackUntilView(SidePanelView.ACTIVITY_LIST);
+        setShowProgressIndicator(true);
+        try {
+            // The activity is generated in functions.bal, so the workflow file this flow was launched
+            // from is untouched and the original insertion point (targetRef, from the diagram "+") is
+            // still valid — keep it so the selected activity's call is inserted inside the workflow body.
+            const insertLine = targetRef.current.startLine;
+
+            // Reload the activity list at that position so the newly created activity appears and can be
+            // selected. Done inline (rather than via handleActivityAdded) so the list always reloads —
+            // handleActivityAdded closes the panel when ACTIVITY_LIST is missing from the stack.
+            const response = await rpcClient.getBIDiagramRpcClient().search({
+                position: { startLine: insertLine, endLine: insertLine },
+                filePath: model?.fileName,
+                queryMap: undefined,
+                searchKind: "ACTIVITY_CALL",
+            });
+            const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                response.categories as Category[],
+                FUNCTION_TYPE.REGULAR
+            );
+            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
+            }
+            setCategories(panelCategories);
+            setSidePanelView(SidePanelView.ACTIVITY_LIST);
+            setShowSidePanel(true);
+        } catch (error) {
+            console.error(">>> Error returning to the activity list after activity creation", error);
+        } finally {
+            setShowProgressIndicator(false);
+        }
+    };
+
     const handleOnAddActivity = () => {
         isCreatingNewActivity.current = true;
         setShowProgressIndicator(true);
@@ -2356,6 +2635,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 id: { node: "ACTIVITY" },
             })
             .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -2391,6 +2671,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             id: { node: "DATA_MAPPER_CREATION" },
         })
             .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -2748,7 +3029,280 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     // AI Agent callback handlers
+    // Stamps a capability node template so the LS edits the object-model agent declaration's
+    // config literal instead of generating ctx.register* statements.
+    const applyDurableAgentObjectTarget = (node: FlowNode) => {
+        if (durableAgentObjectVarRef.current) {
+            node.codedata = {
+                ...node.codedata,
+                object: "DurableAgent",
+                parentSymbol: durableAgentObjectVarRef.current,
+                isNew: node.codedata?.isNew !== false,
+            } as any;
+        }
+        return node;
+    };
+
+    // Adds a workflow activity to the durable agent: the registerActivities statement is
+    // inserted BEFORE the runDurableAgent call (capabilities must be registered before the
+    // agent starts), picked from the same activity list the workflow Call Activity uses.
+    const handleOnAddDurableActivity = async (runNode: FlowNode) => {
+        durableAgentObjectVarRef.current = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+
+        const insertBefore = {
+            startLine: runNode.codedata.lineRange.startLine,
+            endLine: runNode.codedata.lineRange.startLine,
+        };
+        targetRef.current = insertBefore as any;
+        setTargetLineRange(insertBefore as any);
+        durableAgentActivityListRef.current = true;
+        setShowProgressIndicator(true);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .search({
+                position: { startLine: insertBefore.startLine, endLine: insertBefore.endLine },
+                filePath: model?.fileName,
+                queryMap: { excludeBuiltins: "true", nodeKind: "DURABLE_AGENT_ADD_ACTIVITY" },
+                searchKind: "ACTIVITY_CALL",
+            })
+            .then((response) => {
+                const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                    response.categories as Category[],
+                    FUNCTION_TYPE.REGULAR
+                );
+                const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                    currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
+                }
+                setCategories(panelCategories);
+                setSidePanelView(SidePanelView.ACTIVITY_LIST);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    // Adds a human task to the durable agent, inserted BEFORE the runDurableAgent call.
+    const handleOnAddDurableHumanTask = async (runNode: FlowNode) => {
+        durableAgentObjectVarRef.current = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+
+        const insertBefore = {
+            startLine: runNode.codedata.lineRange.startLine,
+            endLine: runNode.codedata.lineRange.startLine,
+        };
+        targetRef.current = insertBefore as any;
+        setTargetLineRange(insertBefore as any);
+        setShowProgressIndicator(true);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: insertBefore.startLine,
+                filePath: model?.fileName,
+                id: { node: "DURABLE_AGENT_HUMAN_TASK" },
+            })
+            .then((response) => {
+                // The FORM reads the node from selectedNodeRef; both refs must point at the
+                // template or the form renders empty.
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    // Registers an event on the durable agent, inserted BEFORE the buildAndRunAgent call.
+    const handleOnAddDurableEvent = async (runNode: FlowNode) => {
+        durableAgentObjectVarRef.current = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+
+        const insertBefore = {
+            startLine: runNode.codedata.lineRange.startLine,
+            endLine: runNode.codedata.lineRange.startLine,
+        };
+        targetRef.current = insertBefore as any;
+        setTargetLineRange(insertBefore as any);
+        setShowProgressIndicator(true);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: insertBefore.startLine,
+                filePath: model?.fileName,
+                id: { node: "DURABLE_AGENT_REGISTER_EVENT" },
+            })
+            .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    // Registers an agent tool on the durable agent, inserted BEFORE the buildAndRunAgent call.
+    const handleOnAddDurableTool = async (runNode: FlowNode) => {
+        durableAgentObjectVarRef.current = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+
+        const insertBefore = {
+            startLine: runNode.codedata.lineRange.startLine,
+            endLine: runNode.codedata.lineRange.startLine,
+        };
+        targetRef.current = insertBefore as any;
+        setTargetLineRange(insertBefore as any);
+        setShowProgressIndicator(true);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: insertBefore.startLine,
+                filePath: model?.fileName,
+                id: { node: "DURABLE_AGENT_REGISTER_TOOL" },
+            })
+            .then((response) => {
+                applyDurableAgentObjectTarget(response.flowNode);
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    // Opens the edit form for an already-registered activity or human task (from clicking its
+    // agent-box circle). The capability metadata carries the statement line range and its parsed
+    // argument values, so the form opens pre-filled and saving rewrites that statement.
+    const handleOnEditDurableCapability = async (runNode: FlowNode, capability: any) => {
+        durableAgentObjectVarRef.current = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+        const lineRange = capability?.lineRange;
+        if (!lineRange) {
+            return;
+        }
+        const nodeKind = capability?.type === "activity" ? "DURABLE_AGENT_ADD_ACTIVITY"
+            : capability?.type === "event" ? "DURABLE_AGENT_REGISTER_EVENT"
+                : capability?.type === "tool" ? "DURABLE_AGENT_REGISTER_TOOL"
+                    : "DURABLE_AGENT_HUMAN_TASK";
+        targetRef.current = lineRange;
+        setTargetLineRange(lineRange);
+        setShowProgressIndicator(true);
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+                position: lineRange.startLine,
+                filePath: model?.fileName,
+                id: { node: nodeKind } as any,
+            });
+            const node = response.flowNode;
+            // Seed the form with the existing statement's values and point it at that statement.
+            const values = (capability?.values || {}) as Record<string, string>;
+            const nodeProps = node.properties as Record<string, { value: unknown }>;
+            for (const [key, value] of Object.entries(values)) {
+                if (nodeProps?.[key]) {
+                    nodeProps[key].value = value;
+                }
+            }
+            node.codedata.lineRange = lineRange;
+            node.codedata.isNew = false;
+            applyDurableAgentObjectTarget(node);
+            selectedNodeRef.current = node;
+            nodeTemplateRef.current = node;
+            showEditForm.current = true;
+            setSidePanelView(SidePanelView.FORM);
+            setShowSidePanel(true);
+        } finally {
+            setShowProgressIndicator(false);
+        }
+    };
+
+    // Removes a declared capability from the object-model agent: the LS deletes the entry
+    // from the declaration's config list (comma-aware) via the capability builder's
+    // delete request.
+    const handleOnDeleteDurableCapability = async (runNode: FlowNode, capability: any) => {
+        const lineRange = capability?.lineRange;
+        const agentVar = runNode.codedata?.object === "DurableAgent"
+            ? ((runNode.metadata?.data as any)?.agentName ?? null)
+            : null;
+        if (!lineRange || !agentVar) {
+            return;
+        }
+        durableAgentObjectVarRef.current = agentVar;
+        const nodeKind = capability?.type === "activity" ? "DURABLE_AGENT_ADD_ACTIVITY"
+            : capability?.type === "event" ? "DURABLE_AGENT_REGISTER_EVENT"
+                : capability?.type === "tool" ? "DURABLE_AGENT_REGISTER_TOOL"
+                    : "DURABLE_AGENT_HUMAN_TASK";
+        setShowProgressIndicator(true);
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+                position: lineRange.startLine,
+                filePath: model?.fileName,
+                id: { node: nodeKind } as any,
+            });
+            const node = response.flowNode;
+            node.codedata.lineRange = lineRange;
+            node.codedata.isNew = false;
+            applyDurableAgentObjectTarget(node);
+            (node.properties as any)["__delete"] = {
+                value: "true",
+                optional: true,
+                editable: false,
+                advanced: false,
+                hidden: true,
+            };
+            await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: model?.fileName, flowNode: node });
+        } finally {
+            setShowProgressIndicator(false);
+            durableAgentObjectVarRef.current = null;
+        }
+    };
+
+    // Opens the durable agent identifier form (name/description/input parameter) in the
+    // right side panel from the gear button in the agent box header. The agent identifier
+    // is the enclosing function name, carried in the run node's metadata.data.agentName.
+    const handleOnConfigureAgentIdentifier = async (node: FlowNode) => {
+        // Object-model agent: the gear edits the declaration (role/instructions/model)
+        // through the box's node form — there is no function identifier to configure.
+        if (node.codedata?.object === "DurableAgent") {
+            return handleOnEditNode(node);
+        }
+        selectedNodeRef.current = node;
+        showEditForm.current = true;
+        setSelectedNodeId(node.id);
+        setSidePanelView(SidePanelView.AGENT_IDENTIFIER);
+        setShowSidePanel(true);
+    };
+
     const handleOnEditAgentModel = async (agentCallNode: FlowNode) => {
+        // Object-model agent: the model lives on the declaration; edit it via the box form.
+        if (agentCallNode.codedata?.node === "DURABLE_AGENT_RUN" && agentCallNode.codedata?.object === "DurableAgent") {
+            return handleOnEditNode(agentCallNode);
+        }
+        // The durable agent run node holds its own `model` property; configure it directly.
+        if (agentCallNode.codedata?.node === "DURABLE_AGENT_RUN") {
+            selectedNodeRef.current = agentCallNode;
+            showEditForm.current = true;
+            setSelectedNodeId(agentCallNode.id);
+            setSelectedConnectionKind('MODEL_PROVIDER');
+            setSidePanelView(SidePanelView.CONNECTION_CONFIG);
+            setShowSidePanel(true);
+            return;
+        }
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
         if (!agentNode) {
             console.error(`Agent node not found`, agentCallNode);
@@ -3173,14 +3727,41 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         return meta?.kind === "AI Chat Agent" && meta?.label === "chat";
     })();
 
+    // Durable Agentic Workflow agent-only view: the LS flow model carries the synthetic
+    // agent box (or its draft placeholder) at index 0 followed by the full control-flow
+    // chain. While the configuration is hidden, render just [Start, agent box] — the
+    // visitor links the pair with a non-editable edge.
+    const isDurableAgentBoxNode = (node: FlowNode) =>
+        node.codedata?.node === "DURABLE_AGENT_RUN" &&
+        ((node.metadata?.data as { agentBox?: boolean })?.agentBox === true || node.metadata?.draft === true);
+    const agentOnlyView = !!hideAgentConfiguration && !!flowModel?.nodes?.some(isDurableAgentBoxNode);
+    const displayModel = agentOnlyView
+        ? {
+            ...flowModel,
+            nodes: [
+                ...flowModel.nodes.filter((node) => node.codedata?.node === "EVENT_START"),
+                ...flowModel.nodes.filter(isDurableAgentBoxNode),
+            ],
+        }
+        : flowModel;
+
+    // No RHS side panel in the agent-only view: node clicks (the Start pill) are inert;
+    // the agent box hosts its own affordances.
+    const handleOnEditNodeGuarded = (node: FlowNode) => {
+        if (agentOnlyView && node.codedata?.node === "EVENT_START") {
+            return;
+        }
+        return handleOnEditNode(node);
+    };
+
     const memoizedDiagramProps = useMemo(
         () => ({
-            model: flowModel,
+            model: displayModel,
             onAddNode: handleOnAddNode,
             onAddNodePrompt: handleOnAddNodePrompt,
             onDeleteNode: handleOnDeleteNode,
             onAddComment: handleOnAddComment,
-            onNodeSelect: handleOnEditNode,
+            onNodeSelect: handleOnEditNodeGuarded,
             onConnectionSelect: handleOnEditConnection,
             goToSource: handleOnGoToSource,
             addBreakpoint: handleAddBreakpoint,
@@ -3195,6 +3776,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             agentNode: {
                 onModelSelect: handleOnEditAgentModel,
                 onAddTool: handleOnAddTool,
+                onAddActivity: handleOnAddDurableActivity,
+                onAddHumanTask: handleOnAddDurableHumanTask,
+                onAddEvent: handleOnAddDurableEvent,
+                onAddAgentTool: handleOnAddDurableTool,
+                onEditCapability: handleOnEditDurableCapability,
+                onDeleteCapability: handleOnDeleteDurableCapability,
+                onConfigureAgent: handleOnConfigureAgentIdentifier,
                 onAddMcpServer: handleOnAddMcpServer,
                 onSelectTool: handleOnSelectTool,
                 onSelectMcpToolkit: handleOnSelectMcpToolkit,
@@ -3226,6 +3814,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }),
         [
             flowModel,
+            hideAgentConfiguration,
             fetchingAiSuggestions,
             projectOrg,
             projectPath,
@@ -3284,6 +3873,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAddFunction={handleOnAddFunction}
                 onAddWorkflow={handleOnAddWorkflow}
                 onAddActivity={handleOnAddActivity}
+                onAddActivityFromConnection={handleOnAddActivityFromConnection}
+                onActivityFromConnectionCreated={handleActivityFromConnectionCreated}
+                onActivityFromConnectionCreatedReturnToList={handleActivityFromConnectionCreatedReturnToList}
                 onAddNPFunction={handleOnAddNPFunction}
                 onAddDataMapper={handleOnAddDataMapper}
                 onAddModelProvider={handleOnAddNewModelProvider}

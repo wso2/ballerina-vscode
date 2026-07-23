@@ -406,6 +406,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (this.currentFunctionModel != null) {
             String methodName = methodCallExpressionNode.methodName().toSourceCode().trim();
             this.currentFunctionModel.dependentObjFuncs.add(methodName);
+            handleDurableAgentCall(methodCallExpressionNode);
         }
 
         if (isAiMethodCall(methodCallExpressionNode.expression())) {
@@ -413,6 +414,44 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         methodCallExpressionNode.arguments().forEach(arg -> arg.accept(this));
+    }
+
+    /**
+     * Draws the trigger edge for durable agent driver calls: any method call on a module-level
+     * {@code workflow:DurableAgent} variable ({@code agent.run(...)}, {@code agent.sendEvent(...)},
+     * {@code agent.waitForResult(...)}, ...) connects the caller to the agent's overview node,
+     * exactly like {@code workflow:run} does for workflow functions.
+     *
+     * @param methodCallExpressionNode the method call to inspect
+     */
+    private void handleDurableAgentCall(MethodCallExpressionNode methodCallExpressionNode) {
+        Optional<Symbol> targetSymbol = semanticModel.symbol(methodCallExpressionNode.expression());
+        if (targetSymbol.isEmpty() || targetSymbol.get().getName().isEmpty()) {
+            return;
+        }
+        Workflow agent = intermediateModel.workflowMap.get(targetSymbol.get().getName().get());
+        if (agent == null || !Workflow.KIND_DURABLE_AGENT.equals(agent.getKind())) {
+            return;
+        }
+        // agent.sendEvent(id, "channel", data): correlate with the declared event channel so the
+        // overview draws the edge into the channel's in-port, like workflow:sendData does.
+        String methodName = methodCallExpressionNode.methodName().toSourceCode().trim();
+        if ("sendEvent".equals(methodName)) {
+            String eventName = getStringArgValue(methodCallExpressionNode.arguments(), 1, "eventName");
+            if (eventName != null && agent.getEvent(eventName).isPresent()) {
+                this.currentFunctionModel.addSentEvent(agent.getUuid(), eventName);
+            } else {
+                this.currentFunctionModel.invalidWorkflowSendData.add(agent.getUuid());
+            }
+            return;
+        }
+        if (!"run".equals(methodName)) {
+            // Read-only interactions (getResult/waitForResult/waitForEventResult/...) draw a
+            // dashed edge to the agent box rather than the run trigger.
+            this.currentFunctionModel.addSentEvent(agent.getUuid(), Workflow.READ_EDGE_EVENT);
+            return;
+        }
+        this.currentFunctionModel.workflows.add(agent.getUuid());
     }
 
     @Override

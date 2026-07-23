@@ -20,6 +20,24 @@ import { Branch, FlowNode } from "./types";
 
 const WORKFLOW_NODE_KINDS = new Set(["WORKFLOW_RUN", "ACTIVITY_CALL", "SEND_DATA", "WAIT_DATA", "HUMAN_TASK"]);
 
+// Durable-agentic-workflow register/add statements: rendered without the module prefix and
+// with the registered name (metadata.description) as the node's second line.
+const DURABLE_AGENT_REGISTER_NODE_KINDS = new Set([
+    "DURABLE_AGENT_REGISTER_EVENT",
+    "DURABLE_AGENT_REGISTER_TOOL",
+    "DURABLE_AGENT_ADD_ACTIVITY",
+    "DURABLE_AGENT_HUMAN_TASK",
+]);
+
+export function isDurableAgentRegisterNode(nodeOrKind?: FlowNode | string) {
+    if (!nodeOrKind) {
+        return false;
+    }
+
+    const nodeKind = typeof nodeOrKind === "string" ? nodeOrKind : nodeOrKind.codedata?.node;
+    return typeof nodeKind === "string" && DURABLE_AGENT_REGISTER_NODE_KINDS.has(nodeKind);
+}
+
 export function getNodeIdFromModel(node: FlowNode, prefix?: string) {
     if (!node) {
         return null;
@@ -151,7 +169,18 @@ export function getNodeTitle(node: FlowNode) {
         return "wait";
     }
 
-    if (node.codedata?.node === "ACTIVITY_CALL") {
+    if (node.codedata?.node === "ACTIVITY_CALL" || node.codedata?.node === "CONNECTION_ACTIVITY_CALL") {
+        // Builtin activities (ballerina/workflow.activity) carry a friendly label ("Call REST API");
+        // older language servers set the generic "callActivity" method name — fall through for those.
+        const label = node.metadata?.label;
+        if (
+            node.codedata?.org === "ballerina" &&
+            node.codedata?.module === "workflow.activity" &&
+            label &&
+            label !== "callActivity"
+        ) {
+            return label;
+        }
         const activityFunction =
             getFunctionName(getPropertyString("activityFunction")) ||
             getFunctionName(typeof node.codedata?.symbol === "string" ? node.codedata.symbol : undefined);
@@ -165,6 +194,12 @@ export function getNodeTitle(node: FlowNode) {
         if (processFunction) {
             return `Run ${processFunction}`;
         }
+    }
+
+    // Durable-agentic-workflow register statements keep their plain label ("Register Event", ...)
+    // without the module prefix; the registered name renders as the node's second line instead.
+    if (isDurableAgentRegisterNode(node)) {
+        return node.metadata?.label;
     }
 
     const label = node.metadata.label.includes(".") ? node.metadata.label.split(".").pop() : node.metadata.label;

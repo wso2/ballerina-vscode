@@ -39,6 +39,9 @@ export type CDAutomation = {
 export type CDWorkflow = {
     symbol: string;
     location: CDLocation;
+    // "WORKFLOW" for @workflow:Workflow functions; "DURABLE_AGENT" for module-level
+    // workflow:DurableAgent declarations, which join the same overview column.
+    kind?: string;
     attachedServices: string[];
     attachedFunctions: string[];
     events?: CDWorkflowEvent[];

@@ -49,6 +49,10 @@ import {
     BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
+    GenActivityRequest,
+    GenActivityResponse,
+    AnalyzeActivityActionRequest,
+    AnalyzeActivityActionResponse,
     WorkflowDataRequest,
     WorkflowDataResponse,
     BISourceCodeRequest,
@@ -2172,6 +2176,25 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 reject(error);
             });
         });
+    }
+
+    async genActivity(params: GenActivityRequest): Promise<GenActivityResponse> {
+        if (!params.description) {
+            params.description = "";
+        }
+        const response = await StateMachine.langClient().genActivity(params);
+        if (response.errorMsg) {
+            throw new Error(response.errorMsg);
+        }
+        if (!response.textEdits) {
+            throw new Error("No text edits were returned for the generated activity.");
+        }
+        const artifacts = await updateSourceCode({ textEdits: response.textEdits });
+        return { artifacts, textEdits: response.textEdits };
+    }
+
+    async analyzeActivityAction(params: AnalyzeActivityActionRequest): Promise<AnalyzeActivityActionResponse> {
+        return StateMachine.langClient().analyzeActivityAction(params);
     }
 
     async getRecordNames(): Promise<RecordsInWorkspaceMentions> {

@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
@@ -62,8 +63,26 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_O
  */
 class ActivitySearchCommand extends SearchCommand {
 
+    // Durable agents reuse this search to pick activities for `ctx.registerActivities([...])`:
+    // builtin (prebuilt) activities are hidden and selected items carry the durable-agent node kind.
+    private static final String EXCLUDE_BUILTINS_KEY = "excludeBuiltins";
+    private static final String NODE_KIND_KEY = "nodeKind";
+
+    private final boolean excludeBuiltins;
+    private final NodeKind itemNodeKind;
+
     public ActivitySearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
+        this.excludeBuiltins = queryMap != null && "true".equals(queryMap.get(EXCLUDE_BUILTINS_KEY));
+        NodeKind kind = NodeKind.ACTIVITY_CALL;
+        if (queryMap != null && queryMap.get(NODE_KIND_KEY) != null) {
+            try {
+                kind = NodeKind.valueOf(queryMap.get(NODE_KIND_KEY));
+            } catch (IllegalArgumentException e) {
+                // Unknown node kind in the query — keep the default.
+            }
+        }
+        this.itemNodeKind = kind;
     }
 
     @Override
@@ -98,9 +117,17 @@ class ActivitySearchCommand extends SearchCommand {
         // Create the category for current integration activities
         Category.Builder activityCategory = rootBuilder.stepIn(Category.Name.CURRENT_ACTIVITIES);
 
-        // Search for functions with @workflow:Activity annotation in all modules
+        // Search for functions with @workflow:Activity annotation in all modules. A module whose
+        // compilation fails (e.g. an unresolvable dependency pinned in Dependencies.toml) is skipped
+        // so the rest of the list — including the prebuilt activities — still renders.
         currentPackage.modules().forEach(module -> {
-            module.getCompilation().getSemanticModel().moduleSymbols().stream()
+            SemanticModel semanticModel;
+            try {
+                semanticModel = module.getCompilation().getSemanticModel();
+            } catch (RuntimeException e) {
+                return;
+            }
+            semanticModel.moduleSymbols().stream()
                     .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
                     .map(symbol -> (FunctionSymbol) symbol)
                     .filter(WorkflowUtil::isActivityFunction)
@@ -112,7 +139,7 @@ class ActivitySearchCommand extends SearchCommand {
                                 .orElse("Workflow activity function");
 
                         Codedata codedata = new Codedata.Builder<>(null)
-                                .node(NodeKind.ACTIVITY_CALL)
+                                .node(itemNodeKind)
                                 .org(orgName)
                                 .module(moduleName)
                                 .symbol(funcName)
@@ -129,6 +156,9 @@ class ActivitySearchCommand extends SearchCommand {
         });
 
         // Add prebuilt activities section
+        if (excludeBuiltins) {
+            return;
+        }
         Category.Builder builtinCategory = rootBuilder.stepIn(Category.Name.BUILTIN_ACTIVITIES);
         addBuiltinNode(builtinCategory, BUILTIN_REST_LABEL, BUILTIN_REST_DESCRIPTION, BUILTIN_REST_FUNCTION);
         addBuiltinNode(builtinCategory, BUILTIN_SOAP_LABEL, BUILTIN_SOAP_DESCRIPTION, BUILTIN_SOAP_FUNCTION);
@@ -139,8 +169,13 @@ class ActivitySearchCommand extends SearchCommand {
         if (!matchesQuery(label)) {
             return;
         }
+        // In durable-agent mode the builtin item routes to the agent registration form
+        // (registerActivity with bindings) instead of the workflow callActivity form.
+        NodeKind builtinKind = itemNodeKind == NodeKind.DURABLE_AGENT_ADD_ACTIVITY
+                ? NodeKind.DURABLE_AGENT_ADD_ACTIVITY
+                : NodeKind.BUILTIN_ACTIVITY;
         Codedata codedata = new Codedata.Builder<>(null)
-                .node(NodeKind.BUILTIN_ACTIVITY)
+                .node(builtinKind)
                 .org(WORKFLOW_ORG)
                 .module(ACTIVITY_MODULE)
                 .symbol(symbol)

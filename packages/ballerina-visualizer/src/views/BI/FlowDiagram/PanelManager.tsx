@@ -43,6 +43,8 @@ import { RelativeLoader } from "../../../components/RelativeLoader";
 import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { ConnectorErrorView } from "./components/ErrorContainer";
+import { AgentIdentifierPanel } from "./AgentIdentifierPanel";
+import { NewActivityFromConnection } from "./NewActivityFromConnection";
 
 const Container = styled.div`
     display: flex;
@@ -56,6 +58,7 @@ export enum SidePanelView {
     FUNCTION_LIST = "FUNCTION_LIST",
     WORKFLOW_LIST = "WORKFLOW_LIST",
     ACTIVITY_LIST = "ACTIVITY_LIST",
+    ACTIVITY_FROM_CONNECTION = "ACTIVITY_FROM_CONNECTION",
     DATA_MAPPER_LIST = "DATA_MAPPER_LIST",
     NP_FUNCTION_LIST = "NP_FUNCTION_LIST",
     MODEL_PROVIDERS = "MODEL_PROVIDERS",
@@ -83,6 +86,7 @@ export enum SidePanelView {
     CONNECTION_SELECT = "CONNECTION_SELECT",
     CONNECTION_CREATE = "CONNECTION_CREATE",
     AGENT_MEMORY_MANAGER = "AGENT_MEMORY_MANAGER",
+    AGENT_IDENTIFIER = "AGENT_IDENTIFIER",
     AGENT_CONFIG = "AGENT_CONFIG",
     AGENT_LIST = "AGENT_LIST",
     ERROR = "ERROR",
@@ -100,6 +104,7 @@ interface PanelManagerProps {
     nodeFormTemplate?: FlowNode;
     selectedClientName?: string;
     showEditForm?: boolean;
+    /** True when the call form open is step 3 of the create-activity-from-connection wizard. */
     targetLineRange?: LineRange;
     connections?: any[];
     fileName?: string;
@@ -124,6 +129,9 @@ interface PanelManagerProps {
     onAddFunction?: () => void;
     onAddWorkflow?: () => void;
     onAddActivity?: () => void;
+    onAddActivityFromConnection?: () => void;
+    onActivityFromConnectionCreated?: (activityName: string) => void;
+    onActivityFromConnectionCreatedReturnToList?: (activityName: string) => void;
     onAddNPFunction?: () => void;
     onAddDataMapper?: () => void;
     onAddModelProvider?: () => void;
@@ -205,6 +213,9 @@ export function PanelManager(props: PanelManagerProps) {
         onAddFunction,
         onAddWorkflow,
         onAddActivity,
+        onAddActivityFromConnection,
+        onActivityFromConnectionCreated,
+        onActivityFromConnectionCreatedReturnToList,
         onAddNPFunction,
         onAddDataMapper,
         onAddAgent,
@@ -391,6 +402,16 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.AGENT_MEMORY_MANAGER:
                 return <MemoryManagerConfig agentNode={parentNode} memoryNode={selectedNode} onSave={onClose} />;
 
+            case SidePanelView.AGENT_IDENTIFIER:
+                return (
+                    <AgentIdentifierPanel
+                        agentName={((selectedNode?.metadata?.data as NodeMetadata & { agentName?: string })?.agentName) || ""}
+                        fileName={fileName}
+                        projectPath={projectPath}
+                        onSave={onSaveAndRefresh ?? onClose}
+                    />
+                );
+
             case SidePanelView.FUNCTION_LIST:
                 return (
                     <NodeList
@@ -427,10 +448,22 @@ export function PanelManager(props: PanelManagerProps) {
                         onSelect={onSelectNode}
                         onSearchTextChange={(searchText) => onSearchActivity?.(searchText, FUNCTION_TYPE.REGULAR)}
                         onAddFunction={onAddActivity}
+                        onAdd={onAddActivityFromConnection}
                         onClose={onClose}
                         title={"Activities"}
                         searchPlaceholder={"Search activities"}
                         onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.ACTIVITY_FROM_CONNECTION:
+                return (
+                    <NewActivityFromConnection
+                        fileName={fileName}
+                        onActivityCreated={onActivityFromConnectionCreated}
+                        onActivityCreatedReturnToList={onActivityFromConnectionCreatedReturnToList}
+                        onBack={canGoBack ? onBack : undefined}
+                        onClose={onClose}
                     />
                 );
 
@@ -704,6 +737,7 @@ export function PanelManager(props: PanelManagerProps) {
 
             case SidePanelView.FORM:
                 return (
+                    <>
                     <FlowNodeForm
                         key={selectedNode?.id ?? 'no-node'}
                         fileName={fileName}
@@ -724,6 +758,7 @@ export function PanelManager(props: PanelManagerProps) {
                         handleOnFormSubmit={onSubmitForm}
                         navigateToPanel={onNavigateToPanel}
                     />
+                    </>
                 );
 
             case SidePanelView.ALL:

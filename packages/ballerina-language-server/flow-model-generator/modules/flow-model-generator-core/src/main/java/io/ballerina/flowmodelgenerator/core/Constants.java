@@ -118,9 +118,44 @@ public class Constants {
         public static final String CALL_ACTIVITY_DESCRIPTION = "Call a workflow activity function";
         public static final String WAIT_DATA_LABEL = "Await Data";
         public static final String WAIT_DATA_DESCRIPTION = "Wait for workflow data to be received";
+
+        // Child workflow composition (Context remote methods)
+        public static final String RUN_CHILD_WORKFLOW_METHOD_NAME = "runChildWorkflow";
+        public static final String RUN_CHILD_WORKFLOW_LABEL = "Run Child Workflow";
+        public static final String RUN_CHILD_WORKFLOW_DESCRIPTION =
+                "Start a child workflow and continue without waiting for its result";
+        public static final String CALL_CHILD_WORKFLOW_METHOD_NAME = "callWorkflow";
+        public static final String CALL_CHILD_WORKFLOW_LABEL = "Call Child Workflow";
+        public static final String CALL_CHILD_WORKFLOW_DESCRIPTION =
+                "Run a child workflow and durably wait for its result";
+        public static final String WAIT_CHILD_WORKFLOW_METHOD_NAME = "waitForChildWorkflow";
+        public static final String WAIT_CHILD_WORKFLOW_LABEL = "Wait for Child Workflow";
+        public static final String WAIT_CHILD_WORKFLOW_DESCRIPTION =
+                "Durably wait for a started child workflow's result";
+        public static final String SEND_DATA_CHILD_WORKFLOW_METHOD_NAME = "sendDataToChildWorkflow";
+        public static final String SEND_DATA_CHILD_WORKFLOW_LABEL = "Send Data to Child Workflow";
+        public static final String SEND_DATA_CHILD_WORKFLOW_DESCRIPTION =
+                "Send a data event to a running child workflow";
+
+        // Workflow context utility functions
+        public static final String CURRENT_TIME_METHOD_NAME = "currentTime";
+        public static final String CURRENT_TIME_LABEL = "Current Time";
+        public static final String CURRENT_TIME_DESCRIPTION =
+                "Deterministic current time, safe to use inside workflow logic";
+        public static final String IS_REPLAYING_METHOD_NAME = "isReplaying";
+        public static final String IS_REPLAYING_LABEL = "Is Replaying";
+        public static final String IS_REPLAYING_DESCRIPTION =
+                "Whether the workflow is currently replaying recorded history";
+        public static final String GET_WORKFLOW_ID_METHOD_NAME = "getWorkflowId";
+        public static final String GET_WORKFLOW_ID_LABEL = "Get Workflow ID";
+        public static final String GET_WORKFLOW_ID_DESCRIPTION = "The unique ID of this workflow instance";
+        public static final String GET_WORKFLOW_TYPE_METHOD_NAME = "getWorkflowType";
+        public static final String GET_WORKFLOW_TYPE_LABEL = "Get Workflow Type";
+        public static final String GET_WORKFLOW_TYPE_DESCRIPTION = "The type name of this workflow";
         public static final String WORKFLOW = "Workflow";
         public static final String ACTIVITY = "Activity";
         public static final String DEFAULT_CTX_PARAM_NAME = "ctx";
+        public static final String DEFAULT_AGENT_CTX_PARAM_NAME = "ctx";
         public static final String DEFAULT_DATA_PARAM_NAME = "data";
         public static final String DEFAULT_INPUT_PARAM_NAME = "input";
         public static final String DATA_SUFFIX = "Data";
@@ -144,6 +179,38 @@ public class Constants {
         public static final String SLEEP_METHOD_NAME = "sleep";
         public static final String SLEEP_LABEL = "Sleep";
         public static final String SLEEP_DESCRIPTION = "Pause workflow execution for a specified duration";
+
+        // Durable agent constants
+        public static final String DURABLE_AGENT = "DurableAgenticWorkflow";
+        public static final String DURABLE_AGENT_OBJECT_CLASS_NAME = "DurableAgent";
+        public static final String AGENT_OBJECT_RUN_METHOD_NAME = "run";
+        public static final String AGENT_CONTEXT_CLASS_NAME = "AgenticWorkflowContext";
+        public static final String REGISTER_ACTIVITY_METHOD_NAME = "registerActivity";
+        public static final String REGISTER_ACTIVITY_LABEL = "Register Activity";
+        public static final String REGISTER_ACTIVITY_DESCRIPTION =
+                "Register a workflow activity as a durable agent tool";
+        public static final String REGISTER_HUMAN_TASK_METHOD_NAME = "registerHumanTask";
+        public static final String REGISTER_HUMAN_TASK_LABEL = "Register HumanTask";
+        public static final String REGISTER_HUMAN_TASK_DESCRIPTION =
+                "Register a human task the agent can create and wait on";
+        public static final String REGISTER_UPDATE_EVENTS_METHOD_NAME = "registerUpdateEvents";
+        public static final String REGISTER_EVENT_LABEL = "Register Event";
+        public static final String REGISTER_EVENT_DESCRIPTION =
+                "Declare a named two-way update channel the agent can wait on";
+        public static final String REGISTER_AGENT_TOOL_METHOD_NAME = "registerAgentTool";
+        public static final String REGISTER_AGENT_TOOL_LABEL = "Register AgentTool";
+        public static final String REGISTER_AGENT_TOOL_DESCRIPTION =
+                "Register an AI tool the agent can invoke";
+        public static final String RUN_DURABLE_AGENT_METHOD_NAME = "buildAndRunAgent";
+        public static final String RUN_DURABLE_AGENT_LABEL = "Build and Run Agent";
+        public static final String RUN_DURABLE_AGENT_DESCRIPTION =
+                "Build the agent from the registered capabilities and run the durable loop";
+        public static final String RUN_DURABLE_AGENT_FUNCTION_NAME = "runDurableAgent";
+        public static final String UPDATE_AGENT_FUNCTION_NAME = "updateAgent";
+        public static final String UPDATE_AGENT_ASYNC_FUNCTION_NAME = "updateAgentAsync";
+        public static final String UPDATE_AGENT_LABEL = "Update Durable Agentic Workflow";
+        public static final String UPDATE_AGENT_DESCRIPTION =
+                "Send a request to a running durable agent and receive its answer for that turn";
     }
 
     // Constants used for AI

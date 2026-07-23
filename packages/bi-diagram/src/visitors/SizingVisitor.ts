@@ -32,6 +32,7 @@ import {
     NODE_GAP_X,
     NODE_GAP_Y,
     NODE_HEIGHT,
+    NODE_PADDING,
     NODE_WIDTH,
     PROMPT_NODE_HEIGHT,
     PROMPT_NODE_WIDTH,
@@ -174,7 +175,11 @@ export class SizingVisitor implements BaseVisitor {
     endVisitEventStart(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         // consider this as a start node
-        const width = Math.round(NODE_WIDTH / 3);
+        // Size the pill to fit its label (e.g. "Configure Agent") instead of clipping it;
+        // ~8px per character at the 14px GilmerMedium label font, plus the pill padding.
+        const label = node.metadata?.label || "Start";
+        const labelWidth = label.length * 8 + NODE_PADDING * 2 + NODE_BORDER_WIDTH * 2;
+        const width = Math.max(Math.round(NODE_WIDTH / 3), Math.min(labelWidth, NODE_WIDTH));
         const height = Math.round(NODE_HEIGHT / 1.5) + NODE_BORDER_WIDTH * 2;
         const halfWidth = width / 2;
         this.setNodeSize(node, halfWidth, halfWidth, height);
@@ -288,6 +293,13 @@ export class SizingVisitor implements BaseVisitor {
         this.createBaseNode(node);
     }
 
+    endVisitConnectionActivityCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        // Connection-backed activity calls render like action calls, reserving right-side space for
+        // the connection arrow and endpoint.
+        this.createApiCallNode(node);
+    }
+
     endVisitSendData(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.createSendDataNode(node);
@@ -308,6 +320,61 @@ export class SizingVisitor implements BaseVisitor {
         if (numberOfCircles > 0) {
             containerHeight += numberOfCircles * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP);
         }
+        this.setNodeSize(node, containerLeftWidth, containerRightWidth, containerHeight);
+    }
+
+    endVisitDurableAgentRun(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+
+        // Draft placeholder ("Define Durable Agentic Workflow") renders as a plain dashed box
+        // without the side circle columns, so no side space is reserved.
+        if (node.metadata?.draft) {
+            const halfWidth = NODE_WIDTH / 2;
+            this.setNodeSize(node, halfWidth, halfWidth, NODE_HEIGHT + LABEL_HEIGHT * 2);
+            return;
+        }
+
+        const halfNodeWidth = NODE_WIDTH / 2;
+        const sideColumnWidth = NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT + LABEL_WIDTH;
+
+        const nodeMetadata = node.metadata.data as NodeMetadata & {
+            activities?: unknown[];
+            humanTasks?: unknown[];
+            events?: unknown[];
+            agentBox?: boolean;
+            agentName?: string;
+        };
+
+        // The in-chain buildAndRun statement ("Build Agent") renders as a compact node like
+        // the other register statements; only the synthetic agent-box copy (agentBox flag)
+        // gets the big visualization with the side circle columns.
+        if (!nodeMetadata?.agentBox) {
+            let height = NODE_HEIGHT + NODE_BORDER_WIDTH * 2;
+            if (nodeMetadata?.agentName || node.metadata?.description) {
+                height += LABEL_HEIGHT;
+            }
+            this.setNodeSize(node, halfNodeWidth, halfNodeWidth, height);
+            return;
+        }
+
+        // Left column: human task and event circles (arrows point into the box).
+        const leftCircles = (nodeMetadata?.humanTasks?.length || 0) + (nodeMetadata?.events?.length || 0);
+        // Right column: the model circle plus AI tool and activity circles.
+        const rightCircles = 1 + (nodeMetadata?.tools?.length || 0) + (nodeMetadata?.activities?.length || 0);
+
+        // Reserve left-side space only when left circles exist (the widget skips the left svg otherwise).
+        const containerLeftWidth = halfNodeWidth + (leftCircles > 0 ? sideColumnWidth : 0);
+        // Reserve right-side space for the model circle and capability circles column.
+        const containerRightWidth = halfNodeWidth + sideColumnWidth;
+
+        // Height must fit the taller of the two circle columns; row 0 holds the model circle
+        // (and the first left circle), remaining rows are offset by the tool section gap.
+        const numberOfRows = Math.max(leftCircles, rightCircles);
+        const containerHeight =
+            NODE_HEIGHT +
+            AGENT_NODE_TOOL_SECTION_GAP +
+            AGENT_NODE_TOOL_GAP * 2 +
+            (numberOfRows - 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP);
         this.setNodeSize(node, containerLeftWidth, containerRightWidth, containerHeight);
     }
 

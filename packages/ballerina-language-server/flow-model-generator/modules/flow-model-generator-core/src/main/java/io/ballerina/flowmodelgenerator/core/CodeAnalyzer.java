@@ -50,6 +50,7 @@ import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.BlockStatementNode;
 import io.ballerina.compiler.syntax.tree.BreakStatementNode;
 import io.ballerina.compiler.syntax.tree.ByteArrayLiteralNode;
+import io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ClientResourceAccessActionNode;
@@ -135,6 +136,7 @@ import io.ballerina.flowmodelgenerator.core.model.Diagnostics;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.ItemOption;
+import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Option;
@@ -149,6 +151,11 @@ import io.ballerina.flowmodelgenerator.core.model.node.ChunkerBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ClassInitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataLoaderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentAddActivityBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentHumanTaskBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentRegisterEventBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentRegisterToolBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DurableAgentRunBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FailBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionCall;
@@ -183,6 +190,7 @@ import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
@@ -219,6 +227,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ACTIVITY_MODULE;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.AGENT_CONTEXT_CLASS_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.AWAIT_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_EMAIL_FUNCTION;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.BUILTIN_REST_FUNCTION;
@@ -227,6 +236,17 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_ACTIV
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_HUMAN_TASK_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.HUMAN_TASK_DESCRIPTION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_ACTIVITY_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_ACTIVITY_LABEL;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_AGENT_TOOL_LABEL;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_AGENT_TOOL_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_EVENT_LABEL;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_UPDATE_EVENTS_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_HUMAN_TASK_LABEL;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.REGISTER_HUMAN_TASK_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_DURABLE_AGENT_DESCRIPTION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_DURABLE_AGENT_LABEL;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_DURABLE_AGENT_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.HUMAN_TASK_LABEL;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SLEEP_DESCRIPTION;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SLEEP_LABEL;
@@ -239,6 +259,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_DATA_
 import static io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder.EXCLUDED_CALL_ACTIVITY_PARAMS;
 import static io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder.EXCLUDED_KEYS;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isActivityFunction;
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isDurableAgentFunction;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowFunction;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME;
@@ -286,6 +307,14 @@ public class CodeAnalyzer extends NodeVisitor {
     // State fields
     private NodeBuilder nodeBuilder;
     private final List<FlowNode> flowNodeList;
+    // Set while analyzing a @workflow:DurableAgent function: the agent box (buildAndRun)
+    // is surfaced at the top of the diagram, with a draft placeholder when absent.
+    private boolean analyzedDurableAgent = false;
+    private LineRange durableAgentBodyRange = null;
+    // Registered-name details per register statement, applied as metadata overrides in
+    // getFlowNodes(): NodeBuilder.build() re-runs setConcreteConstData, which resets
+    // label/description, so analyzer-time metadata writes do not survive.
+    private final Map<LineRange, String> agentRegisterDetails = new HashMap<>();
     private final Stack<NodeBuilder> flowNodeBuilderStack;
     private TypedBindingPatternNode typedBindingPatternNode;
     private static final String AI_AGENT = "ai";
@@ -358,6 +387,8 @@ public class CodeAnalyzer extends NodeVisitor {
             kind = FunctionKind.REMOTE_FUNCTION;
         } else if (isWorkflowFunction(funcSymbol)) {
             kind = FunctionKind.WORKFLOW;
+        } else if (isDurableAgentFunction(funcSymbol)) {
+            kind = FunctionKind.DURABLE_AGENT;
         } else if (isActivityFunction(funcSymbol)) {
             kind = FunctionKind.ACTIVITY;
         } else {
@@ -367,6 +398,13 @@ public class CodeAnalyzer extends NodeVisitor {
         startNode(NodeKind.EVENT_START, functionDefinitionNode).codedata()
                 .lineRange(functionBodyNode.lineRange())
                 .sourceCode(functionDefinitionNode.toSourceCode().strip());
+
+        // Remember the durable agentic workflow body: getFlowNodes() injects the synthetic
+        // agent box (or a draft placeholder) on top of the chain from these.
+        if (kind == FunctionKind.DURABLE_AGENT) {
+            this.analyzedDurableAgent = true;
+            this.durableAgentBodyRange = functionBodyNode.lineRange();
+        }
 
         nodeBuilder.metadata()
                 .addData(KIND_KEY, kind.getValue())
@@ -498,6 +536,18 @@ public class CodeAnalyzer extends NodeVisitor {
             // plugin diagnostics on the typed binding pattern (e.g. WORKFLOW_123 on non-nilable tuple
             // members) attach to the WAIT_DATA flow node.
             startNode(NodeKind.WAIT_DATA, remoteMethodCallActionNode.parent());
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                Constants.Workflow.RUN_CHILD_WORKFLOW_METHOD_NAME)) {
+            startNode(NodeKind.CHILD_WORKFLOW_RUN, expressionNode.parent());
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                Constants.Workflow.CALL_CHILD_WORKFLOW_METHOD_NAME)) {
+            startNode(NodeKind.CHILD_WORKFLOW_CALL, expressionNode.parent());
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                Constants.Workflow.WAIT_CHILD_WORKFLOW_METHOD_NAME)) {
+            startNode(NodeKind.CHILD_WORKFLOW_WAIT, expressionNode.parent());
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                Constants.Workflow.SEND_DATA_CHILD_WORKFLOW_METHOD_NAME)) {
+            startNode(NodeKind.CHILD_WORKFLOW_SEND_DATA, expressionNode.parent());
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
@@ -508,6 +558,9 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, CALL_ACTIVITY_METHOD_NAME)) {
             String builtinSymbol = resolveBuiltinActivitySymbol(remoteMethodCallActionNode.arguments());
             if (builtinSymbol != null) {
+                // Builtin activities always wrap a connection (http/soap/email client), so model them
+                // as a connection-backed activity call — the diagram renders these with a connection arrow.
+                nodeBuilder.codedata().node(NodeKind.CONNECTION_ACTIVITY_CALL);
                 // Builtin: symbol is the actual function name (callRestAPI/callSoapAPI/sendEmail).
                 nodeBuilder.codedata().symbol(builtinSymbol);
                 nodeBuilder.codedata().module(ACTIVITY_MODULE);
@@ -516,10 +569,20 @@ public class CodeAnalyzer extends NodeVisitor {
                 overrideSymbolFromFirstArg(remoteMethodCallActionNode.arguments());
                 populateActivityCallProperties(remoteMethodCallActionNode);
             }
+            // The node title is the activity being called, not the generic callActivity method name
+            // (the node icon already marks it as an activity call).
+            overrideActivityCallLabel(remoteMethodCallActionNode, builtinSymbol);
         } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, CALL_HUMAN_TASK_METHOD_NAME)) {
             populateHumanTaskProperties(remoteMethodCallActionNode);
         } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, AWAIT_METHOD_NAME)) {
             populateAwaitWaitDataProperties(remoteMethodCallActionNode);
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                Constants.Workflow.RUN_CHILD_WORKFLOW_METHOD_NAME)
+                || isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol,
+                        Constants.Workflow.CALL_CHILD_WORKFLOW_METHOD_NAME)) {
+            // Carry the child workflow function as the node symbol so the diagram labels the node
+            // with the workflow it starts, matching the palette-created template.
+            overrideSymbolFromFirstArg(remoteMethodCallActionNode.arguments());
         }
     }
 
@@ -927,6 +990,476 @@ public class CodeAnalyzer extends NodeVisitor {
         nodeBuilder.properties().checkError(hasCheck);
     }
 
+    // The first positional argument rendered as a node's secondary detail: string
+    // literals are unquoted, references shown verbatim.
+    private static String firstArgDetail(MethodCallExpressionNode callNode) {
+        for (FunctionArgumentNode arg : callNode.arguments()) {
+            if (arg instanceof PositionalArgumentNode posArg) {
+                String raw = posArg.expression().toSourceCode().trim();
+                if (raw.length() >= 2 && raw.startsWith("\"") && raw.endsWith("\"")) {
+                    return raw.substring(1, raw.length() - 1);
+                }
+                return raw;
+            }
+        }
+        return "";
+    }
+
+    // Rebuilds a durable-agent AgentContext call (runDurableAgent / registerActivities /
+    // registerHumanTask) from source, keeping the same form shape as the palette templates.
+    private void populateDurableAgentCallProperties(MethodCallExpressionNode callNode, FunctionSymbol functionSymbol,
+                                                    String functionName, NodeKind nodeKind) {
+        FunctionData functionData = new FunctionDataBuilder()
+                .name(functionName)
+                .functionSymbol(functionSymbol)
+                .semanticModel(semanticModel)
+                .userModuleInfo(moduleInfo)
+                .build();
+
+        String label = switch (nodeKind) {
+            case DURABLE_AGENT_RUN -> RUN_DURABLE_AGENT_LABEL;
+            case DURABLE_AGENT_ADD_ACTIVITY -> REGISTER_ACTIVITY_LABEL;
+            case DURABLE_AGENT_REGISTER_EVENT -> REGISTER_EVENT_LABEL;
+            case DURABLE_AGENT_REGISTER_TOOL -> REGISTER_AGENT_TOOL_LABEL;
+            default -> REGISTER_HUMAN_TASK_LABEL;
+        };
+        // The registered name (activity/event/tool/task) is the node's secondary detail;
+        // stashed and applied in getFlowNodes() because build() resets metadata.
+        String description = RUN_DURABLE_AGENT_DESCRIPTION;
+        if (nodeKind != NodeKind.DURABLE_AGENT_RUN) {
+            String detail = firstArgDetail(callNode);
+            description = detail;
+            agentRegisterDetails.put(statementLineRange(callNode), detail);
+        }
+
+        nodeBuilder
+                .symbolInfo(functionSymbol)
+                .metadata()
+                    .label(label)
+                    .description(description)
+                    .stepOut()
+                .codedata()
+                    .node(nodeKind)
+                    .org(WORKFLOW_ORG)
+                    .module(WORKFLOW_MODULE)
+                    .object(AGENT_CONTEXT_CLASS_NAME)
+                    .symbol(functionName);
+
+        processFunctionSymbol(callNode, callNode.arguments(), functionSymbol, functionData);
+
+        if (nodeKind == NodeKind.DURABLE_AGENT_RUN) {
+            populateDurableAgentRunExtras(callNode);
+        }
+
+        SyntaxKind parentKind = callNode.parent().kind();
+        boolean hasCheck = parentKind == SyntaxKind.CHECK_ACTION
+                || parentKind == SyntaxKind.CHECK_EXPRESSION;
+        nodeBuilder.properties().checkError(hasCheck);
+    }
+
+    // Object-model durable agent: builds the node for `<agentVar>.run(...)` and renders the
+    // agent's DECLARATION (module-level `final workflow:DurableAgent x = check new ({...})`)
+    // as the agent box — role/instructions/model and the capability circles all come from the
+    // constructor config literal, since the object model has no imperative register statements.
+    private void populateDurableAgentObjectRun(MethodCallExpressionNode callNode, ExpressionNode expressionNode,
+                                               FunctionSymbol functionSymbol, String functionName) {
+        String agentVarName = expressionNode.toSourceCode().trim();
+        nodeBuilder
+                .symbolInfo(functionSymbol)
+                .metadata()
+                    .label(RUN_DURABLE_AGENT_LABEL)
+                    .description(RUN_DURABLE_AGENT_DESCRIPTION)
+                    .stepOut()
+                .codedata()
+                    .node(NodeKind.DURABLE_AGENT_RUN)
+                    .org(WORKFLOW_ORG)
+                    .module(WORKFLOW_MODULE)
+                    .object(Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME)
+                    .parentSymbol(agentVarName)
+                    .symbol(functionName);
+
+        nodeBuilder.metadata().addData("agentName", agentVarName);
+        nodeBuilder.metadata().addData("agentBox", true);
+        populateAgentDeclarationMetadata(expressionNode);
+
+        SyntaxKind parentKind = callNode.parent().kind();
+        boolean hasCheck = parentKind == SyntaxKind.CHECK_ACTION || parentKind == SyntaxKind.CHECK_EXPRESSION;
+        nodeBuilder.properties().checkError(hasCheck);
+    }
+
+    // Parses the agent variable's `check new ({...})` config literal and attaches the agent-box
+    // metadata: agent role/instructions, model, and the capability lists.
+    private void populateAgentDeclarationMetadata(ExpressionNode agentVarRef) {
+        Optional<Symbol> symbol = semanticModel.symbol(agentVarRef);
+        if (symbol.isEmpty() || !(symbol.get() instanceof VariableSymbol variableSymbol)
+                || variableSymbol.getLocation().isEmpty()) {
+            return;
+        }
+        Document document = CommonUtils.getDocument(project, variableSymbol.getLocation().get());
+        if (document == null) {
+            return;
+        }
+        Optional<NonTerminalNode> varNodeOpt = CommonUtil.findNode(variableSymbol, document.syntaxTree());
+        if (varNodeOpt.isEmpty()) {
+            return;
+        }
+        populateAgentDeclarationMetadata(varNodeOpt.get());
+    }
+
+    // Variant taking the declaration node directly (used when the declaration itself is the
+    // diagram canvas).
+    private void populateAgentDeclarationMetadata(NonTerminalNode varNode) {
+        ExpressionNode initializer = getInitializerFromVariableNode(varNode);
+        if (initializer == null) {
+            return;
+        }
+        Optional<ImplicitNewExpressionNode> newExprOpt = getNewExpr(initializer);
+        if (newExprOpt.isEmpty() || newExprOpt.get().parenthesizedArgList().isEmpty()) {
+            return;
+        }
+        SeparatedNodeList<FunctionArgumentNode> newArgs = newExprOpt.get().parenthesizedArgList().get().arguments();
+        if (newArgs.isEmpty() || !(newArgs.get(0) instanceof PositionalArgumentNode configArg)
+                || configArg.expression().kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+            return;
+        }
+        List<AgentCapabilityData> activities = new ArrayList<>();
+        List<AgentCapabilityData> humanTasks = new ArrayList<>();
+        List<AgentCapabilityData> agentTools = new ArrayList<>();
+        List<AgentCapabilityData> updateEvents = new ArrayList<>();
+        for (MappingFieldNode field : ((MappingConstructorExpressionNode) configArg.expression()).fields()) {
+            if (!(field instanceof SpecificFieldNode specificField) || specificField.valueExpr().isEmpty()) {
+                continue;
+            }
+            String fieldName = specificField.fieldName().toSourceCode().trim();
+            ExpressionNode valueExpr = specificField.valueExpr().get();
+            switch (fieldName) {
+                case "systemPrompt" -> {
+                    if (valueExpr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                        Map<String, String> agentData = new LinkedHashMap<>();
+                        Map<String, AiUtils.AgentPropertyValue> promptValues = new LinkedHashMap<>();
+                        for (MappingFieldNode promptField
+                                : ((MappingConstructorExpressionNode) valueExpr).fields()) {
+                            if (promptField instanceof SpecificFieldNode promptSpecific
+                                    && promptSpecific.valueExpr().isPresent()) {
+                                String promptText = extractPromptText(promptSpecific.valueExpr().get());
+                                String promptFieldName = promptSpecific.fieldName().toSourceCode().trim();
+                                agentData.put(promptFieldName, promptText);
+                                promptValues.put(promptFieldName,
+                                        new AiUtils.AgentPropertyValue(promptText, Property.ValueType.PROMPT));
+                            }
+                        }
+                        nodeBuilder.metadata().addData("agent", agentData);
+                        // The box's edit form exposes the declaration identity: Role/Instructions
+                        // prompt fields, saved back into the declaration's systemPrompt.
+                        DurableAgentRunBuilder.applyAgentFormShape(nodeBuilder, promptValues);
+                    }
+                }
+                case "model" -> {
+                    ModelData modelData = getModelIconUrl(valueExpr);
+                    nodeBuilder.metadata().addData("model", modelData != null ? modelData
+                            : new ModelData(valueExpr.toSourceCode().trim(), null, ""));
+                    nodeBuilder.properties().custom()
+                            .metadata()
+                                .label("Model")
+                                .description("The model provider used for the agent's LLM calls")
+                                .stepOut()
+                            .type(Property.ValueType.EXPRESSION)
+                            .value(valueExpr.toSourceCode().trim())
+                            .editable(true)
+                            .stepOut()
+                            .addProperty(DurableAgentRunBuilder.MODEL_KEY);
+                    DurableAgentRunBuilder.convertModelToSelect(nodeBuilder,
+                            DurableAgentRunBuilder.modelProviderOptions(semanticModel));
+                }
+                case "activities" -> collectDeclaredCapabilities(valueExpr, "activity", "activity",
+                        Map.of("activity", "activity", "name", "name", "description", "description",
+                                "requiresApproval", "requiresApproval", "userRoles", "userRoles"), activities);
+                case "tools", "peers" -> collectDeclaredCapabilities(valueExpr, "tool", "tool",
+                        Map.of("tool", "tool", "name", "name", "description", "description"), agentTools);
+                case "events" -> collectDeclaredCapabilities(valueExpr, "event", null,
+                        Map.of("name", "name", "request", "requestType", "response", "responseType"), updateEvents);
+                case "humanTasks" -> collectDeclaredCapabilities(valueExpr, "humanTask", null,
+                        Map.of("name", "taskName", "roles", "userRoles", "title", "title",
+                                "description", "description", "resultType", "resultType", "timeout", "timeout"),
+                        humanTasks);
+                default -> {
+                }
+            }
+        }
+        nodeBuilder.metadata().addData("activities", activities);
+        nodeBuilder.metadata().addData("humanTasks", humanTasks);
+        nodeBuilder.metadata().addData("tools", agentTools);
+        nodeBuilder.metadata().addData("events", updateEvents);
+    }
+
+    // Extracts capabilities from a declaration config list. Bare function/variable references
+    // use their identifier; mapping entries carry their fields as form values (keyed by the
+    // matching builder property via fieldToPropertyKey). Each capability records the ITEM's own
+    // line range so its circle opens a pre-filled edit form that rewrites that exact entry.
+    private void collectDeclaredCapabilities(ExpressionNode listExpr, String capabilityType, String refField,
+                                             Map<String, String> fieldToPropertyKey,
+                                             List<AgentCapabilityData> out) {
+        if (listExpr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
+            return;
+        }
+        for (Node item : ((ListConstructorExpressionNode) listExpr).expressions()) {
+            String name = null;
+            Map<String, String> values = new LinkedHashMap<>();
+            if (item.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE || item.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
+                name = item.toSourceCode().trim();
+                if (refField != null) {
+                    values.put(fieldToPropertyKey.getOrDefault(refField, refField), name);
+                }
+            } else if (item.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                String refName = null;
+                String declaredName = null;
+                for (MappingFieldNode field : ((MappingConstructorExpressionNode) item).fields()) {
+                    if (!(field instanceof SpecificFieldNode specificField)
+                            || specificField.valueExpr().isEmpty()) {
+                        continue;
+                    }
+                    String fieldName = specificField.fieldName().toSourceCode().trim();
+                    String rawValue = specificField.valueExpr().get().toSourceCode().trim();
+                    String propertyKey = fieldToPropertyKey.get(fieldName);
+                    if (propertyKey != null) {
+                        values.put(propertyKey, "name".equals(fieldName) ? stripQuotes(rawValue) : rawValue);
+                    }
+                    if ("name".equals(fieldName)) {
+                        declaredName = stripQuotes(rawValue);
+                    } else if (refField != null && refField.equals(fieldName)) {
+                        refName = rawValue;
+                    }
+                }
+                name = declaredName != null ? declaredName : refName;
+            }
+            if (name != null && !name.isBlank()) {
+                out.add(new AgentCapabilityData(name, capabilityType, item.lineRange(), values));
+            }
+        }
+    }
+
+    private static String stripQuotes(String value) {
+        if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
+            return value.substring(1, value.length() - 1);
+        }
+        return value;
+    }
+
+    private String extractPromptText(ExpressionNode valueExpr) {
+        if (valueExpr.kind() == SyntaxKind.STRING_TEMPLATE_EXPRESSION) {
+            String value = ((TemplateExpressionNode) valueExpr).content().stream()
+                    .map(Node::toString)
+                    .collect(Collectors.joining());
+            return AiUtils.restoreBackticksFromStringTemplate(value);
+        }
+        return stripQuotes(valueExpr.toSourceCode().trim());
+    }
+
+    // Splits the runDurableAgent systemPrompt argument into Role/Instructions prompt fields
+    // (matching the palette template) and attaches the agent/model metadata used by the
+    // agent-style diagram widget.
+    private void populateDurableAgentRunExtras(MethodCallExpressionNode callNode) {
+        ExpressionNode systemPromptArg = null;
+        ExpressionNode modelArg = null;
+        for (FunctionArgumentNode arg : callNode.arguments()) {
+            if (arg instanceof NamedArgumentNode namedArg) {
+                switch (namedArg.argumentName().name().text()) {
+                    case DurableAgentRunBuilder.SYSTEM_PROMPT_KEY -> systemPromptArg = namedArg.expression();
+                    case DurableAgentRunBuilder.MODEL_KEY -> modelArg = namedArg.expression();
+                    default -> {
+                    }
+                }
+            }
+        }
+
+        Map<String, AiUtils.AgentPropertyValue> promptValues = new LinkedHashMap<>();
+        if (systemPromptArg != null && systemPromptArg.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            for (MappingFieldNode field : ((MappingConstructorExpressionNode) systemPromptArg).fields()) {
+                if (!(field instanceof SpecificFieldNode specificField)) {
+                    continue;
+                }
+                Optional<ExpressionNode> valueExprOpt = specificField.valueExpr();
+                if (valueExprOpt.isEmpty()) {
+                    continue;
+                }
+                ExpressionNode valueExpr = valueExprOpt.get();
+                String value;
+                Property.ValueType selectedType;
+                if (valueExpr.kind() == SyntaxKind.STRING_TEMPLATE_EXPRESSION) {
+                    value = ((TemplateExpressionNode) valueExpr).content().stream()
+                            .map(Node::toString)
+                            .collect(Collectors.joining());
+                    value = AiUtils.restoreBackticksFromStringTemplate(value);
+                    selectedType = Property.ValueType.PROMPT;
+                } else {
+                    value = valueExpr.toString().trim();
+                    selectedType = Property.ValueType.EXPRESSION;
+                }
+                promptValues.put(specificField.fieldName().toString().trim(),
+                        new AiUtils.AgentPropertyValue(value, selectedType));
+            }
+        }
+
+        DurableAgentRunBuilder.applyAgentFormShape(nodeBuilder, promptValues);
+        DurableAgentRunBuilder.convertModelToSelect(nodeBuilder,
+                DurableAgentRunBuilder.modelProviderOptions(semanticModel));
+
+        Map<String, String> agentData = new LinkedHashMap<>();
+        promptValues.forEach((key, propertyValue) -> agentData.put(key, propertyValue.value()));
+        nodeBuilder.metadata().addData("agent", agentData);
+        if (modelArg != null) {
+            // Resolve the provider variable's type to its connector icon, same as AGENT_CALL,
+            // so the model circle renders the provider icon instead of a placeholder.
+            ModelData modelData = getModelIconUrl(modelArg);
+            if (modelData != null) {
+                nodeBuilder.metadata().addData("model", modelData);
+            } else {
+                nodeBuilder.metadata().addData("model",
+                        new ModelData(modelArg.toString().trim(), null, ""));
+            }
+        }
+
+        // The enclosing function name is the agent's identifier shown on the box header.
+        NonTerminalNode enclosing = callNode.parent();
+        while (enclosing != null && !(enclosing instanceof FunctionDefinitionNode)) {
+            enclosing = enclosing.parent();
+        }
+        if (enclosing != null) {
+            nodeBuilder.metadata().addData("agentName",
+                    ((FunctionDefinitionNode) enclosing).functionName().text());
+        }
+
+        // Capabilities are registered on the context anywhere in the enclosing agent
+        // function; surface them all on this node regardless of code flow.
+        collectDurableAgentCapabilities(callNode);
+    }
+
+    // Scans the enclosing durable-agent function body for registerActivity/registerHumanTask
+    // calls and attaches them (name, statement line range, and — for human tasks — the parsed
+    // argument values) to the run node's metadata for the clickable agent-box circles.
+    private void collectDurableAgentCapabilities(MethodCallExpressionNode runCallNode) {
+        NonTerminalNode parent = runCallNode.parent();
+        while (parent != null && !(parent instanceof FunctionDefinitionNode)) {
+            parent = parent.parent();
+        }
+        if (parent == null) {
+            return;
+        }
+        List<AgentCapabilityData> activities = new ArrayList<>();
+        List<AgentCapabilityData> humanTasks = new ArrayList<>();
+        List<AgentCapabilityData> agentTools = new ArrayList<>();
+        List<AgentCapabilityData> updateEvents = new ArrayList<>();
+        ((FunctionDefinitionNode) parent).functionBody().accept(new NodeVisitor() {
+            @Override
+            public void visit(MethodCallExpressionNode methodCall) {
+                String methodName = getIdentifierName(methodCall.methodName());
+                SeparatedNodeList<FunctionArgumentNode> args = methodCall.arguments();
+                if (REGISTER_ACTIVITY_METHOD_NAME.equals(methodName)
+                        && !args.isEmpty() && args.get(0) instanceof PositionalArgumentNode posArg
+                        && (posArg.expression().kind() == SyntaxKind.SIMPLE_NAME_REFERENCE
+                        || posArg.expression().kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE)) {
+                    String activityRef = posArg.expression().toSourceCode().trim();
+                    Map<String, String> values = new LinkedHashMap<>();
+                    values.put(DurableAgentAddActivityBuilder.ACTIVITY_KEY, activityRef);
+                    activities.add(new AgentCapabilityData(activityRef, "activity",
+                            statementLineRange(methodCall), values));
+                } else if (REGISTER_AGENT_TOOL_METHOD_NAME.equals(methodName)
+                        && !args.isEmpty() && args.get(0) instanceof PositionalArgumentNode toolArg
+                        && (toolArg.expression().kind() == SyntaxKind.SIMPLE_NAME_REFERENCE
+                        || toolArg.expression().kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE)) {
+                    String toolRef = toolArg.expression().toSourceCode().trim();
+                    Map<String, String> toolValues = new LinkedHashMap<>();
+                    toolValues.put(DurableAgentRegisterToolBuilder.TOOL_KEY, toolRef);
+                    agentTools.add(new AgentCapabilityData(toolRef, "tool",
+                            statementLineRange(methodCall), toolValues));
+                } else if (REGISTER_UPDATE_EVENTS_METHOD_NAME.equals(methodName)
+                        && !args.isEmpty() && args.get(0) instanceof PositionalArgumentNode eventArg
+                        && eventArg.expression().kind() == SyntaxKind.STRING_LITERAL) {
+                    String rawEvent = eventArg.expression().toSourceCode().trim();
+                    if (rawEvent.length() >= 2 && rawEvent.startsWith("\"") && rawEvent.endsWith("\"")) {
+                        Map<String, String> eventValues = parseRegisterEventArgs(args);
+                        updateEvents.add(new AgentCapabilityData(
+                                rawEvent.substring(1, rawEvent.length() - 1), "event",
+                                statementLineRange(methodCall), eventValues));
+                    }
+                } else if (REGISTER_HUMAN_TASK_METHOD_NAME.equals(methodName)
+                        && !args.isEmpty() && args.get(0) instanceof PositionalArgumentNode taskArg
+                        && taskArg.expression().kind() == SyntaxKind.STRING_LITERAL) {
+                    String raw = taskArg.expression().toSourceCode().trim();
+                    if (raw.length() >= 2 && raw.startsWith("\"") && raw.endsWith("\"")) {
+                        humanTasks.add(new AgentCapabilityData(raw.substring(1, raw.length() - 1), "humanTask",
+                                statementLineRange(methodCall), parseHumanTaskArgs(args)));
+                    }
+                }
+                methodCall.arguments().forEach(arg -> arg.accept(this));
+                methodCall.expression().accept(this);
+            }
+        });
+        nodeBuilder.metadata().addData("activities", activities);
+        nodeBuilder.metadata().addData("humanTasks", humanTasks);
+        nodeBuilder.metadata().addData("tools", agentTools);
+        nodeBuilder.metadata().addData("events", updateEvents);
+    }
+
+    // Parses registerUpdateEvents arguments into the register-event builder's property keys
+    // so the edit form opens pre-filled.
+    private static Map<String, String> parseRegisterEventArgs(SeparatedNodeList<FunctionArgumentNode> args) {
+        Map<String, String> values = new LinkedHashMap<>();
+        int positional = 0;
+        for (FunctionArgumentNode arg : args) {
+            if (arg instanceof PositionalArgumentNode posArg) {
+                if (positional == 0) {
+                    values.put(DurableAgentRegisterEventBuilder.NAME_KEY, posArg.expression().toSourceCode().trim());
+                } else if (positional == 1) {
+                    values.put(DurableAgentRegisterEventBuilder.REQUEST_TYPE_KEY,
+                            posArg.expression().toSourceCode().trim());
+                } else if (positional == 2) {
+                    values.put(DurableAgentRegisterEventBuilder.RESPONSE_TYPE_KEY,
+                            posArg.expression().toSourceCode().trim());
+                }
+                positional++;
+            }
+        }
+        return values;
+    }
+
+    // The line range of the whole statement enclosing a capability method call, used to
+    // edit/replace the registration when its agent-box circle is clicked.
+    private static LineRange statementLineRange(MethodCallExpressionNode methodCall) {
+        NonTerminalNode node = methodCall;
+        while (node != null && !(node instanceof ExpressionStatementNode)) {
+            node = node.parent();
+        }
+        return (node != null ? node : methodCall).lineRange();
+    }
+
+    // Parses registerHumanTask arguments into the human-task builder's property keys so the
+    // edit form opens pre-filled. Values keep their source form (quoted literals included).
+    private static Map<String, String> parseHumanTaskArgs(SeparatedNodeList<FunctionArgumentNode> args) {
+        Map<String, String> values = new LinkedHashMap<>();
+        int positional = 0;
+        for (FunctionArgumentNode arg : args) {
+            if (arg instanceof PositionalArgumentNode posArg) {
+                if (positional == 0) {
+                    values.put(DurableAgentHumanTaskBuilder.TASK_NAME_KEY, posArg.expression().toSourceCode().trim());
+                } else if (positional == 1) {
+                    values.put(DurableAgentHumanTaskBuilder.USER_ROLES_KEY, posArg.expression().toSourceCode().trim());
+                }
+                positional++;
+            } else if (arg instanceof NamedArgumentNode namedArg) {
+                String name = namedArg.argumentName().name().text();
+                if (DurableAgentHumanTaskBuilder.TITLE_KEY.equals(name)
+                        || DurableAgentHumanTaskBuilder.DESCRIPTION_KEY.equals(name)) {
+                    values.put(name, namedArg.expression().toSourceCode().trim());
+                }
+            }
+        }
+        return values;
+    }
+
+    private record AgentCapabilityData(String name, String type, LineRange lineRange, Map<String, String> values) {
+    }
+
     /**
      * Returns the builtin-activity strategy symbol ("REST", "SOAP", or "EMAIL") if the first
      * positional argument of a {@code ctx->callActivity(...)} call resolves to one of the known
@@ -976,6 +1509,40 @@ public class CodeAnalyzer extends NodeVisitor {
 
         Optional<Symbol> resolvedSymbol = semanticModel.symbol(expr);
         resolvedSymbol.ifPresent(symbol -> nodeBuilder.symbolInfo(symbol));
+    }
+
+    /**
+     * Overrides the metadata label (and description when resolvable) of an activity call node with the
+     * activity being called, replacing the generic {@code callActivity} method name set by
+     * {@code setFunctionProperties}. Builtins use their strategy label (e.g. "Call REST API") so the
+     * diagram matches the creation template; user-defined activities use the activity function name
+     * without any module prefix.
+     */
+    private void overrideActivityCallLabel(RemoteMethodCallActionNode remoteMethodCallActionNode,
+                                           String builtinSymbol) {
+        if (builtinSymbol != null) {
+            BuiltinActivityStrategy strategy = ActivityCallBuilder.getBuiltinStrategy(builtinSymbol);
+            if (strategy != null) {
+                nodeBuilder.metadata().label(strategy.getLabel()).description(strategy.getDescription());
+            }
+            return;
+        }
+        SeparatedNodeList<FunctionArgumentNode> args = remoteMethodCallActionNode.arguments();
+        if (args.isEmpty() || !(args.get(0) instanceof PositionalArgumentNode positionalArg)) {
+            return;
+        }
+        ExpressionNode expr = positionalArg.expression();
+        String functionRefName = expr.toSourceCode().strip();
+        String label = functionRefName.substring(functionRefName.lastIndexOf(':') + 1);
+        if (label.isEmpty()) {
+            return;
+        }
+        nodeBuilder.metadata().label(label);
+        semanticModel.symbol(expr)
+                .filter(symbol -> symbol instanceof FunctionSymbol)
+                .flatMap(symbol -> ((FunctionSymbol) symbol).documentation())
+                .flatMap(Documentation::description)
+                .ifPresent(description -> nodeBuilder.metadata().description(description));
     }
 
     /**
@@ -1040,12 +1607,39 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         // Step 4: Add flat properties for each activity function parameter, setting values from the args map.
+        // An activity with connection-client parameters (generated from a connection) is modelled as a
+        // connection-backed activity call: each connection is stored as a connection selector (not a
+        // plain data arg) and the node kind switched so the diagram draws a link per connection. The
+        // first connection's connector provides the node icon.
+        boolean firstConnection = true;
         for (ParameterSymbol paramSymbol : activityParamSymbols) {
             String paramName = paramSymbol.getName().orElse("");
             if (paramName.isEmpty()) {
                 continue;
             }
             Node valueNode = argsValues.get(paramName);
+            Optional<ClassSymbol> connectionClass =
+                    WorkflowUtil.resolveConnectionClass(paramSymbol.typeDescriptor());
+            if (connectionClass.isPresent() && valueNode instanceof ExpressionNode connectionExpr) {
+                nodeBuilder.codedata().node(NodeKind.CONNECTION_ACTIVITY_CALL);
+                // Render the connection as an editable connection dropdown (like builtin activities),
+                // seeded with the current connection value, instead of a hidden expression field. The
+                // property key is the parameter name so source generation round-trips the argument.
+                ActivityCallBuilder.ConnectionSelectorData selector =
+                        ActivityCallBuilder.resolveUserActivityConnectionSelector(connectionClass.get());
+                String label = Property.CONNECTION_KEY.equals(paramName) ? Property.CONNECTION_LABEL : paramName;
+                nodeBuilder.properties().connectionSelector(paramName, label,
+                        connectionExpr.toSourceCode().strip(), selector.searchNodesKind(), selector.connectors());
+                if (firstConnection) {
+                    firstConnection = false;
+                    connectionClass.get().getModule().ifPresent(module -> {
+                        ModuleID id = module.id();
+                        nodeBuilder.metadata().icon(
+                                CommonUtils.generateIcon(id.orgName(), id.packageName(), id.version()));
+                    });
+                }
+                continue;
+            }
             String value = valueNode != null ? valueNode.toSourceCode().strip() : null;
             boolean isOptional = paramSymbol.paramKind() == ParameterKind.DEFAULTABLE;
             String kind = isOptional ? ParameterData.Kind.DEFAULTABLE.name() : ParameterData.Kind.REQUIRED.name();
@@ -1343,6 +1937,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 connValue,
                 strategy != null ? strategy.searchNodesKind() : null,
                 strategy != null ? strategy.connectors() : null);
+        // Show the connector icon on the connection arrow the diagram draws for this node.
+        applyActivityConnectionIcon(connValue);
 
         switch (builtinSymbol) {
             case BUILTIN_REST_FUNCTION -> populateRestProperties(srcValues);
@@ -1421,23 +2017,31 @@ public class CodeAnalyzer extends NodeVisitor {
     private void addNormalizedRetryPolicyProperties(String rawValue) {
         String dropdownValue = ActivityCallBuilder.NO_RETRY_VALUE;
         String maxRetries = "", retryDelay = "", retryBackoff = "", maxRetryDelay = "";
+        String retryUserRoles = "";
 
         if (rawValue != null && !rawValue.isBlank()) {
-            if (rawValue.contains("ManualRetry")) {
-                dropdownValue = ActivityCallBuilder.MANUAL_RETRY_VALUE;
-            } else if (rawValue.trim().startsWith("{")) {
+            String trimmed = rawValue.trim();
+            if (trimmed.startsWith("{")) {
                 dropdownValue = ActivityCallBuilder.AUTO_RETRY_VALUE;
                 Map<String, String> fields = parseSimpleRecord(rawValue);
                 maxRetries = fields.getOrDefault(ActivityCallBuilder.MAX_RETRIES_KEY, "");
                 retryDelay = fields.getOrDefault(ActivityCallBuilder.RETRY_DELAY_KEY, "");
                 retryBackoff = fields.getOrDefault(ActivityCallBuilder.RETRY_BACKOFF_KEY, "");
                 maxRetryDelay = fields.getOrDefault(ActivityCallBuilder.MAX_RETRY_DELAY_KEY, "");
+            } else if (!trimmed.equals("()") && !trimmed.contains("NoRetry")
+                    && !trimmed.contains("NoAutomaticRetry")) {
+                // HumanReview is the reviewer role(s): a string, a role list, or the legacy
+                // workflow:ManualRetry sentinel (any role).
+                dropdownValue = ActivityCallBuilder.MANUAL_RETRY_VALUE;
+                if (!trimmed.contains("ManualRetry") && !trimmed.contains("HumanReview")
+                        && !trimmed.equals("[]")) {
+                    retryUserRoles = trimmed;
+                }
             }
-            // else: NoRetry (default) or any unrecognized value
         }
 
         ActivityCallBuilder.addRetryPolicyFormProperties(nodeBuilder, dropdownValue,
-                maxRetries, retryDelay, retryBackoff, maxRetryDelay);
+                maxRetries, retryDelay, retryBackoff, maxRetryDelay, retryUserRoles);
     }
 
     /** Parses a simple Ballerina record literal {@code {key: value, ...}} into a string map. */
@@ -2080,6 +2684,31 @@ public class CodeAnalyzer extends NodeVisitor {
         Map<String, Object> connectorData = new HashMap<>();
         connectorData.put(CONNECTOR_TYPE, ConnectorUtil.getConnectionCategory(moduleName));
         return connectorData;
+    }
+
+    /**
+     * Sets the node icon to the connector icon of the module-level connection variable named
+     * {@code connectionName}, so the connection arrow the diagram renders for a connection-backed
+     * activity call shows the right connector. Best-effort: does nothing if the variable or its
+     * client type cannot be resolved.
+     */
+    private void applyActivityConnectionIcon(String connectionName) {
+        if (connectionName == null || connectionName.isEmpty()) {
+            return;
+        }
+        for (Symbol symbol : semanticModel.moduleSymbols()) {
+            if (symbol.kind() != SymbolKind.VARIABLE || !connectionName.equals(symbol.getName().orElse(""))) {
+                continue;
+            }
+            WorkflowUtil.resolveConnectionClass(((VariableSymbol) symbol).typeDescriptor())
+                    .flatMap(Symbol::getModule)
+                    .ifPresent(module -> {
+                        ModuleID id = module.id();
+                        nodeBuilder.metadata().icon(
+                                CommonUtils.generateIcon(id.orgName(), id.packageName(), id.version()));
+                    });
+            return;
+        }
     }
 
     private void addRemainingParamsToPropertyMap(Map<String, ParameterData> funcParamMap,
@@ -3059,7 +3688,63 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(ModuleVariableDeclarationNode moduleVariableDeclarationNode) {
+        if (tryHandleDurableAgentDeclarationCanvas(moduleVariableDeclarationNode)) {
+            return;
+        }
         handleVariableNode(moduleVariableDeclarationNode);
+    }
+
+    // A module-level `workflow:DurableAgent` declaration opened as the diagram canvas (e.g. from
+    // the overview): synthesize the agent-only view — a Start pill followed by the agent box
+    // built from the declaration's config literal.
+    private boolean tryHandleDurableAgentDeclarationCanvas(ModuleVariableDeclarationNode varDecl) {
+        if (!(varDecl.typedBindingPattern().bindingPattern()
+                instanceof CaptureBindingPatternNode captureBindingPattern)
+                || varDecl.initializer().isEmpty()) {
+            return false;
+        }
+        boolean isAgentDeclaration = false;
+        Optional<Symbol> symbol = semanticModel.symbol(varDecl.typedBindingPattern().bindingPattern());
+        if (symbol.isPresent() && symbol.get() instanceof VariableSymbol variableSymbol) {
+            TypeSymbol rawType = CommonUtils.getRawType(variableSymbol.typeDescriptor());
+            isAgentDeclaration = rawType instanceof ClassSymbol classSymbol
+                    && classSymbol.getName()
+                            .map(Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME::equals).orElse(false)
+                    && isWorkflowModule(classSymbol.getModule());
+        }
+        if (!isAgentDeclaration) {
+            // Syntactic fallback: the semantic model may not resolve the binding pattern symbol
+            // (e.g. while the module is still loading); match the declared type name instead.
+            String typeText = varDecl.typedBindingPattern().typeDescriptor().toSourceCode().trim();
+            isAgentDeclaration = typeText.equals(Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME)
+                    || typeText.endsWith(":" + Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME);
+        }
+        if (!isAgentDeclaration) {
+            return false;
+        }
+
+        String agentVarName = captureBindingPattern.variableName().text();
+        startNode(NodeKind.EVENT_START, varDecl).codedata()
+                .lineRange(varDecl.lineRange())
+                .sourceCode(varDecl.toSourceCode().strip());
+        nodeBuilder.metadata()
+                .addData(KIND_KEY, "Durable Agentic Workflow")
+                .addData(LABEL_KEY, agentVarName);
+        endNode();
+
+        startNode(NodeKind.DURABLE_AGENT_RUN, varDecl).codedata()
+                .org(WORKFLOW_ORG)
+                .module(WORKFLOW_MODULE)
+                .object(Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME)
+                .parentSymbol(agentVarName)
+                .symbol(Constants.Workflow.AGENT_OBJECT_RUN_METHOD_NAME)
+                .lineRange(varDecl.lineRange())
+                .sourceCode(varDecl.toSourceCode().strip());
+        nodeBuilder.metadata().addData("agentName", agentVarName);
+        nodeBuilder.metadata().addData("agentBox", true);
+        populateAgentDeclarationMetadata(varDecl);
+        endNode();
+        return true;
     }
 
     @Override
@@ -3153,6 +3838,7 @@ public class CodeAnalyzer extends NodeVisitor {
         endNode(expressionStatementNode);
     }
 
+
     @Override
     public void visit(ContinueStatementNode continueStatementNode) {
         startNode(NodeKind.CONTINUE, continueStatementNode);
@@ -3192,6 +3878,36 @@ public class CodeAnalyzer extends NodeVisitor {
                 && isWorkflowModule(classSymbol.getModule())) {
             startNode(NodeKind.SLEEP, expressionNode.parent());
             populateSleepNodeProperties(methodCallExpressionNode, functionSymbol);
+            return;
+        }
+
+        // AgentContext methods inside a @workflow:DurableAgent function are first-class nodes.
+        if (AGENT_CONTEXT_CLASS_NAME.equals(classSymbol.getName().orElse(""))
+                && isWorkflowModule(classSymbol.getModule())) {
+            NodeKind agentNodeKind = switch (functionName) {
+                case RUN_DURABLE_AGENT_METHOD_NAME -> NodeKind.DURABLE_AGENT_RUN;
+                case REGISTER_ACTIVITY_METHOD_NAME -> NodeKind.DURABLE_AGENT_ADD_ACTIVITY;
+                case REGISTER_HUMAN_TASK_METHOD_NAME -> NodeKind.DURABLE_AGENT_HUMAN_TASK;
+                case REGISTER_UPDATE_EVENTS_METHOD_NAME -> NodeKind.DURABLE_AGENT_REGISTER_EVENT;
+                case REGISTER_AGENT_TOOL_METHOD_NAME -> NodeKind.DURABLE_AGENT_REGISTER_TOOL;
+                default -> null;
+            };
+            if (agentNodeKind != null) {
+                startNode(agentNodeKind, methodCallExpressionNode.parent());
+                populateDurableAgentCallProperties(methodCallExpressionNode, functionSymbol, functionName,
+                        agentNodeKind);
+                return;
+            }
+        }
+
+        // Object-model durable agent: `<agentVar>.run(...)` renders the agent's declaration as
+        // the agent box (role/instructions/model/capabilities from the config literal) inside
+        // the caller's flow diagram.
+        if (Constants.Workflow.DURABLE_AGENT_OBJECT_CLASS_NAME.equals(classSymbol.getName().orElse(""))
+                && isWorkflowModule(classSymbol.getModule())
+                && Constants.Workflow.AGENT_OBJECT_RUN_METHOD_NAME.equals(functionName)) {
+            startNode(NodeKind.DURABLE_AGENT_RUN, methodCallExpressionNode.parent());
+            populateDurableAgentObjectRun(methodCallExpressionNode, expressionNode, functionSymbol, functionName);
             return;
         }
 
@@ -4424,7 +5140,80 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     public List<FlowNode> getFlowNodes() {
-        return flowNodeList;
+        if (!analyzedDurableAgent) {
+            return flowNodeList;
+        }
+        // The agent box is the most prominent element: a synthetic copy of the buildAndRun
+        // node renders on top, while the statement itself stays in place at the end of the
+        // chain (as the compact "Build Agent" node). Metadata overrides happen here because
+        // NodeBuilder.build() re-runs setConcreteConstData, resetting analyzer-time writes.
+        List<FlowNode> reordered = new ArrayList<>(flowNodeList.size() + 1);
+        FlowNode runNode = null;
+        for (FlowNode node : flowNodeList) {
+            NodeKind nodeKind = node.codedata() == null ? null : node.codedata().node();
+            if (nodeKind == NodeKind.DURABLE_AGENT_RUN) {
+                runNode = node;
+                reordered.add(withMetadata(node, "Build and Run Agent", null, null));
+            } else if (node.codedata() != null && node.codedata().lineRange() != null
+                    && agentRegisterDetails.containsKey(node.codedata().lineRange())) {
+                reordered.add(withMetadata(node, null,
+                        agentRegisterDetails.get(node.codedata().lineRange()), null));
+            } else {
+                reordered.add(node);
+            }
+        }
+        if (runNode != null) {
+            // The synthetic box carries the full metadata plus an agentBox marker the
+            // widget uses to render the large agent visualization.
+            reordered.add(0, withMetadata(new FlowNode("durable-agent-box", runNode.metadata(),
+                    runNode.codedata(), runNode.returning(), runNode.branches(), runNode.properties(),
+                    runNode.diagnostics(), runNode.flags()), null, null, Boolean.TRUE));
+        } else if (durableAgentBodyRange != null) {
+            // No buildAndRun yet: show a draft placeholder that creates it at the body end.
+            LinePosition bodyEnd = durableAgentBodyRange.endLine();
+            LineRange insertAtEnd = LineRange.from(durableAgentBodyRange.fileName(), bodyEnd, bodyEnd);
+            FlowNode placeholder = new FlowNode(
+                    "durable-agent-placeholder",
+                    new Metadata.Builder<>(null)
+                            .label("Define Durable Agentic Workflow")
+                            .description("Configure the agent's prompt and model, then run it")
+                            .draft(true)
+                            .build(),
+                    new Codedata.Builder<>(null)
+                            .node(NodeKind.DURABLE_AGENT_RUN)
+                            .org(Constants.Workflow.WORKFLOW_ORG)
+                            .module(Constants.Workflow.WORKFLOW_MODULE)
+                            .object(Constants.Workflow.AGENT_CONTEXT_CLASS_NAME)
+                            .symbol(Constants.Workflow.RUN_DURABLE_AGENT_METHOD_NAME)
+                            .lineRange(insertAtEnd)
+                            .isNew(true)
+                            .build(),
+                    false, new ArrayList<>(), new HashMap<>(), null, 0);
+            reordered.add(0, placeholder);
+        }
+        return reordered;
+    }
+
+    // Rebuilds a flow node with metadata overrides (label/description/agentBox marker);
+    // null keeps the existing value.
+    private static FlowNode withMetadata(FlowNode node, String label, String description, Boolean agentBox) {
+        Metadata metadata = node.metadata();
+        Map<String, Object> data = metadata == null || metadata.data() == null
+                ? new LinkedHashMap<>() : new LinkedHashMap<>(metadata.data());
+        if (Boolean.TRUE.equals(agentBox)) {
+            data.put("agentBox", true);
+        }
+        Metadata updated = new Metadata(
+                label != null ? label : (metadata == null ? null : metadata.label()),
+                description != null ? description : (metadata == null ? null : metadata.description()),
+                metadata == null ? null : metadata.keywords(),
+                metadata == null ? null : metadata.icon(),
+                metadata == null ? null : metadata.functionKind(),
+                data,
+                metadata == null ? null : metadata.connectors(),
+                metadata == null ? null : metadata.draft());
+        return new FlowNode(node.id(), updated, node.codedata(), node.returning(), node.branches(),
+                node.properties(), node.diagnostics(), node.flags());
     }
 
     private record CommentMetadata(String comment, LineRange position) {
@@ -4508,6 +5297,7 @@ public class CodeAnalyzer extends NodeVisitor {
         RESOURCE("Resource"),
         AI_CHAT_AGENT("AI Chat Agent"),
         WORKFLOW("Workflow"),
+        DURABLE_AGENT("Durable Agentic Workflow"),
         ACTIVITY("Activity");
 
         private final String value;

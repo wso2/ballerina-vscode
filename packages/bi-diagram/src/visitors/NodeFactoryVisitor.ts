@@ -45,6 +45,7 @@ import { Branch, FlowNode, NodeModel } from "../utils/types";
 import { EndNodeModel } from "../components/nodes/EndNode";
 import { ErrorNodeModel } from "../components/nodes/ErrorNode";
 import { AgentCallNodeModel } from "../components/nodes/AgentCallNode/AgentCallNodeModel";
+import { DurableAgentRunNodeModel } from "../components/nodes/DurableAgentRunNode/DurableAgentRunNodeModel";
 import { PromptNodeModel } from "../components/nodes/PromptNode/PromptNodeModel";
 
 export class NodeFactoryVisitor implements BaseVisitor {
@@ -650,6 +651,17 @@ export class NodeFactoryVisitor implements BaseVisitor {
         }
     }
 
+    beginVisitConnectionActivityCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (node.id) {
+            // Connection-backed activity calls render with the same double-line activity box as
+            // plain activity calls; the widget adds a dashed link per connection (it is a local
+            // activity invocation, not a remote call, so no arrowhead).
+            this.createCallActivityNode(node);
+            this.addSuggestionsButton(node);
+        }
+    }
+
     beginVisitWorkflowRun(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         if (node.id) {
@@ -692,6 +704,35 @@ export class NodeFactoryVisitor implements BaseVisitor {
         const nodeModel = new AgentCallNodeModel(node);
         this.nodes.push(nodeModel);
         this.updateNodeLinks(node, nodeModel);
+        this.addSuggestionsButton(node);
+    }
+
+    beginVisitDurableAgentRun(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (!node.id) {
+            return;
+        }
+        const nodeModel = new DurableAgentRunNodeModel(node);
+        this.nodes.push(nodeModel);
+        // The synthetic agent-box copy (metadata.data.agentBox) floats above the chain:
+        // skip updateNodeLinks so it gets no incoming link and does not become the link
+        // source for the following start pill (which would render an edge plus an
+        // add-button between the box and the pill). The pill still becomes lastNodeModel
+        // itself and links downward to the first statement.
+        //
+        // Exception — the agent-only view: there the flow model is just
+        // [Start, agent box], so a start node has already been visited. Link it to the
+        // box with a non-editable edge (no add-button).
+        const isAgentBox = (node.metadata?.data as { agentBox?: boolean })?.agentBox === true;
+        if (!isAgentBox) {
+            this.updateNodeLinks(node, nodeModel);
+        } else if (this.lastNodeModel instanceof StartNodeModel) {
+            this.updateNodeLinks(node, nodeModel, { showAddButton: false });
+        } else if (this.lastNodeModel) {
+            // Object-model agent box rendered in-chain (an `agent.run(...)` statement inside a
+            // workflow function): keep the normal chain links.
+            this.updateNodeLinks(node, nodeModel);
+        }
         this.addSuggestionsButton(node);
     }
 

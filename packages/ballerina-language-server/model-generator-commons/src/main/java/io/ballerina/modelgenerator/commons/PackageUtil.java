@@ -147,15 +147,28 @@ public class PackageUtil {
      */
     public static Optional<Package> getModulePackage(BuildProject buildProject, String org, String name,
                                                      String version) {
-        ResolutionRequest resolutionRequest = ResolutionRequest.from(
+        Optional<Package> resolved = resolveModulePackage(buildProject,
                 PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name), PackageVersion.from(version)));
+        if (resolved.isPresent()) {
+            return resolved;
+        }
+        // Unreleased versions (e.g. an in-development ballerina/workflow build) are not on
+        // central; fall back to the local repository, where such builds are published.
+        return resolveModulePackage(buildProject,
+                PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name), PackageVersion.from(version),
+                        io.ballerina.projects.util.ProjectConstants.LOCAL_REPOSITORY_NAME));
+    }
 
+    private static Optional<Package> resolveModulePackage(BuildProject buildProject,
+                                                          PackageDescriptor packageDescriptor) {
+        ResolutionRequest resolutionRequest = ResolutionRequest.from(packageDescriptor);
         Collection<ResolutionResponse> resolutionResponses =
                 buildProject.projectEnvironmentContext().getService(PackageResolver.class)
                         .resolvePackages(Collections.singletonList(resolutionRequest),
                                 ResolutionOptions.builder().setOffline(false).setSticky(false).build());
         Optional<ResolutionResponse> resolutionResponse = resolutionResponses.stream().findFirst();
-        if (resolutionResponse.isEmpty()) {
+        // resolvedPackage() is null when the version cannot be resolved (e.g. not on central).
+        if (resolutionResponse.isEmpty() || resolutionResponse.get().resolvedPackage() == null) {
             return Optional.empty();
         }
 

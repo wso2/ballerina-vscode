@@ -589,9 +589,21 @@ function createFunctionConnections(
                 return;
             }
             eventNames.forEach((eventName) => {
-                const eventPort = workflowNode.getEventPortByName(eventName);
                 const port = portGetter(func, group);
-                if (eventPort && port) {
+                if (!port) {
+                    return;
+                }
+                // Read-only agent interactions (getResult/waitFor*) render as a dashed edge
+                // into the agent box instead of an event port.
+                if (eventName === "__read") {
+                    const link = createPortNodeLink(port, workflowNode, { visible: true, dashed: true });
+                    if (link) {
+                        links.push(link);
+                    }
+                    return;
+                }
+                const eventPort = workflowNode.getEventPortByName(eventName);
+                if (eventPort) {
                     const link = createPortsLink(port, eventPort);
                     link.setSourceNode(node);
                     link.setTargetNode(workflowNode);

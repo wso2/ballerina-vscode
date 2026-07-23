@@ -76,6 +76,7 @@ public class DesignModelGenerator {
     public static final String MAIN_FUNCTION_NAME = "main";
     private static final String AUTOMATION = "automation";
     private static final String SERVICE = "Service";
+    private static final String DURABLE_AGENT_CLASS_NAME = "DurableAgent";
     private final Map<String, ModulePartNode> documentMap;
 
     public DesignModelGenerator(Package ballerinaPackage) {
@@ -93,8 +94,8 @@ public class DesignModelGenerator {
     public DesignModel generate() {
         IntermediateModel intermediateModel = new IntermediateModel();
         this.populateModuleLevelConnections(intermediateModel);
-        this.populateModuleLevelWorkflows(intermediateModel);
         this.populateModuleLevelActivities(intermediateModel);
+        this.populateModuleLevelWorkflows(intermediateModel);
         ConnectionFinder connectionFinder = new ConnectionFinder(semanticModel, rootPath, documentMap,
                 intermediateModel);
         this.defaultModule.documentIds().forEach(d -> {
@@ -246,13 +247,24 @@ public class DesignModelGenerator {
             if (workflow == null) {
                 return;
             }
-            eventNames.forEach(eventName -> workflow.getEvent(eventName).ifPresent(event -> {
-                if (isFunction) {
-                    event.addAttachedFunction(senderUuid);
-                } else {
-                    event.addAttachedService(senderUuid);
+            eventNames.forEach(eventName -> {
+                if (Workflow.READ_EDGE_EVENT.equals(eventName)) {
+                    // Read-only agent interaction: attach the reader for layout only.
+                    if (isFunction) {
+                        workflow.addAttachedFunction(senderUuid);
+                    } else {
+                        workflow.addAttachedService(senderUuid);
+                    }
+                    return;
                 }
-            }));
+                workflow.getEvent(eventName).ifPresent(event -> {
+                    if (isFunction) {
+                        event.addAttachedFunction(senderUuid);
+                    } else {
+                        event.addAttachedService(senderUuid);
+                    }
+                });
+            });
         });
     }
 
@@ -273,20 +285,47 @@ public class DesignModelGenerator {
 
     private void populateModuleLevelWorkflows(IntermediateModel intermediateModel) {
         for (Symbol symbol : this.semanticModel.moduleSymbols()) {
-            if (!WorkflowUtil.isWorkflowFunction(symbol)) {
-                continue;
-            }
-
             if (symbol.getName().isEmpty() || symbol.getLocation().isEmpty()) {
                 continue;
             }
-            LineRange lineRange = symbol.getLocation().get().lineRange();
-            String sortText = lineRange.fileName() + lineRange.startLine().line();
-            Workflow workflow = new Workflow(symbol.getName().get(), sortText, getLocation(lineRange));
-            populateWorkflowEvents(workflow, (FunctionSymbol) symbol);
-            intermediateModel.workflowMap.put(symbol.getName().get(), workflow);
-            intermediateModel.uuidToWorkflowMap.put(workflow.getUuid(), workflow);
+            if (WorkflowUtil.isWorkflowFunction(symbol)) {
+                LineRange lineRange = symbol.getLocation().get().lineRange();
+                String sortText = lineRange.fileName() + lineRange.startLine().line();
+                Workflow workflow = new Workflow(symbol.getName().get(), sortText, getLocation(lineRange));
+                populateWorkflowEvents(workflow, (FunctionSymbol) symbol);
+                intermediateModel.workflowMap.put(symbol.getName().get(), workflow);
+                intermediateModel.uuidToWorkflowMap.put(workflow.getUuid(), workflow);
+            } else if (isDurableAgentVariable(symbol)) {
+                // A module-level `workflow:DurableAgent` declaration joins the overview's workflow
+                // column as a durable agentic workflow; its identity is the variable name.
+                LineRange lineRange = symbol.getLocation().get().lineRange();
+                String sortText = lineRange.fileName() + lineRange.startLine().line();
+                Workflow agent = new Workflow(symbol.getName().get(), sortText, getLocation(lineRange),
+                        Workflow.KIND_DURABLE_AGENT);
+                populateAgentDeclaredCapabilities(intermediateModel, agent, lineRange);
+                intermediateModel.workflowMap.put(symbol.getName().get(), agent);
+                intermediateModel.uuidToWorkflowMap.put(agent.getUuid(), agent);
+            }
         }
+    }
+
+    /**
+     * Checks whether the symbol is a module-level variable of the {@code workflow:DurableAgent} class.
+     *
+     * @param symbol the module symbol to check
+     * @return {@code true} for a durable agent declaration
+     */
+    private boolean isDurableAgentVariable(Symbol symbol) {
+        if (!(symbol instanceof VariableSymbol variableSymbol)) {
+            return false;
+        }
+        TypeSymbol typeDescriptor = variableSymbol.typeDescriptor();
+        TypeSymbol rawType = CommonUtils.getRawType(typeDescriptor);
+        if (!(rawType instanceof ClassSymbol classSymbol)) {
+            return false;
+        }
+        return classSymbol.getName().map(DURABLE_AGENT_CLASS_NAME::equals).orElse(false)
+                && WorkflowUtil.isWorkflowModule(classSymbol.getModule());
     }
 
     /**
@@ -313,6 +352,132 @@ public class DesignModelGenerator {
                 workflow.addEvent(new Workflow.Event(fieldName, eventType));
             }
         });
+    }
+
+
+    /**
+     * Derives a durable agent's declared capabilities from the declaration's config literal:
+     * event channels (name + request type), human tasks, and links to declared activities.
+     *
+     * @param intermediateModel the intermediate model holding the activity registry
+     * @param agent             the agent's design node
+     * @param lineRange         the agent variable symbol's line range
+     */
+    private void populateAgentDeclaredCapabilities(IntermediateModel intermediateModel, Workflow agent,
+                                                   LineRange lineRange) {
+        ModulePartNode root = this.documentMap.get(lineRange.fileName());
+        if (root == null) {
+            return;
+        }
+        for (io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode member : root.members()) {
+            // The symbol's location is the variable-name token, so match by line containment.
+            if (!(member instanceof io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode varDecl)
+                    || varDecl.lineRange().startLine().line() > lineRange.startLine().line()
+                    || varDecl.lineRange().endLine().line() < lineRange.startLine().line()
+                    || varDecl.initializer().isEmpty()) {
+                continue;
+            }
+            io.ballerina.compiler.syntax.tree.ExpressionNode initializer = varDecl.initializer().get();
+            if (initializer instanceof io.ballerina.compiler.syntax.tree.CheckExpressionNode checkExpr) {
+                initializer = checkExpr.expression();
+            }
+            if (!(initializer instanceof io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode newExpr)
+                    || newExpr.parenthesizedArgList().isEmpty()
+                    || newExpr.parenthesizedArgList().get().arguments().isEmpty()
+                    || !(newExpr.parenthesizedArgList().get().arguments().get(0)
+                            instanceof io.ballerina.compiler.syntax.tree.PositionalArgumentNode configArg)
+                    || !(configArg.expression()
+                            instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode config)) {
+                continue;
+            }
+            for (io.ballerina.compiler.syntax.tree.MappingFieldNode field : config.fields()) {
+                if (!(field instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode specificField)
+                        || specificField.valueExpr().isEmpty()
+                        || !(specificField.valueExpr().get()
+                                instanceof io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode list)) {
+                    continue;
+                }
+                String fieldName = specificField.fieldName().toSourceCode().trim();
+                switch (fieldName) {
+                    case "events" -> populateAgentEvents(agent, list);
+                    case "humanTasks" -> populateAgentHumanTasks(agent, list);
+                    case "activities" -> linkAgentActivities(intermediateModel, agent, list);
+                    default -> {
+                    }
+                }
+            }
+            return;
+        }
+    }
+
+    private void populateAgentEvents(Workflow agent,
+                                     io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode events) {
+        for (io.ballerina.compiler.syntax.tree.Node item : events.expressions()) {
+            if (!(item instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode entry)) {
+                continue;
+            }
+            String name = getMappingStringField(entry, "name");
+            String requestType = getMappingRawField(entry, "request");
+            if (name != null) {
+                agent.addEvent(new Workflow.Event(name, requestType == null ? "anydata" : requestType));
+            }
+        }
+    }
+
+    private void populateAgentHumanTasks(Workflow agent,
+                                         io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode tasks) {
+        for (io.ballerina.compiler.syntax.tree.Node item : tasks.expressions()) {
+            if (!(item instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode entry)) {
+                continue;
+            }
+            String name = getMappingStringField(entry, "name");
+            if (name != null) {
+                agent.addHumanTask(new Workflow.HumanTask(name, getLocation(item.lineRange())));
+            }
+        }
+    }
+
+    // Declared activity functions link the agent to the shared activities column, exactly like
+    // ctx->callActivity does for workflow functions.
+    private void linkAgentActivities(IntermediateModel intermediateModel, Workflow agent,
+                                     io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode activities) {
+        for (io.ballerina.compiler.syntax.tree.Node item : activities.expressions()) {
+            String activityName = null;
+            if (item.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
+                activityName = item.toSourceCode().trim();
+            } else if (item instanceof io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode entry) {
+                activityName = getMappingRawField(entry, "activity");
+            }
+            if (activityName == null) {
+                continue;
+            }
+            Activity activity = intermediateModel.activityMap.get(activityName);
+            if (activity != null) {
+                agent.addActivity(activity.getUuid());
+                activity.addAttachedWorkflow(agent.getUuid());
+            }
+        }
+    }
+
+    private static String getMappingStringField(
+            io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode mapping, String fieldName) {
+        String raw = getMappingRawField(mapping, fieldName);
+        if (raw != null && raw.length() >= 2 && raw.startsWith("\"") && raw.endsWith("\"")) {
+            return raw.substring(1, raw.length() - 1);
+        }
+        return raw;
+    }
+
+    private static String getMappingRawField(
+            io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode mapping, String fieldName) {
+        for (io.ballerina.compiler.syntax.tree.MappingFieldNode field : mapping.fields()) {
+            if (field instanceof io.ballerina.compiler.syntax.tree.SpecificFieldNode specificField
+                    && fieldName.equals(specificField.fieldName().toSourceCode().trim())
+                    && specificField.valueExpr().isPresent()) {
+                return specificField.valueExpr().get().toSourceCode().trim();
+            }
+        }
+        return null;
     }
 
     private void populateModuleLevelActivities(IntermediateModel intermediateModel) {

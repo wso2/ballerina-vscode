@@ -35,6 +35,15 @@ export function WorkflowPanel() {
         });
     };
 
+    const handleDurableAgentClick = () => {
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.BIDurableAgentForm,
+            },
+        });
+    };
+
     return (
         <PanelViewMore>
             <TitleWrapper>
@@ -51,6 +60,13 @@ export function WorkflowPanel() {
                     title="Durable Workflow"
                     tooltip="Long-running workflow logic with events, timers, human tasks, and crash recovery."
                     onClick={handleClick}
+                />
+                <ButtonCard
+                    id="durable-agent"
+                    icon={<Icon name="bi-ai-agent" />}
+                    title="Durable Agentic Workflow"
+                    tooltip="A durable workflow driven by an agentic model: natural-language instructions and a model instead of explicit control flow, with events, timers, human tasks, and crash recovery."
+                    onClick={handleDurableAgentClick}
                 />
             </CardGrid>
         </PanelViewMore>
