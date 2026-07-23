@@ -36,8 +36,11 @@ export interface WiBridgeClient {
     onContextStateChanged: (cb: (state: any) => void) => void;
     [key: string]: any;
 }
-interface VisualizerCtx { wsClient: WiBridgeClient }
-const Ctx = createContext<VisualizerCtx>({ wsClient: {} as WiBridgeClient });
+interface VisualizerCtx {
+    wsClient: WiBridgeClient;
+    isAgentBuilder: boolean;
+}
+const Ctx = createContext<VisualizerCtx>({ wsClient: {} as WiBridgeClient, isAgentBuilder: false });
 export const useVisualizerContext = () => useContext(Ctx);
-export const WsClientProvider = ({ wsClient, children }: { wsClient: WiBridgeClient; children: ReactNode }) =>
-    <Ctx.Provider value={{ wsClient }}>{children}</Ctx.Provider>;
+export const WsClientProvider = ({ wsClient, isAgentBuilder, children }: { wsClient: WiBridgeClient; isAgentBuilder: boolean; children: ReactNode }) =>
+    <Ctx.Provider value={{ wsClient, isAgentBuilder }}>{children}</Ctx.Provider>;

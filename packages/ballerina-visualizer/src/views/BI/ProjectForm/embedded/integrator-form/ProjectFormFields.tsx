@@ -76,9 +76,9 @@ export function ProjectFormFields({
     onCloudProjectHandleError,
     onHasErrors,
 }: ProjectFormFieldsProps) {
-    const { wsClient } = useVisualizerContext();
+    const { wsClient, isAgentBuilder } = useVisualizerContext();
     const { authState } = useCloudContext();
-    const { supported: isProjectModeSupported, isResolved: isProjectModeResolved } = useProjectModeSupportedStatus();
+    const { supported: isProjectModeSupported } = useProjectModeSupportedStatus();
     const { path: workspacePath, isReady: workspaceReady } = useWorkspaceRoot();
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [withinProjectNameTouched, setWithinProjectNameTouched] = useState(false);
@@ -96,8 +96,6 @@ export function ProjectFormFields({
     const [defaultPath, setDefaultPath] = useState("");
     const [pathTouched, setPathTouched] = useState(false);
     const [editablePath, setEditablePath] = useState("");
-    const hasUserToggledCreateWithinProject = useRef(false);
-    const hasAutoInitializedProjectMode = useRef(false);
     const handleTouched = useRef(false);
     const firstFieldRef = useRef<HTMLInputElement>(null);
     const orgNameInitialized = useRef(false);
@@ -167,7 +165,6 @@ export function ProjectFormFields({
     };
 
     const handleCreateWithinProjectToggle = (checked: boolean) => {
-        hasUserToggledCreateWithinProject.current = true;
         setPathTouched(false);
         if (checked) {
             const projectName = formData.withinProjectName || DEFAULT_PROJECT_NAME;
@@ -208,28 +205,11 @@ export function ProjectFormFields({
                     }
                 }
             }
-            if (
-                !hasAutoInitializedProjectMode.current &&
-                !hasUserToggledCreateWithinProject.current &&
-                // Wait for the confirmed value — acting on the optimistic placeholder
-                // could auto-enable project mode on a runtime that doesn't support it.
-                isProjectModeResolved &&
-                isProjectModeSupported
-            ) {
-                hasAutoInitializedProjectMode.current = true;
-                const updates: Partial<ProjectFormData> = { createWithinProject: true };
-                if (!formData.withinProjectName) {
-                    updates.withinProjectName = DEFAULT_PROJECT_NAME;
-                }
-                onFormDataChange(updates);
-            }
         })();
     }, [
         workspaceReady,
         wsClient,
         workspacePath,
-        isProjectModeSupported,
-        isProjectModeResolved,
         formData.path,
         formData.packageName,
         formData.withinProjectName,
@@ -434,15 +414,15 @@ export function ProjectFormFields({
                     ref={firstFieldRef}
                     onTextChange={handleIntegrationName}
                     value={formData.integrationName}
-                    label={`Integration Name`}
-                    placeholder={`Enter an integration name`}
+                    label={isAgentBuilder ? `Agent Name` : `Integration Name`}
+                    placeholder={isAgentBuilder ? `Enter an agent name` : `Enter an integration name`}
                     required={true}
                     errorMsg={integrationNameError || integrationNameValidationError || ""}
                 />
             </FieldGroup>
 
             {/* Project Name - shown by default when project mode is supported */}
-            {isProjectModeSupported && (
+            {!isAgentBuilder && isProjectModeSupported && (
                 <ProjectSectionContainer>
                     <ProjectSectionLabel>Project</ProjectSectionLabel>
                     <ProjectFieldCollapse isVisible={formData.createWithinProject}>
@@ -481,7 +461,7 @@ export function ProjectFormFields({
                             onChange={handleCreateWithinProjectToggle}
                         />
                         <Description style={{ marginTop: "6px" }}>
-                            Enable project mode to manage multiple integrations and libraries within a single repository.
+                            Enable project mode to manage multiple {isAgentBuilder ? "agents" : "integrations"} and libraries within a single repository.
                         </Description>
                     </SkipOptionRow>
                 </ProjectSectionContainer>

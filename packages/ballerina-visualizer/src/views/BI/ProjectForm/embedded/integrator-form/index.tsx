@@ -37,7 +37,7 @@ import { ValidateProjectFormErrorField } from "./shims/wi-core";
 import { useCloudContext } from "./providers";
 
 export function BIProjectForm({ ballerinaUnavailable }: { ballerinaUnavailable?: boolean }) {
-    const { wsClient } = useVisualizerContext();
+    const { wsClient, isAgentBuilder } = useVisualizerContext();
     const { authState } = useCloudContext();
     const organizations = (authState?.userInfo?.organizations as Array<{ id?: any; handle: string; name: string }> | undefined);
     const [formData, setFormData] = useState<ProjectFormData>({
@@ -63,7 +63,7 @@ export function BIProjectForm({ ballerinaUnavailable }: { ballerinaUnavailable?:
     const [cloudProjectHandleError, setCloudProjectHandleError] = useState<string | null>(null);
     const [childHasErrors, setChildHasErrors] = useState(false);
     const [expandAdvancedTrigger, setExpandAdvancedTrigger] = useState(0);
-    const createActionLabel = "Create Integration";
+    const createActionLabel = isAgentBuilder ? "Create AI Agent" : "Create Integration";
 
     const resolvedOrg = useMemo(() => {
         if (!organizations || organizations.length === 0) return undefined;

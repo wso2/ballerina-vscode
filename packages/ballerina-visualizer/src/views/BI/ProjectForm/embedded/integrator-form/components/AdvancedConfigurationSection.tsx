@@ -31,6 +31,7 @@ import {
 import { CollapsibleSection } from "./CollapsibleSection";
 import { sanitizePackageName, sanitizeProjectHandle } from "../utils";
 import { useSignIn } from "../hooks/useSignIn";
+import { useVisualizerContext } from "../context/WsClientContext";
 
 export interface ConfigurationData {
     packageName: string;
@@ -314,8 +315,10 @@ export function AdvancedConfigurationSection({
     packageNameError,
     projectHandleError,
     organizations,
-    hasError
+    hasError,
 }: AdvancedConfigurationSectionProps) {
+    const { isAgentBuilder } = useVisualizerContext();
+    const packageNoun = isAgentBuilder ? "agent" : (isLibrary ? "library" : "integration");
     const { isSigningIn, handleSignIn, handleCancelSignIn } = useSignIn();
 
     const createWithinProject = data.projectHandle !== undefined;
@@ -358,8 +361,8 @@ export function AdvancedConfigurationSection({
             <SubSectionLabel>Ballerina Package</SubSectionLabel>
             <Note style={{ marginBottom: "16px" }}>
                 {createWithinProject
-                    ? `This ${isLibrary ? "library" : "integration"} is generated as a Ballerina package. Specify the package name and version to be assigned.`
-                    : `This ${isLibrary ? "library" : "integration"} is generated as a Ballerina package. Specify the organization, package name and version to be assigned.`}
+                    ? `This ${packageNoun} is generated as a Ballerina package. Specify the package name and version to be assigned.`
+                    : `This ${packageNoun} is generated as a Ballerina package. Specify the organization, package name and version to be assigned.`}
             </Note>
             <FieldGroup>
                 <TextField

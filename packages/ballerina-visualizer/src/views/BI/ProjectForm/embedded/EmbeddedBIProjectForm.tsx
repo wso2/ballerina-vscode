@@ -67,6 +67,7 @@ const stateContainerStyle: React.CSSProperties = {
 export default function EmbeddedBIProjectForm({ wsClient, ballerinaUnavailable, mode = "integration", onBack }: EmbeddedBIProjectFormProps) {
     const queryClient = useMemo(() => new QueryClient(), []);
     const [rpcClient, setRpcClient] = useState<WiBridgeClient | null>(null);
+    const [isAgentBuilder, setIsAgentBuilder] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -79,6 +80,21 @@ export default function EmbeddedBIProjectForm({ wsClient, ballerinaUnavailable, 
                 if (cancelled) {
                     // Unmounted while the bootstrap was in flight — dispose the socket we
                     // just opened rather than leaking it.
+                    wsRpc.dispose();
+                    return;
+                }
+                // Read agent-builder mode directly over the WS bridge to the Ballerina
+                // extension. The bootstrap coords are relayed through the host, which may
+                // drop unknown fields, so this direct call is the reliable source.
+                try {
+                    const ctx = (await wsRpc.request("getBiFormContext")) as { isAgentBuilder?: boolean } | null;
+                    if (!cancelled) {
+                        setIsAgentBuilder(!!ctx?.isAgentBuilder);
+                    }
+                } catch {
+                    // Non-fatal — fall back to non-agent-builder labels.
+                }
+                if (cancelled) {
                     wsRpc.dispose();
                     return;
                 }
@@ -118,7 +134,7 @@ export default function EmbeddedBIProjectForm({ wsClient, ballerinaUnavailable, 
     }
 
     return (
-        <WsClientProvider wsClient={rpcClient}>
+        <WsClientProvider wsClient={rpcClient} isAgentBuilder={isAgentBuilder}>
             <QueryClientProvider client={queryClient}>
                 <CloudContextProvider>
                     {mode === "library" ? (
