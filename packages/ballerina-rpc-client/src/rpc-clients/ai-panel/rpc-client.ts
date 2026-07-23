@@ -49,6 +49,8 @@ import {
     UIChatMessage,
     UpdateChatMessageRequest,
     UsageResponse,
+    QuotaRequestParams,
+    QuotaRequestResult,
     WebToolApprovalRequest,
     ClarifyAnswerRequest,
     ClarifyCancelRequest,
@@ -104,6 +106,7 @@ import {
     updateChatMessage,
     updateRequirementSpecification,
     getUsage,
+    requestQuota,
     compactConversation,
     CompactConversationRequest,
     CompactConversationResponse,
@@ -354,6 +357,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getUsage(): Promise<UsageResponse | undefined> {
         return this._messenger.sendRequest(getUsage, HOST_EXTENSION);
+    }
+
+    requestQuota(params: QuotaRequestParams): Promise<QuotaRequestResult> {
+        return this._messenger.sendRequest(requestQuota, HOST_EXTENSION, params);
     }
 
     openFileDiff(params: OpenFileDiffRequest): void {
