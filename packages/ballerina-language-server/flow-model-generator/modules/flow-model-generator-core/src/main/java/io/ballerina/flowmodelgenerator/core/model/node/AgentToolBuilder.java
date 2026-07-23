@@ -106,7 +106,6 @@ public class AgentToolBuilder extends NodeBuilder {
     public static final String LABEL = "Agent Tool";
     public static final String DESCRIPTION = "Expose a function, action, or connection as an agent tool";
 
-    // codedata.data keys carrying the parts that drive the generated body.
     public static final String WRAPPED_NODE_KEY = "node";
     public static final String CONNECTION_KEY = "connection";
     public static final String DESCRIPTION_KEY = "description";
@@ -114,7 +113,6 @@ public class AgentToolBuilder extends NodeBuilder {
     public static final String AGENT_VAR_NAME_KEY = "agentVarName";
     public static final String AGENT_RECEIVER_KEY = "agentReceiver";
     public static final String INCLUDE_CONTEXT_KEY = "includeContext";
-    // When present, the tool method is written inside this agent-definition class (instead of module level).
     public static final String HOST_CLASS_NAME_KEY = "hostClassName";
 
     private static final String RUN = "run";
@@ -132,8 +130,6 @@ public class AgentToolBuilder extends NodeBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
-        // The tool signature (function name + parameters) is supplied by the caller; the wrapped node / connection
-        // ride in codedata.data. A function-shaped template is provided for completeness.
         properties().functionNameTemplate("tool", context.getAllVisibleSymbolNames());
         FunctionDefinitionBuilder.setMandatoryProperties(this, "", "", "");
         FunctionDefinitionBuilder.setOptionalProperties(this);
@@ -169,15 +165,12 @@ public class AgentToolBuilder extends NodeBuilder {
         if (kind == ToolKind.AGENT_CALL && description.isBlank()) {
             description = "Delegates a query to the " + agentVarName + " agent.";
         }
-        // When set, the tool method is placed inside this agent-definition class rather than at module level.
         String hostClassName = data.get(HOST_CLASS_NAME_KEY) != null ? data.get(HOST_CLASS_NAME_KEY).toString() : null;
 
         SemanticModel semanticModel = sourceBuilder.workspaceManager.semanticModel(sourceBuilder.filePath)
                 .orElse(null);
-        // Agent-call has no wrapped node, so it writes through the tool node (AGENT_TOOL + isNew → agents.bal).
         FlowNode genNode = wrappedNode != null ? wrappedNode : toolNode;
         if (hostClassName != null) {
-            // Pin generation to the class file so imports/placement resolve there instead of functions.bal/agents.bal.
             genNode = withData(genNode, Constants.FILE_PATH_KEY, sourceBuilder.filePath.toString());
         }
         SourceBuilder sb = new SourceBuilder(genNode, sourceBuilder.workspaceManager, sourceBuilder.filePath);
@@ -199,8 +192,6 @@ public class AgentToolBuilder extends NodeBuilder {
                 node.properties(), node.diagnostics(), node.flags());
     }
 
-    // Moves the tool function into the class body (after the last member, indented) and wires self.<tool> into the
-    // inner agent's tools = [...] — one atomic response.
     private static void relocateToolIntoClass(Map<Path, List<TextEdit>> textEdits, Path classFile, String className,
                                               String toolName, WorkspaceManager workspaceManager) {
         List<TextEdit> classEdits = textEdits.get(classFile);
@@ -215,7 +206,6 @@ public class AgentToolBuilder extends NodeBuilder {
         if (classNode == null) {
             return;
         }
-        // Find the function edit by signature — build() prepends the import edits, so it isn't necessarily first.
         TextEdit functionEdit = classEdits.stream()
                 .filter(edit -> edit.getNewText().contains("function " + toolName + "("))
                 .findFirst()
@@ -242,7 +232,6 @@ public class AgentToolBuilder extends NodeBuilder {
         return null;
     }
 
-    // Appends `self.<tool>` to the inner agent's `tools = [...]` list (empty → [self.x]; non-empty → , self.x).
     private static Optional<TextEdit> wireToolIntoList(ClassDefinitionNode classNode, String toolName) {
         ListConstructorExpressionNode toolsList = findInnerToolsList(classNode);
         if (toolsList == null) {
@@ -273,7 +262,6 @@ public class AgentToolBuilder extends NodeBuilder {
         return null;
     }
 
-    // From a `self.<field> = (check) new (... tools = [...] ...)` statement, returns the tools list (or null).
     private static ListConstructorExpressionNode extractToolsFromAssignment(StatementNode statement) {
         if (!(statement instanceof AssignmentStatementNode assignment)) {
             return null;
@@ -380,7 +368,6 @@ public class AgentToolBuilder extends NodeBuilder {
             String key = entry.getKey();
             String value = entry.getValue().getAsString();
 
-            // Skip fields with empty or default values
             if (value == null || value.isEmpty() || value.equals("()") || value.trim().matches("\\{\\s*}")) {
                 continue;
             }
@@ -419,10 +406,6 @@ public class AgentToolBuilder extends NodeBuilder {
         ctx.sb.token().name(sb.toString()).name(System.lineSeparator());
     }
 
-    /**
-     * The kinds of agent tool the builder can emit. Each constant owns its parameter resolution, return-type
-     * resolution, whether it carries an {@code @display} annotation, and its body.
-     */
     private enum ToolKind {
         CUSTOM {
             @Override
@@ -536,7 +519,6 @@ public class AgentToolBuilder extends NodeBuilder {
 
         abstract Map<Path, List<TextEdit>> buildBody(ToolGenContext ctx, List<ToolParam> params, ReturnInfo returnInfo);
 
-        // An explicit codedata.data.toolKind wins; otherwise the wrapped node's kind selects the handler.
         static ToolKind resolve(Map<String, Object> data, FlowNode wrappedNode) {
             Object explicit = data.get(TOOL_KIND_KEY);
             if (explicit != null) {
@@ -590,7 +572,6 @@ public class AgentToolBuilder extends NodeBuilder {
             }
         }
 
-        // Build a lookup of tool input variable names keyed by parameter name
         Map<String, String> toolInputVarNames = new LinkedHashMap<>();
         Optional<Property> funcCallArgs = flowNode.getProperty(Property.PARAMETERS_KEY);
         if (funcCallArgs.isPresent() && funcCallArgs.get().value() instanceof Map<?, ?> paramMap) {
@@ -609,9 +590,7 @@ public class AgentToolBuilder extends NodeBuilder {
 
         List<String> args = new ArrayList<>();
         if (nodeKind == NodeKind.FUNCTION_CALL && flowNode.properties() != null) {
-            // FUNCTION_CALL: iterate properties in order to preserve argument position.
-            // Only include properties that are actual function call arguments (have a
-            // codedata.kind like REQUIRED or DEFAULTABLE), not metadata properties.
+            // Preserve argument position when reading function-call properties.
             for (Map.Entry<String, Property> entry : flowNode.properties().entrySet()) {
                 String key = entry.getKey();
                 Property prop = entry.getValue();
@@ -624,7 +603,6 @@ public class AgentToolBuilder extends NodeBuilder {
 
                 String toolInputVar = toolInputVarNames.get(key);
                 if (toolInputVar != null) {
-                    // Has a tool input — use mapping override if set, otherwise the variable name
                     if (prop.value() instanceof List<?> valueList) {
                         List<String> listArgs = extractListArgs(valueList);
                         if (!listArgs.isEmpty()) {
@@ -642,12 +620,10 @@ public class AgentToolBuilder extends NodeBuilder {
                     List<String> listArgs = extractListArgs(valueList);
                     args.addAll(listArgs);
                 } else if (prop.value() != null && !prop.value().toString().isEmpty()) {
-                    // No tool input — use the mapping expression directly
                     args.add(prop.value().toString());
                 }
             }
         } else {
-            // FUNCTION_DEFINITION: arguments come only from the parameters map
             args.addAll(toolInputVarNames.values());
         }
 
