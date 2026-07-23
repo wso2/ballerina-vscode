@@ -91,14 +91,26 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
         // Always use the active thread — params.threadId is legacy/unused
         const projectRootPath = resolveProjectRootPath();
         const threadId = chatStateStorage.getActiveThread(projectRootPath)?.id ?? 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
 
-        // Create config using factory function
+        // Only one generation may be in flight per thread at a time.
+        if (chatStateStorage.getActiveExecution(projectRootPath, threadId)) {
+            throw new Error('A generation is already in progress. Please wait for it to finish before starting a new one.');
+        }
+
+        // Moving on to a new generation implicitly accepts a still-open previous one.
+        // Nothing to clean up: edits already land directly in the real workspace, and there's
+        // no separate temp copy anymore (see existingTempPath below).
+        chatStateStorage.finalizeLastGenerationIfDone(projectRootPath, threadId);
+
+        // Create config using factory function. existingTempPath makes the agent operate
+        // directly on the real project root instead of AICommandExecutor creating a
+        // throwaway temp copy — file edits land live in the real workspace (M1+), so there's
+        // nothing left for a temp copy to buy us.
         const config = createExecutorConfig(params, {
             command: Command.Agent,
             chatStorageEnabled: true,  // Agent uses chat storage for multi-turn conversations
-            cleanupStrategy: 'review', // Review mode - temp persists until user accepts/declines
-            existingTempPath: pendingReview?.reviewState.tempProjectPath,
+            cleanupStrategy: 'review', // Review mode - revert available until the user moves on
+            existingTempPath: projectRootPath,
             projectRootPath,
             threadId,
         });

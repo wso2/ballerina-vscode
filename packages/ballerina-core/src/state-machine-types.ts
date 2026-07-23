@@ -724,9 +724,12 @@ export interface Checkpoint {
  * Review state for a generation
  */
 export interface GenerationReviewState {
-    /** Status of the generation review */
-    status: 'pending' | 'under_review' | 'accepted' | 'error';
-    /** Temp project path while under review (shared across generations in same thread) */
+    /**
+     * 'done' is the only revertible state, until the next generation starts (implicit 'accepted')
+     * or the user reverts it explicitly. 'accepted'/'reverted'/'error' are terminal.
+     */
+    status: 'generating' | 'done' | 'accepted' | 'reverted' | 'error';
+    /** Temp project path while the agent is generating (shared across generations in same thread) */
     tempProjectPath?: string;
     /** Files modified in this specific generation */
     modifiedFiles: string[];

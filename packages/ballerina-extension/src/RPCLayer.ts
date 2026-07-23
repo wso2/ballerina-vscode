@@ -52,6 +52,10 @@ import { registerMigrateIntegrationRpcHandlers } from './rpc-managers/migrate-in
 import { registerPlatformExtRpcHandlers } from './rpc-managers/platform-ext/rpc-handler';
 import { MigrationPanelWebview } from './views/migration-panel/webview';
 import { isRecording, recordRpc } from './test-support/fixtureRecorder';
+import { chatStateStorage } from './views/ai-panel/chatStateStorage';
+
+// Event types that trigger MainPanel's remount/re-fetch regardless of state value.
+const DISRUPTIVE_TRANSITION_EVENTS = new Set(['VIEW_UPDATE', 'UPDATE_PROJECT_STRUCTURE']);
 
 export class RPCLayer {
     static _messenger: Messenger = new Messenger({ ignoreHiddenViews: false });
@@ -59,7 +63,10 @@ export class RPCLayer {
     constructor(webViewPanel: WebviewPanel | WebviewView) {
         if (isWebviewPanel(webViewPanel)) {
             RPCLayer._messenger.registerWebviewPanel(webViewPanel as WebviewPanel);
-            StateMachine.service().onTransition((state) => {
+            StateMachine.service().onTransition((state, event) => {
+                if (DISRUPTIVE_TRANSITION_EVENTS.has(event?.type) && chatStateStorage.hasAnyActiveExecution()) {
+                    return;
+                }
                 RPCLayer._messenger.sendNotification(stateChanged, { type: 'webview', webviewType: VisualizerWebview.viewType }, state.value);
             });
             // Popup machine transition

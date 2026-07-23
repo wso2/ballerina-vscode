@@ -190,6 +190,19 @@ export async function getTempProject(ctx: ExecutionContext): Promise<TempProject
 }
 
 /**
+ * True only for paths this module itself created via getTempProject — a real OS temp
+ * directory named bal-proj-<hash>-<timestamp>-<suffix>. cleanupTempProject refuses to
+ * delete anything else, since callers may pass a real project directory (e.g. the
+ * existingTempPath lifecycle option, or an ExecutionContext whose tempProjectPath has
+ * been repointed at the live workspace) and fs.rmSync on that would be irreversible.
+ */
+function isOwnedTempDir(tempPath: string): boolean {
+    const resolved = path.resolve(tempPath);
+    const withinOsTmpdir = resolved.startsWith(path.resolve(os.tmpdir()) + path.sep);
+    return withinOsTmpdir && /^bal-proj-[0-9a-f]{64}-\d+-[0-9a-f]{8}$/.test(path.basename(resolved));
+}
+
+/**
  * Cleans up a temporary project directory
  * Sends didClose notifications to Language Server for both file:// and ai:// schemas
  * before deleting files to prevent orphaned LS references
@@ -199,6 +212,11 @@ export async function getTempProject(ctx: ExecutionContext): Promise<TempProject
 export async function cleanupTempProject(tempPath: string): Promise<void> {
     const baselinePath = getReviewBaselinePath(tempPath);
     if (!fs.existsSync(tempPath) && !fs.existsSync(baselinePath)) {
+        return;
+    }
+
+    if (!isOwnedTempDir(tempPath)) {
+        console.error(`[cleanupTempProject] Refusing to delete non-temp path: ${tempPath}`);
         return;
     }
 

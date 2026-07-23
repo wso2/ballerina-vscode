@@ -27,7 +27,6 @@ import {
   ProjectComponentsResponse,
 } from "@wso2/ballerina-core";
 import path from "path";
-import { writeBallerinaFileDidOpen } from "../../../../utils/modification";
 import { extractRecordTypeDefinitionsFromFile } from "../../../../rpc-managers/ai-panel/utils";
 import { TypesGenerationResult } from "../types";
 import { existsSync, readFileSync } from "fs";
@@ -83,17 +82,14 @@ export async function generateTypesFromContext(
   const typeGenerationResponse = await generateTypeCreation(typeGenerationRequest);
   const generatedTypesCode = typeGenerationResponse.typesCode;
 
-  // Use provided temp directory
-  const tempTypesFilePath = path.join(tempDirectory, outputFileName);
+  // Caller persists finalTypesCode; this only reads any existing types.bal to append to.
+  const typesFilePath = path.join(tempDirectory, outputFileName);
 
-  // Check if types.bal already exists and append new types
   let finalTypesCode = generatedTypesCode;
-  if (existsSync(tempTypesFilePath)) {
-    const existingContent = readFileSync(tempTypesFilePath, 'utf-8');
+  if (existsSync(typesFilePath)) {
+    const existingContent = readFileSync(typesFilePath, 'utf-8');
     finalTypesCode = existingContent.trim() + '\n\n' + generatedTypesCode.trim();
   }
-
-  writeBallerinaFileDidOpen(tempTypesFilePath, finalTypesCode);
 
   return {
     typesCode: finalTypesCode,

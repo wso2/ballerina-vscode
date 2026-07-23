@@ -49,7 +49,6 @@ import {
     undo,
     undoRedoState,
     updateCurrentArtifactLocation,
-    reviewAccepted,
     navigateReviewMode,
     GoBackRequest,
     GoHomeRequest
@@ -118,10 +117,6 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     updateCurrentArtifactLocation(params: UpdatedArtifactsResponse): Promise<ProjectStructureArtifactResponse> {
         return this._messenger.sendRequest(updateCurrentArtifactLocation, HOST_EXTENSION, params);
-    }
-
-    reviewAccepted(): void {
-        return this._messenger.sendNotification(reviewAccepted, HOST_EXTENSION);
     }
 
     navigateReviewMode(index: number): void {

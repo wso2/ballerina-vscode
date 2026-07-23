@@ -32,8 +32,7 @@ import { createToolRegistry } from './tool-registry';
 import { loadSkillsContext } from './skills/context';
 
 import { refreshMcpClientManager } from './mcp';
-import { getProjectSource, cleanupTempProject, getReviewBaselinePath } from '../utils/project/temp-project';
-import { integrateCodeToWorkspace } from './utils';
+import { getProjectSource } from '../utils/project/temp-project';
 import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
@@ -251,12 +250,12 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 this.config.executionContext
             );
 
-            // 2. Send didOpen only if creating NEW temp (not reusing for review continuation)
-            if (!this.config.lifecycle?.existingTempPath) {
-                // Fresh project - Both schemas - correct
+            // 2. Seed the ai:// baseline, unless the caller explicitly asked to skip it
+            // (migration reusing the same directory across sequential stages).
+            if (!this.config.lifecycle?.skipFreshProjectSetup) {
                 sendAgentDidOpenForFreshProjects(tempProjectPath, projects);
             } else {
-                console.log(`[AgentExecutor] Skipping didOpen (reusing temp for review continuation)`);
+                console.log(`[AgentExecutor] Skipping ai:// baseline seed (skipFreshProjectSetup)`);
             }
 
             const workspaceId = this.config.executionContext.workspacePath || this.config.executionContext.projectPath;
@@ -298,6 +297,9 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 generationType: 'agent',
                 agentsMdLastReadHash: agentsMd.hashToPersist,
             });
+
+            // Ensure the pre-edit snapshot exists before any tool can run.
+            await chatStateStorage.waitForCheckpointCapture(this.config.generationId);
 
             // 4. Get chat history from storage (if enabled) — AFTER pre-turn compaction
             const chatHistory = this.getChatHistory();
@@ -450,7 +452,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 modifiedFiles,
                 allModifiedFiles,
                 projects,
-                shouldCleanup: false, // Review mode - don't cleanup immediately
                 messageId: this.config.generationId,
                 userMessageContent,
                 response,
@@ -560,7 +561,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                                 {
                                     role: "user",
                                     content: `<abort_notification>
-Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
+Generation stopped by user. The last in-progress task was not saved. Any completed edits remain in the workspace and can be reverted if unwanted. Please redo the last task if needed.
 </abort_notification>`,
                                 },
                             ],
@@ -568,11 +569,24 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     }
                     // Emit save_chat so any pre-step-boundary streamed text is persisted into uiResponse.
                     updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
-                    // Clear review state
-                    const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
-                    if (pendingReview && pendingReview.id === this.config.generationId) {
-                        console.log("[AgentExecutor] Clearing review state due to abort");
-                        chatStateStorage.declineAllReviews(projectRootPath, threadId);
+                    // Leave any live edits in place — the user may want to continue from them.
+                    // Only an explicit revert (declineChanges) restores the checkpoint.
+                    const abortedGeneration = chatStateStorage.getGeneration(projectRootPath, threadId, this.config.generationId);
+                    if (abortedGeneration && !['accepted', 'reverted', 'error'].includes(abortedGeneration.reviewState.status)) {
+                        const generationModifiedFiles = Array.from(new Set([...allModifiedFiles, ...modifiedFiles]));
+                        if (generationModifiedFiles.length > 0) {
+                            console.log("[AgentExecutor] Generation stopped with partial edits — leaving them in place");
+                            chatStateStorage.updateReviewState(projectRootPath, threadId, this.config.generationId, {
+                                status: 'done',
+                                tempProjectPath,
+                                modifiedFiles: generationModifiedFiles,
+                            });
+                        } else {
+                            chatStateStorage.updateReviewState(projectRootPath, threadId, this.config.generationId, {
+                                status: 'error',
+                                errorMessage: 'Stopped by user before any changes were made',
+                            });
+                        }
                     }
 
                     // Send telemetry for generation abort
@@ -688,22 +702,28 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         console.error("[Agent] Stream error:", error);
 
         const tempProjectPath = context.ctx.tempProjectPath!;
-        if (context.shouldCleanup) {
-            // Note: cleanupTempProject now handles sendAgentDidClose internally
-            await cleanupTempProject(tempProjectPath);
-        }
 
-        // Clear review state for this generation
+        // Leave any live edits in place — the user may want to continue from them. Only an
+        // explicit revert (declineChanges) restores the checkpoint.
         const projectRootPath = context.ctx.workspacePath || context.ctx.projectPath || '';
         const threadId = this.config.chatStorage?.threadId ?? 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
+        const erroredGeneration = chatStateStorage.getGeneration(projectRootPath, threadId, context.messageId);
 
-        if (pendingReview && pendingReview.id === context.messageId) {
-            console.log("[AgentExecutor] Clearing review state due to error");
-            chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
-                status: 'error',
-                errorMessage: getErrorMessage(error),
-            });
+        if (erroredGeneration && !['accepted', 'reverted', 'error'].includes(erroredGeneration.reviewState.status)) {
+            const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
+            if (generationModifiedFiles.length > 0) {
+                console.log("[AgentExecutor] Generation errored with partial edits — leaving them in place");
+                chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
+                    status: 'done',
+                    tempProjectPath,
+                    modifiedFiles: generationModifiedFiles,
+                });
+            } else {
+                chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
+                    status: 'error',
+                    errorMessage: getErrorMessage(error),
+                });
+            }
         }
 
         // Send telemetry for generation failed
@@ -822,30 +842,17 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         // Update chat state storage
         await this.updateChatState(context, assistantMessages, tempProjectPath);
 
-        // Integrate generated code into workspace immediately so user sees changes during review.
-        // Skip only when the temp path IS the real workspace directory (migration wizard in-place
-        // editing). A review-continuation run also sets existingTempPath but to a temp dir, so we
-        // compare resolved paths rather than just checking existingTempPath presence.
-        const workspaceRoot = context.ctx.workspacePath || context.ctx.projectPath;
-        const isInPlaceEditing =
-            !!workspaceRoot &&
-            path.resolve(tempProjectPath) === path.resolve(workspaceRoot);
-        if (!isInPlaceEditing) {
+        // Every edit already landed live in the real workspace via persistLiveEdit (see
+        // text-editor.ts) — no re-integration needed here. In workspace mode, still resolve the
+        // active project path from the generation's modified files if it wasn't already known.
+        if (!context.ctx.projectPath && context.ctx.workspacePath) {
             const generationFiles = new Set([...context.allModifiedFiles, ...context.modifiedFiles]);
-            if (generationFiles.size > 0) {
-                const integrationCtx = { ...context.ctx };
-                // In workspace mode, resolve project path from modified files if not set
-                if (!integrationCtx.projectPath && integrationCtx.workspacePath) {
-                    const firstBalFile = Array.from(generationFiles).find(f => f.endsWith('.bal'));
-                    if (firstBalFile) {
-                        const packageName = firstBalFile.split('/')[0];
-                        if (packageName) {
-                            integrationCtx.projectPath = path.join(integrationCtx.workspacePath, packageName);
-                            StateMachine.context().projectPath = integrationCtx.projectPath;
-                        }
-                    }
+            const firstBalFile = Array.from(generationFiles).find(f => f.endsWith('.bal'));
+            if (firstBalFile) {
+                const packageName = firstBalFile.split('/')[0];
+                if (packageName) {
+                    StateMachine.context().projectPath = path.join(context.ctx.workspacePath, packageName);
                 }
-                await integrateCodeToWorkspace(tempProjectPath, generationFiles, integrationCtx);
             }
         }
 
@@ -899,9 +906,9 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             tempProjectPath
         );
 
-        // Update review state — modifiedFiles is per-generation only
+        // 'done' = finished and revertible until the user reverts or the next generation starts.
         chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
-            status: 'under_review',
+            status: 'done',
             tempProjectPath,
             modifiedFiles: generationModifiedFiles,
             affectedPackagePaths: affectedPackagePaths,
@@ -917,8 +924,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
         const threadId = this.config.chatStorage?.threadId ?? 'default';
 
-        // Show review for the current generation only; older under-review ones are treated as accepted.
-        // TODO: refactor generation review state so older generations are explicitly marked accepted.
         const currentGeneration = chatStateStorage.getGeneration(workspaceId, threadId, context.messageId);
         const accumulatedModifiedFiles = currentGeneration?.reviewState.modifiedFiles ?? [];
         const cachedAffectedPackages = currentGeneration?.reviewState.affectedPackagePaths ?? [];
@@ -929,14 +934,15 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             let affectedPackages: string[] = [];
             const diffPackageMap: string[] = [];
             const langClient = StateMachine.context().langClient;
-            const tempDir = context.ctx.tempProjectPath!;
+            // The execution's working root: the real workspace in direct-edit mode.
+            const workingProjectPath = context.ctx.tempProjectPath!;
             affectedPackages = cachedAffectedPackages.length > 0
                 ? cachedAffectedPackages
-                : await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
+                : await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, workingProjectPath);
             const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
             for (const pkg of affectedPackages) {
                 // Skip workspace root — it only contains Ballerina.toml, not a real package
-                if (isWorkspace && pkg === tempDir) { continue; }
+                if (isWorkspace && pkg === workingProjectPath) { continue; }
                 const pkgName = path.basename(pkg);
                 try {
                     const res = await langClient.getSemanticDiff({ projectPath: pkg });
@@ -961,7 +967,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 loadDesignDiagrams,
                 affectedPackages,
                 modifiedFiles: accumulatedModifiedFiles,
-                tempProjectPath: context.ctx.tempProjectPath!,
+                tempProjectPath: workingProjectPath,
                 isWorkspace,
             };
 
@@ -971,8 +977,10 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             // stash what the diff view needs to reopen after an extension host restart.
             await savePendingReviewRestore({
                 generationId: context.messageId,
-                tempProjectPath: context.ctx.tempProjectPath!,
-                baselineProjectPath: getReviewBaselinePath(context.ctx.tempProjectPath!),
+                tempProjectPath: workingProjectPath,
+                // Direct-edit mode keeps no on-disk baseline copy; the checkpoint snapshot
+                // (fallbackOriginalContents on restore) is the source of pre-generation originals.
+                baselineProjectPath: undefined,
                 modifiedFiles: accumulatedModifiedFiles,
                 affectedPackagePaths: affectedPackages,
                 semanticDiffs,

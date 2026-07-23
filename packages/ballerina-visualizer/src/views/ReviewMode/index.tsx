@@ -411,26 +411,6 @@ export function ReviewMode(): JSX.Element {
         setCurrentItemMetadata(metadata);
     };
 
-    const handleAccept = async () => {
-        try {
-            await rpcClient.getAiPanelRpcClient().acceptChanges();
-            rpcClient.getVisualizerRpcClient().reviewAccepted();
-        } catch (error) {
-            console.error("[Reviewing Changes] Error accepting changes:", error);
-            rpcClient.getVisualizerRpcClient().reviewAccepted();
-        }
-    };
-
-    const handleReject = async () => {
-        try {
-            await rpcClient.getAiPanelRpcClient().declineChanges();
-            rpcClient.getVisualizerRpcClient().goBack();
-        } catch (error) {
-            console.error("[Reviewing Changes] Error declining changes:", error);
-            rpcClient.getVisualizerRpcClient().goBack();
-        }
-    };
-
     // Which toggle segments are available for the current view.
     // Only flow diagrams support the unified diff; type/design diagrams keep old/new behavior.
     const getAvailableModes = (): Record<ReviewViewMode, boolean> => {
@@ -615,8 +595,6 @@ export function ReviewMode(): JSX.Element {
                 currentLabel={currentView?.label}
                 onPrevious={handlePrevious}
                 onNext={handleNext}
-                onAccept={handleAccept}
-                onReject={handleReject}
                 canGoPrevious={canGoPrevious}
                 canGoNext={canGoNext}
                 viewMode={effectiveViewMode}
