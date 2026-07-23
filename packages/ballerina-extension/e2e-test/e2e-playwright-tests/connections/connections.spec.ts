@@ -169,39 +169,43 @@ export default function createTests() {
             // Target Type has no default value and is required, but it isn't a
             // standard `ex-editor-*` expression field — it's a plain
             // input/textarea named "targetType". Its mount is intermittently
-            // flaky (briefly detaches/remounts during validation), so retry
-            // the fill instead of a single attempt.
+            // flaky (briefly detaches/remounts during validation).
             const targetTypeField = artifactWebView.locator('input[name="targetType"], textarea[name="targetType"]');
             const saveGetActionButton = artifactWebView.getByRole('button', { name: 'Save' }).last();
+
+            const typeTargetType = async () => {
+                await targetTypeField.click({ force: true, timeout: 2000 });
+                await page.page.keyboard.press('ControlOrMeta+A');
+                await page.page.keyboard.press('Backspace');
+                await page.page.keyboard.type('http:Response', { delay: 20 });
+                await page.page.waitForTimeout(500);
+                // Typing opens the field's autocomplete/type-helper panel, which keeps the
+                // field from blurring and the Save button's validation from settling - same
+                // as the path field above, dismiss it before checking Save.
+                await page.page.keyboard.press('Escape');
+                await page.page.waitForTimeout(300);
+                await page.page.keyboard.press('Escape');
+                await page.page.waitForTimeout(300);
+            };
+
+            if (await targetTypeField.count() > 0) {
+                await typeTargetType();
+            }
+
+            // Enabling Save depends on an async language-server round trip.
             let getFormReady = false;
-            for (let attempt = 0; attempt < 10 && !getFormReady; attempt++) {
+            for (let attempt = 0; attempt < 30 && !getFormReady; attempt++) {
+                if (await saveGetActionButton.isEnabled().catch(() => false)) {
+                    getFormReady = true;
+                    break;
+                }
                 if (await targetTypeField.count() > 0) {
-                    try {
-                        await targetTypeField.click({ force: true, timeout: 2000 });
-                        // Clear any leftover value first - a previous attempt may have
-                        // typed into this same field without the value being committed,
-                        // and retyping without clearing would append instead of replace.
-                        await page.page.keyboard.press('ControlOrMeta+A');
-                        await page.page.keyboard.press('Backspace');
-                        await page.page.keyboard.type('http:Response', { delay: 20 });
-                        await page.page.waitForTimeout(1000);
-                        // Typing opens the field's autocomplete/type-helper panel, which keeps the
-                        // field from blurring and the Save button's validation from settling - same
-                        // as the path field above, dismiss it before checking Save.
-                        await page.page.keyboard.press('Escape');
-                        await page.page.waitForTimeout(300);
-                        await page.page.keyboard.press('Escape');
-                        await page.page.waitForTimeout(300);
-                        await saveGetActionButton.waitFor({ state: 'visible', timeout: 5000 });
-                        if (await saveGetActionButton.isEnabled().catch(() => false)) {
-                            getFormReady = true;
-                            break;
-                        }
-                    } catch {
-                        // field detached mid-interaction; retry below
+                    const currentValue = await targetTypeField.inputValue().catch(() => '');
+                    if (currentValue !== 'http:Response') {
+                        await typeTargetType().catch(() => { /* field detached mid-interaction; retry next loop */ });
                     }
                 }
-                await page.page.waitForTimeout(500);
+                await page.page.waitForTimeout(1000);
             }
             if (!getFormReady) {
                 throw new Error('Save is disabled on the Get action form after filling path and targetType');
