@@ -57,7 +57,8 @@ public class NodeTemplateTest extends AbstractLSTest {
 
     @Override
     // TODO: remove after deprecated ballerinax/ai imports are migrated
-    // SKIP: all fixtures use agent sources importing ballerinax/ai (removed from offline cache) — see REMAINING_TEST_FAILURES.md
+    // SKIP: all fixtures use agent sources importing ballerinax/ai (removed from offline cache)
+    // — see REMAINING_TEST_FAILURES.md
     @Test(dataProvider = "data-provider", enabled = false)
     public void test(Path config) throws IOException {
         Path configJsonPath = configDir.resolve(config);
