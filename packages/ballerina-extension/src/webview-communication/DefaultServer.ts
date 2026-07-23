@@ -34,6 +34,7 @@ import { CommonRpcManager } from "../rpc-managers/common/rpc-manager";
 import { LangClientRpcManager } from "../rpc-managers/lang-client/rpc-manager";
 import { MigrateIntegrationRpcManager } from "../rpc-managers/migrate-integration/rpc-manager";
 import { createBIProject, getDefaultCreationPath, validateProjectPath } from "../utils/bi";
+import { isAgentBuilderMode } from "../utils/config";
 import { onMigratedProjectEvent, onMigrationToolLogEvent, onMigrationToolStateEvent } from "../features/ai/migration/migrationEvents";
 // Shared wire contract — single source of truth for both this server and the
 // webview client (`ballerina-visualizer` `BiWsClient`).
@@ -196,6 +197,10 @@ export class DefaultServer {
         this.register("getWorkspaceRoot", () => common.getWorkspaceRoot());
         this.register("getDefaultOrgName", () => common.getDefaultOrgName());
         this.register("getDefaultCreationPath", () => ({ path: getDefaultCreationPath() }));
+        this.register("getBiFormContext", () => {
+            const flag = isAgentBuilderMode();
+            return { isAgentBuilder: flag };
+        });
         this.register("isSupportedSLVersion", (p) => langClient.isSupportedSLVersion(p));
         this.register("showErrorMessage", (p) => common.showErrorMessage(p));
 
