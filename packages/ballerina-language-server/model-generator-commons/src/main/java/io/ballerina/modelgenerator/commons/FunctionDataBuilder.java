@@ -20,8 +20,6 @@ package io.ballerina.modelgenerator.commons;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import io.ballerina.centralconnector.CentralAPI;
-import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.TypeBuilder;

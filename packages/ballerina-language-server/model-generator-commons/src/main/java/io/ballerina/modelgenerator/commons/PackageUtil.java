@@ -130,7 +130,7 @@ public class PackageUtil {
                     && first.get().resolutionStatus() != ResolutionResponse.ResolutionStatus.UNRESOLVED) {
                 return first.get().resolvedDescriptor().version().toString();
             }
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             // fall through to null
         }
         return null;
