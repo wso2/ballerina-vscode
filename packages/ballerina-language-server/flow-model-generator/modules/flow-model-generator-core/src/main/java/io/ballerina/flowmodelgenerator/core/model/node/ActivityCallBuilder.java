@@ -100,6 +100,7 @@ public class ActivityCallBuilder extends CallBuilder {
     public static final String NO_RETRY_VALUE = "NoRetry";
     public static final String AUTO_RETRY_VALUE = "AutoRetry";
     public static final String MANUAL_RETRY_VALUE = "ManualRetry";
+    public static final String RETRY_USER_ROLES_KEY = "retryUserRoles";
     public static final String MAX_RETRIES_KEY = "maxRetries";
     public static final String RETRY_DELAY_KEY = "retryDelay";
     public static final String RETRY_BACKOFF_KEY = "retryBackoff";
@@ -366,6 +367,14 @@ public class ActivityCallBuilder extends CallBuilder {
     public static void addRetryPolicyFormProperties(NodeBuilder nodeBuilder, String retryPolicyValue,
                                                     String maxRetries, String retryDelay,
                                                     String retryBackoff, String maxRetryDelay) {
+        addRetryPolicyFormProperties(nodeBuilder, retryPolicyValue, maxRetries, retryDelay,
+                retryBackoff, maxRetryDelay, "");
+    }
+
+    public static void addRetryPolicyFormProperties(NodeBuilder nodeBuilder, String retryPolicyValue,
+                                                    String maxRetries, String retryDelay,
+                                                    String retryBackoff, String maxRetryDelay,
+                                                    String retryUserRoles) {
         List<Option> options = List.of(
                 new Option("No Retry", NO_RETRY_VALUE),
                 new Option("Auto Retry", AUTO_RETRY_VALUE),
@@ -393,7 +402,11 @@ public class ActivityCallBuilder extends CallBuilder {
         Map<String, Map<String, Property>> dynamicFields = new LinkedHashMap<>();
         dynamicFields.put(NO_RETRY_VALUE, Map.of());
         dynamicFields.put(AUTO_RETRY_VALUE, autoRetryFields);
-        dynamicFields.put(MANUAL_RETRY_VALUE, Map.of());
+        Map<String, Property> manualRetryFields = new LinkedHashMap<>();
+        manualRetryFields.put(RETRY_USER_ROLES_KEY, buildRetrySubProperty("Reviewer Roles",
+                "Role(s) permitted to decide the retry review, e.g. \"manager\" or "
+                        + "[\"finance\", \"manager\"]. Leave empty to allow any role.", "string|string[]"));
+        dynamicFields.put(MANUAL_RETRY_VALUE, manualRetryFields);
 
         nodeBuilder.properties().custom()
                 .metadata()
@@ -417,6 +430,9 @@ public class ActivityCallBuilder extends CallBuilder {
                 "Max Retries", "Maximum number of retry attempts", "int", maxRetries);
         addHiddenRetrySubFieldProperty(nodeBuilder, RETRY_DELAY_KEY,
                 "Retry Delay", "Initial delay between retries in seconds", "decimal", retryDelay);
+        addHiddenRetrySubFieldProperty(nodeBuilder, RETRY_USER_ROLES_KEY,
+                "Reviewer Roles", "Role(s) permitted to decide the retry review", "string|string[]",
+                retryUserRoles);
         addHiddenRetrySubFieldProperty(nodeBuilder, RETRY_BACKOFF_KEY,
                 "Retry Backoff", "Exponential backoff multiplier", "decimal", retryBackoff);
         addHiddenRetrySubFieldProperty(nodeBuilder, MAX_RETRY_DELAY_KEY,
@@ -532,7 +548,7 @@ public class ActivityCallBuilder extends CallBuilder {
         Map<String, Property> properties = flowNode.properties();
         Set<String> excludedKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY,
                 CHECK_ERROR_KEY, ADVANCED_PARAM_KEY, RETRY_POLICY_PARAM,
-                MAX_RETRIES_KEY, RETRY_DELAY_KEY, RETRY_BACKOFF_KEY, MAX_RETRY_DELAY_KEY);
+                MAX_RETRIES_KEY, RETRY_DELAY_KEY, RETRY_BACKOFF_KEY, MAX_RETRY_DELAY_KEY, RETRY_USER_ROLES_KEY);
         populateActivityCallArg(sourceBuilder, properties, excludedKeys);
         populateRetryPolicyArg(sourceBuilder, properties);
         populateAdvancedArgs(sourceBuilder, properties);
@@ -751,7 +767,13 @@ public class ActivityCallBuilder extends CallBuilder {
         }
         return switch (value) {
             // NO_RETRY is handled (and skipped) by populateRetryPolicyArg before reaching here.
-            case MANUAL_RETRY_VALUE -> "workflow:ManualRetry";
+            case MANUAL_RETRY_VALUE -> {
+                Property roles = properties.get(RETRY_USER_ROLES_KEY);
+                String rolesValue = roles == null || roles.value() == null
+                        ? "" : roles.value().toString().trim();
+                // ManualRetry is the reviewer role(s); an empty list means any role may decide.
+                yield rolesValue.isBlank() ? "[]" : WorkflowUtil.quoteIfPlain(rolesValue);
+            }
             default -> value;
         };
     }

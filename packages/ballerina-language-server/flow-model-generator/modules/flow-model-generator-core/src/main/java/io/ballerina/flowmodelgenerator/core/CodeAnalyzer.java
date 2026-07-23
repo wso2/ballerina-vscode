@@ -2017,23 +2017,29 @@ public class CodeAnalyzer extends NodeVisitor {
     private void addNormalizedRetryPolicyProperties(String rawValue) {
         String dropdownValue = ActivityCallBuilder.NO_RETRY_VALUE;
         String maxRetries = "", retryDelay = "", retryBackoff = "", maxRetryDelay = "";
+        String retryUserRoles = "";
 
         if (rawValue != null && !rawValue.isBlank()) {
-            if (rawValue.contains("ManualRetry")) {
-                dropdownValue = ActivityCallBuilder.MANUAL_RETRY_VALUE;
-            } else if (rawValue.trim().startsWith("{")) {
+            String trimmed = rawValue.trim();
+            if (trimmed.startsWith("{")) {
                 dropdownValue = ActivityCallBuilder.AUTO_RETRY_VALUE;
                 Map<String, String> fields = parseSimpleRecord(rawValue);
                 maxRetries = fields.getOrDefault(ActivityCallBuilder.MAX_RETRIES_KEY, "");
                 retryDelay = fields.getOrDefault(ActivityCallBuilder.RETRY_DELAY_KEY, "");
                 retryBackoff = fields.getOrDefault(ActivityCallBuilder.RETRY_BACKOFF_KEY, "");
                 maxRetryDelay = fields.getOrDefault(ActivityCallBuilder.MAX_RETRY_DELAY_KEY, "");
+            } else if (!trimmed.equals("()") && !trimmed.contains("NoRetry")) {
+                // ManualRetry is the reviewer role(s): a string, a role list, or the legacy
+                // workflow:ManualRetry sentinel (any role).
+                dropdownValue = ActivityCallBuilder.MANUAL_RETRY_VALUE;
+                if (!trimmed.contains("ManualRetry") && !trimmed.equals("[]")) {
+                    retryUserRoles = trimmed;
+                }
             }
-            // else: NoRetry (default) or any unrecognized value
         }
 
         ActivityCallBuilder.addRetryPolicyFormProperties(nodeBuilder, dropdownValue,
-                maxRetries, retryDelay, retryBackoff, maxRetryDelay);
+                maxRetries, retryDelay, retryBackoff, maxRetryDelay, retryUserRoles);
     }
 
     /** Parses a simple Ballerina record literal {@code {key: value, ...}} into a string map. */
