@@ -104,9 +104,47 @@ public class ExpressionEditorContext {
 
     public LinePosition startLine() {
         if (startLine == null) {
-            startLine = CommonUtils.getPosition(info.startLine(), documentContext.document());
+            startLine = normalizeStatementPosition(
+                    CommonUtils.getPosition(info.startLine(), documentContext.document()));
         }
         return startLine;
+    }
+
+    // The probe statement must land in a statement (or module-member) context. Capability
+    // properties of an object-model durable agent carry positions INSIDE the module-level
+    // `check new ({...})` config literal, where a spliced statement cannot parse — hoist such
+    // positions to the start of the enclosing module-level declaration, where the typed
+    // `<type> __reserved__ = <expr>;` probe parses as a module-level variable declaration.
+    private LinePosition normalizeStatementPosition(LinePosition position) {
+        try {
+            io.ballerina.compiler.syntax.tree.ModulePartNode rootNode =
+                    documentContext.document().syntaxTree().rootNode();
+            TextDocument textDocument = documentContext.document().textDocument();
+            int textPosition = textDocument.textPositionFrom(position);
+            io.ballerina.compiler.syntax.tree.NonTerminalNode node =
+                    rootNode.findNode(TextRange.from(textPosition, 0), true);
+            io.ballerina.compiler.syntax.tree.NonTerminalNode current = node;
+            boolean insideFunction = false;
+            io.ballerina.compiler.syntax.tree.NonTerminalNode moduleVarDecl = null;
+            while (current != null) {
+                SyntaxKind kind = current.kind();
+                if (kind == SyntaxKind.FUNCTION_DEFINITION || kind == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION
+                        || kind == SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                    insideFunction = true;
+                    break;
+                }
+                if (kind == SyntaxKind.MODULE_VAR_DECL) {
+                    moduleVarDecl = current;
+                }
+                current = current.parent();
+            }
+            if (!insideFunction && moduleVarDecl != null) {
+                return LinePosition.from(moduleVarDecl.lineRange().startLine().line(), 0);
+            }
+        } catch (RuntimeException e) {
+            // Fall through to the original position on any resolution failure.
+        }
+        return position;
     }
 
     // TODO: Check how we can use SourceBuilder in place of this method
