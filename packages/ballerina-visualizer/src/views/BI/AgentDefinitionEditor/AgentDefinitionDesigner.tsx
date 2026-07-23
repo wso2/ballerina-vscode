@@ -568,16 +568,13 @@ export function AgentDefinitionDesigner(props: AgentDefinitionDesignerProps) {
     const [editingMcpNode, setEditingMcpNode] = useState<FlowNode>();
     const [connections, setConnections] = useState<FlowNode[]>([]);
     const [editingConnection, setEditingConnection] = useState<FlowNode>();
-    // Keep the latest class location after source edits move the declaration.
     const classPositionRef = useRef<NodePosition>(position);
     const classNameRef = useRef<string>();
     const refreshVersionRef = useRef(0);
     const refreshRef = useRef<(posOverride?: NodePosition) => Promise<void>>();
     const requestRefreshRef = useRef<(() => void)>();
     const agentToolsRef = useRef<ToolData[]>([]);
-    // Keep newly written tools visible until the nested model catches up.
     const pendingToolsRef = useRef<Map<string, ToolData>>(new Map());
-    // Defer refreshes until a multi-edit source operation completes.
     const suppressRefreshRef = useRef(false);
     const refreshPendingRef = useRef(false);
 
@@ -643,7 +640,6 @@ export function AgentDefinitionDesigner(props: AgentDefinitionDesignerProps) {
         }
     };
 
-    // Retry until the nested model reports a newly written tool.
     const refreshAfterToolWrite = async (toolName?: string) => {
         const attempts = toolName ? 8 : 1;
         for (let attempt = 0; attempt < attempts; attempt++) {
@@ -767,7 +763,6 @@ export function AgentDefinitionDesigner(props: AgentDefinitionDesignerProps) {
         }
     };
 
-    // Name + description edit — mirrors ServiceClassConfig, but inline so we stay on the designer.
     const configFields: FormField[] = React.useMemo(() => {
         if (!agentClassModel) return [];
         const fields: FormField[] = [];
@@ -1038,7 +1033,6 @@ export function AgentDefinitionDesigner(props: AgentDefinitionDesignerProps) {
         }
 
         setIsSaving(true);
-        // Refresh only after the source edits and import repair complete.
         suppressRefreshRef.current = true;
         let toolCreated = false;
         try {
@@ -1080,7 +1074,6 @@ export function AgentDefinitionDesigner(props: AgentDefinitionDesignerProps) {
         pendingToolsRef.current.delete(tool.name);
         updateAgentTools(previousTools.filter((existingTool) => existingTool.name !== tool.name));
         setIsSaving(true);
-        // Defer refresh until both source edits complete.
         suppressRefreshRef.current = true;
         try {
             if (tool.type === "MCP Server") {

@@ -95,12 +95,6 @@ import java.util.stream.Collectors;
 import static io.ballerina.flowmodelgenerator.core.AgentsGenerator.TARGET_TYPE;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 
-/**
- * Builds an {@code @ai:AgentTool} wrapper function exposing a function, connection action, or another agent as a
- * tool. All kinds share one envelope; only the body differs per {@link ToolKind}.
- *
- * @since 1.0.0
- */
 public class AgentToolBuilder extends NodeBuilder {
 
     public static final String LABEL = "Agent Tool";
@@ -590,7 +584,6 @@ public class AgentToolBuilder extends NodeBuilder {
 
         List<String> args = new ArrayList<>();
         if (nodeKind == NodeKind.FUNCTION_CALL && flowNode.properties() != null) {
-            // Preserve argument position when reading function-call properties.
             for (Map.Entry<String, Property> entry : flowNode.properties().entrySet()) {
                 String key = entry.getKey();
                 Property prop = entry.getValue();
@@ -854,7 +847,6 @@ public class AgentToolBuilder extends NodeBuilder {
             if (propCodedata != null
                     && ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(propCodedata.kind())) {
                 String paramName = entry.getKey();
-                // Use user-provided value if set, otherwise fall back to defaultValue
                 String resolvedType;
                 Object value = entry.getValue().value();
                 if (value != null && !value.toString().isEmpty()) {
@@ -875,7 +867,6 @@ public class AgentToolBuilder extends NodeBuilder {
         if (flowNode.codedata().inferredReturnType() != null && hasRecordFieldSelector(flowNode)) {
             Optional<Property> variable = flowNode.getProperty(Property.VARIABLE_KEY);
             if (variable.isPresent()) {
-                // Ensure the variable name produces a unique type name by checking types.bal
                 Property varProp = variable.get();
                 Path typesFilePath = sourceBuilder.filePath.resolveSibling("types.bal");
                 Document typesDoc = FileSystemUtils.getDocument(
@@ -890,12 +881,8 @@ public class AgentToolBuilder extends NodeBuilder {
                     String candidateTypeName = varName.substring(0, 1).toUpperCase(Locale.ROOT)
                             + varName.substring(1) + "Type";
                     if (existingTypeNames.contains(candidateTypeName)) {
-                        // Strip trailing digits to get the base prefix (e.g. "var1" -> "var"),
-                        // matching how the LS generates unique variable names (var, var1, var2...)
                         String baseVarName = varName.replaceAll("\\d+$", "");
-                        // Convert type names to their variable form for collision checking
                         Set<String> usedVarNames = new HashSet<>();
-                        // Include the base name so numbering starts from 1 (var1, var2...)
                         usedVarNames.add(baseVarName);
                         for (String typeName : existingTypeNames) {
                             if (typeName.endsWith("Type") && typeName.length() > 4) {
@@ -945,7 +932,6 @@ public class AgentToolBuilder extends NodeBuilder {
                 .collect(Collectors.toList());
     }
 
-    // Wrapper return type from <agentVarName>.run(...); built-in/unresolvable/anydata fall back to string.
     private static String resolveAgentRunReturnType(SemanticModel semanticModel, String agentVarName,
                                                     ModuleInfo hostModule, SourceBuilder sourceBuilder,
                                                     WorkspaceManager workspaceManager, Path filePath,
@@ -1090,11 +1076,9 @@ public class AgentToolBuilder extends NodeBuilder {
         return null;
     }
 
-    // decl is the full declaration, e.g. "string city".
     private record ToolParam(String decl, String name, String doc) {
     }
 
-    // typeName is "" when there is no return type.
     private record ReturnInfo(String typeName, boolean checkError, String doc) {
     }
 
