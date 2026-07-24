@@ -651,14 +651,8 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     private async updateProjectPackageInfo(projectPath: string, details: PublishPackageInfo): Promise<boolean> {
-        const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
-        if (!fs.existsSync(ballerinaTomlPath)) {
-            return false;
-        }
-
         try {
-            const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
-            await fs.promises.writeFile(ballerinaTomlPath, updatePackageDetails(tomlContent, details), 'utf-8');
+            await this.updatePackageToml(projectPath, (content) => updatePackageDetails(content, details));
             return true;
         } catch (error) {
             console.error('Failed to update Ballerina.toml package metadata:', error);
@@ -673,16 +667,29 @@ export class CommonRpcManager implements CommonRPCAPI {
             return;
         }
 
-        const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
         try {
-            const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
-            const updatedToml = syncPackageKeyword(tomlContent, 'Type/Agent', hasPublicAgentDefinition);
-            if (updatedToml === tomlContent) {
-                return;
-            }
-            await fs.promises.writeFile(ballerinaTomlPath, updatedToml, 'utf-8');
+            await this.updatePackageToml(projectPath, (content) =>
+                syncPackageKeyword(content, 'Type/Agent', hasPublicAgentDefinition));
         } catch (error) {
             console.warn('Failed to synchronize the Type/Agent package keyword:', error);
+        }
+    }
+
+    private async updatePackageToml(projectPath: string, update: (content: string) => string): Promise<void> {
+        const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
+        const content = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        const updatedContent = update(content);
+        if (updatedContent === content) {
+            return;
+        }
+        await fs.promises.writeFile(ballerinaTomlPath, updatedContent, 'utf-8');
+        try {
+            await StateMachine.langClient().didChange({
+                textDocument: { uri: Uri.file(ballerinaTomlPath).toString(), version: 1 },
+                contentChanges: [{ text: updatedContent }],
+            });
+        } catch (error) {
+            console.warn('Failed to notify the language server about the Ballerina.toml update:', error);
         }
     }
 

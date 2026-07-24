@@ -24,9 +24,9 @@ export interface PackageDetails {
 
 export function updatePackageDetails(tomlContent: string, details: PackageDetails): string {
     return updatePackageSection(tomlContent, (section) => {
-        let updatedSection = upsertStringField(section, 'org', details.orgName);
-        updatedSection = upsertStringField(updatedSection, 'name', details.packageName);
-        updatedSection = upsertStringField(updatedSection, 'version', details.version);
+        let updatedSection = setField(section, 'org', quote(details.orgName));
+        updatedSection = setField(updatedSection, 'name', quote(details.packageName));
+        updatedSection = setField(updatedSection, 'version', quote(details.version));
         return updatedSection.endsWith('\n') ? updatedSection : `${updatedSection}\n`;
     });
 }
@@ -49,9 +49,9 @@ export function syncPackageKeyword(tomlContent: string, keyword: string, shouldI
         const updatedKeywords = shouldInclude
             ? [...keywords, keyword]
             : keywords.filter((value) => value !== keyword);
-        return updatedKeywords.length === 0
-            ? removeArrayField(section, 'keywords')
-            : upsertArrayField(section, 'keywords', updatedKeywords);
+        return setField(section, 'keywords', updatedKeywords.length === 0
+            ? undefined
+            : `[${updatedKeywords.map((item) => JSON.stringify(item)).join(', ')}]`, true);
     });
 }
 
@@ -80,47 +80,25 @@ function getPackageSection(content: string): { content: string; start: number; e
     return { content: content.slice(start, end), start, end };
 }
 
-function upsertStringField(section: string, fieldName: string, fieldValue: string): string {
-    const escapedValue = fieldValue.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    return upsertField(section, fieldName, `"${escapedValue}"`);
+function quote(value: string): string {
+    return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }
 
-function upsertArrayField(section: string, fieldName: string, values: string[]): string {
-    const field = findField(section, fieldName);
-    const value = `[${values.map((item) => JSON.stringify(item)).join(', ')}]`;
-    if (!field) {
-        return insertField(section, fieldName, value);
-    }
-
-    const arrayEnd = findArrayEnd(section, field.valueStart);
-    if (arrayEnd === undefined) {
-        throw new Error(`Unable to read the ${fieldName} array in the [package] section.`);
-    }
-    return section.slice(0, field.start) + `${fieldName} = ${value}` + section.slice(arrayEnd + 1);
-}
-
-function removeArrayField(section: string, fieldName: string): string {
+function setField(section: string, fieldName: string, value: string | undefined, isArray = false): string {
     const field = findField(section, fieldName);
     if (!field) {
-        return section;
+        return value === undefined ? section : insertField(section, fieldName, value);
     }
 
-    const arrayEnd = findArrayEnd(section, field.valueStart);
-    if (arrayEnd === undefined) {
-        throw new Error(`Unable to read the ${fieldName} array in the [package] section.`);
+    const valueEnd = isArray ? findArrayEnd(section, field.valueStart) : endOfLine(section, field.valueStart);
+    if (valueEnd === undefined) {
+        throw new Error(`Unable to read the ${fieldName} value in the [package] section.`);
     }
-    const lineEnd = section.indexOf('\n', arrayEnd + 1);
-    return section.slice(0, field.start) + section.slice(lineEnd === -1 ? section.length : lineEnd + 1);
-}
-
-function upsertField(section: string, fieldName: string, value: string): string {
-    const field = findField(section, fieldName);
-    if (field) {
-        const lineEnd = section.indexOf('\n', field.valueStart);
-        return section.slice(0, field.start) + `${fieldName} = ${value}`
-            + section.slice(lineEnd === -1 ? section.length : lineEnd);
+    if (value === undefined) {
+        const lineEnd = endOfLine(section, valueEnd);
+        return section.slice(0, field.start) + section.slice(lineEnd === section.length ? lineEnd : lineEnd + 1);
     }
-    return insertField(section, fieldName, value);
+    return section.slice(0, field.start) + `${fieldName} = ${value}` + section.slice(valueEnd);
 }
 
 function insertField(section: string, fieldName: string, value: string): string {
@@ -140,6 +118,11 @@ function findField(section: string, fieldName: string): { start: number; valueSt
         return undefined;
     }
     return { start: match.index, valueStart: match.index + match[0].length };
+}
+
+function endOfLine(content: string, start: number): number {
+    const lineEnd = content.indexOf('\n', start);
+    return lineEnd === -1 ? content.length : lineEnd;
 }
 
 function findArrayEnd(section: string, valueStart: number): number | undefined {
@@ -176,7 +159,7 @@ function findArrayEnd(section: string, valueStart: number): number | undefined {
         } else if (char === ']') {
             depth--;
             if (depth === 0) {
-                return index;
+                return index + 1;
             }
         }
     }
