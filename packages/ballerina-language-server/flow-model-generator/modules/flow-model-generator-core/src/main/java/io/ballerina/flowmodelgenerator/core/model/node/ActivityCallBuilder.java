@@ -19,6 +19,8 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ClassSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
@@ -30,6 +32,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.ItemOption;
+import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Option;
@@ -121,9 +124,30 @@ public class ActivityCallBuilder extends CallBuilder {
     // (called during the advanced-parameter iteration) and buildBuiltinTemplate.
     private BuiltinActivityStrategy currentBuiltinStrategy;
 
+    // For user-defined activities: whether any parameter is a connection client, making this activity
+    // connection-backed (so the node kind is switched to CONNECTION_ACTIVITY_CALL).
+    private boolean userActivityConnectionBacked;
+
     @Override
     protected NodeKind getFunctionNodeKind() {
         return NodeKind.ACTIVITY_CALL;
+    }
+
+    /**
+     * {@link NodeBuilder#build()} re-invokes {@code setConstData()} after the template/analysis has run,
+     * which would otherwise reset the node kind back to {@code ACTIVITY_CALL}. Preserve the
+     * connection-backed kind when it has been chosen — either by the builtin/user-connection template
+     * path (via the flags) or by the analysis path (which sets the node kind on the codedata directly
+     * before {@code build()}).
+     */
+    @Override
+    public void setConcreteConstData() {
+        if (currentBuiltinStrategy != null || userActivityConnectionBacked
+                || codedata().node() == NodeKind.CONNECTION_ACTIVITY_CALL) {
+            codedata().node(NodeKind.CONNECTION_ACTIVITY_CALL);
+        } else {
+            codedata().node(NodeKind.ACTIVITY_CALL);
+        }
     }
 
     @Override
@@ -141,7 +165,12 @@ public class ActivityCallBuilder extends CallBuilder {
         if (currentBuiltinStrategy != null) {
             buildBuiltinTemplate(context, codedata.symbol(), currentBuiltinStrategy);
         } else {
+            userActivityConnectionBacked = false;
             super.setConcreteTemplateData(context);
+            if (userActivityConnectionBacked) {
+                // Leading parameter is a connection client — render this call with a connection arrow.
+                codedata().node(NodeKind.CONNECTION_ACTIVITY_CALL);
+            }
             addRetryPolicyFormProperties(this, NO_RETRY_VALUE, "", "", "", "");
             addAdvancedParameters(context, moduleInfo, this);
         }
@@ -158,7 +187,9 @@ public class ActivityCallBuilder extends CallBuilder {
      */
     private void buildBuiltinTemplate(TemplateContext context, String symbol, BuiltinActivityStrategy strategy) {
         metadata().label(strategy.getLabel()).description(strategy.getDescription());
-        codedata().node(NodeKind.ACTIVITY_CALL)
+        // Builtin activities wrap a connection, so they are modelled as connection-backed activity
+        // calls — the diagram renders these with a connection arrow (like remote action calls).
+        codedata().node(NodeKind.CONNECTION_ACTIVITY_CALL)
                 .org(WORKFLOW_ORG)
                 .module(ACTIVITY_MODULE)
                 .symbol(symbol);
@@ -244,6 +275,16 @@ public class ActivityCallBuilder extends CallBuilder {
     @Override
     protected boolean processSpecialParameter(ParameterData paramData) {
         if (currentBuiltinStrategy == null) {
+            // User-defined activity: treat every connection-client parameter as a connection
+            // selector (like builtin activities) so the diagram links the call to each connection.
+            Optional<ClassSymbol> connectionClass =
+                    WorkflowUtil.resolveConnectionClass(paramData.typeSymbol());
+            if (connectionClass.isPresent()) {
+                userActivityConnectionBacked = true;
+                addUserActivityConnectionSelector(connectionClass.get(),
+                        ParamUtils.removeLeadingSingleQuote(paramData.name()));
+                return true;
+            }
             return false;
         }
 
@@ -257,6 +298,58 @@ public class ActivityCallBuilder extends CallBuilder {
         }
 
         return currentBuiltinStrategy.processSpecialParameter(paramData, this);
+    }
+
+    /**
+     * Adds the connection selector for a user-defined connection-backed activity. Mirrors the builtin
+     * activities: the connection field lists connections of the client's category and offers an inline
+     * "Add new connection" wizard entry derived from the connection client type — so a connection can be
+     * created from the wizard just like for the prebuilt activities. The property key is the parameter
+     * name so source generation round-trips the argument (an activity may take several connections).
+     */
+    private void addUserActivityConnectionSelector(ClassSymbol connectionClass, String paramName) {
+        ConnectionSelectorData selector = resolveUserActivityConnectionSelector(connectionClass);
+        String label = Property.CONNECTION_KEY.equals(paramName) ? Property.CONNECTION_LABEL : paramName;
+        properties().connectionSelector(paramName, label, NEW_CONNECTION_SENTINEL,
+                selector.searchNodesKind(), selector.connectors());
+    }
+
+    /**
+     * The connection dropdown metadata for a user-defined connection-backed activity: the category of
+     * connections to list and the inline "Add new connection" wizard entry derived from the client type.
+     *
+     * @param searchNodesKind the connection category the dropdown lists
+     * @param connectors      the allowed "add new connection" wizard entries (may be empty)
+     */
+    public record ConnectionSelectorData(String searchNodesKind, List<Metadata.AllowedConnector> connectors) {
+    }
+
+    /**
+     * Derives the connection selector metadata (category + add-new wizard entry) for a connection client
+     * class. Shared by the template path ({@link #addUserActivityConnectionSelector}) and the source
+     * analysis path (CodeAnalyzer) so both render an identical connection dropdown.
+     */
+    public static ConnectionSelectorData resolveUserActivityConnectionSelector(ClassSymbol connectionClass) {
+        Optional<ModuleSymbol> connectionModule = connectionClass.getModule();
+        if (connectionModule.isEmpty()) {
+            return new ConnectionSelectorData(null, List.of());
+        }
+        ModuleInfo connectorModuleInfo = ModuleInfo.from(connectionModule.get().id());
+        // searchNodes treats non-NodeKind kind strings as a module-prefix filter (e.g. "HTTP" matches
+        // module "http"), so pass the connector module name to list its existing connections.
+        String searchNodesKind = connectorModuleInfo.moduleName();
+        Codedata connector = new Codedata.Builder<>(null)
+                .node(NodeKind.NEW_CONNECTION)
+                .org(connectorModuleInfo.org())
+                .module(connectorModuleInfo.moduleName())
+                .packageName(connectorModuleInfo.packageName())
+                .object(connectionClass.getName().orElse("Client"))
+                .symbol("init")
+                .version(connectorModuleInfo.version())
+                .build();
+        List<Metadata.AllowedConnector> connectors = List.of(new Metadata.AllowedConnector(connector,
+                "Add new " + connectorModuleInfo.packageName() + " connection"));
+        return new ConnectionSelectorData(searchNodesKind, connectors);
     }
 
     /**
@@ -597,8 +690,13 @@ public class ActivityCallBuilder extends CallBuilder {
                     continue;
                 }
 
-                Object value = entry.getValue().value();
-                if (value == null) {
+                if (entry.getValue().value() == null) {
+                    continue;
+                }
+                // toSourceCode() converts structured values (map/array form values) into Ballerina
+                // literals; the raw value.toString() would emit the internal form-field objects.
+                String source = entry.getValue().toSourceCode();
+                if (source == null || source.isEmpty()) {
                     continue;
                 }
 
@@ -612,7 +710,7 @@ public class ActivityCallBuilder extends CallBuilder {
                         .whiteSpace()
                         .name(entry.getKey())
                         .keyword(SyntaxKind.COLON_TOKEN)
-                        .name(value.toString());
+                        .name(source);
             }
         }
         sourceBuilder.token()
