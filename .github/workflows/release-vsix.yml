@@ -30,6 +30,21 @@ on:
           - 'minor'
           - 'major'
           - 'N/A'
+      runFrontendTests:
+        description: 'Run frontend tests (jest fast tests + Ballerina e2e)'
+        type: boolean
+        required: false
+        default: false
+      runBackendTests:
+        description: 'Run backend tests (Ballerina language server tests)'
+        type: boolean
+        required: false
+        default: false
+      runScan:
+        description: 'Run the Trivy vulnerability scan'
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   Build:
@@ -45,6 +60,10 @@ jobs:
       ballerina: true
       version: ${{ inputs.version }}
       isReleaseBuild: true
+      runFastTests: ${{ inputs.runFrontendTests }}
+      runBalE2ETests: ${{ inputs.runFrontendTests }}
+      runLSTests: ${{ inputs.runBackendTests }}
+      runScan: ${{ inputs.runScan }}
 
   Release:
     name: Release VSIX

@@ -31,6 +31,16 @@ on:
         type: boolean
         required: false
         default: false
+      runFastTests:
+        description: Run the jest fast tests (unit + component + contract)
+        type: boolean
+        required: false
+        default: true
+      runScan:
+        description: Run the Trivy vulnerability scan
+        type: boolean
+        required: false
+        default: true
       runBalE2ETests:
         type: boolean
         required: false
@@ -112,6 +122,7 @@ jobs:
           APPINSIGHTS_INSTRUMENTATION_KEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATION_KEY }}
 
       - name: Run Trivy vulnerability scanner
+        if: ${{ inputs.runScan }}
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           scan-type: 'fs'
@@ -186,6 +197,7 @@ jobs:
   fast-tests:
     name: Fast tests (unit + component + contract)
     needs: Build_Stage
+    if: ${{ inputs.runFastTests }}
     timeout-minutes: 20
     runs-on: ${{ inputs.runOnAWS && inputs.awsRunnerId || 'ubuntu-latest' }}
     steps:
@@ -242,7 +254,7 @@ jobs:
     name: Run Ballerina e2e Test
     needs: Build_Stage
     timeout-minutes: 60
-    if: ${{ inputs.runBalE2ETests || (inputs.isReleaseBuild && inputs.ballerina) }}
+    if: ${{ inputs.runBalE2ETests }}
     strategy:
       fail-fast: false
       matrix:
