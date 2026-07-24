@@ -83,8 +83,8 @@ describe("rewritePaths", () => {
 describe("isRecording", () => {
     const prev = process.env.BAL_RECORD_FIXTURES;
     afterEach(() => {
-        if (prev === undefined) delete process.env.BAL_RECORD_FIXTURES;
-        else process.env.BAL_RECORD_FIXTURES = prev;
+        if (prev === undefined) { delete process.env.BAL_RECORD_FIXTURES; }
+        else { process.env.BAL_RECORD_FIXTURES = prev; }
     });
     it("is off by default", () => {
         delete process.env.BAL_RECORD_FIXTURES;
@@ -107,10 +107,10 @@ describe("recordLs (end to end)", () => {
         process.env.BAL_FIXTURES_DIR = dir;
     });
     afterAll(() => {
-        if (prevFlag === undefined) delete process.env.BAL_RECORD_FIXTURES;
-        else process.env.BAL_RECORD_FIXTURES = prevFlag;
-        if (prevDir === undefined) delete process.env.BAL_FIXTURES_DIR;
-        else process.env.BAL_FIXTURES_DIR = prevDir;
+        if (prevFlag === undefined) { delete process.env.BAL_RECORD_FIXTURES; }
+        else { process.env.BAL_RECORD_FIXTURES = prevFlag; }
+        if (prevDir === undefined) { delete process.env.BAL_FIXTURES_DIR; }
+        else { process.env.BAL_FIXTURES_DIR = prevDir; }
         fs.rmSync(dir, { recursive: true, force: true });
     });
 
