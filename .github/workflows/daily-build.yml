@@ -99,7 +99,7 @@ jobs:
       - name: Set Up Ballerina
         uses: ballerina-platform/setup-ballerina@97fd67111e3c3ecdfafff96fc24d95ad909ab299 # v1.1.4
         with:
-          version: 2201.13.3
+          version: 2201.13.4
 
       - name: Cache Ballerina dependencies
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
@@ -192,7 +192,7 @@ jobs:
       - name: Set Up Ballerina
         uses: ballerina-platform/setup-ballerina@97fd67111e3c3ecdfafff96fc24d95ad909ab299 # v1.1.4
         with:
-          version: 2201.13.3
+          version: 2201.13.4
 
       - name: Cache Ballerina dependencies
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
