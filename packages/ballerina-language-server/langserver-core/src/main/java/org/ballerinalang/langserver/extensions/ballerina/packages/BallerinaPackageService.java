@@ -145,19 +145,6 @@ public class BallerinaPackageService implements ExtendedLanguageServerService {
         });
     }
 
-    @JsonRequest
-    public CompletableFuture<PackageManifestEditor.Response> updateManifest(PackageManifestEditor.Request request) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                Project project = workspaceManager.loadProject(Path.of(request.projectPath()));
-                return new PackageManifestEditor.Response(PackageManifestEditor.update(project, request), null);
-            } catch (Throwable error) {
-                String message = error.getMessage() == null ? error.toString() : error.getMessage();
-                return new PackageManifestEditor.Response(null, message);
-            }
-        });
-    }
-
     @Override
     public Class<?> getRemoteInterface() {
         return getClass();

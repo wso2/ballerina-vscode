@@ -177,7 +177,6 @@ import {
     ServiceClassModelResponse,
     ClassFieldModifierRequest,
     SourceEditResponse,
-    PackageManifestUpdateRequest,
     ServiceClassSourceRequest,
     AddFieldRequest,
     ClassMembersResponse,
@@ -471,7 +470,6 @@ enum EXTENDED_APIS {
     BI_DELETE_CLASS_MEMBER = 'flowDesignService/deleteClassMember',
     BI_UPDATE_CLASS_DEPENDENCY = 'serviceDesign/updateClassDependency',
     BI_REMOVE_CLASS_DEPENDENCY = 'serviceDesign/removeClassDependency',
-    BI_UPDATE_PACKAGE_MANIFEST = 'ballerinaPackage/updateManifest',
     BI_DESIGN_MODEL = 'designModelService/getDesignModel',
     BI_UPDATE_IMPORTS = 'expressionEditor/importModule',
     BI_ADD_FUNCTION = 'expressionEditor/functionCallTemplate',
@@ -1421,10 +1419,6 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async updateClassDependency(params: ModifyClassDependencyRequest): Promise<SourceEditResponse> {
         return this.sendRequest<SourceEditResponse>(EXTENDED_APIS.BI_UPDATE_CLASS_DEPENDENCY, params);
-    }
-
-    async updatePackageManifest(params: PackageManifestUpdateRequest): Promise<SourceEditResponse> {
-        return this.sendRequest<SourceEditResponse>(EXTENDED_APIS.BI_UPDATE_PACKAGE_MANIFEST, params);
     }
 
     async removeClassDependency(params: ModifyClassDependencyRequest): Promise<SourceEditResponse> {

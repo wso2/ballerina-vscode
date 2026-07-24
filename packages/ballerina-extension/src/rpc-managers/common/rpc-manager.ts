@@ -87,7 +87,6 @@ import {
     selectSampleDownloadPath
 } from "./utils";
 import { VisualizerWebview } from "../../views/visualizer/webview";
-import { updateSourceCode } from "../../utils/source-utils";
 
 export class CommonRpcManager implements CommonRPCAPI {
     async getTypeCompletions(): Promise<TypeResponse> {
@@ -652,14 +651,7 @@ export class CommonRpcManager implements CommonRPCAPI {
 
     private async updateProjectPackageInfo(projectPath: string, details: PublishPackageInfo): Promise<boolean> {
         try {
-            const response = await StateMachine.langClient().updatePackageManifest({
-                projectPath,
-                patch: { package: { org: details.orgName, name: details.packageName, version: details.version } }
-            });
-            if (response.errorMsg) {
-                throw new Error(response.errorMsg);
-            }
-            await updateSourceCode({ textEdits: response.textEdits ?? {}, description: 'Update package metadata' });
+            await this.updatePackageToml(projectPath, (content) => this.updatePackageDetails(content, details));
             return true;
         } catch (error) {
             console.error('Failed to update Ballerina.toml package metadata:', error);
@@ -675,19 +667,81 @@ export class CommonRpcManager implements CommonRPCAPI {
         }
 
         try {
-            const response = await StateMachine.langClient().updatePackageManifest({
-                projectPath,
-                patch: {
-                    keywords: hasPublicAgentDefinition ? { add: ['Type/Agent'] } : { remove: ['Type/Agent'] }
-                }
-            });
-            if (response.errorMsg) {
-                throw new Error(response.errorMsg);
-            }
-            await updateSourceCode({ textEdits: response.textEdits ?? {}, description: 'Update package keywords' });
+            await this.updatePackageToml(projectPath, (content) =>
+                this.updateAgentDefinitionKeyword(content, hasPublicAgentDefinition));
         } catch (error) {
             console.warn('Failed to synchronize the Type/Agent package keyword:', error);
         }
+    }
+
+    private async updatePackageToml(projectPath: string, update: (content: string) => string): Promise<void> {
+        const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
+        const content = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        const updatedContent = update(content);
+        if (updatedContent === content) {
+            return;
+        }
+        await fs.promises.writeFile(ballerinaTomlPath, updatedContent, 'utf-8');
+        try {
+            await StateMachine.langClient().didChange({
+                textDocument: { uri: Uri.file(ballerinaTomlPath).toString(), version: 1 },
+                contentChanges: [{ text: updatedContent }],
+            });
+        } catch (error) {
+            console.warn('Failed to notify the language server about the Ballerina.toml update:', error);
+        }
+    }
+
+    private updatePackageDetails(content: string, details: PublishPackageInfo): string {
+        return this.updatePackageSection(content, (section) => {
+            let updated = this.upsertTomlField(section, 'org', details.orgName);
+            updated = this.upsertTomlField(updated, 'name', details.packageName);
+            return this.upsertTomlField(updated, 'version', details.version);
+        });
+    }
+
+    private updateAgentDefinitionKeyword(content: string, shouldInclude: boolean): string {
+        return this.updatePackageSection(content, (section) => {
+            const keywordLine = /^(\s*keywords\s*=\s*)\[(.*)\]\s*$/m;
+            const match = keywordLine.exec(section);
+            if (!match) {
+                return shouldInclude ? this.insertTomlField(section, 'keywords = ["Type/Agent"]') : section;
+            }
+
+            const keywords = match[2].split(',').map((value) => value.trim()).filter(Boolean);
+            const withoutAgent = keywords.filter((value) => value !== '"Type/Agent"' && value !== "'Type/Agent'");
+            const updatedKeywords = shouldInclude ? [...withoutAgent, '"Type/Agent"'] : withoutAgent;
+            return section.replace(keywordLine, `${match[1]}[${updatedKeywords.join(', ')}]`);
+        });
+    }
+
+    private updatePackageSection(content: string, update: (section: string) => string): string {
+        const packageHeader = /^\s*\[package\]\s*$/m.exec(content);
+        if (!packageHeader || packageHeader.index === undefined) {
+            return content;
+        }
+        const start = packageHeader.index;
+        const nextSection = /^\s*(?:\[\[[^\]]+\]\]|\[[^\]]+\])\s*$/gm;
+        nextSection.lastIndex = start + packageHeader[0].length;
+        const end = nextSection.exec(content)?.index ?? content.length;
+        const section = content.slice(start, end);
+        const updated = update(section);
+        return updated === section ? content : content.slice(0, start) + updated + content.slice(end);
+    }
+
+    private upsertTomlField(section: string, field: string, value: string): string {
+        const fieldLine = `${field} = "${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+        const fieldPattern = new RegExp(`^\\s*${field}\\s*=.*$`, 'm');
+        return fieldPattern.test(section)
+            ? section.replace(fieldPattern, fieldLine)
+            : this.insertTomlField(section, fieldLine);
+    }
+
+    private insertTomlField(section: string, fieldLine: string): string {
+        const headerEnd = section.indexOf('\n');
+        return headerEnd === -1
+            ? `${section}\n${fieldLine}\n`
+            : section.slice(0, headerEnd + 1) + `${fieldLine}\n` + section.slice(headerEnd + 1);
     }
 
     private async hasPublicAgentDefinition(projectPath: string): Promise<boolean | undefined> {
