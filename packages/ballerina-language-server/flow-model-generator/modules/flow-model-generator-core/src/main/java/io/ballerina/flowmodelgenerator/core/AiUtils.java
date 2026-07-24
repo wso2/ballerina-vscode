@@ -1819,8 +1819,8 @@ public class AiUtils {
         TypeSymbol raw = typeSymbol instanceof TypeReferenceTypeSymbol typeRef ? typeRef.typeDescriptor() : typeSymbol;
         if (raw instanceof ClassSymbol classSymbol
                 && (CommonUtils.isAgentClass(classSymbol)
-                || CommonUtils.isAiFixedReturnAgent(classSymbol)
-                || CommonUtils.isAiInferredReturnAgent(classSymbol))) {
+                || CommonUtils.isAiFixedTypedAgent(classSymbol)
+                || CommonUtils.isAiDependentlyTypedAgent(classSymbol))) {
             return Optional.of(classSymbol);
         }
         return Optional.empty();

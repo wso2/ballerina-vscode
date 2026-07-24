@@ -252,8 +252,8 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiFixedReturnAgent;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiInferredReturnAgent;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiFixedTypedAgent;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDependentlyTypedAgent;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMcpBaseToolKit;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemory;
@@ -494,7 +494,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
             populateAgentMetaData(expressionNode, classSymbol);
-        } else if (isAiFixedReturnAgent(classSymbol) || isAiInferredReturnAgent(classSymbol)) {
+        } else if (isAiFixedTypedAgent(classSymbol) || isAiDependentlyTypedAgent(classSymbol)) {
             startNode(NodeKind.AGENT_RUN, expressionNode.parent());
             populateAgentRunMetaData(expressionNode, classSymbol);
         } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, CALL_ACTIVITY_METHOD_NAME)) {
@@ -2915,7 +2915,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isAgentClass(classSymbol)) {
             return NodeKind.AGENT;
         }
-        if (isAiFixedReturnAgent(classSymbol) || isAiInferredReturnAgent(classSymbol)) {
+        if (isAiFixedTypedAgent(classSymbol) || isAiDependentlyTypedAgent(classSymbol)) {
             return NodeKind.AGENT_TYPE;
         }
         if (isAiModelProvider(classSymbol)) {
@@ -3297,7 +3297,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
             populateAgentMetaData(expressionNode, classSymbol);
-        } else if (isAiFixedReturnAgent(classSymbol) || isAiInferredReturnAgent(classSymbol)) {
+        } else if (isAiFixedTypedAgent(classSymbol) || isAiDependentlyTypedAgent(classSymbol)) {
             startNode(NodeKind.AGENT_RUN, expressionNode.parent());
             populateAgentRunMetaData(expressionNode, classSymbol);
         } else if (isAiKnowledgeBase(classSymbol)) {
@@ -3365,7 +3365,7 @@ public class CodeAnalyzer extends NodeVisitor {
             startNode(NodeKind.DATA_MAPPER_CALL, functionCallExpressionNode.parent());
         } else if (isAgentClass(symbol.get())) {
             startNode(NodeKind.AGENT_CALL, functionCallExpressionNode.parent());
-        } else if (isAiFixedReturnAgent(symbol.get()) || isAiInferredReturnAgent(symbol.get())) {
+        } else if (isAiFixedTypedAgent(symbol.get()) || isAiDependentlyTypedAgent(symbol.get())) {
             startNode(NodeKind.AGENT_RUN, functionCallExpressionNode.parent());
         } else if (naturalFunctions.containsKey(functionName)) {
             startNode(NodeKind.NP_FUNCTION_CALL, functionCallExpressionNode.parent());
@@ -4259,7 +4259,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 && methodCall.methodName().toString().trim().equals(RUN_METHOD)) {
             Optional<TypeSymbol> receiverType = semanticModel.typeOf(methodCall.expression());
             if (receiverType.isPresent() && CommonUtils.getRawType(receiverType.get()) instanceof ClassSymbol cls
-                    && (isAgentClass(cls) || isAiFixedReturnAgent(cls) || isAiInferredReturnAgent(cls))) {
+                    && (isAgentClass(cls) || isAiFixedTypedAgent(cls) || isAiDependentlyTypedAgent(cls))) {
                 return true;
             }
         }
