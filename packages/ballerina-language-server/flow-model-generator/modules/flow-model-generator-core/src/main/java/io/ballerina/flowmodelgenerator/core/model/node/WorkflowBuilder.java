@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_CTX_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_INPUT_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
@@ -204,9 +206,14 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                     generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_PARAM_NAME);
                 }
             }
-        } else if (!inputTypeName.isEmpty()) {
-            // New workflow — emit the input param from the property using the default name.
-            generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_PARAM_NAME);
+        } else {
+            // New workflow — a @workflow:Workflow function must declare workflow:Context as its first
+            // parameter; the input type (when set) follows it as the second parameter.
+            generateParameter(sourceBuilder, WORKFLOW_MODULE + ":" + CONTEXT_CLASS_NAME, DEFAULT_CTX_PARAM_NAME);
+            if (!inputTypeName.isEmpty()) {
+                sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
+                generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_PARAM_NAME);
+            }
         }
 
         sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
