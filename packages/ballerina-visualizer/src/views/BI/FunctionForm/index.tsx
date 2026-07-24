@@ -288,6 +288,12 @@ export function FunctionForm(props: FunctionFormProps) {
                 fields = automationFields;
             }
 
+            // The workflow creation form only asks for the name and input type; the description is
+            // extra information that is not needed to define the workflow, so drop that field.
+            if (isWorkflow && !functionName) {
+                fields = fields.filter(field => field.key !== "functionNameDescription");
+            }
+
             const annotations = functionNode?.properties?.annotations?.value;
             const isExistingAgentTool = typeof annotations === "string" && annotations.includes("@ai:AgentTool");
             if (isExistingAgentTool) {
