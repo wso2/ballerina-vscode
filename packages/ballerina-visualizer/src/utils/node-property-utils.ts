@@ -31,6 +31,8 @@ import type {
     FlowNode,
     Imports,
     DropdownType,
+    InputType,
+    CodeData,
 } from "@wso2/ballerina-core";
 import { getPrimaryInputType, isTemplateType, isDropDownType } from "@wso2/ballerina-core";
 
@@ -127,7 +129,116 @@ export function convertNodePropertyToFormField(
             : undefined,
         imports: property.imports
     };
+    enrichModelProviderField(formField, property);
+    enrichClientConnectionField(formField, property);
+    enrichMemoryField(formField, property);
+    enrichAgentField(formField, property);
     return formField;
+}
+
+const AI_MODEL_PROVIDER_TYPE = "ai:ModelProvider";
+const MODEL_PROVIDER_SEARCH_KIND = "MODEL_PROVIDER";
+const DEFAULT_MODEL_PROVIDER_EXPR = "check ai:getDefaultModelProvider()";
+export const DEFAULT_MODEL_PROVIDER_ITEM = {
+    id: "ai:getDefaultModelProvider",
+    label: "Default WSO2 Model Provider",
+    value: DEFAULT_MODEL_PROVIDER_EXPR,
+    codedata: { module: "ai", node: "MODEL_PROVIDER" } as any,
+};
+
+function isInlineExpressionValue(value: unknown): boolean {
+    if (value === DEFAULT_MODEL_PROVIDER_EXPR) return false;
+    return typeof value === "string" && value.trim() !== "" && !/^[a-zA-Z_][a-zA-Z0-9_']*$/.test(value.trim());
+}
+
+function applyExpressionToggle(
+    formField: FormField,
+    ballerinaType: string | undefined,
+    searchNodesKind: string,
+    codedataExtras: Record<string, unknown> = {}
+): void {
+    const expressionMode = isInlineExpressionValue(formField.value);
+    formField.type = expressionMode ? "EXPRESSION" : "ACTION_EXPRESSION";
+    formField.types = [
+        { fieldType: "ACTION_EXPRESSION", ballerinaType, selected: !expressionMode },
+        { fieldType: "EXPRESSION", selected: expressionMode },
+    ] as InputType[];
+    formField.codedata = {
+        ...(formField.codedata || {}),
+        searchNodesKind,
+        ...codedataExtras,
+    };
+}
+
+function enrichModelProviderField(formField: FormField, property: Property): void {
+    const isModelProvider = property.types?.some((t) => t.ballerinaType === AI_MODEL_PROVIDER_TYPE);
+    if (!isModelProvider || !formField.editable) {
+        return;
+    }
+    applyExpressionToggle(formField, AI_MODEL_PROVIDER_TYPE, MODEL_PROVIDER_SEARCH_KIND, {
+        staticItems: [DEFAULT_MODEL_PROVIDER_ITEM],
+    });
+}
+
+const NEW_CONNECTION_SEARCH_KIND = "NEW_CONNECTION";
+
+function getConnectionTypeQuery(property: Property): Record<string, string> {
+    const connection = property.codedata?.data?.connection as {
+        org?: string;
+        packageName?: string;
+        module?: string;
+        object?: string;
+        version?: string;
+    } | undefined;
+    if (connection?.module && connection?.object) {
+        return {
+            typeMatch: "exact",
+            ...(connection.org && { typeOrg: connection.org }),
+            ...(connection.packageName && { typePackage: connection.packageName }),
+            typeModule: connection.module,
+            typeName: connection.object,
+            ...(connection.version && { typeVersion: connection.version }),
+        };
+    }
+    return {};
+}
+
+function enrichClientConnectionField(formField: FormField, property: Property): void {
+    if (!property.codedata?.data?.connection || !formField.editable) {
+        return;
+    }
+    const typeQuery = getConnectionTypeQuery(property);
+    const ballerinaType = property.types?.find((type) => type.ballerinaType)?.ballerinaType;
+    applyExpressionToggle(formField, ballerinaType, NEW_CONNECTION_SEARCH_KIND, typeQuery);
+}
+
+const AI_MEMORY_TYPE = "ai:Memory";
+const MEMORY_SEARCH_KIND = "MEMORY";
+
+function enrichMemoryField(formField: FormField, property: Property): void {
+    const isMemory = property.types?.some((t) => t.ballerinaType === AI_MEMORY_TYPE);
+    if (!isMemory || !formField.editable) {
+        return;
+    }
+    applyExpressionToggle(formField, AI_MEMORY_TYPE, MEMORY_SEARCH_KIND);
+}
+
+const AGENT_PARAM_DATA_KEY = "agent";
+
+function enrichAgentField(formField: FormField, property: Property): void {
+    const agent = property.codedata?.data?.[AGENT_PARAM_DATA_KEY] as CodeData | undefined;
+    if (!agent || !formField.editable || !agent.node) {
+        return;
+    }
+    const ballerinaType = property.types?.find((type) => type.ballerinaType)?.ballerinaType;
+    applyExpressionToggle(formField, ballerinaType, agent.node, {
+        typeMatch: "subtype",
+        ...(agent.org && { typeOrg: agent.org }),
+        ...(agent.packageName && { typePackage: agent.packageName }),
+        ...(agent.module && { typeModule: agent.module }),
+        ...(agent.object && { typeName: agent.object }),
+        ...(agent.version && { typeVersion: agent.version }),
+    });
 }
 
 function isFieldEditable(expression: Property, connections?: FlowNode[], clientName?: string) {

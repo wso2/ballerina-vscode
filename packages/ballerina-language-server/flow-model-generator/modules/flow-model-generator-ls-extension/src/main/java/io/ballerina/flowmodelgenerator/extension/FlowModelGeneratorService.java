@@ -26,6 +26,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
 import io.ballerina.flowmodelgenerator.core.AvailableNodesGenerator;
+import io.ballerina.flowmodelgenerator.core.ClassMemberManager;
 import io.ballerina.flowmodelgenerator.core.CopilotContextGenerator;
 import io.ballerina.flowmodelgenerator.core.DeleteNodeHandler;
 import io.ballerina.flowmodelgenerator.core.EnclosedNodeFinder;
@@ -38,10 +39,13 @@ import io.ballerina.flowmodelgenerator.core.SuggestedModelGenerator;
 import io.ballerina.flowmodelgenerator.core.analyzers.function.ModuleNodeAnalyzer;
 import io.ballerina.flowmodelgenerator.core.diagnostics.DiagnosticRequest;
 import io.ballerina.flowmodelgenerator.core.diagnostics.DiagnosticsDebouncer;
+import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.search.SearchCommand;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
+import io.ballerina.flowmodelgenerator.extension.request.ClassMemberRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ComponentDeleteRequest;
 import io.ballerina.flowmodelgenerator.extension.request.CopilotContextRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DeleteClassMemberRequest;
 import io.ballerina.flowmodelgenerator.extension.request.EnclosedFuncDefRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FilePathRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FlowModelAvailableNodesRequest;
@@ -51,6 +55,7 @@ import io.ballerina.flowmodelgenerator.extension.request.FlowModelSourceGenerato
 import io.ballerina.flowmodelgenerator.extension.request.FlowModelSuggestedGenerationRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FlowNodeDeleteRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FunctionDefinitionRequest;
+import io.ballerina.flowmodelgenerator.extension.request.SaveClassMemberRequest;
 import io.ballerina.flowmodelgenerator.extension.request.SearchNodesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ServiceFieldNodesRequest;
@@ -93,6 +98,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -125,7 +131,6 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
 
     @JsonRequest
     public CompletableFuture<FlowModelGeneratorResponse> getFlowModel(FlowModelGeneratorRequest request) {
-
         return CompletableFuture.supplyAsync(() -> {
             FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
             try {
@@ -279,6 +284,57 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 SourceGenerator sourceGenerator =
                         new SourceGenerator(this.workspaceManagerProxy.get(), Path.of(request.filePath()));
                 response.setTextEdits(sourceGenerator.toSourceCode(request.flowNode(), lsClientLogger));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelGeneratorResponse> listClassMembers(ClassMemberRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Project project = workspaceManager.loadProject(filePath);
+                SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
+                ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath, workspaceManager);
+                response.setFlowDesignModel(modelGenerator.getClassMembers(request.classLineRange()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelSourceGeneratorResponse> saveClassMember(SaveClassMemberRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            FlowModelSourceGeneratorResponse response = new FlowModelSourceGeneratorResponse();
+            try {
+                FlowNode flowNode = new Gson().fromJson(request.flowNode(), FlowNode.class);
+                Map<Path, List<org.eclipse.lsp4j.TextEdit>> edits = ClassMemberManager.save(
+                        this.workspaceManagerProxy.get(), Path.of(request.filePath()), flowNode,
+                        request.classLineRange(), lsClientLogger);
+                response.setTextEdits(new Gson().toJsonTree(edits));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<FlowModelSourceGeneratorResponse> deleteClassMember(DeleteClassMemberRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            FlowModelSourceGeneratorResponse response = new FlowModelSourceGeneratorResponse();
+            try {
+                Map<Path, List<org.eclipse.lsp4j.TextEdit>> edits = ClassMemberManager.delete(
+                        this.workspaceManagerProxy.get(), Path.of(request.filePath()), request.fieldName(),
+                        request.classLineRange());
+                response.setTextEdits(new Gson().toJsonTree(edits));
             } catch (Throwable e) {
                 response.setError(e);
             }
@@ -649,9 +705,9 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
 
                 // Generate the flow nodes based on search criteria
                 ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath, workspaceManager);
+                var nodes = modelGenerator.searchNodes(document, position, request.queryMap());
                 Gson gson = new Gson();
-                JsonElement jsonElement = gson.toJsonTree(
-                        modelGenerator.searchNodes(document, position, request.queryMap()));
+                JsonElement jsonElement = gson.toJsonTree(nodes);
                 response.setOutput(jsonElement.getAsJsonArray());
             } catch (Throwable e) {
                 response.setError(e);
@@ -718,6 +774,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             return Optional.empty();
         }
     }
+
 
     private void propagateCodedataDataToTemplate(JsonObject requestId, JsonElement nodeTemplate) {
         if (!requestId.has("data") || !requestId.get("data").isJsonObject()) {

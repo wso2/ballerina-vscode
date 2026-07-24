@@ -20,10 +20,17 @@
 import {
     AIChatRequest,
     AddFieldRequest,
+    ClassMembersResponse,
+    CreateClassDependencyRequest,
+    DeleteClassMemberRequest,
+    ClassMemberRequest,
+    SaveClassMemberRequest,
+    ModifyClassDependencyRequest,
     InlineAgentChatRequest,
     AddFunctionRequest,
     AddImportItemResponse,
     AddProjectToWorkspaceRequest,
+    AddProjectToWorkspaceResponse,
     ArtifactData,
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
@@ -207,7 +214,7 @@ import {
     validateProjectPath,
     getSuggestedProjectDefaults
 } from "../../utils/bi";
-import { writeBallerinaFileDidOpen } from "../../utils/modification";
+import { writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
 import { isLibraryProject } from "../../utils/config";
@@ -345,6 +352,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getSourceCode(params: BISourceCodeRequest): Promise<UpdatedArtifactsResponse> {
         console.log(">>> requesting bi source code from ls", params);
         try {
+            this.ensureTargetFileExists(params.filePath);
             const model = await StateMachine.langClient().getSourceCode(params) as BISourceCodeResponse;
             console.log(">>> bi source code from ls", model);
 
@@ -380,6 +388,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             window.showErrorMessage(`Failed to save changes: ${errorMessage}`);
             return { artifacts: [], error: errorMessage };
         }
+    }
+
+    private ensureTargetFileExists(filePath: string) {
+        if (!filePath || !filePath.endsWith(".bal") || fs.existsSync(filePath)) return;
+        if (!fs.existsSync(path.dirname(filePath))) return;
+        writeBallerinaFileDidOpenTemp(filePath, "");
     }
 
     private capitalizeFirstLetter(name: string): string {
@@ -787,26 +801,20 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         StateMachine.refreshProjectInfo();
     }
 
-    async addProjectToWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
-        if (params.convertToWorkspace) {
-            try {
-                await convertProjectToWorkspace(params);
-                // Refresh project info to update UI with newly added project
-                StateMachine.refreshProjectInfo();
-            } catch (error) {
-                window.showErrorMessage("Error converting integration to project");
-                console.error("Error converting integration to project:", error);
-                return;
-            }
-        } else {
-            try {
-                await addProjectToExistingWorkspace(params);
-                // Refresh project info to update UI with newly added project
-                StateMachine.refreshProjectInfo();
-            } catch (error) {
-                window.showErrorMessage("Error adding integration to existing project");
-                console.error("Error adding integration to existing project:", error);
-            }
+    async addProjectToWorkspace(params: AddProjectToWorkspaceRequest): Promise<AddProjectToWorkspaceResponse> {
+        try {
+            const projectPath = params.convertToWorkspace
+                ? await convertProjectToWorkspace(params)
+                : await addProjectToExistingWorkspace(params);
+            StateMachine.refreshProjectInfo();
+            return { projectPath };
+        } catch (error) {
+            const operation = params.convertToWorkspace
+                ? "converting integration to project"
+                : "adding integration to existing project";
+            window.showErrorMessage(`Error ${operation}`);
+            console.error(`Error ${operation}:`, error);
+            throw error;
         }
     }
 
@@ -2096,6 +2104,77 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             try {
                 const res: SourceEditResponse = await StateMachine.langClient().addClassField(params);
                 await updateSourceCode({ textEdits: res.textEdits, description: 'Class Field Creation' });
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async createClassDependency(params: CreateClassDependencyRequest): Promise<SourceEditResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const res: SourceEditResponse = await StateMachine.langClient().createClassDependency(params);
+                await updateSourceCode({ textEdits: res.textEdits, description: 'Create Class Dependency' });
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async listClassMembers(params: ClassMemberRequest): Promise<ClassMembersResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const res: ClassMembersResponse = await StateMachine.langClient().listClassMembers(params);
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async saveClassMember(params: SaveClassMemberRequest): Promise<SourceEditResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const res: SourceEditResponse = await StateMachine.langClient().saveClassMember(params);
+                await updateSourceCode({ textEdits: res.textEdits, description: 'Save Class Member' });
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async deleteClassMember(params: DeleteClassMemberRequest): Promise<SourceEditResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const res: SourceEditResponse = await StateMachine.langClient().deleteClassMember(params);
+                await updateSourceCode({ textEdits: res.textEdits, description: 'Delete Class Member' });
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async updateClassDependency(params: ModifyClassDependencyRequest): Promise<SourceEditResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const res: SourceEditResponse = await StateMachine.langClient().updateClassDependency(params);
+                await updateSourceCode({ textEdits: res.textEdits, description: 'Update Class Dependency' });
+                resolve(res);
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    async removeClassDependency(params: ModifyClassDependencyRequest): Promise<SourceEditResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const res: SourceEditResponse = await StateMachine.langClient().removeClassDependency(params);
+                await updateSourceCode({ textEdits: res.textEdits, description: 'Remove Class Dependency' });
                 resolve(res);
             } catch (error) {
                 console.log(error);

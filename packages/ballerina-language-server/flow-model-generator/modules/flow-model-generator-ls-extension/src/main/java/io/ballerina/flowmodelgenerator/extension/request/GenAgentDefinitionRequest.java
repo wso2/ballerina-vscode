@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -18,20 +18,15 @@
 
 package io.ballerina.flowmodelgenerator.extension.request;
 
-import com.google.gson.JsonElement;
-
 /**
- * A request to retrieve tools of the agent.
+ * A request to generate an empty custom agent class definition (a class including {@code *ai:FixedTypedAgent})
+ * from a name + description.
  *
- * @param filePath    path of the file
- * @param flowNode    diagram node
- * @param toolName    name of the tool
- * @param toolParameters tool function parameters property node
- * @param description description of the tool
- * @param connection  name of the connection
- *                    
+ * @param filePath    a file in the target project (used to resolve the project root; the class is written to
+ *                    {@code <name>.bal})
+ * @param name        the agent class name
+ * @param description the class doc-comment description
  * @since 1.0.0
  */
-public record GenToolRequest(String filePath, JsonElement flowNode, String toolName, JsonElement toolParameters,
-                             String description, String connection) {
+public record GenAgentDefinitionRequest(String filePath, String name, String description) {
 }

@@ -26,6 +26,7 @@ import {
     ErrorBanner,
     FormExpressionEditorRef,
     HelperPaneHeight,
+    Icon,
     RequiredFormInput,
     ThemeColors
 } from '@wso2/ui-toolkit';
@@ -146,8 +147,7 @@ export namespace S {
     export const HeaderRow = styled.div({
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        gap: '8px'
+        alignItems: 'center',
     });
 
     export const HeaderMain = styled.div({
@@ -417,6 +417,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     } = props as ExpressionEditorProps;
 
     const key = fieldKey ?? field.key;
+    const readOnly = field.editable === false;
     const [focused, setFocused] = useState<boolean>(false);
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
     const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
@@ -489,6 +490,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     // Initial render
     useEffect(() => {
         if (!targetLineRange) return;
+        if (readOnly) return;
         // Fetch initial diagnostics
         if (getExpressionEditorDiagnostics && fieldValue !== undefined
             && (inputMode === InputMode.EXP || inputMode === InputMode.TEMPLATE || isPromptWithDiagnostics)
@@ -607,6 +609,22 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             : `${field.documentation}.`
         : '';
 
+    const modeSwitcherNode = modeSwitcherContext?.isModeSwitcherEnabled ? (
+        <S.FieldInfoSection>
+            {isLoading ? (
+                <SkeletonBase height="24px" width="112px" style={{ borderRadius: '2px', marginTop: '2px' }} />
+            ) : (
+                <ModeSwitcher
+                    fieldKey={field.key}
+                    value={modeSwitcherContext.inputMode}
+                    isRecordTypeField={modeSwitcherContext.isRecordTypeField}
+                    onChange={modeSwitcherContext.onModeChange}
+                    types={modeSwitcherContext.types}
+                />
+            )}
+        </S.FieldInfoSection>
+    ) : null;
+
     return (
         <FieldProvider
             initialField={props.field}
@@ -624,8 +642,15 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     <SkeletonBase height="14px" width="40%" />
                                 ) : (
                                     <S.LabelContainer>
-                                        <S.Label>{field.label}</S.Label>
-                                        {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                            <S.Label>{field.label}</S.Label>
+                                            {readOnly && (
+                                                <span title="Read only" style={{ display: 'inline-flex' }}>
+                                                    <Icon name="bi-lock" iconSx={{ fontSize: "14px" }} sx={{ color: 'var(--vscode-list-deemphasizedForeground)' }} />
+                                                </span>
+                                            )}
+                                        </span>
+                                        {(field.defaultValue && field.defaultValue?.trim() !== "()" && field.defaultValue?.trim() !== "object {}") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
                                         {(required ?? !field.optional) && <RequiredFormInput />}
                                         {getFieldTypeLabel(field.types) && (
                                             <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getFieldTypeLabel(field.types)}>
@@ -634,34 +659,23 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         )}
                                     </S.LabelContainer>
                                 )}
+                                {!documentation && modeSwitcherNode}
                             </S.HeaderContainer>
                         )}
-                        <S.HeaderRow>
-                            <S.HeaderMain>
-                                {isLoading ? (
-                                    documentation ? <SkeletonBase height="13px" width="80%" /> : null
-                                ) : (
-                                    <S.EditorMdContainer>
-                                        {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
-                                    </S.EditorMdContainer>
-                                )}
-                            </S.HeaderMain>
-                            {modeSwitcherContext?.isModeSwitcherEnabled && (
-                                <S.FieldInfoSection>
+                        {(documentation || !field.label) && (
+                            <S.HeaderRow>
+                                <S.HeaderMain>
                                     {isLoading ? (
-                                        <SkeletonBase height="24px" width="112px" style={{ borderRadius: '2px', marginTop: '2px' }} />
+                                        documentation ? <SkeletonBase height="13px" width="80%" /> : null
                                     ) : (
-                                        <ModeSwitcher
-                                            fieldKey={field.key}
-                                            value={modeSwitcherContext.inputMode}
-                                            isRecordTypeField={modeSwitcherContext.isRecordTypeField}
-                                            onChange={modeSwitcherContext.onModeChange}
-                                            types={modeSwitcherContext.types}
-                                        />
+                                        <S.EditorMdContainer>
+                                            {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
+                                        </S.EditorMdContainer>
                                     )}
-                                </S.FieldInfoSection>
-                            )}
-                        </S.HeaderRow>
+                                </S.HeaderMain>
+                                {modeSwitcherNode}
+                            </S.HeaderRow>
+                        )}
                     </S.Header>
                 )}
                 <Controller
@@ -747,9 +761,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                         return (
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
-                                    <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+                                    <div style={{ flex: 1, minWidth: 0, position: 'relative', cursor: readOnly ? 'not-allowed' : undefined }}>
                                         {isLoading && <SkeletonBase height="28px" style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, borderRadius: '2px' }} />}
-                                        <div style={{ visibility: isLoading ? 'hidden' : 'visible' }}>
+                                        <div style={{ visibility: isLoading ? 'hidden' : 'visible', opacity: readOnly ? 0.7 : 1 }}>
                                             <ExpressionField
                                                 field={field}
                                                 inputMode={inputMode}
@@ -827,6 +841,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                                 onNormalizeValue={(normalizedValue: string) => {
                                                     setValue(key, normalizedValue, { shouldDirty: false, shouldValidate: true });
                                                 }}
+                                                disabled={readOnly}
                                             />
                                         </div>
                                     </div>
@@ -912,6 +927,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         error={error}
                                         formDiagnostics={formDiagnostics}
                                         inputMode={inputMode}
+                                        readOnly={readOnly}
                                     />
                                 )}
                             </div>

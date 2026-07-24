@@ -165,6 +165,7 @@ const stateMachine = createMachine<MachineContext>(
                         documentUri: (context, event) => event.viewLocation.documentUri ? event.viewLocation.documentUri : context.documentUri,
                         position: (context, event) => event.viewLocation.position ? event.viewLocation.position : context.position,
                         identifier: (context, event) => event.viewLocation.identifier ? event.viewLocation.identifier : context.identifier,
+                        artifactType: (context, event) => event.viewLocation.artifactType ? event.viewLocation.artifactType : context.artifactType,
                         addType: (context, event) => event.viewLocation?.addType !== undefined ? event.viewLocation.addType : context?.addType,
                     }),
                     (context, event) => notifyTreeView(
@@ -316,6 +317,7 @@ const stateMachine = createMachine<MachineContext>(
                                 position: (context, event) => event.viewLocation.position,
                                 projectPath: (context, event) => event.viewLocation?.projectPath || context?.projectPath,
                                 identifier: (context, event) => event.viewLocation.identifier,
+                                artifactType: (context, event) => event.viewLocation.artifactType,
                                 serviceType: (context, event) => event.viewLocation.serviceType,
                                 type: (context, event) => event.viewLocation?.type,
                                 isGraphql: (context, event) => event.viewLocation?.isGraphql,
@@ -422,6 +424,8 @@ const stateMachine = createMachine<MachineContext>(
                                         documentUri: (context, event) => event.viewLocation.documentUri,
                                         position: (context, event) => event.viewLocation.position,
                                         identifier: (context, event) => event.viewLocation.identifier,
+                                        artifactType: (context, event) => event.viewLocation.artifactType,
+                                        focusFlowDiagramView: (context, event) => event.viewLocation.focusFlowDiagramView,
                                         serviceType: (context, event) => event.viewLocation.serviceType,
                                         projectPath: (context, event) => event.viewLocation?.projectPath || context?.projectPath,
                                         org: (context, event) => event.viewLocation?.org || context?.org,
@@ -454,6 +458,7 @@ const stateMachine = createMachine<MachineContext>(
                                         position: (context, event) => event.viewLocation.position,
                                         view: (context, event) => event.viewLocation.view,
                                         identifier: (context, event) => event.viewLocation.identifier,
+                                        artifactType: (context, event) => event.viewLocation.artifactType,
                                         serviceType: (context, event) => event.viewLocation.serviceType,
                                         type: (context, event) => event.viewLocation?.type,
                                         agentMetadata: (context, event) => event.viewLocation?.agentMetadata,
@@ -695,6 +700,7 @@ const stateMachine = createMachine<MachineContext>(
                             identifier: context.identifier,
                             parentIdentifier: context.parentIdentifier,
                             artifactType: context.artifactType,
+                            focusFlowDiagramView: context?.focusFlowDiagramView,
                             org: orgName || context.org,
                             package: packageName || context.package,
                             type: context?.type,
@@ -767,7 +773,7 @@ const stateMachine = createMachine<MachineContext>(
                     if (!uid && position) {
                         const generatedUid = generateUid(position, fullST);
                         selectedST = getNodeByUid(generatedUid, fullST);
-                        if (generatedUid) {
+                        if (generatedUid && selectedST) {
                             history.updateCurrentEntry({
                                 ...selectedEntry,
                                 location: {
@@ -777,8 +783,6 @@ const stateMachine = createMachine<MachineContext>(
                                 },
                                 uid: generatedUid
                             });
-                        } else {
-                            // show identification failure message
                         }
                     }
 
@@ -1101,7 +1105,7 @@ function refreshProjectExplorer() {
         if (integratorExtension && !integratorExtension.isActive) {
             return;
         }
-    
+
         commands.executeCommand(BI_COMMANDS.PROJECT_EXPLORER_REFRESH);
     } catch (error) {
         console.error('Error refreshing project explorer:', error);

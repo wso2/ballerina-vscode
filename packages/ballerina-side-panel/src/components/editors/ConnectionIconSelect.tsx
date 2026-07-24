@@ -30,10 +30,27 @@ const NODE_ICON_MAP: Record<string, string> = {
     DATA_LOADER: "bi-data-table",
     CHUNKER: "bi-cut",
     SHORT_TERM_MEMORY_STORE: "bi-memory",
+    AGENT: "bi-ai-agent",
+    AGENT_TYPE: "bi-ai-agent",
 };
 
 // Modules that always use node-type icons, skipping the icon URL fallback
 const GENERIC_ICON_MODULES = new Set(["ai.devant", "ai"]);
+
+function getFallbackIcon(codedata: CodeData): React.ReactElement {
+    const iconSx = { width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE };
+    const nodeIcon = codedata.node && NODE_ICON_MAP[codedata.node];
+    if (nodeIcon) return <Icon name={nodeIcon} sx={iconSx} />;
+    return <DefaultLlmIcon size={ICON_SIZE} />;
+}
+
+const UrlIcon: React.FC<{ url: string; fallback: React.ReactElement }> = ({ url, fallback }) => {
+    const [errored, setErrored] = useState(false);
+    if (errored) {
+        return fallback;
+    }
+    return <img src={url} style={{ width: ICON_SIZE, height: ICON_SIZE }} onError={() => setErrored(true)} />;
+};
 
 export function getConnectionIcon(codedata: CodeData, iconUrl?: string): React.ReactElement {
     const iconSx = { width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE };
@@ -51,16 +68,11 @@ export function getConnectionIcon(codedata: CodeData, iconUrl?: string): React.R
         }
     }
 
-    // Icon URL from metadata (fetched from Central) — skip for modules that prefer generic icons
     if (iconUrl && !(codedata.module && GENERIC_ICON_MODULES.has(codedata.module))) {
-        return <img src={iconUrl} style={{ width: ICON_SIZE, height: ICON_SIZE }} />;
+        return <UrlIcon url={iconUrl} fallback={getFallbackIcon(codedata)} />;
     }
 
-    // Icon by node type
-    const nodeIcon = codedata.node && NODE_ICON_MAP[codedata.node];
-    if (nodeIcon) return <Icon name={nodeIcon} sx={iconSx} />;
-
-    return <DefaultLlmIcon size={ICON_SIZE} />;
+    return getFallbackIcon(codedata);
 }
 
 // --- Select Item type ---

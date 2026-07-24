@@ -56,6 +56,21 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
                 },
                 isPopup: true,
             });
+        } else if (key === DIRECTORY_MAP.AGENT) {
+            await rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.AddAgent,
+                },
+                isPopup: true,
+            });
+        } else if (key === DIRECTORY_MAP.AGENT_DEFINITION) {
+            await rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.AddAgentDefinition,
+                },
+            });
         } else if (key === DIRECTORY_MAP.DATA_MAPPER) {
             await rpcClient.getVisualizerRpcClient().openView({
                 type: EVENT_TYPE.OPEN_VIEW,
@@ -140,6 +155,22 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
                     title="Connection"
                     onClick={() => handleClick(DIRECTORY_MAP.CONNECTION)}
                 />
+                {isLibrary &&
+                    <ButtonCard
+                        id="agent"
+                        icon={<Icon name="bi-ai-agent" />}
+                        title="Agent"
+                        onClick={() => handleClick(DIRECTORY_MAP.AGENT)}
+                    />
+                }
+                {isLibrary &&
+                    <ButtonCard
+                        id="agent-definition"
+                        icon={<Icon name="symbol-class" isCodicon={true} />}
+                        title="Agent Definition"
+                        onClick={() => handleClick(DIRECTORY_MAP.AGENT_DEFINITION)}
+                    />
+                }
                 <ButtonCard
                     id="configurable"
                     icon={<Icon name="bi-config" />}

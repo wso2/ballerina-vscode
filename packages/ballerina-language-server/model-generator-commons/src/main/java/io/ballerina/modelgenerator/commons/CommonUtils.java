@@ -20,6 +20,8 @@ package io.ballerina.modelgenerator.commons;
 
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
+import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassFieldSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
@@ -125,12 +127,16 @@ public class CommonUtils {
     private static final String MEMORY_TYPE_NAME = "Memory";
     private static final String ST_MEMORY_STORE_TYPE_NAME = "ShortTermMemoryStore";
     private static final String MCP_BASE_TOOL_KIT_TYPE_NAME = "McpBaseToolKit";
+    private static final String BASE_AGENT_TYPE_NAME = "BaseAgent";
+    private static final String FIXED_TYPED_AGENT_TYPE_NAME = "FixedTypedAgent";
+    private static final String DEPENDENTLY_TYPED_AGENT_TYPE_NAME = "DependentlyTypedAgent";
     public static final String BALLERINA_ORG_NAME = "ballerina";
     public static final String BALLERINAX_ORG_NAME = "ballerinax";
     public static final String LANG_LIB_PREFIX = "lang.";
     private static final String UNKNOWN_TYPE = "Unknown Type";
     private static final String AI = "ai";
     private static final String AGENT = "Agent";
+    private static final String AGENT_TOOL = "AgentTool";
     public static final String CONNECTOR_TYPE = "connectorType";
     public static final String PERSIST = "persist";
     public static final String PERSIST_MODEL_FILE = "persistModelFile";
@@ -1078,6 +1084,25 @@ public class CommonUtils {
         return BALLERINAX_ORG_NAME.equals(org) && (AI.equals(module) || AI_MODULE_NAMES.contains(module));
     }
 
+    public static boolean isAgentToolFunction(Symbol symbol) {
+        if (!(symbol instanceof FunctionSymbol functionSymbol)) {
+            return false;
+        }
+        for (AnnotationAttachmentSymbol annotAttachment : functionSymbol.annotAttachments()) {
+            AnnotationSymbol annotationSymbol = annotAttachment.typeDescriptor();
+            Optional<ModuleSymbol> optModule = annotationSymbol.getModule();
+            if (optModule.isEmpty()) {
+                continue;
+            }
+            ModuleID id = optModule.get().id();
+            if (isAiModule(id.orgName(), id.packageName())
+                    && annotationSymbol.getName().filter(AGENT_TOOL::equals).isPresent()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean isAgentClass(Symbol symbol) {
         Optional<ModuleSymbol> optModule = symbol.getModule();
         if (optModule.isEmpty()) {
@@ -1089,6 +1114,23 @@ public class CommonUtils {
         }
 
         return symbol.getName().isPresent() && symbol.getName().get().equals(AGENT);
+    }
+
+    public static boolean isAiFixedTypedAgent(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, FIXED_TYPED_AGENT_TYPE_NAME);
+    }
+
+    public static boolean isAiDependentlyTypedAgent(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && hasAiTypeInclusion(classSymbol, DEPENDENTLY_TYPED_AGENT_TYPE_NAME);
+    }
+
+    public static boolean isAiAgentType(Symbol symbol) {
+        ClassSymbol classSymbol = getClassSymbol(symbol);
+        return classSymbol != null && (hasAiAgentTypeInclusion(classSymbol, BASE_AGENT_TYPE_NAME)
+                || hasAiAgentTypeInclusion(classSymbol, FIXED_TYPED_AGENT_TYPE_NAME)
+                || hasAiAgentTypeInclusion(classSymbol, DEPENDENTLY_TYPED_AGENT_TYPE_NAME));
     }
 
     public static boolean isAiKnowledgeBase(Symbol symbol) {
@@ -1285,18 +1327,22 @@ public class CommonUtils {
     }
 
     private static ClassSymbol getClassSymbol(Symbol symbol) {
-        if (symbol instanceof ClassSymbol) {
-            return (ClassSymbol) symbol;
+        if (symbol instanceof ClassSymbol classSymbol) {
+            return classSymbol;
         }
-        TypeReferenceTypeSymbol typeDescriptorSymbol;
+        TypeSymbol typeDescriptor;
         if (symbol instanceof VariableSymbol variableSymbol) {
-            typeDescriptorSymbol = (TypeReferenceTypeSymbol) variableSymbol.typeDescriptor();
+            typeDescriptor = variableSymbol.typeDescriptor();
         } else if (symbol instanceof ParameterSymbol parameterSymbol) {
-            typeDescriptorSymbol = (TypeReferenceTypeSymbol) parameterSymbol.typeDescriptor();
+            typeDescriptor = parameterSymbol.typeDescriptor();
         } else {
             return null;
         }
-        return (ClassSymbol) typeDescriptorSymbol.typeDescriptor();
+        if (typeDescriptor instanceof TypeReferenceTypeSymbol typeRef
+                && typeRef.typeDescriptor() instanceof ClassSymbol classSymbol) {
+            return classSymbol;
+        }
+        return null;
     }
 
     private static boolean hasAiTypeInclusion(ClassSymbol classSymbol, String includedTypeName) {
@@ -1309,6 +1355,17 @@ public class CommonUtils {
                 .map(Optional::get)
                 .anyMatch(moduleId -> (BALLERINA_ORG_NAME.equals(moduleId.id().orgName())) &&
                         AI.equals(moduleId.id().moduleName()));
+    }
+
+    private static boolean hasAiAgentTypeInclusion(ClassSymbol classSymbol, String includedTypeName) {
+        return classSymbol.typeInclusions().stream()
+                .filter(typeSymbol -> typeSymbol instanceof TypeReferenceTypeSymbol)
+                .map(typeSymbol -> (TypeReferenceTypeSymbol) typeSymbol)
+                .filter(typeRef -> typeRef.definition().nameEquals(includedTypeName))
+                .map(TypeSymbol::getModule)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .anyMatch(moduleSymbol -> isAiModule(moduleSymbol.id().orgName(), moduleSymbol.id().moduleName()));
     }
 
     private static boolean hasBallerinaxAiTypeInclusion(ClassSymbol classSymbol, String includedTypeName) {
@@ -1540,7 +1597,7 @@ public class CommonUtils {
      * @return the extracted default value as a string
      */
     public static String resolveDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol,
-                                                    SemanticModel semanticModel, Package resolvedPackage) {
+                                             SemanticModel semanticModel, Package resolvedPackage) {
         return resolveDefaultValue(paramSymbol, typeSymbol, semanticModel, resolvedPackage, null);
     }
 
@@ -1556,7 +1613,7 @@ public class CommonUtils {
      * @return the extracted default value as a string
      */
     public static String resolveDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol,
-                                                    SemanticModel semanticModel, Package resolvedPackage,
+                                             SemanticModel semanticModel, Package resolvedPackage,
                                              Document document) {
         String defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
 
@@ -1594,7 +1651,7 @@ public class CommonUtils {
                     semanticModel, document);
             return enumValue != null ? enumValue :
                     qualifiedNameReferenceNode.modulePrefix().text() + ":" + qualifiedNameReferenceNode.identifier()
-                    .text();
+                            .text();
         } else {
             return expression.toSourceCode();
         }
@@ -1687,4 +1744,3 @@ public class CommonUtils {
     }
 
 }
-
