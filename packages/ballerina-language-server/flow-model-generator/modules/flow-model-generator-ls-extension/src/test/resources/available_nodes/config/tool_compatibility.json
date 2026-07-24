@@ -37,7 +37,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "dependent",
+                    "type": ""
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -59,7 +64,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "dependent",
+                    "type": ""
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -81,7 +91,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "dependent",
+                    "type": ""
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -103,7 +118,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "dependent",
+                    "type": ""
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -125,7 +145,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "dependent",
+                    "type": ""
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -147,7 +172,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "undeterminable",
+                    "type": "ballerina/http:2.16.4:Response"
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -169,7 +199,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "dependent",
+                    "type": ""
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -191,7 +226,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "dependent",
+                    "type": ""
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -213,7 +253,14 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": false
+                  "agentToolCompatible": false,
+                  "returnTypeInfo": {
+                    "kind": "dependent",
+                    "type": ""
+                  },
+                  "nonDataParams": [
+                    "request"
+                  ]
                 }
               },
               "enabled": true
@@ -235,7 +282,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": false
+                  "agentToolCompatible": false,
+                  "returnTypeInfo": {
+                    "kind": "undeterminable",
+                    "type": "ballerina/http:2.16.4:HttpFuture"
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -257,7 +309,14 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": false
+                  "agentToolCompatible": false,
+                  "returnTypeInfo": {
+                    "kind": "undeterminable",
+                    "type": "ballerina/http:2.16.4:Response"
+                  },
+                  "nonDataParams": [
+                    "httpFuture"
+                  ]
                 }
               },
               "enabled": true
@@ -279,7 +338,14 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": false
+                  "agentToolCompatible": false,
+                  "returnTypeInfo": {
+                    "kind": "anydata",
+                    "type": "boolean"
+                  },
+                  "nonDataParams": [
+                    "httpFuture"
+                  ]
                 }
               },
               "enabled": true
@@ -301,7 +367,14 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": false
+                  "agentToolCompatible": false,
+                  "returnTypeInfo": {
+                    "kind": "undeterminable",
+                    "type": "ballerina/http:2.16.4:PushPromise"
+                  },
+                  "nonDataParams": [
+                    "httpFuture"
+                  ]
                 }
               },
               "enabled": true
@@ -323,7 +396,14 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": false
+                  "agentToolCompatible": false,
+                  "returnTypeInfo": {
+                    "kind": "undeterminable",
+                    "type": "ballerina/http:2.16.4:Response"
+                  },
+                  "nonDataParams": [
+                    "promise"
+                  ]
                 }
               },
               "enabled": true
@@ -345,7 +425,14 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": false
+                  "agentToolCompatible": false,
+                  "returnTypeInfo": {
+                    "kind": "anydata",
+                    "type": ""
+                  },
+                  "nonDataParams": [
+                    "promise"
+                  ]
                 }
               },
               "enabled": true
@@ -367,7 +454,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": false
+                  "agentToolCompatible": false,
+                  "returnTypeInfo": {
+                    "kind": "undeterminable",
+                    "type": "ballerina/http:2.16.4:CookieStore"
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -389,7 +481,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "anydata",
+                    "type": ""
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -411,7 +508,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "anydata",
+                    "type": ""
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
@@ -433,7 +535,12 @@
                 "parentSymbol": "moduleClient",
                 "resourcePath": "",
                 "data": {
-                  "agentToolCompatible": true
+                  "agentToolCompatible": true,
+                  "returnTypeInfo": {
+                    "kind": "anydata",
+                    "type": "ballerina/http:2.16.4:CircuitState"
+                  },
+                  "nonDataParams": []
                 }
               },
               "enabled": true
