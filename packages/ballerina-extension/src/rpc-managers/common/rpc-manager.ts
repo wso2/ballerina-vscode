@@ -649,31 +649,6 @@ export class CommonRpcManager implements CommonRPCAPI {
         };
     }
 
-    private async updateProjectPackageInfo(projectPath: string, details: PublishPackageInfo): Promise<boolean> {
-        try {
-            await this.updatePackageToml(projectPath, (content) => this.updatePackageDetails(content, details));
-            return true;
-        } catch (error) {
-            console.error('Failed to update Ballerina.toml package metadata:', error);
-            return false;
-        }
-    }
-
-    private async syncAgentDefinitionKeyword(projectPath: string): Promise<void> {
-        const hasPublicAgentDefinition = await this.hasPublicAgentDefinition(projectPath);
-        if (hasPublicAgentDefinition === undefined) {
-            console.warn('Skipping Type/Agent keyword synchronization: unable to read project artifacts.');
-            return;
-        }
-
-        try {
-            await this.updatePackageToml(projectPath, (content) =>
-                this.updateAgentDefinitionKeyword(content, hasPublicAgentDefinition));
-        } catch (error) {
-            console.warn('Failed to synchronize the Type/Agent package keyword:', error);
-        }
-    }
-
     private async updatePackageToml(projectPath: string, update: (content: string) => string): Promise<void> {
         const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
         const content = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
@@ -692,26 +667,22 @@ export class CommonRpcManager implements CommonRPCAPI {
         }
     }
 
+
+    private async updateProjectPackageInfo(projectPath: string, details: PublishPackageInfo): Promise<boolean> {
+        try {
+            await this.updatePackageToml(projectPath, (content) => this.updatePackageDetails(content, details));
+            return true;
+        } catch (error) {
+            console.error('Failed to update Ballerina.toml package metadata:', error);
+            return false;
+        }
+    }
+
     private updatePackageDetails(content: string, details: PublishPackageInfo): string {
         return this.updatePackageSection(content, (section) => {
             let updated = this.upsertTomlField(section, 'org', details.orgName);
             updated = this.upsertTomlField(updated, 'name', details.packageName);
             return this.upsertTomlField(updated, 'version', details.version);
-        });
-    }
-
-    private updateAgentDefinitionKeyword(content: string, shouldInclude: boolean): string {
-        return this.updatePackageSection(content, (section) => {
-            const keywordLine = /^(\s*keywords\s*=\s*)\[(.*)\]\s*$/m;
-            const match = keywordLine.exec(section);
-            if (!match) {
-                return shouldInclude ? this.insertTomlField(section, 'keywords = ["Type/Agent"]') : section;
-            }
-
-            const keywords = match[2].split(',').map((value) => value.trim()).filter(Boolean);
-            const withoutAgent = keywords.filter((value) => value !== '"Type/Agent"' && value !== "'Type/Agent'");
-            const updatedKeywords = shouldInclude ? [...withoutAgent, '"Type/Agent"'] : withoutAgent;
-            return section.replace(keywordLine, `${match[1]}[${updatedKeywords.join(', ')}]`);
         });
     }
 
@@ -744,16 +715,6 @@ export class CommonRpcManager implements CommonRPCAPI {
             : section.slice(0, headerEnd + 1) + `${fieldLine}\n` + section.slice(headerEnd + 1);
     }
 
-    private async hasPublicAgentDefinition(projectPath: string): Promise<boolean | undefined> {
-        try {
-            const artifacts = await StateMachine.langClient().getProjectArtifacts({ projectPath });
-            return Object.values(artifacts?.artifacts?.[ARTIFACT_TYPE.AgentDefinitions] ?? {})
-                .some((artifact) => artifact.visibility === VISIBILITY.PUBLIC);
-        } catch (error) {
-            console.warn('Failed to inspect agent definitions before publishing:', error);
-            return undefined;
-        }
-    }
 
     private async packAndPushToCentral(projectPath: string): Promise<PublishToCentralResponse> {
         const result: PublishToCentralResponse = { success: false, message: '' };
@@ -841,4 +802,46 @@ export class CommonRpcManager implements CommonRPCAPI {
 
         return false;
     }
+
+    private async hasPublicAgentDefinition(projectPath: string): Promise<boolean | undefined> {
+        try {
+            const artifacts = await StateMachine.langClient().getProjectArtifacts({ projectPath });
+            return Object.values(artifacts?.artifacts?.[ARTIFACT_TYPE.AgentDefinitions] ?? {})
+                .some((artifact) => artifact.visibility === VISIBILITY.PUBLIC);
+        } catch (error) {
+            console.warn('Failed to inspect agent definitions before publishing:', error);
+            return undefined;
+        }
+    }
+
+    private async syncAgentDefinitionKeyword(projectPath: string): Promise<void> {
+        const hasPublicAgentDefinition = await this.hasPublicAgentDefinition(projectPath);
+        if (hasPublicAgentDefinition === undefined) {
+            console.warn('Skipping Type/Agent keyword synchronization: unable to read project artifacts.');
+            return;
+        }
+
+        try {
+            await this.updatePackageToml(projectPath, (content) =>
+                this.updateAgentDefinitionKeyword(content, hasPublicAgentDefinition));
+        } catch (error) {
+            console.warn('Failed to synchronize the Type/Agent package keyword:', error);
+        }
+    }
+
+    private updateAgentDefinitionKeyword(content: string, shouldInclude: boolean): string {
+        return this.updatePackageSection(content, (section) => {
+            const keywordLine = /^(\s*keywords\s*=\s*)\[(.*)\]\s*$/m;
+            const match = keywordLine.exec(section);
+            if (!match) {
+                return shouldInclude ? this.insertTomlField(section, 'keywords = ["Type/Agent"]') : section;
+            }
+
+            const keywords = match[2].split(',').map((value) => value.trim()).filter(Boolean);
+            const withoutAgent = keywords.filter((value) => value !== '"Type/Agent"' && value !== "'Type/Agent'");
+            const updatedKeywords = shouldInclude ? [...withoutAgent, '"Type/Agent"'] : withoutAgent;
+            return section.replace(keywordLine, `${match[1]}[${updatedKeywords.join(', ')}]`);
+        });
+    }
+
 }
