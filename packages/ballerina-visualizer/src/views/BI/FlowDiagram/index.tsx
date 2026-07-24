@@ -174,6 +174,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const selectedClientName = useRef<string>();
     const initialCategoriesRef = useRef<any[]>([]);
     const showEditForm = useRef<boolean>(false);
+    // True while the call form open is step 3 of the create-activity-from-connection wizard.
     const selectedNodeMetadata = useRef<{ nodeId: string; metadata: any; fileName: string }>();
     const shouldUpdateLineRangeRef = useRef<boolean>(false);
     const updatedNodeRef = useRef<FlowNode>(undefined);
@@ -2343,6 +2344,104 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             });
     };
 
+    const handleOnAddActivityFromConnection = () => {
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+        setSidePanelView(SidePanelView.ACTIVITY_FROM_CONNECTION);
+        setShowSidePanel(true);
+    };
+
+    const handleActivityFromConnectionCreated = async (activityName: string) => {
+        // After the activity function is generated, open its call form with the new activity selected —
+        // the workflow data is wired into the call there.
+        setShowProgressIndicator(true);
+        try {
+            // The activity is generated in functions.bal, so the workflow file is untouched and the
+            // original insertion point (targetRef, from the diagram "+") stays valid — use it so the
+            // call is inserted inside the workflow body.
+            const insertLine = targetRef.current.startLine;
+
+            const response = await rpcClient.getBIDiagramRpcClient().search({
+                position: { startLine: insertLine, endLine: insertLine },
+                filePath: model?.fileName,
+                queryMap: undefined,
+                searchKind: "ACTIVITY_CALL",
+            });
+            const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                response.categories as Category[],
+                FUNCTION_TYPE.REGULAR
+            );
+            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+            const newActivityNode = (currentIntegrationCategory?.items || [])
+                .map((item) => (item && "metadata" in item ? (item.metadata as AvailableNode) : undefined))
+                .find((node) => node?.codedata?.symbol === activityName);
+
+            if (newActivityNode) {
+                const template = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+                    position: insertLine,
+                    filePath: model?.fileName,
+                    id: newActivityNode.codedata,
+                });
+                selectedNodeRef.current = template.flowNode;
+                nodeTemplateRef.current = template.flowNode;
+                showEditForm.current = false;
+                // The activity list frame pushed on entry stays on the stack, so the form's back
+                // button returns to the activity list.
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+                return;
+            }
+            // Fallback: could not resolve the new activity — just refresh the activity list.
+            await handleActivityAdded();
+        } catch (error) {
+            console.error(">>> Error opening call form for the created activity", error);
+            await handleActivityAdded();
+        } finally {
+            setShowProgressIndicator(false);
+        }
+    };
+
+    // "Create Activity": after generating the activity, return to the activity selection screen instead
+    // of opening the call form. The activity goes to functions.bal, so the workflow file — and the
+    // insertion point the flow was launched from — is unchanged; just reload the list so the new
+    // activity is selectable, and keep the existing targetRef for the eventual call insertion.
+    const handleActivityFromConnectionCreatedReturnToList = async () => {
+        // Restore the activity-list frame (the form's back-button target) before the async refresh, so
+        // the panel lands on the activity list even when the stack lookup below finds nothing.
+        popNavigationStackUntilView(SidePanelView.ACTIVITY_LIST);
+        setShowProgressIndicator(true);
+        try {
+            // The activity is generated in functions.bal, so the workflow file this flow was launched
+            // from is untouched and the original insertion point (targetRef, from the diagram "+") is
+            // still valid — keep it so the selected activity's call is inserted inside the workflow body.
+            const insertLine = targetRef.current.startLine;
+
+            // Reload the activity list at that position so the newly created activity appears and can be
+            // selected. Done inline (rather than via handleActivityAdded) so the list always reloads —
+            // handleActivityAdded closes the panel when ACTIVITY_LIST is missing from the stack.
+            const response = await rpcClient.getBIDiagramRpcClient().search({
+                position: { startLine: insertLine, endLine: insertLine },
+                filePath: model?.fileName,
+                queryMap: undefined,
+                searchKind: "ACTIVITY_CALL",
+            });
+            const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                response.categories as Category[],
+                FUNCTION_TYPE.REGULAR
+            );
+            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
+            }
+            setCategories(panelCategories);
+            setSidePanelView(SidePanelView.ACTIVITY_LIST);
+            setShowSidePanel(true);
+        } catch (error) {
+            console.error(">>> Error returning to the activity list after activity creation", error);
+        } finally {
+            setShowProgressIndicator(false);
+        }
+    };
+
     const handleOnAddActivity = () => {
         isCreatingNewActivity.current = true;
         setShowProgressIndicator(true);
@@ -3284,6 +3383,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAddFunction={handleOnAddFunction}
                 onAddWorkflow={handleOnAddWorkflow}
                 onAddActivity={handleOnAddActivity}
+                onAddActivityFromConnection={handleOnAddActivityFromConnection}
+                onActivityFromConnectionCreated={handleActivityFromConnectionCreated}
+                onActivityFromConnectionCreatedReturnToList={handleActivityFromConnectionCreatedReturnToList}
                 onAddNPFunction={handleOnAddNPFunction}
                 onAddDataMapper={handleOnAddDataMapper}
                 onAddModelProvider={handleOnAddNewModelProvider}
