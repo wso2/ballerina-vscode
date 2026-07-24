@@ -527,6 +527,7 @@ export type NodeKind =
     | "ACTION_OR_EXPRESSION"
     | "ACTIVITY"
     | "ACTIVITY_CALL"
+    | "CONNECTION_ACTIVITY_CALL"
     | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"
