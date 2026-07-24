@@ -211,12 +211,12 @@ export default function createTests() {
             let lastError: unknown;
             for (let attempt = 1; attempt <= 3 && !artifactWebView; attempt++) {
                 logStep(`Hovering "Entry Points" and clicking "Add Entry Point" (attempt ${attempt})`);
-                await entryPoints.scrollIntoViewIfNeeded().catch(() => undefined);
-                await entryPoints.hover({ force: true });
-                await addBtn.waitFor({ timeout: 10000 });
-                await addBtn.click({ force: true });
-
                 try {
+                    await entryPoints.scrollIntoViewIfNeeded();
+                    await entryPoints.hover({ force: true });
+                    await addBtn.waitFor({ timeout: 10000 });
+                    await addBtn.click({ force: true });
+
                     const webView = await getWebview(BI_INTEGRATOR_LABEL, page);
                     await expect(webView.getByRole('heading', { name: 'Artifacts', exact: true })).toBeVisible({ timeout: 15000 });
                     artifactWebView = webView;

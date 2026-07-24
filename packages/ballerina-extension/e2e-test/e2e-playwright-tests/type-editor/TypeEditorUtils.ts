@@ -275,8 +275,8 @@ export class TypeEditorUtils {
         let lastError: unknown;
         let opened = false;
         for (let attempt = 1; attempt <= 3 && !opened; attempt++) {
-            await menuButton.click();
             try {
+                await menuButton.click();
                 await editMenuItem.click({ force: true, timeout: 10000 });
                 opened = true;
             } catch (err) {
@@ -382,8 +382,8 @@ export class TypeEditorUtils {
         // from scratch on each attempt.
         let lastError: unknown;
         for (let attempt = 1; attempt <= 3; attempt++) {
-            await menu.getByRole('img').click();
             try {
+                await menu.getByRole('img').click();
                 await this.webView.getByText('Edit', { exact: true }).click({ timeout: 10000 });
                 return;
             } catch (err) {
