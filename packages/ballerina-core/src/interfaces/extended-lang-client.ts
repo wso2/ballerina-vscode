@@ -1481,6 +1481,21 @@ export interface SourceEditResponse {
     stacktrace?: string;
 }
 
+export interface PackageManifestUpdateRequest {
+    projectPath: string;
+    patch: {
+        package?: {
+            org?: string;
+            name?: string;
+            version?: string;
+        };
+        keywords?: {
+            add?: string[];
+            remove?: string[];
+        };
+    };
+}
+
 export interface ServiceClassSourceRequest {
     filePath: string;
     serviceClass: ServiceClassModel;
@@ -2194,6 +2209,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getTools: (params: AIToolsRequest) => Promise<AIToolsResponse>;
     getMcpTools: (params: McpToolsRequest) => Promise<McpToolsResponse>;
     getPackageVersion: (params: AIGetPackageVersionRequest) => Promise<AIGetPackageVersionResponse>;
+    updatePackageManifest: (params: PackageManifestUpdateRequest) => Promise<SourceEditResponse>;
 }
 
 export interface ExtendedLangClientInterface extends BIInterface {

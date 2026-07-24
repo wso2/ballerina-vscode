@@ -86,8 +86,8 @@ import {
     openPublishDescriptionInEditor,
     selectSampleDownloadPath
 } from "./utils";
-import { syncPackageKeyword, updatePackageDetails } from "./package-toml";
 import { VisualizerWebview } from "../../views/visualizer/webview";
+import { updateSourceCode } from "../../utils/source-utils";
 
 export class CommonRpcManager implements CommonRPCAPI {
     async getTypeCompletions(): Promise<TypeResponse> {
@@ -652,7 +652,14 @@ export class CommonRpcManager implements CommonRPCAPI {
 
     private async updateProjectPackageInfo(projectPath: string, details: PublishPackageInfo): Promise<boolean> {
         try {
-            await this.updatePackageToml(projectPath, (content) => updatePackageDetails(content, details));
+            const response = await StateMachine.langClient().updatePackageManifest({
+                projectPath,
+                patch: { package: { org: details.orgName, name: details.packageName, version: details.version } }
+            });
+            if (response.errorMsg) {
+                throw new Error(response.errorMsg);
+            }
+            await updateSourceCode({ textEdits: response.textEdits ?? {}, description: 'Update package metadata' });
             return true;
         } catch (error) {
             console.error('Failed to update Ballerina.toml package metadata:', error);
@@ -668,28 +675,18 @@ export class CommonRpcManager implements CommonRPCAPI {
         }
 
         try {
-            await this.updatePackageToml(projectPath, (content) =>
-                syncPackageKeyword(content, 'Type/Agent', hasPublicAgentDefinition));
+            const response = await StateMachine.langClient().updatePackageManifest({
+                projectPath,
+                patch: {
+                    keywords: hasPublicAgentDefinition ? { add: ['Type/Agent'] } : { remove: ['Type/Agent'] }
+                }
+            });
+            if (response.errorMsg) {
+                throw new Error(response.errorMsg);
+            }
+            await updateSourceCode({ textEdits: response.textEdits ?? {}, description: 'Update package keywords' });
         } catch (error) {
             console.warn('Failed to synchronize the Type/Agent package keyword:', error);
-        }
-    }
-
-    private async updatePackageToml(projectPath: string, update: (content: string) => string): Promise<void> {
-        const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
-        const content = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
-        const updatedContent = update(content);
-        if (updatedContent === content) {
-            return;
-        }
-        await fs.promises.writeFile(ballerinaTomlPath, updatedContent, 'utf-8');
-        try {
-            await StateMachine.langClient().didChange({
-                textDocument: { uri: Uri.file(ballerinaTomlPath).toString(), version: 1 },
-                contentChanges: [{ text: updatedContent }],
-            });
-        } catch (error) {
-            console.warn('Failed to notify the language server about the Ballerina.toml update:', error);
         }
     }
 
