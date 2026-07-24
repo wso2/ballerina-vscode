@@ -650,6 +650,17 @@ export class NodeFactoryVisitor implements BaseVisitor {
         }
     }
 
+    beginVisitConnectionActivityCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (node.id) {
+            // Connection-backed activity calls render with the same double-line activity box as
+            // plain activity calls; the widget adds a dashed link per connection (it is a local
+            // activity invocation, not a remote call, so no arrowhead).
+            this.createCallActivityNode(node);
+            this.addSuggestionsButton(node);
+        }
+    }
+
     beginVisitWorkflowRun(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         if (node.id) {

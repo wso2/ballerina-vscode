@@ -1171,6 +1171,90 @@ public class AiUtils {
         return new AgentToolCompatibility(true, null);
     }
 
+    /**
+     * Categorizes a connector action's return type for the "create activity from connection" form.
+     *
+     * @param kind {@code "dependent"} (the return type depends on a typedesc parameter, so the user
+     *             picks it — like a databinding type), {@code "anydata"} (a concrete data type usable
+     *             as-is and shown read-only), or {@code "undeterminable"} (contains object/stream/etc.,
+     *             so the user must pick the type and may need to fix the generated return statement)
+     * @param type the resolved success (non-error) return type signature; empty for {@code "dependent"}
+     */
+    public record ReturnTypeInfo(String kind, String type) {
+    }
+
+    /**
+     * Analyzes a function's return type to drive the activity-from-connection return-type field.
+     * Mirrors the return-type rules of {@link #checkAgentToolCompatibility}.
+     */
+    public static ReturnTypeInfo analyzeReturnType(FunctionTypeSymbol functionTypeSymbol,
+                                                   SemanticModel semanticModel) {
+        Optional<List<ParameterSymbol>> optParams = functionTypeSymbol.params();
+        boolean dependent = optParams.isPresent() && optParams.get().stream()
+                .anyMatch(p -> CommonUtils.getRawType(p.typeDescriptor()).typeKind() == TypeDescKind.TYPEDESC);
+        if (dependent) {
+            return new ReturnTypeInfo("dependent", "");
+        }
+        Optional<TypeSymbol> optReturnType = functionTypeSymbol.returnTypeDescriptor();
+        if (optReturnType.isEmpty()) {
+            return new ReturnTypeInfo("anydata", "");
+        }
+        TypeSymbol successType = nonErrorReturnType(optReturnType.get());
+        if (successType == null) {
+            return new ReturnTypeInfo("anydata", "");
+        }
+        TypeSymbol anydata = semanticModel.types().ANYDATA;
+        String signature = successType.signature();
+        if (CommonUtils.subTypeOf(successType, anydata)) {
+            return new ReturnTypeInfo("anydata", signature);
+        }
+        return new ReturnTypeInfo("undeterminable", signature);
+    }
+
+    /**
+     * Returns the names of the function's parameters whose type is not a subtype of {@code anydata}
+     * (skipping the typedesc type-infer parameter). The create-activity-from-connection form surfaces
+     * these as {@code anydata} with a warning, since a workflow activity parameter must be serializable.
+     */
+    public static List<String> getNonAnydataParams(FunctionTypeSymbol functionTypeSymbol,
+                                                   SemanticModel semanticModel) {
+        List<String> nonDataParams = new ArrayList<>();
+        Optional<List<ParameterSymbol>> optParams = functionTypeSymbol.params();
+        if (optParams.isEmpty()) {
+            return nonDataParams;
+        }
+        TypeSymbol anydata = semanticModel.types().ANYDATA;
+        for (ParameterSymbol param : optParams.get()) {
+            if (CommonUtils.getRawType(param.typeDescriptor()).typeKind() == TypeDescKind.TYPEDESC) {
+                continue;
+            }
+            if (!CommonUtils.subTypeOf(param.typeDescriptor(), anydata)) {
+                param.getName().ifPresent(nonDataParams::add);
+            }
+        }
+        return nonDataParams;
+    }
+
+    // Returns the non-error/non-nil part of a (possibly union) return type, or null when it carries
+    // no data (e.g. error?).
+    private static TypeSymbol nonErrorReturnType(TypeSymbol returnType) {
+        TypeSymbol rawType = CommonUtils.getRawType(returnType);
+        if (rawType.typeKind() != TypeDescKind.UNION) {
+            TypeDescKind kind = rawType.typeKind();
+            return (kind == TypeDescKind.ERROR || kind == TypeDescKind.NIL) ? null : returnType;
+        }
+        List<TypeSymbol> members = ((UnionTypeSymbol) rawType).memberTypeDescriptors().stream()
+                .filter(m -> {
+                    TypeDescKind kind = CommonUtils.getRawType(m).typeKind();
+                    return kind != TypeDescKind.ERROR && kind != TypeDescKind.NIL;
+                })
+                .toList();
+        if (members.isEmpty()) {
+            return null;
+        }
+        return members.size() == 1 ? members.get(0) : returnType;
+    }
+
     private static boolean isValidAgentToolReturnType(TypeSymbol returnType, TypeSymbol anydata) {
         TypeSymbol rawType = CommonUtils.getRawType(returnType);
 

@@ -288,6 +288,13 @@ export class SizingVisitor implements BaseVisitor {
         this.createBaseNode(node);
     }
 
+    endVisitConnectionActivityCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        // Connection-backed activity calls render like action calls, reserving right-side space for
+        // the connection arrow and endpoint.
+        this.createApiCallNode(node);
+    }
+
     endVisitSendData(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.createSendDataNode(node);
