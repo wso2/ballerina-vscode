@@ -18,7 +18,7 @@
       "description": "Send a plain-text email as a workflow activity using a configured email:SmtpClient connection."
     },
     "codedata": {
-      "node": "ACTIVITY_CALL",
+      "node": "CONNECTION_ACTIVITY_CALL",
       "org": "ballerina",
       "module": "workflow.activity",
       "symbol": "sendEmail",
