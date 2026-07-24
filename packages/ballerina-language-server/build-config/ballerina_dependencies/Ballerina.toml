@@ -61,7 +61,7 @@ version = "1.17.0"
 [[dependency]]
 org = "ballerinax"
 name = "postgresql.driver"
-version = "1.6.1"
+version = "1.6.3"
 
 [[dependency]]
 org = "ballerinax"
@@ -101,17 +101,17 @@ version = "1.0.0"
 [[dependency]]
 org = "ballerinax"
 name = "ai.pinecone"
-version = "1.1.2"
+version = "1.1.5"
 
 [[dependency]]
 org = "ballerinax"
 name = "ai.devant"
-version = "1.0.2"
+version = "1.0.4"
 
 [[dependency]]
 org = "ballerinax"
 name = "ai.openai"
-version = "1.2.3"
+version = "1.3.5"
 
 [[dependency]]
 org = "ballerinax"
@@ -121,7 +121,7 @@ version = "1.2.4"
 [[dependency]]
 org = "ballerinax"
 name = "ai.azure"
-version = "1.1.2"
+version = "1.4.4"
 
 [[dependency]]
 org = "ballerinax"
@@ -166,12 +166,12 @@ version = "1.0.1"
 [[dependency]]
 org = "ballerinax"
 name = "ai.mistral"
-version = "1.2.3"
+version = "1.2.4"
 
 [[dependency]]
 org = "ballerina"
 name = "ai"
-version = "1.11.2"
+version = "1.12.0"
 
 [[dependency]]
 org = "ballerinax"
@@ -181,7 +181,7 @@ version = "0.3.0"
 [[dependency]]
 org = "ballerinax"
 name = "cdc"
-version = "1.3.0"
+version = "1.3.2"
 
 [[dependency]]
 org = "ballerinax"
@@ -191,7 +191,7 @@ version = "1.17.0"
 [[dependency]]
 org = "ballerinax"
 name = "mssql.cdc.driver"
-version = "1.0.0"
+version = "1.0.2"
 
 [[dependency]]
 org = "ballerinax"
@@ -206,7 +206,7 @@ version = "2.16.0"
 [[dependency]]
 org = "ballerina"
 name = "data.csv"
-version = "0.8.1"
+version = "0.8.2"
 
 [[dependency]]
 org = "ballerina"

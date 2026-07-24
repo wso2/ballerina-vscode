@@ -142,21 +142,24 @@ task resolveBallerinaDependencies {
     outputs.dir targetDir
 
     doLast {
-        def tomlFile = file("build-config/ballerina_dependencies/Ballerina.toml")
-        def hashFile = file("$buildDir/ballerina_dependencies/.toml-hash")
+        def lockFile = file("build-config/ballerina_dependencies/Dependencies.toml")
+        def hashFile = file("$buildDir/ballerina_dependencies/.deps-hash")
 
         def digest = java.security.MessageDigest.getInstance("SHA-256")
-        digest.update(tomlFile.bytes)
+        digest.update(lockFile.bytes)
         def currentHash = digest.digest().collect { String.format("%02x", it) }.join()
 
-        // Skip the bal build only when the inputs are unchanged AND the home it
-        // describes still exists — a partially deleted home must trigger
-        // re-resolution.
+        // Skip the bal build only when the locked dependency set is unchanged AND the
+        // home it describes still exists — a partially deleted home must trigger
+        // re-resolution. Dependencies.toml is the authoritative lock (every resolved
+        // package and exact version, transitives included), so it is the correct change
+        // signal; Ballerina.toml only declares version floors and does not by itself
+        // determine what gets provisioned into the cache.
         def homeBalaDir = new File(ballerinaTestHomeDir, "repositories/central.ballerina.io/bala")
         def skipResolution = hashFile.exists() && hashFile.text.trim() == currentHash && homeBalaDir.exists()
 
         if (skipResolution) {
-            logger.lifecycle("Ballerina.toml unchanged — skipping dependency resolution")
+            logger.lifecycle("Dependencies.toml unchanged — skipping dependency resolution")
         } else {
             delete targetDir
 
