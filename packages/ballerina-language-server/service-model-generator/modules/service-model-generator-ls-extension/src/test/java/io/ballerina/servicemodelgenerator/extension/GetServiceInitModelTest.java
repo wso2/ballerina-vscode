@@ -95,10 +95,7 @@ public class GetServiceInitModelTest extends AbstractLSTest {
     @Override
     protected String[] skipList() {
         return new String[]{
-                "mqtt_service_model_2.json",
-                "rabbitmq_service_model_2.json",
                 "salesforce_service_model_2.json",
-                "solace_service_model_2.json"
         };
     }
 

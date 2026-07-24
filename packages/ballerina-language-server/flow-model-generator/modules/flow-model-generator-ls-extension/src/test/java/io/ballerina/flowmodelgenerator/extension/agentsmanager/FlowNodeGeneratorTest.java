@@ -62,13 +62,15 @@ public class FlowNodeGeneratorTest extends AbstractLSTest {
 
     @Override
     protected String[] skipList() {
-        // TODO: remove after deprecated ballerinax/ai imports are migrated
-        // agent_3/5/6/7 sources import ballerinax/ai (removed from offline cache) — see REMAINING_TEST_FAILURES.md
+        // TODO: remove after deprecated ballerinax/ai imports are migrated.
+        // Configs 1-4 map to sources agent_3/agent_5/agent_6/agent_7 respectively, which import the retired
+        // ballerinax/ai (removed from the offline cache) — see REMAINING_TEST_FAILURES.md.
+        // (config 7 -> agent_12 imports ballerina/ai, not ballerinax/ai, so it stays enabled.)
         return new String[]{
-                "agent_call_flow_node_1.json",
-                "agent_call_flow_node_2.json",
-                "agent_call_flow_node_3.json",
-                "agent_call_flow_node_4.json"
+                "agent_call_flow_node_1.json",   // agent_3 (ballerinax/ai)
+                "agent_call_flow_node_2.json",   // agent_5 (ballerinax/ai)
+                "agent_call_flow_node_3.json",   // agent_6 (ballerinax/ai)
+                "agent_call_flow_node_4.json"    // agent_7 (ballerinax/ai)
         };
     }
 

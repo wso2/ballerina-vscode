@@ -2,18 +2,7 @@
 # central cache. `bal build` on this project resolves and downloads the whole
 # set in one pass, and Dependencies.toml locks every version (transitives
 # included) until deliberately regenerated.
-#
-# Intentionally excluded:
-# - ballerinax/np: its compiler plugin crashes on >= 2201.13 distributions
-#   (NoClassDefFoundError on an OpenAPI class), and no test asserts on it.
-# - ballerinax/ai.mistral: cannot be resolved alongside ballerinax/ai:1.0.1,
-#   which forces it down to an unusable 1.0.1 in a shared graph. The
-#   model_provider test fixture pins its own ai.mistral:1.0.1 and resolves it
-#   at test time, so it does not rely on this project.
-#
-# Note: trigger.github is pinned to 0.11.0 (not the 0.10.0 the old bal pull
-# used) because 0.10.0 requires ballerina/cloud:2.x while trigger.shopify
-# requires cloud:4.x, and the two majors cannot coexist in one graph.
+
 [package]
 org = "wso2"
 name = "ballerina_dependencies"

@@ -752,11 +752,14 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         try {
             Package packageInstance = module.packageInstance();
             if (packageInstance != null) {
-                // Resolve the dependency package offline during tests (ls.test.offline) so compiling it to read its
-                // config variables never pulls transitive dependencies from Central. Compilation reuses this cached
-                // resolution. Production keeps the default (online) behaviour.
-                packageInstance.getResolution(
-                        CompilationOptions.builder().setOffline(PackageUtil.isOffline()).build());
+                // Resolve the dependency package offline ONLY during tests (ls.test.offline) so compiling it to read
+                // its config variables never pulls transitive dependencies from Central; compilation then reuses this
+                // cached resolution. In production we leave the package's own (inherited) resolution untouched, which
+                // matches the original behaviour exactly.
+                if (PackageUtil.isOffline()) {
+                    packageInstance.getResolution(
+                            CompilationOptions.builder().setOffline(true).build());
+                }
                 if (packageInstance.getCompilation() != null) {
                     SemanticModel semanticModel = packageInstance.getCompilation()
                             .getSemanticModel(module.moduleId());
@@ -799,10 +802,12 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             Package currentPkg, Collection<ModuleDependency> moduleDependencies,
             Toml configTomlValues) {
         Map<String, Map<String, List<FlowNode>>> pkgConfigs = new HashMap<>();
-        // Resolve the dependency graph offline during tests (ls.test.offline) so config extraction never pulls from
-        // Central; production keeps the default (online) resolution behaviour. Resolve once and reuse.
-        PackageResolution resolution = currentPkg.getResolution(
-                CompilationOptions.builder().setOffline(PackageUtil.isOffline()).build());
+        // Resolve the dependency graph offline ONLY during tests (ls.test.offline) so config extraction never pulls
+        // from Central; in production use the package's default (no-arg) resolution to match the original behaviour.
+        // Resolve once and reuse.
+        PackageResolution resolution = PackageUtil.isOffline()
+                ? currentPkg.getResolution(CompilationOptions.builder().setOffline(true).build())
+                : currentPkg.getResolution();
         if (resolution == null || resolution.dependencyGraph() == null) {
             return pkgConfigs;
         }
